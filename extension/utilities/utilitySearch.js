@@ -103,10 +103,7 @@ class SearchComponent extends GObject.Object {
      * Cleans up resources and references.
      */
     destroy() {
-        this._entry?.destroy();
-        this._clearButton?.destroy();
-        this.actor?.destroy();
-
+        // Nullify references to prevent memory leaks
         this._entry = null;
         this._clearButton = null;
         this.actor = null;
