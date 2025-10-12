@@ -1,0 +1,10 @@
+# Ignore built files
+*.zip
+
+# Ignore IDE/editor-specific files
+.idea/
+.vscode/
+*.swp
+
+# Ignore macOS system files
+.DS_Store

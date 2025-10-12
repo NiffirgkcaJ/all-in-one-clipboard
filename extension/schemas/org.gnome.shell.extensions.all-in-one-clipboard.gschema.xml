@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <schema id="org.gnome.shell.extensions.all-in-one-clipboard" path="/org/gnome/shell/extensions/all-in-one-clipboard/">
+        <!-- General Settings -->
+        <key name="hide-panel-icon" type="b">
+            <default>false</default>
+            <summary>Hide Panel Icon</summary>
+            <description>When enabled, the icon is hidden from the top panel. The extension can still be accessed via keyboard shortcuts.</description>
+        </key>
+        <key name="hidden-icon-position-mode" type="s">
+            <default>'cursor'</default>
+            <summary>Positioning mode when panel icon is hidden</summary>
+            <description>Determines where the menu appears when opened via shortcut while the panel icon is hidden. Can be 'cursor', 'center', or 'window'.</description>
+        </key>
+
+        <!-- Keyboard Shortcuts -->
+        <key name="shortcut-toggle-main" type="as">
+            <default>[]</default>
+            <summary>Toggle main menu</summary>
+        </key>
+        <key name="shortcut-open-clipboard" type="as">
+            <default><![CDATA[['<Super>v']]]></default>
+            <summary>Open clipboard tab</summary>
+        </key>
+        <key name="shortcut-open-emoji" type="as">
+            <default><![CDATA[['<Super>period']]]></default>
+            <summary>Open emoji tab</summary>
+        </key>
+        <key name="shortcut-open-gif" type="as">
+            <default>[]</default>
+            <summary>Open GIF tab</summary>
+        </key>
+        <key name="shortcut-open-kaomoji" type="as">
+            <default>[]</default>
+            <summary>Open kaomoji tab</summary>
+        </key>
+        <key name="shortcut-open-symbols" type="as">
+            <default>[]</default>
+            <summary>Open symbols tab</summary>
+        </key>
+
+        <!-- Clipboard History -->
+        <key name="clipboard-history-max-items" type="i">
+            <default>50</default>
+            <range min="10" max="200"/>
+            <summary>Maximum number of items in clipboard history</summary>
+            <description>The maximum number of unpinned items to store in the clipboard history.</description>
+        </key>
+        <key name="update-recency-on-copy" type="b">
+            <default>true</default>
+            <summary>Move item to top on copy</summary>
+            <description>When an item is copied from the clipboard history, move it to the top of the list.</description>
+        </key>
+        <key name="unpin-on-paste" type="b">
+            <default>true</default>
+            <summary>Unpin item on paste</summary>
+            <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
+        </key>
+
+        <!-- Recent Items Limits -->
+        <key name="emoji-recents-max-items" type="i">
+            <default>45</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Emojis</summary>
+            <description>The maximum number of recently used emojis to store and display in the Emoji 'Recents' tab.</description>
+        </key>
+        <key name="kaomoji-recents-max-items" type="i">
+            <default>30</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Kaomojis</summary>
+            <description>The maximum number of recently used kaomojis to store and display in the Kaomoji 'Recents' tab.</description>
+        </key>
+        <key name="symbols-recents-max-items" type="i">
+            <default>45</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Symbols</summary>
+            <description>The maximum number of recently used symbols to store and display in the Symbols 'Recents' tab.</description>
+        </key>
+        <key name="gif-recents-max-items" type="i">
+            <default>30</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent GIFs</summary>
+            <description>The maximum number of recently used GIFs to store and display in the GIF 'Recents' tab.</description>
+        </key>
+
+        <!-- Auto-Paste Settings -->
+        <key name="enable-auto-paste" type="b">
+            <default>false</default>
+            <summary>Enable auto-paste functionality</summary>
+            <description>When enabled, selected items will be automatically pasted instead of just copied to clipboard.</description>
+        </key>
+        <key name="auto-paste-emoji" type="b">
+            <default>true</default>
+            <summary>Auto-paste emojis</summary>
+            <description>Automatically paste emojis when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-gif" type="b">
+            <default>true</default>
+            <summary>Auto-paste GIFs</summary>
+            <description>Automatically paste GIFs when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-kaomoji" type="b">
+            <default>true</default>
+            <summary>Auto-paste kaomojis</summary>
+            <description>Automatically paste kaomojis when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-symbols" type="b">
+            <default>true</default>
+            <summary>Auto-paste symbols</summary>
+            <description>Automatically paste symbols when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-clipboard" type="b">
+            <default>true</default>
+            <summary>Auto-paste from clipboard history</summary>
+            <description>Automatically paste items from clipboard history when selected (requires master toggle).</description>
+        </key>
+
+        <!-- Emoji Settings -->
+        <key name="enable-custom-skin-tones" type="b">
+            <default>false</default>
+            <summary>Enable Custom Skin Tones</summary>
+            <description>Master switch to enable or disable custom skin tone configuration. If false, skinnable emojis will render in their neutral (yellow) form. If true, the 'Custom Skin Tone Primary' and 'Custom Skin Tone Secondary' settings will be used.</description>
+        </key>
+        <key name="custom-skin-tone-primary" type="s">
+            <default>"🏻"</default>
+            <summary>Custom Skin Tone (Primary / Single Emoji)</summary>
+            <description>Sets the skin tone for single-person emojis, or the first person in a multi-person emoji, when 'Enable Custom Skin Tones' is active. Stores the Unicode skin tone modifier character.</description>
+        </key>
+        <key name="custom-skin-tone-secondary" type="s">
+            <default>"🏻"</default>
+            <summary>Custom Skin Tone (Secondary)</summary>
+            <description>Sets the skin tone for the second person in a multi-person emoji, when 'Enable Custom Skin Tones' is active. Stores the Unicode skin tone modifier character.</description>
+        </key>
+
+        <!-- GIF Settings -->
+        <key name="gif-provider" type="s">
+            <default>'none'</default>
+            <summary>The selected GIF provider service</summary>
+            <description>Can be 'none', 'tenor', or 'imgur'.</description>
+        </key>
+        <key name="gif-tenor-api-key" type="s">
+            <default>''</default>
+            <summary>User's API key for the Tenor GIF service</summary>
+            <description>Required when using Tenor as the GIF provider.</description>
+        </key>
+        <key name="gif-imgur-client-id" type="s">
+            <default>''</default>
+            <summary>User's Client ID for the Imgur service</summary>
+            <description>Required when using Imgur as the GIF provider.</description>
+        </key>
+
+        <!-- Data Management -->
+        <key name="clear-recents-trigger" type="s">
+            <default>''</default>
+            <summary>Trigger to clear recent items data</summary>
+            <description>Internal use only. Setting this to 'emoji', 'gif', 'kaomoji', 'symbols', or 'all' will trigger the extension to clear the corresponding cached recent items. It will be reset to empty after the action is performed.</description>
+        </key>
+    </schema>
+</schemalist>

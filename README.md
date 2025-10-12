@@ -1,0 +1,102 @@
+# All-in-One Clipboard GNOME Extension
+
+A powerful, integrated clipboard manager for GNOME Shell that combines your clipboard history with quick access to Emojis, GIFs, Kaomojis, and Symbols.
+
+This extension provides a unified, searchable interface to manage your clipboard history, find and insert emojis with skin-tone support, search for GIFs via Tenor or Imgur, and browse extensive libraries of kaomojis and symbols.
+
+## Features
+
+*   **Clipboard History:**
+    *   Saves a configurable number of text and image items from your clipboard.
+    *   Pin important items to keep them at the top.
+    *   Search your clipboard history.
+    *   Select and delete multiple items at once.
+*   **Emoji Selector:**
+    *   Browse emojis by category or search by name.
+    *   Full support for skin-tone modifiers, configurable in preferences.
+    *   Keeps track of your recently used emojis.
+*   **GIF Search:**
+    *   Integrates with Tenor and Imgur (requires a free API key).
+    *   Search for GIFs by keyword and browse trending categories.
+    *   Saves your recent GIFs for quick re-use.
+*   **Kaomoji & Symbols:**
+    *   Access thousands of kaomojis and symbols, organized by category.
+    *   Searchable and includes a "Recents" tab for your favorites.
+*   **Unified "Recents" Tab:**
+    *   See all your most recently used items from every category in one convenient place.
+*   **Auto-Paste:**
+    *   Optionally paste content directly into the active application instead of just copying it.
+*   **Highly Configurable:**
+    *   Set custom keyboard shortcuts for toggling the menu or jumping to specific tabs.
+    *   Hide the panel icon and open the menu at your cursor, the center of the screen, or over the active window.
+    *   Fine-tune history limits, auto-paste behavior, and more.
+
+## Compatibility
+
+Requires GNOME Shell version 46 and up.
+
+## Installation
+
+### From extensions.gnome.org (Recommended)
+
+The easiest way to install is from the official GNOME Extensions website.
+
+<a href="https://extensions.gnome.org/extension/8671/all-in-one-clipboard/">
+<img src="https://github.com/andyholmes/gnome-shell-extensions-badge/raw/master/get-it-on-ego.svg" alt="Get it on EGO" width="200" />
+</a>
+
+### Manual Installation
+
+1.  **Download the ZIP file:**
+    Go to the [Releases](https://github.com/NiffirgkcaJ/all-in-one-clipboard/releases) page of this repository and download the `all-in-one-clipboard@NiffirgkcaJ.github.com.zip` file from the latest release.
+
+2.  **Install using the Extensions App:**
+    *   Open the "Extensions" application on your system.
+    *   Click the "Install from File..." button in the top-right corner.
+    *   Select the `.zip` file you just downloaded.
+
+3.  **Enable the extension:**
+    Find "All-in-One Clipboard" in the list and enable it.
+
+### Install from Source (for Developers)
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/NiffirgkcaJ/all-in-one-clipboard.git
+    cd all-in-one-clipboard
+    ```
+2.  Run the installation script:
+    ```bash
+    ./install.sh
+    ```
+3.  Restart GNOME Shell (press `Alt` + `F2`, type `r`, and press `Enter`) or log out and back in.
+4.  Enable the extension using the Extensions app or the command line:
+    ```bash
+    gnome-extensions enable all-in-one-clipboard@NiffirgkcaJ.github.com
+    ```
+
+## Usage
+
+*   **Open the Menu:** Click the clipboard icon in the top panel or use the keyboard shortcut you configured (default is `<Super>v` for the clipboard tab).
+*   **Navigate:** Use the icons at the top to switch between the "Recents", "Emoji", "GIF", "Kaomoji", "Symbols", and "Clipboard" tabs.
+*   **Search:** Use the search bar within each tab to filter results.
+*   **Select:** Click on any item to copy it to your clipboard. If auto-paste is enabled, it will also be pasted into your active window.
+
+## Uninstallation
+
+*   **Using the Extensions App (Recommended):**
+    Open the "Extensions" application, find "All-in-One Clipboard", and click the "Uninstall" button.
+
+*   **Using the Script:**
+    If you installed from source, navigate to the cloned repository directory and run:
+    ```bash
+    ./uninstall.sh
+    ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to open an issue to report a bug or suggest a feature, or submit a pull request with your improvements.
+
+## License
+
+This project is licensed under the **GPLv3** - see the [LICENSE](LICENSE) file for details.
