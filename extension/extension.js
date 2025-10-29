@@ -75,6 +75,8 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         this._currentTabNavigateSignalId = 0;
         this._selectTabTimeoutId = 0;
         this._loadingIndicatorTimeoutId = 0;
+        this._gifProviderSignalId = 0;
+        this._gifTabButton = null;
 
         this.TAB_NAMES = [
             _("Recently Used"),
@@ -89,6 +91,11 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         this.add_child(icon);
 
         this._buildMenu();
+
+        this._gifProviderSignalId = this._settings.connect('changed::gif-provider', () => {
+            this._updateGifAvailability();
+        });
+        this._updateGifAvailability();
     }
 
     /**
@@ -119,6 +126,7 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         mainVerticalBox.add_child(this._tabContentArea);
 
         // Build tab buttons with themed icons
+        const gifTabName = _("GIF");
         this.TAB_NAMES.forEach(name => {
             const translatedName = _(name);
             const iconFile = MAIN_TAB_ICONS_MAP[translatedName];
@@ -138,6 +146,10 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
             button.connect('clicked', () => this._selectTab(name));
             this._tabButtons[name] = button;
             this._mainTabBar.add_child(button);
+
+            if (translatedName === gifTabName) {
+                this._gifTabButton = button;
+            }
         });
 
         this._mainTabBar.set_reactive(true);
@@ -184,6 +196,58 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
     }
 
     /**
+     * Determines if the GIF feature should be available.
+     * @returns {boolean} True when a GIF provider is configured.
+     * @private
+     */
+    _isGifFeatureEnabled() {
+        if (!this._settings) {
+            return false;
+        }
+
+        return this._settings.get_string('gif-provider') !== 'none';
+    }
+
+    /**
+     * Updates GIF tab availability when the provider setting changes.
+     * @private
+     */
+    _updateGifAvailability() {
+        const gifTabName = _("GIF");
+        const gifEnabled = this._isGifFeatureEnabled();
+
+        if (this._gifTabButton) {
+            this._gifTabButton.visible = gifEnabled;
+            this._gifTabButton.reactive = gifEnabled;
+            this._gifTabButton.can_focus = gifEnabled;
+        }
+
+        if (!gifEnabled) {
+            const fallbackTab = _("Recently Used");
+
+            if (this._activeTabName === gifTabName) {
+                if (this.menu?.isOpen) {
+                    this._selectTab(fallbackTab).catch(e => {
+                        console.error(`[AIO-Clipboard] Failed to switch away from disabled GIF tab: ${e.message}`);
+                    });
+                }
+                this._activeTabName = fallbackTab;
+                if (!this.menu?.isOpen) {
+                    if (this._currentTabActor) {
+                        this._disconnectTabSignals(this._currentTabActor);
+                    }
+                    this._currentTabActor?.destroy();
+                    this._currentTabActor = null;
+                }
+            }
+
+            if (this._lastActiveTabName === gifTabName) {
+                this._lastActiveTabName = fallbackTab;
+            }
+        }
+    }
+
+    /**
      * Disconnects signals from the previously active tab's content actor.
      * @param {St.Actor} tabActor - The actor of the tab content being deactivated.
      * @private
@@ -212,6 +276,15 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
      * @private
      */
     async _selectTab(tabName) {
+        const gifTabName = _("GIF");
+        if (tabName === gifTabName && !this._isGifFeatureEnabled()) {
+            const fallbackTab = _("Recently Used");
+            if (fallbackTab === gifTabName) {
+                return;
+            }
+            return this._selectTab(fallbackTab);
+        }
+
         // Initial Checks and State Setup
         if (this._activeTabName === tabName && this._currentTabActor) {
             // If clicking the same tab, just call its onSelected method.
@@ -485,6 +558,12 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         this._currentTabActor?.destroy();
         this._currentTabActor = null;
 
+        if (this._gifProviderSignalId && this._settings) {
+            this._settings.disconnect(this._gifProviderSignalId);
+            this._gifProviderSignalId = 0;
+        }
+
+        this._gifTabButton = null;
         this._tabButtons = null;
         this._mainTabBar = null;
         this._tabContentArea = null;
@@ -693,6 +772,10 @@ export default class AllInOneClipboardExtension extends Extension {
 
         Object.entries(tabMap).forEach(([shortcutKey, tabName]) => {
             this._addKeybinding(shortcutKey, async () => {
+                if (tabName === _("GIF") && this._settings.get_string('gif-provider') === 'none') {
+                    return;
+                }
+
                 if (this._indicator.menu.isOpen) {
                     // If the menu is already open, just switch tabs.
                     await this._indicator._selectTab(tabName);
