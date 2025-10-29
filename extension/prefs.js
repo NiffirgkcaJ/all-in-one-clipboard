@@ -315,6 +315,33 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             unpinOnPasteRow, 'active',
             Gio.SettingsBindFlags.DEFAULT
         );
+
+        // Clipboard image preview sizing
+        const previewGroup = new Adw.PreferencesGroup({
+            title: _('Clipboard Image Previews'),
+            description: _('Control how large clipboard images appear in history and recents.')
+        });
+        page.add(previewGroup);
+
+        const previewKey = 'clipboard-image-preview-size';
+        const previewDefault = settings.get_default_value(previewKey).get_int32();
+        const previewRange = this._getRangeFromSchema(settings, previewKey);
+
+        const previewRow = new Adw.SpinRow({
+            title: _('Image Preview Size'),
+            subtitle: _('Pixel size for clipboard image thumbnails (%d-%d). Default: %d.').format(
+                previewRange.min,
+                previewRange.max,
+                previewDefault
+            ),
+            adjustment: new Gtk.Adjustment({
+                lower: previewRange.min,
+                upper: previewRange.max,
+                step_increment: 8
+            }),
+        });
+        previewGroup.add(previewRow);
+        settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 
     /**

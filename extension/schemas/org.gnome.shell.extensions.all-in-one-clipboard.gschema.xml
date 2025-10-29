@@ -61,6 +61,12 @@
             <summary>Unpin item on paste</summary>
             <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
         </key>
+        <key name="clipboard-image-preview-size" type="i">
+            <default>160</default>
+            <range min="80" max="320"/>
+            <summary>Clipboard image preview size</summary>
+            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
+        </key>
 
         <!-- Recent Items Limits -->
         <key name="emoji-recents-max-items" type="i">

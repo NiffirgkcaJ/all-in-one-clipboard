@@ -18,6 +18,8 @@ import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 
 const PINNED_ITEM_HEIGHT = 48;
 const MAX_PINNED_DISPLAY_COUNT = 5;
+/** Pixel size for clipboard image previews in recently used view. */
+const DEFAULT_RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE = 160;
 
 // ============================================================================
 // RecentlyUsedTabContent Class
@@ -67,6 +69,8 @@ class RecentlyUsedTabContent extends St.BoxLayout {
         this._settings = settings;
         this._clipboardManager = clipboardManager;
         this._settingsBtnFocusTimeoutId = 0;
+        this._gifSectionEnabled = this._settings.get_string('gif-provider') !== 'none';
+        this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size') || DEFAULT_RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE;
 
         // Store recent managers for different feature types
         this._recentManagers = {};
@@ -85,6 +89,14 @@ class RecentlyUsedTabContent extends St.BoxLayout {
         this._loadRecentManagers()
             .then(() => this._connectSignalsAndRender())
             .catch(e => console.error('[AIO-Clipboard] Failed to load recent managers:', e));
+
+        this._signalIds.push({
+            obj: this._settings,
+            id: this._settings.connect('changed::clipboard-image-preview-size', () => {
+                this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size') || DEFAULT_RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE;
+                this._renderAll();
+            })
+        });
     }
 
     // ========================================================================
@@ -489,13 +501,14 @@ class RecentlyUsedTabContent extends St.BoxLayout {
     _createFullWidthClipboardItem(itemData, isPinned, feature = 'clipboard') {
         const isKaomoji = itemData.type === 'kaomoji';
         const isImage = itemData.type === 'image';
+        const previewSize = this._imagePreviewSize || DEFAULT_RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE;
 
         // Start with the base class
         let styleClass = 'button recently-used-list-item';
 
         // Add the text class if it's kaomoji or an image
         if (isImage) {
-            styleClass += ' recently-used-normal-item';
+            styleClass += ' recently-used-normal-item recently-used-list-item-image';
         } else if (isKaomoji) {
             styleClass += ' recently-used-bold-item';
         }
@@ -505,13 +518,19 @@ class RecentlyUsedTabContent extends St.BoxLayout {
             can_focus: true,
             x_expand: true
         });
+        button.set_style(null);
 
         const box = new St.BoxLayout({
             x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
+            y_align: isImage ? Clutter.ActorAlign.FILL : Clutter.ActorAlign.CENTER,
             x_align: (isKaomoji || isImage) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL
         });
         box.spacing = 8;
+        if (isImage) {
+            const minHeight = Math.max(previewSize + 24, 64);
+            button.set_style(`min-height: ${minHeight}px; padding-top: 8px; padding-bottom: 8px;`);
+            box.y_expand = true;
+        }
         button.set_child(box);
 
         if (isKaomoji) {
@@ -526,13 +545,26 @@ class RecentlyUsedTabContent extends St.BoxLayout {
                 this._clipboardManager._imagesDir,
                 itemData.image_filename
             ]);
+            const imageWrapper = new St.Bin({
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'recently-used-list-item-image-wrapper'
+            });
+
             const icon = new St.Icon({
                 gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                icon_size: 32,
+                icon_size: previewSize,
+                style_class: 'recently-used-list-item-image-icon',
                 x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true
             });
-            box.add_child(icon);
+
+            imageWrapper.set_style(`min-height: ${previewSize}px;`);
+            imageWrapper.set_child(icon);
+            box.add_child(imageWrapper);
         } else {
             const label = new St.Label({
                 text: itemData.preview || '',

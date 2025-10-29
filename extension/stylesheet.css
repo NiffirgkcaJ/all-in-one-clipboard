@@ -116,6 +116,13 @@
     transition: background-color 0.1s ease-out;
 }
 
+.aio-clipboard-container .recently-used-list-item.recently-used-list-item-image {
+    height: auto;
+    min-height: 136px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
 .aio-clipboard-container .recently-used-list-item:hover,
 .aio-clipboard-container .recently-used-list-item:focus {
     background-color: rgba(128, 128, 128, 0.3);
@@ -139,6 +146,14 @@
 .aio-clipboard-container .recently-used-normal-item {
     font-weight: normal;
     text-align: center;
+}
+
+.aio-clipboard-container .recently-used-list-item-image-wrapper {
+    min-height: 120px;
+}
+
+.aio-clipboard-container .recently-used-list-item-image-icon {
+    margin: 0;
 }
 
 .aio-clipboard-container .recently-used-bold-item {
@@ -346,6 +361,13 @@
     font-weight: normal;
 }
 
+.aio-clipboard-container .clipboard-item-button.clipboard-item-button-image {
+    height: auto;
+    min-height: 136px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
 .aio-clipboard-container .clipboard-icon-button,
 .aio-clipboard-container .clipboard-item-checkbox {
     border-radius: 4px;
@@ -364,8 +386,16 @@
     min-height: 28px; max-height: 28px;
 }
 
+.aio-clipboard-container .clipboard-item-image-wrapper {
+    min-height: 120px;
+}
+
 .aio-clipboard-container .clipboard-item-image-icon {
     margin-right: 8px;
+}
+
+.aio-clipboard-container .clipboard-item-button-image .clipboard-item-image-icon {
+    margin: 0;
 }
 
 .aio-clipboard-container .clipboard-item-text-label {

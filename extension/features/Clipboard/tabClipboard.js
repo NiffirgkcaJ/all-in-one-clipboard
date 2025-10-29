@@ -15,6 +15,10 @@ import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
  * Visual Order: Checkbox, Row Button (spans middle), Pin Button, Delete Button
  */
 const NUM_FOCUSABLE_ITEMS_PER_ROW = 4;
+/** 
+ * Default pixel size for clipboard image previews. 
+ */
+const DEFAULT_IMAGE_PREVIEW_SIZE = 160;
 
 /**
  * ClipboardTabContent
@@ -42,6 +46,13 @@ class ClipboardTabContent extends St.Bin {
         this._extension = extension;
         this._settings = settings;
         this._manager = manager;
+        this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size') || DEFAULT_IMAGE_PREVIEW_SIZE;
+        this._settingSignalIds = [
+            this._settings.connect('changed::clipboard-image-preview-size', () => {
+                this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size') || DEFAULT_IMAGE_PREVIEW_SIZE;
+                this._redraw();
+            })
+        ];
 
         // State management
         this._selectedIds = new Set();
@@ -748,6 +759,8 @@ class ClipboardTabContent extends St.Bin {
      * @returns {St.Button} The row button widget.
      */
     _createItemWidget(itemData, isPinned) {
+        const isImageItem = itemData.type === 'image';
+
         // Main row button (clickable area for copying)
         const rowButton = new St.Button({
             style_class: 'button clipboard-item-button',
@@ -761,6 +774,19 @@ class ClipboardTabContent extends St.Bin {
             y_align: Clutter.ActorAlign.CENTER
         });
         mainBox.spacing = 4;
+        rowButton.set_style(null);
+        if (isImageItem) {
+            const previewSize = this._imagePreviewSize || DEFAULT_IMAGE_PREVIEW_SIZE;
+            const minHeight = Math.max(previewSize + 24, 64);
+
+            rowButton.add_style_class_name('clipboard-item-button-image');
+            rowButton.set_style(`min-height: ${minHeight}px; padding-top: 8px; padding-bottom: 8px;`);
+            mainBox.y_align = Clutter.ActorAlign.FILL;
+            mainBox.y_expand = true;
+        } else {
+            mainBox.y_align = Clutter.ActorAlign.CENTER;
+            mainBox.y_expand = false;
+        }
         rowButton.set_child(mainBox);
 
         // Checkbox for selection
@@ -794,7 +820,7 @@ class ClipboardTabContent extends St.Bin {
 
         // Content widget (text or image)
         let contentWidget;
-        if (itemData.type === 'text') {
+        if (!isImageItem) {
             contentWidget = new St.Label({
                 text: itemData.preview || '',
                 y_align: Clutter.ActorAlign.CENTER,
@@ -805,12 +831,25 @@ class ClipboardTabContent extends St.Bin {
             contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
         } else {
             const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-            contentWidget = new St.Icon({
+            const imageWrapper = new St.Bin({
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'clipboard-item-image-wrapper'
+            });
+
+            const imageActor = new St.Icon({
                 gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                icon_size: 36,
+                icon_size: this._imagePreviewSize || DEFAULT_IMAGE_PREVIEW_SIZE,
                 style_class: 'clipboard-item-image-icon',
                 x_expand: true
             });
+
+            const previewSize = this._imagePreviewSize || DEFAULT_IMAGE_PREVIEW_SIZE;
+            imageWrapper.set_style(`min-height: ${previewSize}px;`);
+            imageWrapper.set_child(imageActor);
+            contentWidget = imageWrapper;
         }
         mainBox.add_child(contentWidget);
 
@@ -900,6 +939,16 @@ class ClipboardTabContent extends St.Bin {
             if (this._pinnedChangedId) {
                 this._manager.disconnect(this._pinnedChangedId);
             }
+        }
+        if (this._settings && this._settingSignalIds?.length) {
+            this._settingSignalIds.forEach(id => {
+                try {
+                    this._settings.disconnect(id);
+                } catch (e) {
+                    // Ignore disconnection errors
+                }
+            });
+            this._settingSignalIds = [];
         }
 
         this._searchComponent?.destroy();
