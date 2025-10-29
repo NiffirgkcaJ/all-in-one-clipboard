@@ -18,6 +18,8 @@ import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 
 const PINNED_ITEM_HEIGHT = 48;
 const MAX_PINNED_DISPLAY_COUNT = 5;
+/** Pixel size for clipboard image previews in recently used view. */
+const RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE = 112;
 
 // ============================================================================
 // RecentlyUsedTabContent Class
@@ -542,7 +544,7 @@ class RecentlyUsedTabContent extends St.BoxLayout {
 
         // Add the text class if it's kaomoji or an image
         if (isImage) {
-            styleClass += ' recently-used-normal-item';
+            styleClass += ' recently-used-normal-item recently-used-list-item-image';
         } else if (isKaomoji) {
             styleClass += ' recently-used-bold-item';
         }
@@ -555,10 +557,13 @@ class RecentlyUsedTabContent extends St.BoxLayout {
 
         const box = new St.BoxLayout({
             x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
+            y_align: isImage ? Clutter.ActorAlign.FILL : Clutter.ActorAlign.CENTER,
             x_align: (isKaomoji || isImage) ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL
         });
         box.spacing = 8;
+        if (isImage) {
+            box.y_expand = true;
+        }
         button.set_child(box);
 
         if (isKaomoji) {
@@ -573,13 +578,22 @@ class RecentlyUsedTabContent extends St.BoxLayout {
                 this._clipboardManager._imagesDir,
                 itemData.image_filename
             ]);
+            const imageWrapper = new St.Bin({
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'recently-used-list-item-image-wrapper'
+            });
+
             const icon = new St.Icon({
                 gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                icon_size: 32,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER
+                icon_size: RECENT_CLIPBOARD_IMAGE_PREVIEW_SIZE,
+                style_class: 'recently-used-list-item-image-icon'
             });
-            box.add_child(icon);
+
+            imageWrapper.set_child(icon);
+            box.add_child(imageWrapper);
         } else {
             const label = new St.Label({
                 text: itemData.preview || '',

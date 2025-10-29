@@ -15,6 +15,8 @@ import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
  * Visual Order: Checkbox, Row Button (spans middle), Pin Button, Delete Button
  */
 const NUM_FOCUSABLE_ITEMS_PER_ROW = 4;
+/** Pixel size for image previews inside clipboard rows. */
+const IMAGE_ITEM_PREVIEW_SIZE = 112;
 
 /**
  * ClipboardTabContent
@@ -748,6 +750,8 @@ class ClipboardTabContent extends St.Bin {
      * @returns {St.Button} The row button widget.
      */
     _createItemWidget(itemData, isPinned) {
+        const isImageItem = itemData.type === 'image';
+
         // Main row button (clickable area for copying)
         const rowButton = new St.Button({
             style_class: 'button clipboard-item-button',
@@ -761,6 +765,11 @@ class ClipboardTabContent extends St.Bin {
             y_align: Clutter.ActorAlign.CENTER
         });
         mainBox.spacing = 4;
+        if (isImageItem) {
+            rowButton.add_style_class_name('clipboard-item-button-image');
+            mainBox.y_align = Clutter.ActorAlign.FILL;
+            mainBox.y_expand = true;
+        }
         rowButton.set_child(mainBox);
 
         // Checkbox for selection
@@ -794,7 +803,7 @@ class ClipboardTabContent extends St.Bin {
 
         // Content widget (text or image)
         let contentWidget;
-        if (itemData.type === 'text') {
+        if (!isImageItem) {
             contentWidget = new St.Label({
                 text: itemData.preview || '',
                 y_align: Clutter.ActorAlign.CENTER,
@@ -805,12 +814,22 @@ class ClipboardTabContent extends St.Bin {
             contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
         } else {
             const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-            contentWidget = new St.Icon({
-                gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                icon_size: 36,
-                style_class: 'clipboard-item-image-icon',
-                x_expand: true
+            const imageWrapper = new St.Bin({
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'clipboard-item-image-wrapper'
             });
+
+            const imageActor = new St.Icon({
+                gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
+                icon_size: IMAGE_ITEM_PREVIEW_SIZE,
+                style_class: 'clipboard-item-image-icon'
+            });
+
+            imageWrapper.set_child(imageActor);
+            contentWidget = imageWrapper;
         }
         mainBox.add_child(contentWidget);
 
