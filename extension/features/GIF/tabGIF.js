@@ -453,11 +453,7 @@ class GIFTabContent extends St.BoxLayout {
         };
 
         // Use the helper function to create themed icon
-        const iconWidget = createThemedIcon(
-            this._extension.path,
-            RECENTS_ICON_FILENAME,
-            16
-        );
+        const iconWidget = createThemedIcon(RECENTS_ICON_FILENAME, 16);
 
         const button = new St.Button({
             style_class: 'aio-clipboard-tab-button button',

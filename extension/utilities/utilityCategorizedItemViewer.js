@@ -347,9 +347,9 @@ class CategorizedItemViewer extends St.BoxLayout {
         }));
 
         try {
-            const filePath = GLib.build_filenamev([this._extension.path, this._config.jsonPath]);
-            const file = Gio.File.new_for_path(filePath);
-            if (!file.query_exists(null)) throw new Error(`JSON file not found at ${filePath}`);
+            // Construct the special URI for a file inside the GResource bundle.
+            const resourceUri = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/${this._config.jsonPath}`;
+            const file = Gio.File.new_for_uri(resourceUri);
 
             // Wrap the callback-based function in a native Promise
             const bytes = await new Promise((resolve, reject) => {
@@ -357,16 +357,20 @@ class CategorizedItemViewer extends St.BoxLayout {
                     try {
                         const [ok, contents] = source.load_contents_finish(res);
                         if (ok) {
-                            resolve(contents);
+                            resolve(contents); // contents is a Uint8Array
                         } else {
-                            // This case is unlikely as an error is usually thrown, but it's safe to have.
-                            reject(new Error(`Failed to load file contents from ${filePath}`));
+                            reject(new Error(`Failed to load resource contents from ${resourceUri}`));
                         }
                     } catch (e) {
-                        reject(e);
+                        reject(e); // Propagate errors, e.g., if resource is not found
                     }
                 });
             });
+
+            // Check if the file is empty
+            if (!bytes) {
+                throw new Error(`Loaded resource was empty at ${resourceUri}`);
+            }
 
             const jsonString = new TextDecoder('utf-8').decode(bytes);
             const rawData = JSON.parse(jsonString);
@@ -403,6 +407,7 @@ class CategorizedItemViewer extends St.BoxLayout {
                 ? RECENTS_TAB_ID
                 : (this._allDisplayableTabs[0] || null);
             this._setActiveCategory(targetCategory);
+
         } catch (e) {
             console.error(`[AIO-Clipboard] Critical error loading or parsing data in CategorizedItemViewer: ${e.message}`);
             this._isContentLoaded = false;
@@ -475,11 +480,7 @@ class CategorizedItemViewer extends St.BoxLayout {
             let button;
             if (tabId === RECENTS_TAB_ID) {
                 // Use the helper function to create themed icon
-                const iconWidget = createThemedIcon(
-                    this._extension.path,
-                    RECENTS_CUSTOM_ICON_FILENAME,
-                    16
-                );
+                const iconWidget = createThemedIcon(RECENTS_CUSTOM_ICON_FILENAME, 16);
 
                 button = new St.Button({
                     style_class: 'aio-clipboard-tab-button button',

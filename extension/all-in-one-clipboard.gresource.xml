@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gnome/shell/extensions/all-in-one-clipboard">
+        <!-- Data Files -->
+        <file>assets/data/emojis.json</file>
+        <file>assets/data/emojisModifier.json</file>
+        <file>assets/data/kaomojis.json</file>
+        <file>assets/data/symbols.json</file>
+
+        <!-- Icon Files -->
+        <file>assets/icons/emoji-activities-symbolic.svg</file>
+        <file>assets/icons/emoji-animals_nature-symbolic.svg</file>
+        <file>assets/icons/emoji-flags-symbolic.svg</file>
+        <file>assets/icons/emoji-food_drink-symbolic.svg</file>
+        <file>assets/icons/emoji-objects-symbolic.svg</file>
+        <file>assets/icons/emoji-people_body-symbolic.svg</file>
+        <file>assets/icons/emoji-smileys_emotion-symbolic.svg</file>
+        <file>assets/icons/emoji-symbols-symbolic.svg</file>
+        <file>assets/icons/emoji-travel_places-symbolic.svg</file>
+        <file>assets/icons/main-clipboard-symbolic.svg</file>
+        <file>assets/icons/main-emoji-symbolic.svg</file>
+        <file>assets/icons/main-gif-symbolic.svg</file>
+        <file>assets/icons/main-kaomoji-symbolic.svg</file>
+        <file>assets/icons/main-symbols-symbolic.svg</file>
+        <file>assets/icons/utility-recents-symbolic.svg</file>
+    </gresource>
+</gresources>

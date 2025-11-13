@@ -77,7 +77,7 @@ class EmojiTabContent extends St.Bin {
 
         // Configure and create the main UI component.
         const config = {
-            jsonPath: 'data/emojis.json',
+            jsonPath: 'assets/data/emojis.json',
             parserClass: EmojiJsonParser,
             recentsFilename: 'recent_emojis.json',
             recentsMaxItemsKey: 'emoji-recents-max-items',
@@ -323,7 +323,7 @@ class EmojiTabContent extends St.Bin {
         }
 
         // Use the helper function to create themed icon
-        const iconWidget = createThemedIcon(extensionPath, iconFile, 16);
+        const iconWidget = createThemedIcon(iconFile, 16);
 
         const button = new St.Button({
             style_class: 'emoji-category-tab-button button',

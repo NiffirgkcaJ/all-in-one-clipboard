@@ -30,7 +30,7 @@ update_translation_templates() {
     xgettext --from-code=UTF-8 -o po/all-in-one-clipboard.pot -k_ -L JavaScript extension/*.js extension/features/**/*.js extension/utilities/*.js
 
     # Update the DATA strings template (from .json files) using our Python script
-    ./build-aux/extract-data-strings.py po/all-in-one-clipboard-content.pot extension/data
+    ./build-aux/extract-data-strings.py po/all-in-one-clipboard-content.pot extension/assets/data
 
     # Safely merge any new strings into the language files (e.g., all-in-one-clipboard@fr.po)
     echo "Merging new strings into language files..."
@@ -48,24 +48,21 @@ update_translation_templates() {
 }
 
 # --- Update Templates Flag ---
-# If the target is "update-templates", just run that function and exit
 if [ "$TARGET" == "update-templates" ]; then
     update_translation_templates
     exit 0
 fi
 
 # --- Build Directory ---
-BUILD_DIR="build_temp" # A temporary directory for packaging
+BUILD_DIR="build_temp"
 
-# --- Build Type Flags ---
+# --- Set Zip Filename ---
 if [ "$TARGET" == "review" ]; then
     ZIP_FILE="${EXTENSION_UUID}-review.zip"
-    COMPILE_ASSETS=false
     echo "Building SOURCE zip for extensions.gnome.org review..."
 else # Target is "package"
     ZIP_FILE="${EXTENSION_UUID}.zip"
-    COMPILE_ASSETS=true
-    echo "Building installable PACKAGE for GitHub Releases..."
+    echo "Building installable PACKAGE for distribution..."
 fi
 
 # --- Main Script ---
@@ -75,60 +72,61 @@ rm -rf "$BUILD_DIR"
 # Clean up both possible zip file names to be safe
 rm -f "${EXTENSION_UUID}.zip" "${EXTENSION_UUID}-review.zip"
 
-# Update templates ONLY for the 'package' build, not for 'review'.
-if [ "$COMPILE_ASSETS" = true ]; then
+# Only update templates when creating a distributable package
+if [ "$TARGET" == "package" ]; then
     update_translation_templates
 fi
 
-# 2. Create a fresh build directory
-mkdir -p "$BUILD_DIR"
-
-# 3. Copy the entire contents of the 'extension' directory
+# 2. Create a fresh build directory and copy files
 echo "Copying all extension files..."
+mkdir -p "$BUILD_DIR"
 cp -r extension/* "$BUILD_DIR/"
 
-# 4. Compile schemas and translations (conditionally)
-if [ "$COMPILE_ASSETS" = true ]; then
-    echo "Compiling GSettings schema for local build..."
+# 3. Compile assets required for both 'package' and 'review' builds (GResource and Translations)
+echo "Compiling GResource bundle..."
+(cd "$BUILD_DIR" && glib-compile-resources --target=resources.gresource all-in-one-clipboard.gresource.xml)
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to compile GResource bundle. Aborting." >&2
+    exit 1
+fi
+
+echo "Compiling translation files..."
+mkdir -p "$BUILD_DIR/locale"
+for po_file in po/*.po; do
+    if [ -f "$po_file" ]; then
+        lang_code=$(basename "$po_file" .po | cut -d'@' -f2)
+        if [[ "$lang_code" == $(basename "$po_file" .po) ]]; then continue; fi
+        domain=$(basename "$po_file" .po | cut -d'@' -f1)
+        mkdir -p "$BUILD_DIR/locale/$lang_code/LC_MESSAGES"
+        echo "  - Compiling $po_file -> $domain.mo for language '$lang_code'"
+        msgfmt --output-file="$BUILD_DIR/locale/$lang_code/LC_MESSAGES/$domain.mo" "$po_file"
+    fi
+done
+
+# 4. Compile schemas only for the 'package' build
+if [ "$TARGET" == "package" ]; then
+    echo "Compiling GSettings schema for package build..."
     glib-compile-schemas "$BUILD_DIR/schemas/"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to compile schemas. Aborting." >&2
         exit 1
     fi
-
-    # --- Compile Translations ---
-    echo "Compiling translation files..."
-    mkdir -p "$BUILD_DIR/locale"
-    # Loop through every .po file
-    for po_file in po/*.po; do
-        if [ -f "$po_file" ]; then
-            # Get the language code
-            lang_code=$(basename "$po_file" .po | cut -d'@' -f2)
-            # If no '@' is present, it's not a valid language file for us, so skip.
-            if [[ "$lang_code" == $(basename "$po_file" .po) ]]; then continue; fi
-
-            # Get the domain (the part before '@')
-            domain=$(basename "$po_file" .po | cut -d'@' -f1)
-
-            # Create the final directory for this language inside the build target
-            mkdir -p "$BUILD_DIR/locale/$lang_code/LC_MESSAGES"
-
-            # Compile the .po file into a .mo file directly into the build directory
-            echo "  - Compiling $po_file -> $domain.mo for language '$lang_code'"
-            msgfmt --output-file="$BUILD_DIR/locale/$lang_code/LC_MESSAGES/$domain.mo" "$po_file"
-        fi
-    done
 else
-    echo "Skipping schema and translation compilation for review build."
+    echo "Skipping schema compilation for review build."
 fi
 
-# 5. Create the zip archive from the build directory
+# 5. Clean up all unnecessary source files from the build directory
+echo "Cleaning up source assets before packaging..."
+rm -rf "$BUILD_DIR/assets"
+rm -f "$BUILD_DIR/all-in-one-clipboard.gresource.xml"
+
+# 6. Create the zip archive from the cleaned build directory
 echo "Creating zip file: $ZIP_FILE..."
 (cd "$BUILD_DIR" && zip -r "../$ZIP_FILE" . -x ".*" -x "__MACOSX")
 
-# 6. Clean up the temporary build directory
+# 7. Clean up the temporary build directory
 echo "Cleaning up temporary directory..."
 rm -rf "$BUILD_DIR"
 
-# 7. Final success message
+# 8. Final success message
 echo "Build successful! Archive created at: $ZIP_FILE"

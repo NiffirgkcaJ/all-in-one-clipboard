@@ -224,8 +224,7 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
             if (!tabConfig) return;
 
             const iconFile = tabConfig.icon;
-
-            const iconWidget = createThemedIcon(this._extension.path, iconFile, 16);
+            const iconWidget = createThemedIcon(iconFile, 16);
 
             const button = new St.Button({
                 style_class: 'aio-clipboard-tab-button button',
@@ -648,6 +647,7 @@ export default class AllInOneClipboardExtension extends Extension {
         this._settings = null;
         this._clipboardManager = null;
         this._settingsSignalIds = [];
+        this._resource = null;
     }
 
     /**
@@ -747,6 +747,15 @@ export default class AllInOneClipboardExtension extends Extension {
      * @async
      */
     async enable() {
+        // Load resources
+        try {
+            this._resource = Gio.Resource.load(this.path + '/resources.gresource');
+            Gio.resources_register(this._resource);
+        } catch (e) {
+            console.error(`[AIO-Clipboard] FATAL: Could not load GResource file: ${e}`);
+            return;
+        }
+
         // Initialize translations
         this.initTranslations('all-in-one-clipboard');
         Gettext.bindtextdomain('all-in-one-clipboard-content', this.dir.get_child('locale').get_path());
@@ -914,6 +923,12 @@ export default class AllInOneClipboardExtension extends Extension {
 
         this._clipboardManager?.destroy();
         this._clipboardManager = null;
+
+        // Clean up resources
+        if (this._resource) {
+            Gio.resources_unregister(this._resource);
+            this._resource = null;
+        }
 
         this._settings = null;
     }

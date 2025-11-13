@@ -36,7 +36,7 @@ class KaomojiTabContent extends St.Bin {
         this._settings = settings;
 
         const config = {
-            jsonPath: 'data/kaomojis.json',
+            jsonPath: 'assets/data/kaomojis.json',
             parserClass: KaomojiJsonParser,
             recentsFilename: 'recent_kaomojis.json',
             recentsMaxItemsKey: 'kaomoji-recents-max-items',

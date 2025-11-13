@@ -27,13 +27,25 @@ echo "Copying source files..."
 cp -r extension/* "$INSTALL_DIR/"
 
 # 3. Compile the GSettings schema in the installation directory
-echo "Compiling settings schema..."
+echo "Compiling GSettings schema..."
 glib-compile-schemas "$INSTALL_DIR/schemas/"
 if [ $? -ne 0 ]; then
     echo "Warning: Schema compilation failed. Settings may not work correctly."
 fi
 
-# --- Compile Translations ---
+# 4. Compile GResource and clean up source assets
+echo "Compiling GResource bundle..."
+(cd "$INSTALL_DIR" && glib-compile-resources --target=resources.gresource all-in-one-clipboard.gresource.xml)
+if [ $? -ne 0 ]; then
+    echo "Error: GResource compilation failed. Aborting." >&2
+    exit 1
+fi
+
+echo "Cleaning up source assets..."
+rm -rf "$INSTALL_DIR/assets"
+rm -f "$INSTALL_DIR/all-in-one-clipboard.gresource.xml"
+
+# 5. Compile translations
 echo "Compiling translation files..."
 # Check if the 'po' directory exists
 if [ -d "po" ]; then
@@ -60,6 +72,6 @@ else
     echo "Info: 'po' directory not found. Skipping translation compilation."
 fi
 
-# 4. Final success message
+# 6. Final success message
 echo "Extension installed successfully."
 echo "Please enable the extension and then restart GNOME Shell (Alt+F2, type 'r', press Enter) or log out."

@@ -36,7 +36,7 @@ class SymbolsTabContent extends St.Bin {
         this._settings = settings;
 
         const config = {
-            jsonPath: 'data/symbols.json',
+            jsonPath: 'assets/data/symbols.json',
             parserClass: SymbolsJsonParser,
             recentsFilename: 'recent_symbols.json',
             recentsMaxItemsKey: 'symbols-recents-max-items',

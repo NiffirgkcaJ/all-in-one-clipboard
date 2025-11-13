@@ -104,7 +104,7 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(POT_HEADER)
         for s in sorted_strings:
-            f.write('#: extension/data/*.json\n')
+            f.write('#: extension/assets/data/*.json\n')
             f.write(f'msgid "{escape_string(s)}"\n')
             f.write('msgstr ""\n\n')
 
