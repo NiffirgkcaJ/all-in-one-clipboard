@@ -1,0 +1,20 @@
+image: ubuntu:latest
+
+stages:
+  - release
+
+# --- CREATE THE RELEASE ---
+create_release:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /^Version .*/'
+  
+  before_script:
+    - apt-get update -y && apt-get install -y jq gettext
+
+  script:
+    - export RELEASE_VERSION=$(echo "$CI_COMMIT_MESSAGE" | sed -n 's/^Version \([0-9.]*\).*/\1/p')
+    - ./build.sh package
+    - export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
+    - release-cli create --name "$CI_COMMIT_MESSAGE" --tag-name "v$RELEASE_VERSION" \
+        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"./$ASSET_NAME\"}"
