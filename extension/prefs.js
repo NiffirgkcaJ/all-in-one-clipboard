@@ -169,81 +169,155 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
      * @param {Gio.Settings} settings - The Gio.Settings instance.
      */
     _addTabManagementGroup(page, settings) {
+        // Create a new preferences group with a title and description
         const group = new Adw.PreferencesGroup({
             title: _('Tab Management'),
             description: _('Customize the visibility, order, and default tab.')
         });
         page.add(group);
 
+        // Clean up signal connections when the page is unmapped
         const signalIds = [];
-        const disconnectSignals = () => {
+        page.connect('unmap', () => {
             signalIds.forEach(id => {
                 if (settings) settings.disconnect(id);
             });
             signalIds.length = 0;
-        };
-        page.connect('unmap', disconnectSignals);
+        });
 
+        // Define the visibility configuration for each tab
         const TAB_VISIBILITY_CONFIG = {
-            'Emoji':     { key: 'enable-emoji-tab', title: _('Emoji Tab') },
-            'GIF':       { key: 'enable-gif-tab', title: _('GIF Tab') },
-            'Kaomoji':   { key: 'enable-kaomoji-tab', title: _('Kaomoji Tab') },
-            'Symbols':   { key: 'enable-symbols-tab', title: _('Symbols Tab') },
-            'Clipboard': { key: 'enable-clipboard-tab', title: _('Clipboard Tab') },
+            'Recently Used': { key: 'enable-recents-tab', title: _('Recently Used Tab'), subtitle: _('Required when Always Show Main Tabs is off.') },
+            'Emoji':         { key: 'enable-emoji-tab', title: _('Emoji Tab') },
+            'GIF':           { key: 'enable-gif-tab', title: _('GIF Tab') },
+            'Kaomoji':       { key: 'enable-kaomoji-tab', title: _('Kaomoji Tab') },
+            'Symbols':       { key: 'enable-symbols-tab', title: _('Symbols Tab') },
+            'Clipboard':     { key: 'enable-clipboard-tab', title: _('Clipboard Tab') },
         };
 
+        // Create an expander row for visible tabs
         const visibleTabsExpander = new Adw.ExpanderRow({
             title: _('Visible Tabs'),
             subtitle: _('Show or hide individual tabs from the main bar.')
         });
         group.add(visibleTabsExpander);
 
-        for (const config of Object.values(TAB_VISIBILITY_CONFIG)) {
+        // Create rows for each tab visibility configuration
+        const tabVisibilityRows = [];
+        for (const [name, config] of Object.entries(TAB_VISIBILITY_CONFIG)) {
             const row = new Adw.SwitchRow({
                 title: config.title,
-                subtitle: config.subtitle || ''
+                subtitle: config.subtitle || '',
+                activatable: true,
             });
             visibleTabsExpander.add_row(row);
+            tabVisibilityRows.push({ name, config, row });
             settings.bind(config.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
         }
 
+        // Create an expander row for tab bar behavior
+        const tabBarExpander = new Adw.ExpanderRow({
+            title: _('Tab Bar Behavior'),
+            subtitle: _('Configure when the top tab bar is visible.')
+        });
+        group.add(tabBarExpander);
+
+        // Create a switch row for always showing the main tabs
+        const alwaysShowMainTabsRow = new Adw.SwitchRow({
+            title: _('Always Show Main Tabs'),
+            subtitle: _('Keep the main tab buttons visible in every tab.')
+        });
+        settings.bind('always-show-main-tab', alwaysShowMainTabsRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        tabBarExpander.add_row(alwaysShowMainTabsRow); // Add to expander
+
+        // Create a switch row for hiding the last main tab
+        const hideLastMainTabRow = new Adw.SwitchRow({
+            title: _('Hide Last Main Tab'),
+            subtitle: _('Automatically hide the last main tab visible.')
+        });
+        settings.bind('hide-last-main-tab', hideLastMainTabRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        tabBarExpander.add_row(hideLastMainTabRow); // Add to expander
+
+        // Create a combo row for the default tab
         const defaultTabRow = new Adw.ComboRow({
             title: _('Default Tab'),
             subtitle: _('The tab that opens when you first open the menu.')
         });
         group.add(defaultTabRow);
 
-        let visibleTabsForModel = [];
+        // Create a combo row for the default tab
+        const recentsRowData = tabVisibilityRows.find(r => r.name === 'Recently Used');
+        const recentsRowWidget = recentsRowData?.row;
+        const recentsKey = recentsRowData?.config.key;
 
+        // Update the sensitivity of the tabs based on current settings
+        const updateTabToggleSensitivity = () => {
+            const states = tabVisibilityRows.map(item => ({
+                row: item.row,
+                enabled: settings.get_boolean(item.config.key),
+                isRecents: item.row === recentsRowWidget
+            }));
+
+            const enabledCount = states.filter(state => state.enabled).length;
+
+            states.forEach(state => {
+                const isLastOneEnabled = enabledCount === 1 && state.enabled;
+
+                // Special handling for Recents tab
+                if (state.isRecents) {
+                    // Recents is sensitive only if 'Always Show Tabs' is on and it is not the last remaining enabled tab.
+                    const alwaysShowTabs = settings.get_boolean('always-show-main-tab');
+                    state.row.set_sensitive(!isLastOneEnabled && alwaysShowTabs);
+                } else {
+                    // Other tabs are sensitive if they're not the last enabled tab
+                    state.row.set_sensitive(!isLastOneEnabled);
+                }
+            });
+        };
+
+        // Update the default tab based on current settings
         const updateDefaultTabModel = () => {
             const currentDefault = settings.get_string('default-tab');
             const tabOrder = settings.get_strv('tab-order');
-            visibleTabsForModel = [];
+            const visibleTabsForModel = [];
 
+            // Add visible tabs to the model
             tabOrder.forEach(originalTabName => {
-                if (originalTabName === 'Recently Used') {
-                    visibleTabsForModel.push({ original: originalTabName, translated: _(originalTabName) });
-                    return;
-                }
                 const config = TAB_VISIBILITY_CONFIG[originalTabName];
-                if (config && settings.get_boolean(config.key)) {
+                if (!config || settings.get_boolean(config.key)) {
                     visibleTabsForModel.push({ original: originalTabName, translated: _(originalTabName) });
                 }
             });
 
+            // Update the model
             defaultTabRow.set_model(new Gtk.StringList({ strings: visibleTabsForModel.map(t => t.translated) }));
             const newIndex = visibleTabsForModel.findIndex(t => t.original === currentDefault);
 
+            // Update selection
             if (newIndex > -1) {
                 defaultTabRow.set_selected(newIndex);
             } else if (visibleTabsForModel.length > 0) {
-                settings.set_string('default-tab', visibleTabsForModel[0].original);
+                const newDefault = visibleTabsForModel[0].original;
+                settings.set_string('default-tab', newDefault);
+                defaultTabRow.set_selected(0);
             }
         };
 
+        // Handler for when relevant settings change
+        const handleSettingsChange = () => {
+            // Recents is sensitive only if 'Always Show Tabs' is on
+            if (!settings.get_boolean('always-show-main-tab') && recentsKey) {
+                settings.set_boolean(recentsKey, true);
+            }
+            updateTabToggleSensitivity();
+            updateDefaultTabModel();
+        };
+
+        // Connect signals
         Object.values(TAB_VISIBILITY_CONFIG).forEach(config => {
-            signalIds.push(settings.connect(`changed::${config.key}`, updateDefaultTabModel));
+            signalIds.push(settings.connect(`changed::${config.key}`, handleSettingsChange));
         });
+        signalIds.push(settings.connect('changed::always-show-main-tab', handleSettingsChange));
         signalIds.push(settings.connect('changed::tab-order', updateDefaultTabModel));
 
         defaultTabRow.connect('notify::selected', () => {
@@ -256,8 +330,10 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             }
         });
 
-        updateDefaultTabModel();
+        // Initial state setup
+        handleSettingsChange();
 
+        // Create the tab order expander
         const tabOrderExpander = new Adw.ExpanderRow({
             title: _('Tab Order'),
             subtitle: _('Use the buttons to reorder tabs in the main bar.')
@@ -267,6 +343,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // This array will hold references to ALL rows this function manages.
         let managedRows = [];
 
+        // Function to populate the tab order list
         const populateTabOrderList = () => {
             // Remove all previously created rows from the UI.
             managedRows.forEach(row => tabOrderExpander.remove(row));
@@ -276,7 +353,20 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             const tabOrder = settings.get_strv('tab-order');
 
             tabOrder.forEach((tabName, index) => {
-                const row = new Adw.ActionRow({ title: _(tabName) });
+                // Check if this tab is currently visible
+                const config = TAB_VISIBILITY_CONFIG[tabName];
+                const isVisible = config ? settings.get_boolean(config.key) : true;
+
+                // Create the rows with appropriate title
+                const row = new Adw.ActionRow({
+                    // Add a suffix to the title if the tab is hidden
+                    title: isVisible ? _(tabName) : `${_(tabName)} (Hidden)`
+                });
+
+                // Dim the label if the tab is hidden
+                if (!isVisible) {
+                    row.add_css_class('dim-label');
+                }
 
                 const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
                 row.add_suffix(buttonBox);
@@ -321,13 +411,19 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
             resetButton.connect('clicked', () => {
                 const defaultValueVariant = settings.get_default_value('tab-order');
-                const defaultArray = defaultValueVariant.get_strv();
-                settings.set_strv('tab-order', defaultArray);
+                settings.set_strv('tab-order', defaultValueVariant.get_strv());
             });
             resetRow.add_suffix(resetButton);
         };
 
         signalIds.push(settings.connect('changed::tab-order', populateTabOrderList));
+
+        // Refresh tab order list when visibility changes
+        Object.values(TAB_VISIBILITY_CONFIG).forEach(config => {
+            if (config.key) {
+                signalIds.push(settings.connect(`changed::${config.key}`, populateTabOrderList));
+            }
+        });
         populateTabOrderList(); // Initial population
     }
 

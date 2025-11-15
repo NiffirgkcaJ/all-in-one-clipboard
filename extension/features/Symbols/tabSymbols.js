@@ -34,6 +34,7 @@ class SymbolsTabContent extends St.Bin {
 
         // Store settings for later use
         this._settings = settings;
+        this._alwaysShowTabsSignalId = 0;
 
         const config = {
             jsonPath: 'assets/data/symbols.json',
@@ -57,6 +58,9 @@ class SymbolsTabContent extends St.Bin {
         this._viewer = new CategorizedItemViewer(extension, settings, config);
         this.set_child(this._viewer);
 
+        this._applyBackButtonPreference();
+        this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
+
         // Connect to Viewer Signals
         this._viewer.connect('item-selected', (source, jsonPayload) => {
             this._onItemSelected(jsonPayload, extension);
@@ -66,6 +70,19 @@ class SymbolsTabContent extends St.Bin {
             this.emit('navigate-to-main-tab', _("Recently Used"));
         });
     }
+
+    /**
+     * Applies the user's preference for always showing the main tab back button.
+     * @private
+     */
+    _applyBackButtonPreference() {
+        const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
+        this._viewer?.setBackButtonVisible(shouldShowBackButton);
+    }
+
+    // =====================================================================
+    // Signal Handlers and Callbacks
+    // =====================================================================
 
     /**
      * Handles the 'item-selected' signal from the viewer.
@@ -172,6 +189,13 @@ class SymbolsTabContent extends St.Bin {
      * Cleans up resources when the widget is destroyed.
      */
     destroy() {
+        if (this._settings && this._alwaysShowTabsSignalId > 0) {
+            try {
+                this._settings.disconnect(this._alwaysShowTabsSignalId);
+            } catch (e) { /* Ignore */ }
+        }
+        this._alwaysShowTabsSignalId = 0;
+
         this._viewer?.destroy();
         super.destroy();
     }

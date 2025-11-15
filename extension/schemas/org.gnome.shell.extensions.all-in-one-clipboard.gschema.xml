@@ -19,35 +19,55 @@
         </key>
 
         <!-- Tab Management -->
-        <key name="tab-order" type="as">
-            <default><![CDATA[['Recently Used', 'Emoji', 'GIF', 'Kaomoji', 'Symbols', 'Clipboard']]]></default>
-            <summary>The display order of the main tabs.</summary>
-            <description>Stores the user-defined order for tabs in the main tab bar.</description>
+        <key name="enable-recents-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'Recently Used' tab</summary>
+            <description>Controls the visibility of the main 'Recently Used' tab.</description>
+        </key>
+        <key name="enable-emoji-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'Emoji' tab</summary>
+            <description>Controls the visibility of the main 'Emoji' tab.</description>
+        </key>
+        <key name="enable-gif-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'GIF' tab</summary>
+            <description>Controls the visibility of the main 'GIF' tab.</description>
+        </key>
+        <key name="enable-kaomoji-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'Kaomoji' tab</summary>
+            <description>Controls the visibility of the main 'Kaomoji' tab.</description>
+        </key>
+        <key name="enable-symbols-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'Symbols' tab</summary>
+            <description>Controls the visibility of the main 'Symbols' tab.</description>
+        </key>
+        <key name="enable-clipboard-tab" type="b">
+            <default>true</default>
+            <summary>Enable the 'Clipboard' tab</summary>
+            <description>Controls the visibility of the main 'Clipboard' tab.</description>
+        </key>
+        <key name="always-show-main-tab" type="b">
+            <default>false</default>
+            <summary>Always show the main tab bar</summary>
+            <description>Keep the top tab buttons visible even when opening full-view tabs such as Emoji or GIF. This provides an alternative navigation model.</description>
+        </key>
+        <key name="hide-last-main-tab" type="b">
+            <default>true</default>
+            <summary>Hide tab bar when only one tab is active</summary>
+            <description>Automatically hide the top tab bar if only one tab is enabled to reduce UI clutter.</description>
         </key>
         <key name="default-tab" type="s">
             <default>'Recently Used'</default>
             <summary>The tab to open by default.</summary>
             <description>Defines which tab is opened when the menu is activated via the panel icon or main toggle shortcut.</description>
         </key>
-        <key name="enable-emoji-tab" type="b">
-            <default>true</default>
-            <summary>Enable the 'Emoji' tab</summary>
-        </key>
-        <key name="enable-gif-tab" type="b">
-            <default>true</default>
-            <summary>Enable the 'GIF' tab</summary>
-        </key>
-        <key name="enable-kaomoji-tab" type="b">
-            <default>true</default>
-            <summary>Enable the 'Kaomoji' tab</summary>
-        </key>
-        <key name="enable-symbols-tab" type="b">
-            <default>true</default>
-            <summary>Enable the 'Symbols' tab</summary>
-        </key>
-        <key name="enable-clipboard-tab" type="b">
-            <default>true</default>
-            <summary>Enable the 'Clipboard' tab</summary>
+        <key name="tab-order" type="as">
+            <default><![CDATA[['Recently Used', 'Emoji', 'GIF', 'Kaomoji', 'Symbols', 'Clipboard']]]></default>
+            <summary>The display order of the main tabs.</summary>
+            <description>Stores the user-defined order for tabs in the main tab bar.</description>
         </key>
 
         <!-- Keyboard Shortcuts -->

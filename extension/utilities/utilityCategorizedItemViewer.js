@@ -162,6 +162,9 @@ class CategorizedItemViewer extends St.BoxLayout {
             });
             scrollView.set_child(this._categoryTabBar);
 
+            // Store reference for cleanup
+            this._categoryTabScrollView = scrollView;
+
             const tabContainer = new St.Bin({
                 x_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
@@ -170,6 +173,7 @@ class CategorizedItemViewer extends St.BoxLayout {
             this._header.add_child(tabContainer);
         } else {
             // Non-scrolling Tabs
+            this._categoryTabScrollView = null;  // Explicitly set to null
             const tabContainer = new St.Bin({
                 x_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
@@ -202,6 +206,21 @@ class CategorizedItemViewer extends St.BoxLayout {
     }
 
     /**
+     * Toggles the visibility and focusability of the back button.
+     * @param {boolean} isVisible - Whether the back button should be shown.
+     */
+    setBackButtonVisible(isVisible) {
+        if (!this._backButton) {
+            return;
+        }
+
+        const shouldShow = Boolean(isVisible);
+        this._backButton.visible = shouldShow;
+        this._backButton.reactive = shouldShow;
+        this._backButton.can_focus = shouldShow;
+    }
+
+    /**
      * Handles Left/Right arrow key presses for navigating between the back button and category tabs.
      * @param {Clutter.Actor} actor - The actor that received the event.
      * @param {Clutter.Event} event - The key press event.
@@ -216,17 +235,20 @@ class CategorizedItemViewer extends St.BoxLayout {
         const currentFocus = global.stage.get_key_focus();
         const firstTab = children[0];
         const lastTab = children[children.length - 1];
+        const isBackButtonVisible = this._backButton?.visible;
 
         if (symbol === Clutter.KEY_Left) {
-            if (currentFocus === this._backButton) {
+            if (isBackButtonVisible && currentFocus === this._backButton) {
                 return Clutter.EVENT_STOP; // Trap focus at the start
             }
             if (currentFocus === firstTab) {
-                this._backButton.grab_key_focus();
+                if (isBackButtonVisible) {
+                    this._backButton.grab_key_focus();
+                }
                 return Clutter.EVENT_STOP;
             }
         } else if (symbol === Clutter.KEY_Right) {
-            if (currentFocus === this._backButton) {
+            if (isBackButtonVisible && currentFocus === this._backButton) {
                 firstTab.grab_key_focus();
                 return Clutter.EVENT_STOP;
             }
@@ -684,6 +706,10 @@ class CategorizedItemViewer extends St.BoxLayout {
         this._searchDebouncer?.destroy();
         this._recentItemsManager?.destroy();
         this._searchComponent?.destroy();
+
+        // Clean up the scrollview if it exists
+        this._categoryTabScrollView?.destroy();
+        this._categoryTabScrollView = null;
 
         super.destroy();
     }

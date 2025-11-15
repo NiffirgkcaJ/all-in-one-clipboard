@@ -87,6 +87,8 @@ class GIFTabContent extends St.BoxLayout {
         this._scrollView = null;
         this._gridAllButtons = [];
         this._headerFocusables = [];
+        this._backButton = null;
+        this._alwaysShowTabsSignalId = 0;
         this._renderSession = null;
         this._scrollableContainer = null;
         this._infoBin = null;
@@ -102,6 +104,7 @@ class GIFTabContent extends St.BoxLayout {
         }, SEARCH_DEBOUNCE_TIME_MS);
 
         this._buildUISkeleton();
+        this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._updateBackButtonPreference());
         this._connectProviderChangedSignal();
         this._loadInitialData().catch(e => this._renderErrorState(e.message));
     }
@@ -150,7 +153,8 @@ class GIFTabContent extends St.BoxLayout {
             this.emit('navigate-to-main-tab', _("Recently Used"));
         });
         fullHeader.add_child(backButton);
-        this._headerFocusables.push(backButton);
+        this._backButton = backButton;
+        this._initializeHeaderFocusables();
 
         this.headerScrollView = new St.ScrollView({
             style_class: 'aio-clipboard-tab-scrollview',
@@ -167,6 +171,37 @@ class GIFTabContent extends St.BoxLayout {
 
         this.headerScrollView.set_child(this.headerBox);
         fullHeader.add_child(this.headerScrollView);
+    }
+
+    /**
+     * Updates the visibility of the back button based on user preference.
+     * @private
+     */
+    _updateBackButtonPreference() {
+        const shouldShow = !this._settings.get_boolean('always-show-main-tab');
+
+        if (this._backButton) {
+            this._backButton.visible = shouldShow;
+            this._backButton.reactive = shouldShow;
+            this._backButton.can_focus = shouldShow;
+        }
+
+        const hasBackButton = this._headerFocusables.includes(this._backButton);
+
+        if (shouldShow && this._backButton && !hasBackButton) {
+            this._headerFocusables.unshift(this._backButton);
+        } else if (!shouldShow && hasBackButton) {
+            this._headerFocusables = this._headerFocusables.filter(actor => actor !== this._backButton);
+        }
+    }
+
+    /**
+     * Initialize the list of focusable actors in the header.
+     * @private
+     */
+    _initializeHeaderFocusables() {
+        this._headerFocusables = [];
+        this._updateBackButtonPreference();
     }
 
     /**
@@ -329,7 +364,7 @@ class GIFTabContent extends St.BoxLayout {
     async _loadInitialData() {
         this.headerBox.destroy_all_children();
         this._tabButtons = {};
-        this._headerFocusables.splice(1);
+        this._initializeHeaderFocusables();
 
         const searchWidget = this._searchComponent.getWidget();
 
@@ -1238,6 +1273,11 @@ class GIFTabContent extends St.BoxLayout {
         if (this._settings && this._providerChangedSignalId > 0) {
             this._settings.disconnect(this._providerChangedSignalId);
         }
+
+        if (this._settings && this._alwaysShowTabsSignalId > 0) {
+            try { this._settings.disconnect(this._alwaysShowTabsSignalId); } catch (e) { /* Ignore */ }
+        }
+        this._alwaysShowTabsSignalId = 0;
 
         if (this._recentItemsManager && this._recentsSignalId > 0) {
             try {

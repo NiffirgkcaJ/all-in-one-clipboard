@@ -32,7 +32,7 @@ const TABS = [
         name: "Recently Used",
         icon: 'utility-recents-symbolic.svg',
         isFullView: false,
-        settingKey: null
+        settingKey: 'enable-recents-tab'
     },
     {
         name: "Emoji",
@@ -92,6 +92,8 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         this._mainTabBar = null;
         this._explicitTabTarget = null;
         this._isOpeningViaShortcut = false;
+        this._alwaysShowTabBar = this._settings.get_boolean('always-show-main-tab');
+        this._isSelectingTab = false;
 
         this._currentTabVisibilitySignalId = 0;
         this._currentTabNavigateSignalId = 0;
@@ -115,6 +117,20 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         // Listen for changes to the tab order and rebuild the tab bar in real-time.
         const tabOrderSignalId = this._settings.connect('changed::tab-order', () => this._rebuildTabBar());
         this._tabVisibilitySignalIds.push(tabOrderSignalId);
+
+        // Listen for changes to the 'always-show-main-tab' setting.
+        const alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => {
+            this._alwaysShowTabBar = this._settings.get_boolean('always-show-main-tab');
+            this._updateTabBarVisibilityForActiveTab();
+        });
+        this._tabVisibilitySignalIds.push(alwaysShowTabsSignalId);
+
+        // Listen for changes to the 'hide-last-main-tab' setting.
+        const hideSingleTabSignalId = this._settings.connect('changed::hide-last-main-tab', () => {
+            // Recalculate the force-hide flag and update visibility
+            this._updateTabsVisibility();
+        });
+        this._tabVisibilitySignalIds.push(hideSingleTabSignalId);
 
         // Run once on startup to set the initial state.
         this._updateTabsVisibility();
@@ -201,7 +217,10 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
                 });
 
             } else {
-                this._currentTabActor?.onMenuClosed?.();
+                // Only call onMenuClosed if the actor is still valid and on stage
+                if (this._currentTabActor && this._currentTabActor.get_stage()) {
+                    this._currentTabActor.onMenuClosed?.();
+                }
             }
         });
     }
@@ -242,6 +261,11 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
 
         // After rebuilding, we must re-apply the visibility rules.
         this._updateTabsVisibility();
+
+        // Re-highlight the active tab with the new buttons
+        if (this._activeTabName) {
+            this._updateTabButtonSelection();
+        }
     }
 
     /**
@@ -250,9 +274,36 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
      * @private
      */
     _setMainTabBarVisibility(isVisible) {
-        if (this._mainTabBar && this._mainTabBar.visible !== isVisible) {
-            this._mainTabBar.visible = isVisible;
+        // Determine desired visibility based on settings and force-hide flag
+        const desiredVisibility = this._alwaysShowTabBar || isVisible;
+        const shouldBeVisible = desiredVisibility && !this._forceHideMainTabBar;
+
+        if (this._mainTabBar && this._mainTabBar.visible !== shouldBeVisible) {
+            this._mainTabBar.visible = shouldBeVisible;
         }
+    }
+
+    /**
+     * Determines if the tab bar should be shown for a given tab.
+     * @param {string} tabName - The name of the tab to check.
+     * @returns {boolean} - True if the tab bar should be shown, false otherwise.
+     */
+    _shouldShowTabBarForTab(tabName) {
+        // If the global setting is on, or if we don't have a tab name, always show.
+        if (this._alwaysShowTabBar || !tabName) {
+            return true;
+        }
+
+        // Otherwise, show only if the tab is not a full-view tab.
+        return !this._fullViewTabs.includes(tabName);
+    }
+
+    /**
+     * Updates the tab bar visibility based on the currently active tab.
+     * @private
+     */
+    _updateTabBarVisibilityForActiveTab() {
+        this._setMainTabBarVisibility(this._shouldShowTabBarForTab(this._activeTabName));
     }
 
     /**
@@ -303,18 +354,60 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
             }
         });
 
-        // Ensure that the active and last active tabs are visible
-        const safeFallback = _("Recently Used");
+        // Determine if we need to force-hide the tab bar due to single-tab setting
+        const hideWhenSingle = this._settings.get_boolean('hide-last-main-tab');
+        this._forceHideMainTabBar = hideWhenSingle && (visibleTabs.size <= 1);
+        this._updateTabBarVisibilityForActiveTab();
+
+        const fallbackTarget = this._getFirstVisibleTabName();
+
+        // Always use _selectTab to ensure content is properly loaded
         if (this._activeTabName && !visibleTabs.has(this._activeTabName)) {
-            if (this.menu?.isOpen) {
-                this._selectTab(safeFallback);
+            if (fallbackTarget) {
+                // If menu is open, select immediately
+                if (this.menu?.isOpen) {
+                    this._selectTab(fallbackTarget);
+                } else {
+                    // If menu is closed, just update active tab reference
+                    if (this._currentTabActor) {
+                        this._disconnectTabSignals(this._currentTabActor);
+                        this._currentTabActor.destroy();
+                        this._currentTabActor = null;
+                    }
+                    this._activeTabName = fallbackTarget;
+                }
             } else {
-                this._activeTabName = safeFallback;
+                // No tabs are visible, clear active tab and content
+                if (this._currentTabActor) {
+                    this._disconnectTabSignals(this._currentTabActor);
+                    this._currentTabActor.destroy();
+                    this._currentTabActor = null;
+                }
+                this._activeTabName = null;
             }
         }
+
+        // Also update last active tab
         if (this._lastActiveTabName && !visibleTabs.has(this._lastActiveTabName)) {
-            this._lastActiveTabName = safeFallback;
+            this._lastActiveTabName = fallbackTarget;
         }
+    }
+
+    /**
+     * Retrieves the first visible tab name based on the current user order.
+     * @returns {string|null} The translated tab name if available, otherwise null.
+     * @private
+     */
+    _getFirstVisibleTabName() {
+        // Iterate through the user's tab order to find the first visible tab
+        const tabOrder = this._settings.get_strv('tab-order');
+        for (const name of tabOrder) {
+            const translated = _(name);
+            if (this._tabButtons[translated]?.visible) {
+                return translated;
+            }
+        }
+        return null; // Should not happen if at least one tab is visible
     }
 
     /**
@@ -346,45 +439,51 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
      * @private
      */
     async _selectTab(tabName) {
-        // Initial Checks and State Setup
-        if (this._activeTabName === tabName && this._currentTabActor) {
-            // If clicking the same tab, just call its onSelected method.
-            this._currentTabActor.onTabSelected?.();
+        // Prevent concurrent tab selections
+        if (this._isSelectingTab) {
             return;
         }
-
-        // Store references to old state
-        const oldActor = this._currentTabActor;
-        const wasOldTabFullView = this._fullViewTabs.includes(this._activeTabName);
-
-        // Update state
-        this._activeTabName = tabName;
-        this._lastActiveTabName = tabName;
-        this._updateTabButtonSelection();
-        const tabId = getTabIdentifier(tabName);
-        const isNewTabFullView = this._fullViewTabs.includes(tabName);
-
-        // Visibility Management
-        if (isNewTabFullView) {
-            // Moving to a full-view tab
-            if (wasOldTabFullView) {
-                this._setMainTabBarVisibility(false);
-            }
-            // If coming from non-full to full, we hide the tab bar after loading new content.
-        } else if (wasOldTabFullView) {
-            // Moving to non-full-view tab
-        } else {
-            // Ensure the bar is visible in non-full-view tabs.
-            this._setMainTabBarVisibility(true);
-        }
-
-        // Asynchronous Content Loading
-        if (this._loadingIndicatorTimeoutId) {
-            GLib.source_remove(this._loadingIndicatorTimeoutId);
-            this._loadingIndicatorTimeoutId = 0;
-        }
+        this._isSelectingTab = true;
 
         try {
+            // Initial Checks and State Setup
+            if (this._activeTabName === tabName && this._currentTabActor) {
+                // If clicking the same tab, just call its onSelected method.
+                this._currentTabActor.onTabSelected?.();
+                return;
+            }
+
+            // Store references to old state
+            const oldActor = this._currentTabActor;
+            const wasOldTabFullView = this._fullViewTabs.includes(this._activeTabName);
+
+            // Update state
+            this._activeTabName = tabName;
+            this._lastActiveTabName = tabName;
+            this._updateTabButtonSelection();
+            const tabId = getTabIdentifier(tabName);
+            const isNewTabFullView = this._fullViewTabs.includes(tabName);
+
+            // Visibility Management
+            if (isNewTabFullView) {
+                // Moving to a full-view tab
+                if (wasOldTabFullView) {
+                    this._setMainTabBarVisibility(false);
+                }
+                // If coming from non-full to full, we hide the tab bar after loading new content.
+            } else if (wasOldTabFullView) {
+                // Moving to non-full-view tab
+            } else {
+                // Ensure the bar is visible in non-full-view tabs.
+                this._setMainTabBarVisibility(true);
+            }
+
+            // Asynchronous Content Loading
+            if (this._loadingIndicatorTimeoutId) {
+                GLib.source_remove(this._loadingIndicatorTimeoutId);
+                this._loadingIndicatorTimeoutId = 0;
+            }
+
             this._loadingIndicatorTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
                 if (this._tabContentArea) {
                     // Create a Bin container that will expand and hold its space.
@@ -510,6 +609,8 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
                 this._tabContentArea.set_child(errorLabel);
                 this._currentTabActor = errorLabel;
             }
+        } finally {
+            this._isSelectingTab = false;
         }
     }
 
