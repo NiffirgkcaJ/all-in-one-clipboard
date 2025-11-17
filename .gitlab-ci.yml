@@ -7,14 +7,20 @@ stages:
 create_release:
   stage: release
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /^Version .*/'
+    # Only run this job when a tag is pushed to the main branch
+    - if: '$CI_COMMIT_TAG'
 
   before_script:
     - apt-get update -y && apt-get install -y jq gettext
 
   script:
-    - export RELEASE_VERSION=$(echo "$CI_COMMIT_MESSAGE" | sed -n 's/^Version \([0-9.]*\).*/\1/p')
+    # Use the tag variable to get the version
+    - export RELEASE_VERSION="${CI_COMMIT_TAG#v}"
+    - export RELEASE_TITLE="Version $RELEASE_VERSION"
+
     - ./build.sh package
     - export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
-    - release-cli create --name "$CI_COMMIT_MESSAGE" --tag-name "v$RELEASE_VERSION" \
-        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"./$ASSET_NAME\"}"
+
+    # Use the tag-derived variables to create the release
+    - release-cli create --name "$RELEASE_TITLE" --tag-name "$CI_COMMIT_TAG" \
+        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"./$ASSET_NAME\",\"filepath\":\"/$ASSET_NAME\"}"
