@@ -87,7 +87,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq gettext
+          sudo apt-get install -y jq gettext libglib2.0-dev
 
       - name: Extract Version from Commit Message
         run: |
@@ -124,21 +124,27 @@ jobs:
       - name: Pull latest changes from bot
         run: git pull origin main
 
-      - name: Install Dependencies
+      - name: Install Dependencies for Build Script
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq gettext curl
+          sudo apt-get install -y gettext libglib2.0-dev
 
-      - name: Build the Review Package
-        run: ./build.sh review
+      - name: Run the Custom Build Process
+        run: ./build.sh package
 
-      - name: Determine Review Asset Filename
-        run: echo "REVIEW_ASSET_NAME=$(jq -r '.uuid' extension/metadata.json)-review.zip" >> $GITHUB_ENV
+      - name: Rename Artifact for Upload Action
+        run: |
+          ORIGINAL_ZIP=$(jq -r '.uuid' extension/metadata.json).zip
+          RENAMED_ZIP=$(jq -r '.uuid' extension/metadata.json).shell-extension.zip
+          mv "$ORIGINAL_ZIP" "$RENAMED_ZIP"
 
       - name: Upload to GNOME Extensions
-        run: |
-          echo "Uploading ${{ env.REVIEW_ASSET_NAME }} to GNOME Extensions..."
-          curl -F "file=@${{ env.REVIEW_ASSET_NAME }}" -u "${{ secrets.GNOME_USERNAME }}:${{ secrets.GNOME_PASSWORD }}" https://extensions.gnome.org/upload/
+        uses: murar8/gnome-extensions-action@0.1.0
+        with:
+          username: ${{ secrets.GNOME_USERNAME }}
+          password: ${{ secrets.GNOME_PASSWORD }}
+          accept-tos: true
+          source-dir: ''
 
   # --- JOB 5: SYNC TO GITLAB ---
   sync-to-gitlab:
