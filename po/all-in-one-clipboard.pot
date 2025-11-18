@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 06:34+0000\n"
+"POT-Creation-Date: 2025-11-18 12:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,46 +17,41 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension/extension.js:77
+#: extension/extension.js:78
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: extension/extension.js:496
-#, javascript-format
-msgid "Loading %s..."
-msgstr ""
-
-#: extension/extension.js:513 extension/features/Emoji/tabEmoji.js:118
+#: extension/extension.js:471 extension/features/Emoji/tabEmoji.js:119
 #: extension/features/GIF/tabGIF.js:153
 #: extension/features/Kaomoji/tabKaomoji.js:70
 #: extension/features/Symbols/tabSymbols.js:70
 msgid "Recently Used"
 msgstr ""
 
-#: extension/extension.js:526 extension/extension.js:940
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:185
+#: extension/extension.js:489 extension/extension.js:895
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:188
 msgid "Clipboard"
 msgstr ""
 
-#: extension/extension.js:941
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
+#: extension/extension.js:896
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
 msgid "Emoji"
 msgstr ""
 
-#: extension/extension.js:942
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:182
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:645
+#: extension/extension.js:897
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:185
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:648
 msgid "GIF"
 msgstr ""
 
-#: extension/extension.js:943
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
+#: extension/extension.js:898
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:186
 msgid "Kaomoji"
 msgstr ""
 
-#: extension/extension.js:944
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
+#: extension/extension.js:899
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:187
 msgid "Symbols"
 msgstr ""
 
@@ -506,7 +501,7 @@ msgid "Clear lists of recently used emojis, GIFs, etc."
 msgstr ""
 
 #: extension/prefs.js:1050
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
 msgid "Recent Emojis"
 msgstr ""
 
@@ -515,7 +510,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
 #: extension/prefs.js:1051
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:182
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:185
 msgid "Recent GIFs"
 msgstr ""
 
@@ -524,7 +519,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
 #: extension/prefs.js:1052
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:186
 msgid "Recent Kaomojis"
 msgstr ""
 
@@ -533,7 +528,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
 #: extension/prefs.js:1053
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:187
 msgid "Recent Symbols"
 msgstr ""
 
@@ -647,7 +642,7 @@ msgstr ""
 
 #: extension/features/GIF/tabGIF.js:422 extension/features/GIF/tabGIF.js:486
 #: extension/features/GIF/tabGIF.js:499
-#: extension/utilities/utilityCategorizedItemViewer.js:514
+#: extension/utilities/utilityCategorizedItemViewer.js:497
 msgid "Recents"
 msgstr ""
 
@@ -683,20 +678,20 @@ msgid ""
 "Please check your API key and network connection."
 msgstr ""
 
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:150
-#: extension/utilities/utilityCategorizedItemViewer.js:597
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:153
+#: extension/utilities/utilityCategorizedItemViewer.js:580
 msgid "No recent items yet."
 msgstr ""
 
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
 msgid "Pinned Clipboard"
 msgstr ""
 
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:185
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:188
 msgid "Recent Clipboard History"
 msgstr ""
 
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:222
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:225
 msgid "Show All"
 msgstr ""
 
@@ -704,19 +699,15 @@ msgstr ""
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:364
-msgid "Loading..."
-msgstr ""
-
-#: extension/utilities/utilityCategorizedItemViewer.js:436
+#: extension/utilities/utilityCategorizedItemViewer.js:419
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:595
+#: extension/utilities/utilityCategorizedItemViewer.js:578
 msgid "No items available."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:596
+#: extension/utilities/utilityCategorizedItemViewer.js:579
 msgid "No items match your search."
 msgstr ""
 
