@@ -76,7 +76,7 @@
             <summary>Toggle main menu</summary>
         </key>
         <key name="shortcut-open-clipboard" type="as">
-            <default><![CDATA[['<Super>v']]]></default>
+            <default><![CDATA[['<Super>c']]]></default>
             <summary>Open clipboard tab</summary>
         </key>
         <key name="shortcut-open-emoji" type="as">
