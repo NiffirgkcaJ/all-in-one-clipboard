@@ -12,6 +12,7 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { createThemedIcon } from './utilities/utilityThemedIcon.js';
+import { getSkinnableCharSet } from './features/Emoji/logic/emojiDataCache.js';
 import { positionMenu } from './utilities/utilityMenuPositioner.js';
 import { getAutoPaster, destroyAutoPaster } from './utilities/utilityAutoPaste.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
@@ -445,16 +446,16 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         }
         this._isSelectingTab = true;
 
+        const oldActor = this._currentTabActor;
+
         try {
-            // Initial Checks and State Setup
-            if (this._activeTabName === tabName && this._currentTabActor) {
-                // If clicking the same tab, just call its onSelected method.
-                this._currentTabActor.onTabSelected?.();
+            // If clicking the same tab, just call its onSelected method and exit.
+            if (this._activeTabName === tabName && oldActor) {
+                oldActor.onTabSelected?.();
                 return;
             }
 
-            // Store references to old state
-            const oldActor = this._currentTabActor;
+            // Update active tab references and button states
             const wasOldTabFullView = this._fullViewTabs.includes(this._activeTabName);
 
             // Update state
@@ -464,56 +465,18 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
             const tabId = getTabIdentifier(tabName);
             const isNewTabFullView = this._fullViewTabs.includes(tabName);
 
-            // Visibility Management
-            if (isNewTabFullView) {
-                // Moving to a full-view tab
-                if (wasOldTabFullView) {
-                    this._setMainTabBarVisibility(false);
-                }
-                // If coming from non-full to full, we hide the tab bar after loading new content.
-            } else if (wasOldTabFullView) {
-                // Moving to non-full-view tab
-            } else {
-                // Ensure the bar is visible in non-full-view tabs.
-                this._setMainTabBarVisibility(true);
-            }
-
-            // Asynchronous Content Loading
-            if (this._loadingIndicatorTimeoutId) {
-                GLib.source_remove(this._loadingIndicatorTimeoutId);
-                this._loadingIndicatorTimeoutId = 0;
-            }
-
-            this._loadingIndicatorTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
-                if (this._tabContentArea) {
-                    // Create a Bin container that will expand and hold its space.
-                    const loadingContainer = new St.Bin({
-                        style_class: 'aio-clipboard-content-area',
-                        x_expand: true,
-                        y_expand: true,
-                        // Center the label inside the expanding container.
-                        child: new St.Label({
-                            text: _("Loading %s...").format(tabName),
-                            x_align: Clutter.ActorAlign.CENTER,
-                            y_align: Clutter.ActorAlign.CENTER
-                        })
-                    });
-
-                    this._tabContentArea.set_child(loadingContainer);
-                    this._currentTabActor = loadingContainer;
-                    oldActor?.destroy();
-                }
-                this._loadingIndicatorTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
-            });
-
-            // Dynamically import and create the new tab content actor
+            // Load the new content actor
             let newContentActor;
             // Import paths for tab modules
             if (tabName === _("Recently Used")) {
                 const moduleUrl = `file://${this._extension.path}/features/RecentlyUsed/tabRecentlyUsed.js`;
                 const tabModule = await import(moduleUrl);
                 newContentActor = new tabModule.RecentlyUsedTabContent(this._extension, this._settings, this._clipboardManager);
+
+                // Wait for the tab's internal async loading to complete.
+                if (newContentActor.initializationPromise) {
+                    await newContentActor.initializationPromise;
+                }
             } else {
                 const moduleUrl = `file://${this._extension.path}/features/${tabId}/tab${tabId}.js`;
                 const tabModule = await import(moduleUrl);
@@ -530,25 +493,16 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
                 }
             }
 
+            // If the active tab changed while we were loading, abort this operation.
             if (this._activeTabName !== tabName) {
                 newContentActor?.destroy();
-                if (this._loadingIndicatorTimeoutId) {
-                    GLib.source_remove(this._loadingIndicatorTimeoutId);
-                    this._loadingIndicatorTimeoutId = 0;
-                }
                 return;
             }
 
-            if (this._loadingIndicatorTimeoutId) {
-                GLib.source_remove(this._loadingIndicatorTimeoutId);
-                this._loadingIndicatorTimeoutId = 0;
-            }
-
-            // Synchronous UI Update
-            this._disconnectTabSignals(oldActor);
+            // Replace the old actor with the new one.
             this._tabContentArea.set_child(newContentActor);
 
-            // Adjust tab bar visibility based on full-view status
+            // Adjust tab bar visibility based on the new content's properties.
             if (!isNewTabFullView) {
                 // Moving to a non-full-view tab, show the tab bar
                 this._setMainTabBarVisibility(true);
@@ -557,11 +511,14 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
                 this._setMainTabBarVisibility(false);
             }
 
-            // Reconnect signals for the new tab actor
+            // Now that the old actor is off-stage, safely disconnect signals and destroy it.
+            this._disconnectTabSignals(oldActor);
             oldActor?.destroy();
+
+            // Update the internal reference to the new actor.
             this._currentTabActor = newContentActor;
 
-            // Connect signals to the new actor
+            // Connect signals to the new actor for tab bar visibility and navigation.
             if (newContentActor.constructor.$gtype) {
                 if (GObject.signal_lookup('set-main-tab-bar-visibility', newContentActor.constructor.$gtype)) {
                     this._currentTabVisibilitySignalId = newContentActor.connect('set-main-tab-bar-visibility', (actor, isVisible) => {
@@ -577,6 +534,7 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
                 }
             }
 
+            // Call the onTabSelected method after a brief idle to ensure UI stability.
             if (this._selectTabTimeoutId) {
                 GLib.source_remove(this._selectTabTimeoutId);
             }
@@ -589,11 +547,7 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         } catch (e) {
             console.error(`[AIO-Clipboard] Failed to load tab '${tabName}': ${e.message}\n${e.stack}`);
 
-            if (this._loadingIndicatorTimeoutId) {
-                GLib.source_remove(this._loadingIndicatorTimeoutId);
-                this._loadingIndicatorTimeoutId = 0;
-            }
-
+            // If an error occurs, destroy the old actor and show an error message.
             oldActor?.destroy();
             this._setMainTabBarVisibility(true);
 
@@ -866,6 +820,7 @@ export default class AllInOneClipboardExtension extends Extension {
 
         // Initialize singleton managers
         getGifCacheManager(this.uuid, this._settings).runCleanupImmediately();
+        getSkinnableCharSet(this.path);
         getAutoPaster();
 
         this._settingsSignalIds = [];

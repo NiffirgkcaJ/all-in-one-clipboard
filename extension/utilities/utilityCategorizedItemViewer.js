@@ -96,11 +96,20 @@ class CategorizedItemViewer extends St.BoxLayout {
 
         this._buildUI();
 
-        this._recentsChangedSignalId = this._recentItemsManager.connect('recents-changed', () => {
-            // If the recents list changes while we are viewing it, re-render.
-            if (this._currentSearchText === "" && this._activeCategory === RECENTS_TAB_ID) {
-                this._applyFiltersAndRenderGrid();
-            }
+        // Load data and render the initial state once recents are ready.
+        const initialLoadSignalId = this._recentItemsManager.connect('recents-changed', () => {
+            // Disconnect immediately so this only runs once.
+            this._recentItemsManager.disconnect(initialLoadSignalId);
+
+            // Now that recents are loaded, perform the initial render.
+            this._loadAndRenderInitialState();
+
+            // And now, connect the permanent signal handler for future updates.
+            this._recentsChangedSignalId = this._recentItemsManager.connect('recents-changed', () => {
+                if (this._currentSearchText === "" && this._activeCategory === RECENTS_TAB_ID) {
+                    this._applyFiltersAndRenderGrid();
+                }
+            });
         });
     }
 
@@ -320,7 +329,7 @@ class CategorizedItemViewer extends St.BoxLayout {
 
     /**
      * Public method called by the parent when this view becomes visible.
-     * Triggers data loading if necessary and sets initial focus.
+     * Focuses the search bar for immediate typing.
      */
     onSelected() {
         // Focus the search bar when the view is shown.
@@ -328,13 +337,6 @@ class CategorizedItemViewer extends St.BoxLayout {
             this._searchComponent?.grabFocus();
             return GLib.SOURCE_REMOVE;
         });
-
-        if (!this._isContentLoaded && !this._isLoading) {
-            this._contentArea.destroy_all_children();
-            this._loadAndParseData().catch(e => {
-                console.error(`[AIO-Clipboard] Async load from onSelected failed in CategorizedItemViewer: ${e}`);
-            });
-        }
     }
 
     /**
@@ -354,47 +356,26 @@ class CategorizedItemViewer extends St.BoxLayout {
     }
 
     /**
-     * Asynchronously loads and parses the main data file from the path specified in the config.
+     * Synchronously loads data from GResource and renders the initial state of the component.
+     * This is called from the constructor to ensure the widget is fully built upon creation.
      * @private
      */
-    async _loadAndParseData() {
-        if (this._isLoading) return;
+    _loadAndRenderInitialState() {
+        if (this._isContentLoaded) return;
         this._isLoading = true;
-        this._contentArea.add_child(new St.Label({
-            text: _("Loading..."),
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-            x_expand: true,
-            y_expand: true
-        }));
 
         try {
-            // Construct the special URI for a file inside the GResource bundle.
-            const resourceUri = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/${this._config.jsonPath}`;
-            const file = Gio.File.new_for_uri(resourceUri);
+            // Construct the absolute path within the GResource bundle.
+            const resourcePath = `/org/gnome/shell/extensions/all-in-one-clipboard/${this._config.jsonPath}`;
 
-            // Wrap the callback-based function in a native Promise
-            const bytes = await new Promise((resolve, reject) => {
-                file.load_contents_async(null, (source, res) => {
-                    try {
-                        const [ok, contents] = source.load_contents_finish(res);
-                        if (ok) {
-                            resolve(contents); // contents is a Uint8Array
-                        } else {
-                            reject(new Error(`Failed to load resource contents from ${resourceUri}`));
-                        }
-                    } catch (e) {
-                        reject(e); // Propagate errors, e.g., if resource is not found
-                    }
-                });
-            });
+            // Load the data synchronously. This is very fast as it's already in memory.
+            const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
 
-            // Check if the file is empty
             if (!bytes) {
-                throw new Error(`Loaded resource was empty at ${resourceUri}`);
+                throw new Error(`Loaded resource was empty at ${resourcePath}`);
             }
 
-            const jsonString = new TextDecoder('utf-8').decode(bytes);
+            const jsonString = new TextDecoder('utf-8').decode(bytes.get_data());
             const rawData = JSON.parse(jsonString);
 
             this._mainData = this._parser.parse(rawData);
@@ -428,6 +409,8 @@ class CategorizedItemViewer extends St.BoxLayout {
             const targetCategory = this._allDisplayableTabs.includes(RECENTS_TAB_ID)
                 ? RECENTS_TAB_ID
                 : (this._allDisplayableTabs[0] || null);
+
+            // This now synchronously renders the initial grid.
             this._setActiveCategory(targetCategory);
 
         } catch (e) {

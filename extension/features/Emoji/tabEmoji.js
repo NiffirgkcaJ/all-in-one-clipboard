@@ -9,6 +9,7 @@ import { CategorizedItemViewer } from '../../utilities/utilityCategorizedItemVie
 import { createThemedIcon } from '../../utilities/utilityThemedIcon.js';
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
 import { EmojiModifier } from './logic/emojiModifier.js';
+import { getSkinnableCharSet } from './logic/emojiDataCache.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 
 // GSettings keys for skin tone preferences.
@@ -76,8 +77,8 @@ class EmojiTabContent extends St.Bin {
      * @private
      */
     async _setup(extension, settings) {
-        // Await the critical data dependency first.
-        await this._buildSkinnableCharSet(extension.path);
+        // Build the set of skinnable base characters.
+        this._skinToneableBaseChars = await getSkinnableCharSet(extension.path);
 
         // Load GSettings now that data is ready.
         this._loadAndApplyCustomSkinToneSettings();

@@ -100,7 +100,10 @@ class RecentlyUsedTabContent extends St.BoxLayout {
         this._renderSession = null;
 
         this._buildUI();
-        this._loadRecentManagers()
+
+        // Store the promise so the creator can wait for initialization to complete.
+        this.initializationPromise = this._loadRecentManagers()
+            .then(() => Promise.all(Object.values(this._recentManagers).map(m => m.initialize())))
             .then(() => this._connectSignalsAndRender())
             .catch(e => console.error('[AIO-Clipboard] Failed to load recent managers:', e));
     }
