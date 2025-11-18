@@ -958,7 +958,7 @@ class GIFTabContent extends St.BoxLayout {
             });
         });
 
-        this._setIconFromUrl(bin, itemData.preview_url, renderSession);
+        this._setIconFromUrl(bin, itemData.preview_url, renderSession).catch(() => { /* Ignore */ });
         this._gridAllButtons.push(bin);
 
         return bin;

@@ -250,6 +250,9 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         const recentsRowWidget = recentsRowData?.row;
         const recentsKey = recentsRowData?.config.key;
 
+        // This will hold the currently visible tabs for the default tab model
+        let visibleTabsForModel = [];
+
         // Update the sensitivity of the tabs based on current settings
         const updateTabToggleSensitivity = () => {
             const states = tabVisibilityRows.map(item => ({
@@ -279,7 +282,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         const updateDefaultTabModel = () => {
             const currentDefault = settings.get_string('default-tab');
             const tabOrder = settings.get_strv('tab-order');
-            const visibleTabsForModel = [];
+            visibleTabsForModel = [];
 
             // Add visible tabs to the model
             tabOrder.forEach(originalTabName => {

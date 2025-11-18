@@ -77,21 +77,6 @@ class RecentlyUsedTabContent extends St.BoxLayout {
         // Track connected signals for cleanup
         this._signalIds = [];
 
-        // Tell it to listen, and add it to the list of things to clean up later.
-        this._signalIds.push({
-            obj: this._settings,
-            id: this._settings.connect('changed::clipboard-image-preview-size', () => {
-                this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-                this._renderAll();
-            })
-        });
-
-        // Store recent managers for different feature types
-        this._recentManagers = {};
-
-        // Track connected signals for cleanup
-        this._signalIds = [];
-
         // Store section UI elements
         this._sections = {};
 
@@ -103,7 +88,6 @@ class RecentlyUsedTabContent extends St.BoxLayout {
 
         // Store the promise so the creator can wait for initialization to complete.
         this.initializationPromise = this._loadRecentManagers()
-            .then(() => Promise.all(Object.values(this._recentManagers).map(m => m.initialize())))
             .then(() => this._connectSignalsAndRender())
             .catch(e => console.error('[AIO-Clipboard] Failed to load recent managers:', e));
     }
