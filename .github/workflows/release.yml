@@ -87,7 +87,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq gettext libglib2.0-dev
+          sudo apt-get install -y jq gettext libglib2.0-dev zip
 
       - name: Extract Version from Commit Message
         run: |
@@ -127,10 +127,10 @@ jobs:
       - name: Install Dependencies for Build Script
         run: |
           sudo apt-get update
-          sudo apt-get install -y gettext libglib2.0-dev
+          sudo apt-get install -y jq gettext libglib2.0-dev zip
 
       - name: Run the Custom Build Process
-        run: ./build.sh package
+        run: ./build.sh review
 
       - name: Rename Artifact for Upload Action
         run: |
