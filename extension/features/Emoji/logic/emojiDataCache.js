@@ -60,3 +60,13 @@ export function getSkinnableCharSet(extensionPath) {
 
     return _cachePromise;
 }
+
+/**
+ * Resets the singleton cache.
+ * This should be called from the main extension's disable() method to ensure
+ * a clean state on extension reload, which is crucial for development.
+ */
+export function destroySkinnableCharSetCache() {
+    _skinnableCharSetCache = null;
+    _cachePromise = null;
+}

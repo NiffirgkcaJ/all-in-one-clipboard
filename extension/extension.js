@@ -12,10 +12,10 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { createThemedIcon } from './utilities/utilityThemedIcon.js';
-import { getSkinnableCharSet } from './features/Emoji/logic/emojiDataCache.js';
 import { positionMenu } from './utilities/utilityMenuPositioner.js';
 import { getAutoPaster, destroyAutoPaster } from './utilities/utilityAutoPaste.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
+import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 
 /**
  * Creates a simple, predictable identifier from a tab name.
@@ -973,6 +973,7 @@ export default class AllInOneClipboardExtension extends Extension {
         // Destroy singleton managers
         destroyAutoPaster();
         destroyGifCacheManager();
+        destroySkinnableCharSetCache();
 
         this._indicator?.destroy();
         this._indicator = null;

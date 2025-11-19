@@ -170,7 +170,7 @@ class ClipboardManager extends GObject.Object {
      */
     async _processClipboardContent() {
         try {
-            // STEP 1: Check for text first (safest operation)
+            // Check for text first
             const text = await new Promise(resolve => {
                 St.Clipboard.get_default().get_text(
                     St.ClipboardType.CLIPBOARD,
@@ -187,7 +187,7 @@ class ClipboardManager extends GObject.Object {
                 return;
             }
 
-            // STEP 2: Only check for images if no text was found
+            // Check for images if no text was found
             const mimetypesToProbe = [
                 'image/png',
                 'image/jpeg',
@@ -371,13 +371,12 @@ class ClipboardManager extends GObject.Object {
     // Data Management Methods
     // ===========================
 
+    /**
+     * Load data from disk and prepare the manager for use
+     *
+     * @returns {Promise<boolean>} Success status of initial load
+     */
     async loadData() {
-        /**
-         * Helper function to load a file asynchronously
-         *
-         * @param {Gio.File} file - File to load
-         * @returns {Promise<Uint8Array|null>} File contents or null
-         */
         const loadFile = async (file) => {
             try {
                 const bytes = await new Promise((resolve, reject) => {
