@@ -683,9 +683,11 @@ class CategorizedItemViewer extends St.BoxLayout {
             GLib.source_remove(this._setActiveCategoryTimeoutId);
             this._setActiveCategoryTimeoutId = 0;
         }
+
         if(this._recentsChangedSignalId > 0) {
-            try { this._recentItemsManager.disconnect(this._recentsChangedSignalId); } catch(e) { /* Ignore */ }
+            this._recentItemsManager.disconnect(this._recentsChangedSignalId);
         }
+
         this._searchDebouncer?.destroy();
         this._recentItemsManager?.destroy();
         this._searchComponent?.destroy();

@@ -189,13 +189,13 @@ class SymbolsTabContent extends St.Bin {
      * Cleans up resources when the widget is destroyed.
      */
     destroy() {
-        if (this._settings && this._alwaysShowTabsSignalId > 0) {
-            try {
-                this._settings.disconnect(this._alwaysShowTabsSignalId);
-            } catch (e) { /* Ignore */ }
+        // Disconnect the shared 'always-show-main-tab' signal
+        if (this._alwaysShowTabsSignalId) {
+            this._settings?.disconnect(this._alwaysShowTabsSignalId);
         }
         this._alwaysShowTabsSignalId = 0;
 
+        // Destroy the child viewer component
         this._viewer?.destroy();
         super.destroy();
     }

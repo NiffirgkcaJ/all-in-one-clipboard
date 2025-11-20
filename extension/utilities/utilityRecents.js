@@ -206,10 +206,9 @@ export const RecentItemsManager = GObject.registerClass(
          */
         destroy() {
             if (this._settings && this._settingsSignalId > 0) {
-                try {
-                    this._settings.disconnect(this._settingsSignalId);
-                } catch (e) { /* Ignore */ }
+                this._settings.disconnect(this._settingsSignalId);
             }
+
             this._settingsSignalId = 0;
             this._settings = null;
             this._recents = [];

@@ -997,17 +997,18 @@ class RecentlyUsedTabContent extends St.BoxLayout {
             GLib.source_remove(this._settingsBtnFocusTimeoutId);
             this._settingsBtnFocusTimeoutId = 0;
         }
+
+        // Mark as destroyed to prevent async callbacks from acting on this tab
         this._isDestroyed = true;
+
         if (this._httpSession) {
             this._httpSession.abort();
             this._httpSession = null;
         }
+
+        // Disconnect all connected signals
         this._signalIds.forEach(({ obj, id }) => {
-            try {
-                obj.disconnect(id);
-            } catch (e) {
-                // Ignore disconnection errors
-            }
+            obj.disconnect(id);
         });
 
         Object.values(this._recentManagers).forEach(m => m?.destroy());

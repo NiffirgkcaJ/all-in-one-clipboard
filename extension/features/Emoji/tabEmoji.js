@@ -378,20 +378,21 @@ class EmojiTabContent extends St.Bin {
      * Cleans up resources when the widget is destroyed.
      */
     destroy() {
+        // Disconnect emoji-specific signals
         this._skinToneSettingsSignalIds.forEach(id => {
             if (this._settings && id > 0) {
-                try { this._settings.disconnect(id); } catch (e) { /* Ignore */ }
+                this._settings.disconnect(id);
             }
         });
-        this._viewer?.destroy();
 
-        if (this._settings && this._alwaysShowTabsSignalId > 0) {
-            try {
-                this._settings.disconnect(this._alwaysShowTabsSignalId);
-            } catch (e) { /* Ignore */ }
+        // Disconnect the shared 'always-show-main-tab' signal
+        if (this._alwaysShowTabsSignalId) {
+            this._settings?.disconnect(this._alwaysShowTabsSignalId);
         }
         this._alwaysShowTabsSignalId = 0;
 
+        // Destroy the child viewer component
+        this._viewer?.destroy();
         super.destroy();
     }
 });

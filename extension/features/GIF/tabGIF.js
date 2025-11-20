@@ -1270,23 +1270,21 @@ class GIFTabContent extends St.BoxLayout {
             this._httpSession = null;
         }
 
+        // Disconnect GIF-specific signals safely
         if (this._settings && this._providerChangedSignalId > 0) {
             this._settings.disconnect(this._providerChangedSignalId);
         }
+        if (this._recentItemsManager && this._recentsSignalId > 0) {
+            this._recentItemsManager.disconnect(this._recentsSignalId);
+        }
 
-        if (this._settings && this._alwaysShowTabsSignalId > 0) {
-            try { this._settings.disconnect(this._alwaysShowTabsSignalId); } catch (e) { /* Ignore */ }
+        // Disconnect the shared 'always-show-main-tab' signal
+        if (this._alwaysShowTabsSignalId) {
+            this._settings?.disconnect(this._alwaysShowTabsSignalId);
         }
         this._alwaysShowTabsSignalId = 0;
 
-        if (this._recentItemsManager && this._recentsSignalId > 0) {
-            try {
-                this._recentItemsManager.disconnect(this._recentsSignalId);
-            } catch (e) {
-                // Ignore disconnection errors
-            }
-        }
-
+        // Clean up child components
         this._searchDebouncer?.destroy();
         this._searchComponent?.destroy();
         this._recentItemsManager?.destroy();
