@@ -11,16 +11,30 @@ create_release:
     - if: '$CI_COMMIT_TAG'
 
   before_script:
-  - apt-get update -y && apt-get install -y jq gettext libglib2.0-dev zip
+    # Install dependencies
+    - apt-get update -y && apt-get install -y jq gettext libglib2.0-dev zip python3 curl
+
+    # Install GitLab Release CLI
+    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/gitlab-org/release-cli/-/releases/v0.16.0/downloads/linux/amd64/release-cli"
+    - chmod +x /usr/local/bin/release-cli
 
   script:
-    # Use the tag variable to get the version
+    # Prepare Variables
     - export RELEASE_VERSION="${CI_COMMIT_TAG#v}"
     - export RELEASE_TITLE="Version $RELEASE_VERSION"
 
+    # Build the Extension
     - ./build.sh package
     - export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
 
-    # Use the tag-derived variables to create the release
+    # Define the Package Registry URL
+    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/all-in-one-clipboard/${RELEASE_VERSION}/${ASSET_NAME}"
+
+    # Upload the zip file to GitLab Package Registry
+    - |
+      echo "Uploading to Package Registry..."
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${ASSET_NAME}" "${PACKAGE_REGISTRY_URL}"
+
+    # Create the Release and link to the permanently stored package
     - release-cli create --name "$RELEASE_TITLE" --tag-name "$CI_COMMIT_TAG" \
-        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"./$ASSET_NAME\",\"filepath\":\"/$ASSET_NAME\"}"
+        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"${PACKAGE_REGISTRY_URL}\",\"filepath\":\"/$ASSET_NAME\"}"

@@ -134,8 +134,8 @@ jobs:
 
       - name: Rename Artifact for Upload Action
         run: |
-          ORIGINAL_ZIP=$(jq -r '.uuid' extension/metadata.json).zip
-          RENAMED_ZIP=$(jq -r '.uuid' extension/metadata.json).shell-extension.zip
+          ORIGINAL_ZIP="$(jq -r '.uuid' extension/metadata.json)-review.zip"
+          RENAMED_ZIP="$(jq -r '.uuid' extension/metadata.json).shell-extension.zip"
           mv "$ORIGINAL_ZIP" "$RENAMED_ZIP"
 
       - name: Upload to GNOME Extensions
