@@ -8,6 +8,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 
 import { createThemedIcon } from './utilityThemedIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
+import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { RecentItemsManager } from './utilityRecents.js';
 import { SearchComponent } from './utilitySearch.js';
 
@@ -198,6 +199,10 @@ class CategorizedItemViewer extends St.BoxLayout {
         this._categoryTabBar.connect('key-press-event', this._onFocusRingKeyPress.bind(this));
         this._categoryTabBar.set_reactive(true);
 
+        // Listen for category cycling shortcuts on the main container
+        this.connect('captured-event', this._onGlobalKeyPress.bind(this));
+        this.set_reactive(true);
+
         // Search component
         this._searchComponent = new SearchComponent(searchText => this._onSearchTextChanged(searchText));
         this.add_child(this._searchComponent.getWidget());
@@ -227,6 +232,63 @@ class CategorizedItemViewer extends St.BoxLayout {
         this._backButton.visible = shouldShow;
         this._backButton.reactive = shouldShow;
         this._backButton.can_focus = shouldShow;
+    }
+
+    /**
+     * Handles key presses on the viewer container to cycle categories.
+     * @param {Clutter.Actor} actor
+     * @param {Clutter.Event} event
+     */
+    _onGlobalKeyPress(actor, event) {
+        // // Only handle key press events
+        if (event.type() !== Clutter.EventType.KEY_PRESS) {
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        // Check Next Category Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-next-category')) {
+            this._cycleCategory(1);
+            return Clutter.EVENT_STOP;
+        }
+
+        // Check Previous Category Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-prev-category')) {
+            this._cycleCategory(-1);
+            return Clutter.EVENT_STOP;
+        }
+
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    /**
+     * Cycles to the next or previous category.
+     * @param {number} direction - 1 for next, -1 for previous
+     */
+    _cycleCategory(direction) {
+        // Get available tabs
+        const tabs = this._allDisplayableTabs;
+        if (!tabs || tabs.length <= 1) return;
+
+        // Find current index
+        const currentIndex = tabs.indexOf(this._activeCategory);
+        if (currentIndex === -1) return;
+
+        // Calculate new index
+        let newIndex = (currentIndex + direction) % tabs.length;
+        if (newIndex < 0) newIndex += tabs.length;
+
+        // Activate
+        const targetId = tabs[newIndex];
+        this._setActiveCategory(targetId);
+
+        // Ensure the selected category button scrolls into view if tab scrolling is enabled
+        if (this._config.enableTabScrolling && this._categoryButtons[targetId]) {
+            const button = this._categoryButtons[targetId];
+            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                ensureActorVisibleInScrollView(this._categoryTabScrollView, button);
+                return GLib.SOURCE_REMOVE;
+            });
+        }
     }
 
     /**

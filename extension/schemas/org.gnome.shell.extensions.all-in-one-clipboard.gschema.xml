@@ -95,6 +95,26 @@
             <default>[]</default>
             <summary>Open symbols tab</summary>
         </key>
+        <key name="shortcut-next-tab" type="as">
+            <default><![CDATA[['<Control>Tab']]]></default>
+            <summary>Switch to next tab</summary>
+            <description>Shortcut to cycle to the next visible tab within the menu.</description>
+        </key>
+        <key name="shortcut-prev-tab" type="as">
+            <default><![CDATA[['<Control><Shift>Tab']]]></default>
+            <summary>Switch to previous tab</summary>
+            <description>Shortcut to cycle to the previous visible tab within the menu.</description>
+        </key>
+        <key name="shortcut-next-category" type="as">
+            <default><![CDATA[['<Alt>Page_Down']]]></default>
+            <summary>Switch to next category</summary>
+            <description>Shortcut to cycle to the next category within a tab.</description>
+        </key>
+        <key name="shortcut-prev-category" type="as">
+            <default><![CDATA[['<Alt>Page_Up']]]></default>
+            <summary>Switch to previous category</summary>
+            <description>Shortcut to cycle to the previous category within a tab.</description>
+        </key>
 
         <!-- Recent Items Limits -->
         <key name="emoji-recents-max-items" type="i">

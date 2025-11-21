@@ -12,6 +12,7 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { createThemedIcon } from './utilities/utilityThemedIcon.js';
+import { eventMatchesShortcut } from './utilities/utilityShortcutMatcher.js';
 import { positionMenu } from './utilities/utilityMenuPositioner.js';
 import { getAutoPaster, destroyAutoPaster } from './utilities/utilityAutoPaste.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
@@ -148,8 +149,12 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
             vertical: true,
             width: 420,
             height: 420,
-            style_class: 'aio-clipboard-container'
+            style_class: 'aio-clipboard-container',
+            reactive: true, // Essential for capturing key events
+            can_focus: false
         });
+        // Intercept key presses for tab cycling
+        mainVerticalBox.connect('captured-event', this._onContainerKeyPress.bind(this));
         this.menu.box.add_child(mainVerticalBox);
 
         this._mainTabBar = new St.BoxLayout();
@@ -603,6 +608,59 @@ class AllInOneClipboardIndicator extends PanelMenu.Button {
         }
 
         return Clutter.EVENT_PROPAGATE;
+    }
+
+    /**
+     * Handles key presses on the main container to support tab cycling.
+     * @param {Clutter.Actor} actor
+     * @param {Clutter.Event} event
+     */
+    _onContainerKeyPress(actor, event) {
+        // Only handle key press events
+        if (event.type() !== Clutter.EventType.KEY_PRESS) {
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        // Check Next Tab Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-next-tab')) {
+            this._cycleTab(1);
+            return Clutter.EVENT_STOP;
+        }
+
+        // Check Previous Tab Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-prev-tab')) {
+            this._cycleTab(-1);
+            return Clutter.EVENT_STOP;
+        }
+
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    /**
+     * Cycles to the next or previous visible tab.
+     * @param {number} direction - 1 for next, -1 for previous
+     */
+    _cycleTab(direction) {
+        const tabOrder = this._settings.get_strv('tab-order');
+        const visibleTabs = [];
+
+        tabOrder.forEach(name => {
+            const translatedName = _(name);
+            if (this._tabButtons[translatedName] && this._tabButtons[translatedName].visible) {
+                visibleTabs.push(translatedName);
+            }
+        });
+
+        if (visibleTabs.length <= 1) return;
+
+        const currentIndex = visibleTabs.indexOf(this._activeTabName);
+        if (currentIndex === -1) return;
+
+        let newIndex = (currentIndex + direction) % visibleTabs.length;
+        if (newIndex < 0) newIndex += visibleTabs.length;
+
+        const targetTab = visibleTabs[newIndex];
+        this._selectTab(targetTab);
     }
 
     /**

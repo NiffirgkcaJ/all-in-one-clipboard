@@ -442,18 +442,59 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
         page.add(group);
 
-        const shortcuts = [
+        // Global Shortcuts
+        const globalExpander = new Adw.ExpanderRow({
+            title: _('Global Shortcuts'),
+            subtitle: _('These work even when the menu is closed.')
+        });
+        group.add(globalExpander);
+
+        const globalShortcuts = [
             { key: 'shortcut-toggle-main', title: _('Toggle Main Menu') },
-            { key: 'shortcut-open-clipboard', title: _('Open Clipboard Tab') },
             { key: 'shortcut-open-emoji', title: _('Open Emoji Tab') },
             { key: 'shortcut-open-gif', title: _('Open GIF Tab') },
             { key: 'shortcut-open-kaomoji', title: _('Open Kaomoji Tab') },
-            { key: 'shortcut-open-symbols', title: _('Open Symbols Tab') }
+            { key: 'shortcut-open-symbols', title: _('Open Symbols Tab') },
+            { key: 'shortcut-open-clipboard', title: _('Open Clipboard Tab') }
         ];
 
-        shortcuts.forEach(shortcut => {
+        globalShortcuts.forEach(shortcut => {
             const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
-            group.add(row);
+            globalExpander.add_row(row);
+        });
+
+        // Main Tab Shortcuts
+        const mainTabExpander = new Adw.ExpanderRow({
+            title: _('Main Tab Navigation'),
+            subtitle: _('Switch between the main tabs within the menu.')
+        });
+        group.add(mainTabExpander);
+
+        const mainTabShortcuts = [
+            { key: 'shortcut-next-tab', title: _('Next Tab') },
+            { key: 'shortcut-prev-tab', title: _('Previous Tab') }
+        ];
+
+        mainTabShortcuts.forEach(shortcut => {
+            const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
+            mainTabExpander.add_row(row);
+        });
+
+        // Full-View Tab Shortcuts
+        const categoryExpander = new Adw.ExpanderRow({
+            title: _('Category Navigation'),
+            subtitle: _('Switch between the categories within the tabs.')
+        });
+        group.add(categoryExpander);
+
+        const categoryShortcuts = [
+            { key: 'shortcut-next-category', title: _('Next Category') },
+            { key: 'shortcut-prev-category', title: _('Previous Category') }
+        ];
+
+        categoryShortcuts.forEach(shortcut => {
+            const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
+            categoryExpander.add_row(row);
         });
     }
 
@@ -488,7 +529,8 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
             const content = dialog.get_content_area();
             const label = new Gtk.Label({
-                label: _('Press a key combination or Escape to cancel'),
+                label: _('Press a key combination\nBackspace to Clear, Escape to Cancel'),
+                justify: Gtk.Justification.CENTER,
                 margin_top: 12,
                 margin_bottom: 12,
                 margin_start: 12,
@@ -496,14 +538,19 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             });
             content.append(label);
 
-            const controller = new Gtk.EventControllerKey();
+            // Create a key event controller to capture key presses
+            const controller = new Gtk.EventControllerKey({
+                propagation_phase: Gtk.PropagationPhase.CAPTURE
+            });
 
             controller.connect('key-pressed', (controller, keyval, keycode, state) => {
+                // Cancel
                 if (keyval === Gdk.KEY_Escape) {
                     dialog.close();
                     return Gdk.EVENT_STOP;
                 }
 
+                // Clear
                 if (keyval === Gdk.KEY_BackSpace) {
                     settings.set_strv(key, []);
                     shortcutLabel.set_accelerator('');
@@ -511,14 +558,31 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                     return Gdk.EVENT_STOP;
                 }
 
-                const mask = state & Gtk.accelerator_get_default_mod_mask();
+                // Ignore standalone modifiers
+                const isModifier = (
+                    keyval === Gdk.KEY_Control_L || keyval === Gdk.KEY_Control_R ||
+                    keyval === Gdk.KEY_Shift_L || keyval === Gdk.KEY_Shift_R ||
+                    keyval === Gdk.KEY_Alt_L || keyval === Gdk.KEY_Alt_R ||
+                    keyval === Gdk.KEY_Super_L || keyval === Gdk.KEY_Super_R ||
+                    keyval === Gdk.KEY_Meta_L || keyval === Gdk.KEY_Meta_R
+                );
 
-                if (Gtk.accelerator_valid(keyval, mask)) {
-                    const shortcut = Gtk.accelerator_name(keyval, mask);
+                if (isModifier) return Gdk.EVENT_PROPAGATE;
+
+                // Fix ISO_Left_Tab -> Tab
+                let finalKeyval = keyval;
+                if (keyval === Gdk.KEY_ISO_Left_Tab) finalKeyval = Gdk.KEY_Tab;
+
+                // Save
+                const mask = state & Gtk.accelerator_get_default_mod_mask();
+                const shortcut = Gtk.accelerator_name(finalKeyval, mask);
+
+                if (shortcut) {
                     settings.set_strv(key, [shortcut]);
                     shortcutLabel.set_accelerator(shortcut);
                     dialog.close();
                 }
+
                 return Gdk.EVENT_STOP;
             });
 

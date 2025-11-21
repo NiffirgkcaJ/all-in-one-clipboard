@@ -9,6 +9,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 
 import { createThemedIcon } from '../../utilities/utilityThemedIcon.js';
 import { Debouncer } from '../../utilities/utilityDebouncer.js';
+import { eventMatchesShortcut } from '../../utilities/utilityShortcutMatcher.js';
 import { getGifCacheManager } from './logic/gifCacheManager.js';
 import { GifManager } from './logic/gifManager.js';
 import { MasonryLayout } from '../../utilities/utilityMasonryLayout.js';
@@ -54,9 +55,11 @@ class GIFTabContent extends St.BoxLayout {
             vertical: true,
             style_class: 'gif-tab-content',
             x_expand: true,
-            y_expand: true
+            y_expand: true,
+            reactive: true
         });
 
+        this.connect('captured-event', this._onGlobalKeyPress.bind(this));
         this._httpSession = new Soup.Session();
         this._extension = extension;
 
@@ -377,8 +380,15 @@ class GIFTabContent extends St.BoxLayout {
         }
 
         this._setOnlineMode(searchWidget);
-        await this._loadCategories();
+        this._addTrendingButton();
+
+        // Set the initial active category
         this._setInitialCategory();
+
+        // Load categories asynchronously
+        this._loadCategories().catch(e => {
+            console.warn(`[AIO-Clipboard] Could not fetch GIF categories: ${e.message}`);
+        });
     }
 
     /**
@@ -442,17 +452,13 @@ class GIFTabContent extends St.BoxLayout {
      * @private
      */
     async _loadCategories() {
-        this._addTrendingButton();
-
         try {
             const categories = await this._gifManager.getCategories();
             for (const category of categories) {
                 this._addCategoryButton(category);
             }
         } catch (e) {
-            console.warn(
-                `[AIO-Clipboard] Could not fetch GIF categories: ${e.message}`
-            );
+            console.warn(`[AIO-Clipboard] Could not fetch GIF categories: ${e.message}`);
         }
     }
 
@@ -462,10 +468,11 @@ class GIFTabContent extends St.BoxLayout {
      * @private
      */
     _setInitialCategory() {
-        const firstCategory = this._tabButtons['trending']?.categoryData;
+        // Default to trending since it's always available
+        const trendingCategory = this._tabButtons['trending']?.categoryData;
 
-        if (firstCategory) {
-            this._setActiveCategory(firstCategory, true);
+        if (trendingCategory) {
+            this._setActiveCategory(trendingCategory, true);
         } else {
             this._renderInfoState(_("No categories available."));
         }
@@ -565,6 +572,69 @@ class GIFTabContent extends St.BoxLayout {
     // ===========================
     // Keyboard Navigation Methods
     // ===========================
+
+    /**
+     * Handles key presses on the main container to cycle categories.
+     */
+    _onGlobalKeyPress(actor, event) {
+        // Only handle key press events
+        if (event.type() !== Clutter.EventType.KEY_PRESS) {
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        // Check Next Category Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-next-category')) {
+            this._cycleCategory(1);
+            return Clutter.EVENT_STOP;
+        }
+
+        // Check Previous Category Shortcuts
+        if (eventMatchesShortcut(event, this._settings, 'shortcut-prev-category')) {
+            this._cycleCategory(-1);
+            return Clutter.EVENT_STOP;
+        }
+
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    /**
+     * Cycles the active category.
+     * @param {number} direction
+     */
+    _cycleCategory(direction) {
+        // Get available tabs
+        const children = this.headerBox.get_children();
+        const categories = [];
+
+        children.forEach(child => {
+            // We stored the category data on the button object in _addCategoryButton
+            if (child.categoryData) {
+                categories.push(child.categoryData);
+            }
+        });
+
+        if (categories.length <= 1) return;
+
+        // Find current index
+        const currentIndex = categories.findIndex(c => c.id === this._activeCategory?.id);
+        if (currentIndex === -1) return;
+
+        // Calculate new index
+        let newIndex = (currentIndex + direction) % categories.length;
+        if (newIndex < 0) newIndex += categories.length;
+
+        // Activate
+        this._setActiveCategory(categories[newIndex]);
+
+        // Ensure the button is visible in the scroll view
+        const button = this._tabButtons[categories[newIndex].id];
+        if (button) {
+             GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                 ensureActorVisibleInScrollView(this.headerScrollView, button);
+                 return GLib.SOURCE_REMOVE;
+             });
+        }
+    }
 
     /**
      * Handle keyboard navigation in the header (back button and category tabs).
