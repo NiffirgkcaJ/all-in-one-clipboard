@@ -12,29 +12,45 @@ create_release:
 
   before_script:
     # Install dependencies
-    - apt-get update -y && apt-get install -y jq gettext libglib2.0-dev zip python3 curl
+    - apt-get update -y && apt-get install -y jq gettext libglib2.0-dev zip python3 curl git
 
     # Install GitLab Release CLI
-    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/gitlab-org/release-cli/-/releases/v0.16.0/downloads/linux/amd64/release-cli"
+    - curl --location --output /usr/local/bin/release-cli "https://gitlab.com/api/v4/projects/gitlab-org%2Frelease-cli/packages/generic/release-cli/latest/release-cli-linux-amd64"
     - chmod +x /usr/local/bin/release-cli
 
-  script:
+  script: |
     # Prepare Variables
-    - export RELEASE_VERSION="${CI_COMMIT_TAG#v}"
-    - export RELEASE_TITLE="Version $RELEASE_VERSION"
+    export RELEASE_VERSION="${CI_COMMIT_TAG#v}"
+    export RELEASE_TITLE="Version $RELEASE_VERSION"
 
-    # Build the Extension
-    - ./build.sh package
-    - export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
+    # Get the commit message for the description
+    export RELEASE_DESCRIPTION=$(git log -1 --format=%B)
+
+    # Build the package
+    ./build.sh package
+
+    # Define Asset Name
+    export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
 
     # Define the Package Registry URL
-    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/all-in-one-clipboard/${RELEASE_VERSION}/${ASSET_NAME}"
+    export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/all-in-one-clipboard/${RELEASE_VERSION}/${ASSET_NAME}"
 
-    # Upload the zip file to GitLab Package Registry
-    - |
-      echo "Uploading to Package Registry..."
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${ASSET_NAME}" "${PACKAGE_REGISTRY_URL}"
+    # Upload the ZIP file to GitLab Package Registry
+    echo "Uploading ${ASSET_NAME}..."
+    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${ASSET_NAME}" "${PACKAGE_REGISTRY_URL}"
 
-    # Create the Release and link to the permanently stored package
-    - release-cli create --name "$RELEASE_TITLE" --tag-name "$CI_COMMIT_TAG" \
-        --assets-link "{\"name\":\"$ASSET_NAME\",\"url\":\"${PACKAGE_REGISTRY_URL}\",\"filepath\":\"/$ASSET_NAME\"}"
+    # Prepare Safe Filepath
+    SAFE_FILEPATH="/$(echo "$ASSET_NAME" | sed 's/@/-/g')"
+
+    # Prepare Assets Link JSON
+    ASSETS_LINK_JSON=$(jq -n \
+      --arg name "$ASSET_NAME" \
+      --arg url "$PACKAGE_REGISTRY_URL" \
+      --arg filepath "$SAFE_FILEPATH" \
+      '{"name": $name, "url": $url, "filepath": $filepath}')
+
+    # Create the Release
+    echo "Creating release..."
+    release-cli create --name "$RELEASE_TITLE" --tag-name "$CI_COMMIT_TAG" \
+      --description "$RELEASE_DESCRIPTION" \
+      --assets-link "$ASSETS_LINK_JSON"
