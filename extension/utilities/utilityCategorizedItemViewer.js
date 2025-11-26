@@ -11,6 +11,7 @@ import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { RecentItemsManager } from './utilityRecents.js';
 import { SearchComponent } from './utilitySearch.js';
+import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 
 const RECENTS_TAB_ID = '##RECENTS##';
 const RECENTS_CUSTOM_ICON_FILENAME = 'utility-recents-symbolic.svg';
@@ -162,10 +163,8 @@ class CategorizedItemViewer extends St.BoxLayout {
         // Enable tab scrolling for categories if configured, otherwise center non-scrolling tabs
         if (this._config.enableTabScrolling) {
             // Scrolling Tabs
-            const scrollView = new St.ScrollView({
+            const scrollView = new HorizontalScrollView({
                 style_class: 'aio-clipboard-tab-scrollview',
-                hscrollbar_policy: St.PolicyType.AUTOMATIC,
-                vscrollbar_policy: St.PolicyType.NEVER,
                 x_expand: false, // Shrink-to-fit is essential
                 overlay_scrollbars: true,
                 clip_to_allocation: true
@@ -285,7 +284,7 @@ class CategorizedItemViewer extends St.BoxLayout {
         if (this._config.enableTabScrolling && this._categoryButtons[targetId]) {
             const button = this._categoryButtons[targetId];
             GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                ensureActorVisibleInScrollView(this._categoryTabScrollView, button);
+                scrollToItemCentered(this._categoryTabScrollView, button);
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -560,6 +559,11 @@ class CategorizedItemViewer extends St.BoxLayout {
             } else {
                 button = this._config.renderCategoryButtonFn(tabId, this._extension.path);
             }
+            button.connect('key-focus-in', () => {
+                if (this._config.enableTabScrolling) {
+                    scrollToItemCentered(this._categoryTabScrollView, button);
+                }
+            });
             button.connect('clicked', () => this._setActiveCategory(tabId));
             this._categoryTabBar.add_child(button);
             this._categoryButtons[tabId] = button;

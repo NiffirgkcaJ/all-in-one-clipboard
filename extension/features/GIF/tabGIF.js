@@ -16,6 +16,7 @@ import { MasonryLayout } from '../../utilities/utilityMasonryLayout.js';
 import { RecentItemsManager } from '../../utilities/utilityRecents.js';
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { HorizontalScrollView, scrollToItemCentered } from '../../utilities/utilityHorizontalScrollView.js';
 
 // Constants
 const GIF_PROVIDER_KEY = 'gif-provider';
@@ -159,10 +160,8 @@ class GIFTabContent extends St.BoxLayout {
         this._backButton = backButton;
         this._initializeHeaderFocusables();
 
-        this.headerScrollView = new St.ScrollView({
+        this.headerScrollView = new HorizontalScrollView({
             style_class: 'aio-clipboard-tab-scrollview',
-            hscrollbar_policy: St.PolicyType.AUTOMATIC,
-            vscrollbar_policy: St.PolicyType.NEVER,
             overlay_scrollbars: true,
             x_expand: true
         });
@@ -483,8 +482,46 @@ class GIFTabContent extends St.BoxLayout {
     // ===========================
 
     /**
+     * Helper to create, configure, and register a header tab button.
+     * @param {object} categoryData - The category data object used for logic
+     * @param {object} params - St.Button configuration
+     * @private
+     */
+    _createHeaderButton(categoryData, params) {
+        // Extract tooltip_text so it isn't passed to the constructor
+        const { tooltip_text, ...constructorParams } = params;
+
+        const button = new St.Button({
+            can_focus: true,
+            ...constructorParams
+        });
+
+        // Set tooltip explicitly after creation
+        if (tooltip_text) {
+            button.tooltip_text = tooltip_text;
+        }
+
+        // Attach Data
+        button.categoryData = categoryData;
+
+        // Connect Focus Signal
+        button.connect('key-focus-in', () => {
+            scrollToItemCentered(this.headerScrollView, button);
+        });
+
+        // Connect Click Signal
+        button.connect('clicked', () => this._setActiveCategory(categoryData));
+
+        // Register in internal lists
+        this._tabButtons[categoryData.id] = button;
+        this.headerBox.add_child(button);
+        this._headerFocusables.push(button);
+
+        return button;
+    }
+
+    /**
      * Add the recents button to the header.
-     *
      * @private
      */
     _addRecentsButton() {
@@ -494,27 +531,17 @@ class GIFTabContent extends St.BoxLayout {
             isSpecial: true
         };
 
-        // Use the helper function to create themed icon
         const iconWidget = createThemedIcon(RECENTS_ICON_FILENAME, 16);
 
-        const button = new St.Button({
+        this._createHeaderButton(category, {
             style_class: 'aio-clipboard-tab-button button',
             child: iconWidget,
-            can_focus: true
+            tooltip_text: _("Recents")
         });
-
-        button.tooltip_text = _("Recents");
-        button.connect('clicked', () => this._setActiveCategory(category));
-        button.categoryData = category;
-
-        this._tabButtons[category.id] = button;
-        this.headerBox.add_child(button);
-        this._headerFocusables.push(button);
     }
 
     /**
      * Add the trending button to the header.
-     *
      * @private
      */
     _addTrendingButton() {
@@ -524,27 +551,16 @@ class GIFTabContent extends St.BoxLayout {
             isSpecial: true
         };
 
-        const button = new St.Button({
+        this._createHeaderButton(category, {
             style_class: 'gif-category-tab-button button',
-            can_focus: true,
-            label: _("Trending")
+            label: _("Trending"),
+            tooltip_text: _("Trending GIFs")
         });
-
-        button.tooltip_text = _("Trending GIFs");
-        button.connect('clicked', () => this._setActiveCategory(category));
-        button.categoryData = category;
-
-        this._tabButtons[category.id] = button;
-        this.headerBox.add_child(button);
-        this._headerFocusables.push(button);
     }
 
     /**
      * Add a category button to the header.
-     *
-     * @param {object} category - The category data from the provider
-     * @param {string} category.name - Display name of the category
-     * @param {string} category.searchTerm - Search term for the category
+     * @param {object} category - The category data
      * @private
      */
     _addCategoryButton(category) {
@@ -554,19 +570,11 @@ class GIFTabContent extends St.BoxLayout {
             searchTerm: category.searchTerm
         };
 
-        const button = new St.Button({
+        this._createHeaderButton(categoryData, {
             style_class: 'gif-category-tab-button button',
-            can_focus: true,
-            label: _(category.name)
+            label: _(category.name),
+            tooltip_text: _(category.name)
         });
-
-        button.tooltip_text = _(category.name);
-        button.connect('clicked', () => this._setActiveCategory(categoryData));
-        button.categoryData = categoryData;
-
-        this._tabButtons[categoryData.id] = button;
-        this.headerBox.add_child(button);
-        this._headerFocusables.push(button);
     }
 
     // ===========================
@@ -630,7 +638,7 @@ class GIFTabContent extends St.BoxLayout {
         const button = this._tabButtons[categories[newIndex].id];
         if (button) {
              GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                 ensureActorVisibleInScrollView(this.headerScrollView, button);
+                 scrollToItemCentered(this.headerScrollView, button);
                  return GLib.SOURCE_REMOVE;
              });
         }
