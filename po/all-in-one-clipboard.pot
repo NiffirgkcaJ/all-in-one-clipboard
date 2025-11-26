@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-21 15:34+0000\n"
+"POT-Creation-Date: 2025-11-26 04:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgid "All-in-One Clipboard"
 msgstr ""
 
 #: extension/extension.js:476 extension/features/Emoji/tabEmoji.js:119
-#: extension/features/GIF/tabGIF.js:156
+#: extension/features/GIF/tabGIF.js:157
 #: extension/features/Kaomoji/tabKaomoji.js:70
 #: extension/features/Symbols/tabSymbols.js:70
 msgid "Recently Used"
@@ -678,42 +678,42 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:232
+#: extension/features/GIF/tabGIF.js:231
 msgid "Online search is disabled."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:432 extension/features/GIF/tabGIF.js:493
-#: extension/features/GIF/tabGIF.js:506
-#: extension/utilities/utilityCategorizedItemViewer.js:559
+#: extension/features/GIF/tabGIF.js:431 extension/features/GIF/tabGIF.js:530
+#: extension/features/GIF/tabGIF.js:539
+#: extension/utilities/utilityCategorizedItemViewer.js:558
 msgid "Recents"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:477
+#: extension/features/GIF/tabGIF.js:476
 msgid "No categories available."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:523 extension/features/GIF/tabGIF.js:530
+#: extension/features/GIF/tabGIF.js:550 extension/features/GIF/tabGIF.js:556
 msgid "Trending"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:533
+#: extension/features/GIF/tabGIF.js:557
 msgid "Trending GIFs"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:836
+#: extension/features/GIF/tabGIF.js:844
 msgid "No recent GIFs."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:860
+#: extension/features/GIF/tabGIF.js:868
 msgid "No trending GIFs found."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:893
+#: extension/features/GIF/tabGIF.js:901
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:1249
+#: extension/features/GIF/tabGIF.js:1257
 #, javascript-format
 msgid ""
 "Error: %s\n"
@@ -721,7 +721,7 @@ msgid ""
 msgstr ""
 
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:137
-#: extension/utilities/utilityCategorizedItemViewer.js:642
+#: extension/utilities/utilityCategorizedItemViewer.js:646
 msgid "No recent items yet."
 msgstr ""
 
@@ -737,19 +737,19 @@ msgstr ""
 msgid "Show All"
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:71
+#: extension/utilities/utilityCategorizedItemViewer.js:72
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:481
+#: extension/utilities/utilityCategorizedItemViewer.js:480
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:640
+#: extension/utilities/utilityCategorizedItemViewer.js:644
 msgid "No items available."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:641
+#: extension/utilities/utilityCategorizedItemViewer.js:645
 msgid "No items match your search."
 msgstr ""
 
