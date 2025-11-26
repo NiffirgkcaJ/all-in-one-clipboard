@@ -364,13 +364,13 @@
     max-height: 28px;
 }
 
-.aio-clipboard-container .clipboard-item-image-icon {
-    margin-right: 8px;
-}
-
 .aio-clipboard-container .clipboard-item-text-label {
     margin-left: 8px;
     margin-right: 8px;
+}
+
+.aio-clipboard-container .clipboard-action-buttons {
+    padding: 0;
 }
 
 .aio-clipboard-container .clipboard-item-button:hover,
@@ -401,4 +401,45 @@
     height: 1px;
     background-color: rgba(128, 128, 128, 0.3);
     margin: 4px 8px;
+}
+
+.aio-clipboard-container .clipboard-item-rich-container {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.aio-clipboard-container .clipboard-item-icon {
+    margin-right: 8px; /* Space between Icon and Title/Subtitle */
+}
+
+.aio-clipboard-container .clipboard-item-title {
+    font-weight: bold;
+    font-size: 0.95em;
+    margin-bottom: 2px; /* Space between Title and Subtitle */
+}
+
+.aio-clipboard-container .clipboard-item-subtitle {
+    font-weight: normal;
+    font-size: 0.8em;
+    color: rgba(180, 180, 180, 0.8);
+}
+
+.aio-clipboard-container .clipboard-item-button:hover .clipboard-item-subtitle,
+.aio-clipboard-container .clipboard-item-button:focus .clipboard-item-subtitle {
+    color: inherit;
+}
+
+.aio-clipboard-container .clipboard-color-container {
+    border: 5px solid rgba(128, 128, 128, 0.4);
+    border-radius: 8px;
+    margin-right: 8px;
+    padding: 0;
+}
+
+.aio-clipboard-container .clipboard-color-swatch {
+    min-width: 48px;
+    max-width: 48px;
+    min-height: 24px;
+    max-height: 24px;
+    border-radius: 3px;
 }

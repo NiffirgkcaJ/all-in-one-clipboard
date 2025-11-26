@@ -429,8 +429,7 @@ class ClipboardTabContent extends St.Bin {
             pinnedItems.some(item => item.id === id)
         );
 
-        // Logic: If there are any unpinned items in the selection, the action is to PIN them all.
-        // Otherwise, if the selection only contains pinned items, the action is to UNPIN them all.
+        // Pin unpinned selected items, unpin pinned selected items
         if (unpinnedSelected.length > 0) {
             await Promise.all(unpinnedSelected.map(id => this._manager.pinItem(id)));
         } else if (pinnedSelected.length > 0) {
@@ -462,7 +461,35 @@ class ClipboardTabContent extends St.Bin {
         this._manager.setDebounce();
         let copySuccess = false;
 
-        if (itemData.type === 'text') {
+        // Determine clipboard content based on item type
+        if (itemData.file_uri) { // File URI
+            try {
+                const clipboard = St.Clipboard.get_default();
+                const uriList = itemData.file_uri + "\r\n";
+                const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+
+                clipboard.set_content(
+                    St.ClipboardType.CLIPBOARD,
+                    'text/uri-list',
+                    bytes
+                );
+                copySuccess = true;
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
+            }
+        } else if (itemData.type === 'url') { // Link
+            St.Clipboard.get_default().set_text(
+                St.ClipboardType.CLIPBOARD,
+                itemData.url
+            );
+            copySuccess = true;
+        } else if (itemData.type === 'color') { // Color
+             St.Clipboard.get_default().set_text(
+                St.ClipboardType.CLIPBOARD,
+                itemData.color_value
+            );
+            copySuccess = true;
+        } else if (itemData.type === 'text') { // Plain Text
             const fullContent = await this._manager.getContent(itemData.id);
             if (fullContent) {
                 St.Clipboard.get_default().set_text(
@@ -471,7 +498,7 @@ class ClipboardTabContent extends St.Bin {
                 );
                 copySuccess = true;
             }
-        } else if (itemData.type === 'image') {
+        } else if (itemData.type === 'image') { // Raw Image
             try {
                 const imagePath = GLib.build_filenamev([
                     this._manager._imagesDir,
@@ -527,8 +554,7 @@ class ClipboardTabContent extends St.Bin {
                 await getAutoPaster().trigger();
             }
 
-            // Tell the manager to handle the item's state (recency/pinning).
-            // The manager will check the relevant settings internally.
+            // Promote copied item to top
             this._manager.promoteItemToTop(itemData.id);
         }
 
@@ -663,9 +689,15 @@ class ClipboardTabContent extends St.Bin {
 
         // Apply search filter if active
         if (isSearching) {
-            const filterFn = item =>
-                item.type === 'text' &&
-                item.preview.toLowerCase().includes(this._currentSearchText);
+            const filterFn = item => {
+                if (item.type === 'text') {
+                    return item.preview.toLowerCase().includes(this._currentSearchText);
+                }
+                if (item.type === 'file') {
+                    return item.preview.toLowerCase().includes(this._currentSearchText);
+                }
+                return false;
+            };
 
             pinnedItems = pinnedItems.filter(filterFn);
             historyItems = historyItems.filter(filterFn);
@@ -743,10 +775,62 @@ class ClipboardTabContent extends St.Bin {
             }
         }
 
-        // Fallback: If focused item was destroyed, focus first row button (not checkbox)
+        // Restore focus to the first item if no previous focused item found
         if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
             this._gridAllButtons[1].grab_key_focus(); // Index 1 is the row button
         }
+    }
+
+    /**
+     * Maps an item's data to a standardized view configuration.
+     * This acts as the "Map" to normalize Files, Links, and Text.
+     *
+     * @param {Object} item - The raw item data
+     * @returns {Object} { layoutMode, icon, title, subtitle }
+     */
+    _getItemViewConfig(item) {
+        if (item.type === 'image') return { layoutMode: 'image' };
+
+        if (item.type === 'file') {
+            return {
+                layoutMode: 'rich',
+                icon: 'text-x-generic-symbolic',
+                title: item.preview || _("Unknown File"),
+                subtitle: item.file_uri
+            };
+        }
+
+        if (item.type === 'url') {
+            const config = {
+                layoutMode: 'rich',
+                icon: 'web-browser-symbolic',
+                title: item.title || item.url,
+                subtitle: item.url
+            };
+
+            if (item.icon_filename) {
+                const iconPath = GLib.build_filenamev([
+                    this._manager._linkPreviewsDir,
+                    item.icon_filename
+                ]);
+                const file = Gio.File.new_for_path(iconPath);
+                config.gicon = new Gio.FileIcon({ file: file });
+            }
+
+            return config;
+        }
+
+        if (item.type === 'color') {
+            return {
+                layoutMode: 'rich',
+                icon: 'color-select-symbolic',
+                title: item.color_value,
+                subtitle: item.format_type,
+                cssColor: item.color_value
+            };
+        }
+
+        return { layoutMode: 'text', text: item.preview || '' };
     }
 
     /**
@@ -757,7 +841,7 @@ class ClipboardTabContent extends St.Bin {
      * @returns {St.Button} The row button widget.
      */
     _createItemWidget(itemData, isPinned) {
-        // Main row button (clickable area for copying)
+        // Main row button
         const rowButton = new St.Button({
             style_class: 'button clipboard-item-button',
             can_focus: true
@@ -767,9 +851,9 @@ class ClipboardTabContent extends St.Bin {
         const mainBox = new St.BoxLayout({
             vertical: false,
             x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER
+            y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'clipboard-row-content'
         });
-        mainBox.spacing = 4;
         rowButton.set_child(mainBox);
 
         // Checkbox for selection
@@ -788,31 +872,26 @@ class ClipboardTabContent extends St.Bin {
             y_expand: false,
             y_align: Clutter.ActorAlign.CENTER
         });
+
         itemCheckbox.connect('clicked', () => {
-            if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
-            if (this._selectedIds.has(itemData.id)) {
-                this._selectedIds.delete(itemData.id);
-                checkboxIcon.icon_name = 'checkbox-unchecked-symbolic';
-            } else {
-                this._selectedIds.add(itemData.id);
-                checkboxIcon.icon_name = 'checkbox-checked-symbolic';
-            }
-            this._updateSelectionState();
+             if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
+             if (this._selectedIds.has(itemData.id)) {
+                 this._selectedIds.delete(itemData.id);
+                 checkboxIcon.icon_name = 'checkbox-unchecked-symbolic';
+             } else {
+                 this._selectedIds.add(itemData.id);
+                 checkboxIcon.icon_name = 'checkbox-checked-symbolic';
+             }
+             this._updateSelectionState();
         });
+
         mainBox.add_child(itemCheckbox);
 
-        // Content widget (text or image)
+        // Content widget based on item type
+        const config = this._getItemViewConfig(itemData);
         let contentWidget;
-        if (itemData.type === 'text') {
-            contentWidget = new St.Label({
-                text: itemData.preview || '',
-                style_class: 'clipboard-item-text-label',
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER
-            });
-            contentWidget.get_clutter_text().set_line_wrap(false);
-            contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-        } else { // This is an image
+
+        if (config.layoutMode === 'image') { // Image Layout
             const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
 
             // Use wrapper bin for proper sizing
@@ -838,7 +917,83 @@ class ClipboardTabContent extends St.Bin {
             mainBox.y_align = Clutter.ActorAlign.FILL;
 
             contentWidget = imageWrapper;
+
+        } else if (config.layoutMode === 'rich') { // Rich Layout
+            contentWidget = new St.BoxLayout({
+                vertical: false,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'clipboard-item-rich-container'
+            });
+
+            // Icon Column
+            const iconParams = {
+                icon_size: 24,
+                style_class: 'clipboard-item-icon'
+            };
+
+            if (config.gicon) {
+                iconParams.gicon = config.gicon;
+            } else {
+                iconParams.icon_name = config.icon || 'text-x-generic-symbolic';
+            }
+            contentWidget.add_child(new St.Icon(iconParams));
+
+            // Color Column
+            if (config.cssColor) {
+                // Color Container
+                const swatchContainer = new St.Bin({
+                    style_class: 'clipboard-color-container',
+                    y_align: Clutter.ActorAlign.CENTER,
+                    x_align: Clutter.ActorAlign.CENTER
+                });
+
+                // Color Swatch
+                const swatch = new St.Bin({
+                    style_class: 'clipboard-color-swatch',
+                    style: `background-color: ${config.cssColor};`
+                });
+
+                swatchContainer.set_child(swatch);
+                contentWidget.add_child(swatchContainer);
+            }
+
+            // Text Column
+            const textCol = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+
+            const titleLabel = new St.Label({
+                text: config.title,
+                style_class: 'clipboard-item-title',
+                x_expand: true
+            });
+            titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+            textCol.add_child(titleLabel);
+
+            const subLabel = new St.Label({
+                text: config.subtitle,
+                style_class: 'clipboard-item-subtitle',
+                x_expand: true
+            });
+            subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
+            textCol.add_child(subLabel);
+
+            contentWidget.add_child(textCol);
+            contentWidget.x_expand = true;
+
+        } else { // Text Layout
+            contentWidget = new St.Label({
+                text: config.text,
+                style_class: 'clipboard-item-text-label',
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            contentWidget.get_clutter_text().set_line_wrap(false);
+            contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
         }
+
         mainBox.add_child(contentWidget);
 
         // This button shows the starred state of the item in the row.
@@ -867,13 +1022,15 @@ class ClipboardTabContent extends St.Bin {
         deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));
 
         // Buttons container
-        const buttonsBox = new St.BoxLayout({ x_align: Clutter.ActorAlign.END });
-        buttonsBox.spacing = 4;
+        const buttonsBox = new St.BoxLayout({
+            x_align: Clutter.ActorAlign.END,
+            style_class: 'clipboard-action-buttons'
+        });
         buttonsBox.add_child(rowStarButton);
         buttonsBox.add_child(deleteButton);
         mainBox.add_child(buttonsBox);
 
-        // Register all focusable buttons for keyboard navigation
+        // Register focus
         const rowItems = [itemCheckbox, rowButton, rowStarButton, deleteButton];
         this._gridAllButtons.push(...rowItems);
 
