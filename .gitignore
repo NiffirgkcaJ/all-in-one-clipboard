@@ -6,5 +6,8 @@
 .vscode/
 *.swp
 
+# Ignore Node modules
+node_modules/
+
 # Ignore macOS system files
 .DS_Store
