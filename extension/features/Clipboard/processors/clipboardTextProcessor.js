@@ -2,7 +2,9 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 
-const TEXT_PREVIEW_MAX_LENGTH = 150;
+import { ClipboardType } from '../constants/clipboardConstants.js';
+
+const MAX_PREVIEW_LENGTH = 500;
 
 export class TextProcessor {
     /**
@@ -10,77 +12,73 @@ export class TextProcessor {
      * @returns {Promise<Object|null>} An object containing text, hash, and bytes, or null if no text found.
      */
     static async extract() {
-        const clipboard = St.Clipboard.get_default();
+        return new Promise(resolve => {
+            St.Clipboard.get_default().get_text(St.ClipboardType.CLIPBOARD, (_, text) => {
+                if (text && text.trim().length > 0) {
+                     const hash = GLib.compute_checksum_for_string(
+                        GLib.ChecksumType.SHA256, text, -1
+                    );
 
-        // Try to get plain text first
-        let text = await new Promise(resolve => {
-            clipboard.get_text(St.ClipboardType.CLIPBOARD, (_, t) => resolve(t));
-        });
-
-        // If no plain text, try to get URI list
-        if (!text || text.trim() === '') {
-            const uriBytes = await new Promise(resolve => {
-                clipboard.get_content(
-                    St.ClipboardType.CLIPBOARD,
-                    'text/uri-list',
-                    (_, bytes) => resolve(bytes)
-                );
+                    resolve({
+                        type: ClipboardType.TEXT,
+                        text: text,
+                        preview: text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
+                        hash: hash
+                    });
+                } else {
+                    resolve(null);
+                }
             });
-
-            if (uriBytes && uriBytes.get_size() > 0) {
-                text = new TextDecoder().decode(uriBytes.get_data());
-            }
-        }
-
-        if (!text || text.trim() === '') {
-            return null;
-        }
-
-        const textBytes = new TextEncoder().encode(text);
-        const hash = GLib.compute_checksum_for_data(
-            GLib.ChecksumType.SHA256,
-            textBytes
-        );
-
-        return { text, hash, bytes: textBytes };
+        });
     }
 
     /**
-     * Saves the text item. If it exceeds the preview length, it saves a file.
-     * @param {Object} extractedData - The data returned from extract().
-     * @param {string} textsDir - The directory path to store text files.
-     * @returns {Object} The final item object to be added to history.
+     * Saves text items. Required by ClipboardManager.
      */
     static save(extractedData, textsDir) {
-        const { text, hash, bytes } = extractedData;
+        const { text, hash, type } = extractedData;
         const id = GLib.uuid_string_random();
-
-        // Collapse consecutive spaces/tabs, but preserve newlines
-        const preview = text
-            .replace(/[ \t]+/g, ' ')
-            .trim()
-            .substring(0, TEXT_PREVIEW_MAX_LENGTH);
-
-        const has_full_content = text.length > TEXT_PREVIEW_MAX_LENGTH;
-
-        if (has_full_content) {
-            try {
+        
+        let has_full_content = false;
+        
+        // Save long text to file
+        if (text && text.length > MAX_PREVIEW_LENGTH) {
+             try {
+                const filename = `${id}.txt`;
                 const file = Gio.File.new_for_path(
-                    GLib.build_filenamev([textsDir, `${id}.txt`])
+                    GLib.build_filenamev([textsDir, filename])
                 );
-                file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+                const bytes = new GLib.Bytes(new TextEncoder().encode(text));
+                file.replace_contents(bytes.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+                has_full_content = true;
             } catch (e) {
                 console.error(`[AIO-Clipboard] Failed to save text file: ${e.message}`);
             }
         }
 
-        return {
+        // Use provided type or default to text
+        const finalType = type || ClipboardType.TEXT;
+
+        // Use existing preview or create one
+        let preview = extractedData.preview;
+        if (!preview && text) {
+             preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
+        }
+
+        const item = {
             id,
-            type: 'text',
+            type: finalType,
             timestamp: Math.floor(Date.now() / 1000),
-            preview: has_full_content ? preview : text,
-            has_full_content,
-            hash
+            preview: preview || '',
+            hash,
+            has_full_content
         };
+
+        // Pass through raw_lines for code items
+        if (extractedData.raw_lines) {
+            item.raw_lines = extractedData.raw_lines;
+        }
+
+        return item;
     }
 }

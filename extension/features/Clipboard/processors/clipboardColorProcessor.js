@@ -1,5 +1,7 @@
 import GLib from 'gi://GLib';
 
+import { ClipboardType } from '../constants/clipboardConstants.js';
+
 // Strict regexes to avoid false positives in normal text
 const HEX_REGEX = /^#(?:[0-9a-fA-F]{3,4}){1,2}$/;
 const RGB_REGEX = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i;
@@ -31,7 +33,7 @@ export class ColorProcessor {
             );
 
             return {
-                type: 'color',
+                type: ClipboardType.COLOR,
                 color_value: cleanText,
                 format_type: format,
                 hash: hash

@@ -9,6 +9,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { ClipboardType, ClipboardStyling, ClipboardIcons } from './constants/clipboardConstants.js';
 
 /**
  * Number of focusable UI elements per clipboard item row
@@ -109,7 +110,7 @@ class ClipboardTabContent extends St.Bin {
         // Select All button
         this._selectAllIcon = new St.Icon({
             style_class: 'popup-menu-icon',
-            icon_name: 'checkbox-unchecked-symbolic',
+            icon_name: ClipboardIcons.CHECKBOX_UNCHECKED,
             icon_size: 16
         });
 
@@ -135,7 +136,7 @@ class ClipboardTabContent extends St.Bin {
             style_class: 'button clipboard-icon-button',
             can_focus: true,
             child: new St.Icon({
-                icon_name: 'view-reveal-symbolic',
+                icon_name: ClipboardIcons.ACTION_PRIVATE,
                 icon_size: 16
             })
         });
@@ -149,7 +150,7 @@ class ClipboardTabContent extends St.Bin {
             can_focus: false,
             reactive: false,
             child: new St.Icon({
-                icon_name: 'view-pin-symbolic',
+                icon_name: ClipboardIcons.ACTION_PIN,
                 icon_size: 16
             })
         });
@@ -162,7 +163,7 @@ class ClipboardTabContent extends St.Bin {
             can_focus: false,
             reactive: false,
             child: new St.Icon({
-                icon_name: 'edit-delete-symbolic',
+                icon_name: ClipboardIcons.DELETE,
                 icon_size: 16
             })
         });
@@ -247,11 +248,7 @@ class ClipboardTabContent extends St.Bin {
      */
     _onHeaderKeyPress(actor, event) {
         const symbol = event.get_key_symbol();
-        const isArrowKey = symbol === Clutter.KEY_Left ||
-                          symbol === Clutter.KEY_Right ||
-                          symbol === Clutter.KEY_Down;
-
-        if (!isArrowKey) {
+        if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right && symbol !== Clutter.KEY_Down) {
             return Clutter.EVENT_PROPAGATE;
         }
 
@@ -267,25 +264,17 @@ class ClipboardTabContent extends St.Bin {
             return Clutter.EVENT_PROPAGATE;
         }
 
-        switch (symbol) {
-            case Clutter.KEY_Left:
-                if (currentIndex > 0) {
-                    headerButtons[currentIndex - 1].grab_key_focus();
-                }
-                return Clutter.EVENT_STOP;
-
-            case Clutter.KEY_Right:
-                if (currentIndex < headerButtons.length - 1) {
-                    headerButtons[currentIndex + 1].grab_key_focus();
-                }
-                return Clutter.EVENT_STOP;
-
-            case Clutter.KEY_Down:
-                // When navigating down from header, skip checkbox and go straight to row button
-                if (this._gridAllButtons.length > 1) {
-                    this._gridAllButtons[1].grab_key_focus(); // Index 1 is the row button
-                }
-                return Clutter.EVENT_STOP;
+        if (symbol === Clutter.KEY_Left && currentIndex > 0) {
+            headerButtons[currentIndex - 1].grab_key_focus();
+            return Clutter.EVENT_STOP;
+        }
+        if (symbol === Clutter.KEY_Right && currentIndex < headerButtons.length - 1) {
+            headerButtons[currentIndex + 1].grab_key_focus();
+            return Clutter.EVENT_STOP;
+        }
+        if (symbol === Clutter.KEY_Down && this._gridAllButtons.length > 1) {
+            this._gridAllButtons[1].grab_key_focus();
+            return Clutter.EVENT_STOP;
         }
 
         return Clutter.EVENT_PROPAGATE;
@@ -300,18 +289,8 @@ class ClipboardTabContent extends St.Bin {
      */
     _onGridKeyPress(actor, event) {
         const symbol = event.get_key_symbol();
-        const isArrowKey = symbol === Clutter.KEY_Left ||
-                          symbol === Clutter.KEY_Right ||
-                          symbol === Clutter.KEY_Up ||
-                          symbol === Clutter.KEY_Down;
-
-        if (!isArrowKey) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        if (this._gridAllButtons.length === 0) {
-            return Clutter.EVENT_PROPAGATE;
-        }
+        const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
+        if (!isArrowKey || this._gridAllButtons.length === 0) return Clutter.EVENT_PROPAGATE;
 
         const currentFocus = global.stage.get_key_focus();
         const currentIndex = this._gridAllButtons.indexOf(currentFocus);
@@ -356,9 +335,9 @@ class ClipboardTabContent extends St.Bin {
 
         if (targetIndex !== -1) {
             this._gridAllButtons[targetIndex].grab_key_focus();
+            return Clutter.EVENT_STOP;
         }
-
-        return Clutter.EVENT_STOP;
+        return Clutter.EVENT_PROPAGATE;
     }
 
     // ===========================
@@ -371,14 +350,8 @@ class ClipboardTabContent extends St.Bin {
     _onPrivateModeToggled() {
         this._isPrivateMode = !this._isPrivateMode;
         this._manager.setPaused(this._isPrivateMode);
-
-        if (this._isPrivateMode) {
-            this._privateModeButton.child.icon_name = 'view-conceal-symbolic';
-            this._privateModeButton.tooltip_text = _("Stop Private Mode (Resume Recording)");
-        } else {
-            this._privateModeButton.child.icon_name = 'view-reveal-symbolic';
-            this._privateModeButton.tooltip_text = _("Start Private Mode (Pause Recording)");
-        }
+        this._privateModeButton.child.icon_name = this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC : ClipboardIcons.ACTION_PRIVATE;
+        this._privateModeButton.tooltip_text = this._isPrivateMode ? _("Stop Private Mode (Resume Recording)") : _("Start Private Mode (Pause Recording)");
     }
 
     /**
@@ -393,7 +366,7 @@ class ClipboardTabContent extends St.Bin {
                 this._selectedIds.add(item.id);
                 const icon = this._checkboxIconsMap.get(item.id);
                 if (icon) {
-                    icon.icon_name = 'checkbox-checked-symbolic';
+                    icon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
                 }
             });
         } else {
@@ -402,7 +375,7 @@ class ClipboardTabContent extends St.Bin {
             this._allItems.forEach(item => {
                 const icon = this._checkboxIconsMap.get(item.id);
                 if (icon) {
-                    icon.icon_name = 'checkbox-unchecked-symbolic';
+                    icon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
                 }
             });
         }
@@ -461,90 +434,68 @@ class ClipboardTabContent extends St.Bin {
         this._manager.setDebounce();
         let copySuccess = false;
 
-        // Determine clipboard content based on item type
-        if (itemData.file_uri) { // File URI
-            try {
-                const clipboard = St.Clipboard.get_default();
-                const uriList = itemData.file_uri + "\r\n";
-                const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-
-                clipboard.set_content(
-                    St.ClipboardType.CLIPBOARD,
-                    'text/uri-list',
-                    bytes
-                );
+        switch (itemData.type) {
+            case ClipboardType.FILE:
+                try {
+                    const clipboard = St.Clipboard.get_default();
+                    const uriList = itemData.file_uri + "\r\n";
+                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                    copySuccess = true;
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
+                }
+                break;
+            case ClipboardType.URL:
+            case ClipboardType.COLOR:
+                const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
                 copySuccess = true;
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
-            }
-        } else if (itemData.type === 'url') { // Link
-            St.Clipboard.get_default().set_text(
-                St.ClipboardType.CLIPBOARD,
-                itemData.url
-            );
-            copySuccess = true;
-        } else if (itemData.type === 'color') { // Color
-             St.Clipboard.get_default().set_text(
-                St.ClipboardType.CLIPBOARD,
-                itemData.color_value
-            );
-            copySuccess = true;
-        } else if (itemData.type === 'text') { // Plain Text
-            const fullContent = await this._manager.getContent(itemData.id);
-            if (fullContent) {
-                St.Clipboard.get_default().set_text(
-                    St.ClipboardType.CLIPBOARD,
-                    fullContent
-                );
-                copySuccess = true;
-            }
-        } else if (itemData.type === 'image') { // Raw Image
-            try {
-                const imagePath = GLib.build_filenamev([
-                    this._manager._imagesDir,
-                    itemData.image_filename
-                ]);
-                const file = Gio.File.new_for_path(imagePath);
-
-                // Determine MIME type from filename
-                let mimetype = 'image/png';
-                const lowerCaseFilename = itemData.image_filename.toLowerCase();
-
-                if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) {
-                    mimetype = 'image/jpeg';
-                } else if (lowerCaseFilename.endsWith('.gif')) {
-                    mimetype = 'image/gif';
-                } else if (lowerCaseFilename.endsWith('.webp')) {
-                    mimetype = 'image/webp';
+                break;
+            case ClipboardType.TEXT:
+            case ClipboardType.CODE:
+                let content = itemData.text; 
+                if (!content) {
+                    content = await this._manager.getContent(itemData.id);
                 }
 
-                // Load image file contents
-                const bytes = await new Promise((resolve, reject) => {
-                    file.load_contents_async(null, (source, res) => {
-                        try {
-                            const [ok, contents] = source.load_contents_finish(res);
-                            if (ok) {
-                                resolve(contents);
-                            } else {
-                                reject(new Error('Failed to load file contents.'));
-                            }
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
+                if (!content && itemData.preview) {
+                    content = itemData.type === ClipboardType.CODE 
+                        ? itemData.preview.replace(/<[^>]*>/g, '') 
+                        : itemData.preview;
+                }
 
-                if (bytes) {
-                    St.Clipboard.get_default().set_content(
-                        St.ClipboardType.CLIPBOARD,
-                        mimetype,
-                        bytes
-                    );
+                if (content) {
+                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, content);
                     copySuccess = true;
                 }
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to copy image to clipboard: ${e.message}`);
-            }
+                break;
+            case ClipboardType.IMAGE:
+                try {
+                    const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
+                    const file = Gio.File.new_for_path(imagePath);
+                    let mimetype = 'image/png';
+                    const lower = itemData.image_filename.toLowerCase();
+                    if (lower.endsWith('jpg') || lower.endsWith('jpeg')) mimetype = 'image/jpeg';
+                    else if (lower.endsWith('gif')) mimetype = 'image/gif';
+                    else if (lower.endsWith('webp')) mimetype = 'image/webp';
+
+                    const bytes = await new Promise((resolve, reject) => {
+                        file.load_contents_async(null, (source, res) => {
+                            try {
+                                const [ok, contents] = source.load_contents_finish(res);
+                                resolve(ok ? contents : null);
+                            } catch (e) { reject(e); }
+                        });
+                    });
+                    if (bytes) {
+                        St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
+                        copySuccess = true;
+                    }
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to copy image: ${e.message}`);
+                }
+                break;
         }
 
         if (copySuccess) {
@@ -610,13 +561,13 @@ class ClipboardTabContent extends St.Bin {
         this._selectAllButton.set_reactive(canSelect);
 
         if (!canSelect || numSelected === 0) {
-            this._selectAllIcon.icon_name = 'checkbox-unchecked-symbolic';
+            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
             this._selectAllButton.tooltip_text = _("Select All");
         } else if (numSelected === totalItems) {
-            this._selectAllIcon.icon_name = 'checkbox-checked-symbolic';
+            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
             this._selectAllButton.tooltip_text = _("Deselect All");
         } else {
-            this._selectAllIcon.icon_name = 'checkbox-mixed-symbolic';
+            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_MIXED;
             this._selectAllButton.tooltip_text = _("Select All");
         }
 
@@ -631,8 +582,7 @@ class ClipboardTabContent extends St.Bin {
      */
     _updatePinButtonState() {
         // The icon for the action button should always be the generic 'pin' icon.
-        this._pinSelectedButton.child.icon_name = 'view-pin-symbolic';
-
+        this._pinSelectedButton.child.icon_name = ClipboardIcons.ACTION_PIN;
         if (this._selectedIds.size === 0) {
             this._pinSelectedButton.tooltip_text = _("Pin/Unpin Selected");
             return;
@@ -640,19 +590,8 @@ class ClipboardTabContent extends St.Bin {
 
         const selectedIds = [...this._selectedIds];
         const historyItems = this._manager.getHistoryItems();
-
-        // Check if any of the selected items are in the unpinned history list.
-        const hasUnpinnedSelection = selectedIds.some(id =>
-            historyItems.some(item => item.id === id)
-        );
-
-        if (hasUnpinnedSelection) {
-            // If there's at least one unpinned item, the next action is to pin.
-            this._pinSelectedButton.tooltip_text = _("Pin Selected");
-        } else {
-            // Otherwise, all selected items must be pinned, so the action is to unpin.
-            this._pinSelectedButton.tooltip_text = _("Unpin Selected");
-        }
+        const hasUnpinnedSelection = selectedIds.some(id => historyItems.some(item => item.id === id));
+        this._pinSelectedButton.tooltip_text = hasUnpinnedSelection ? _("Pin Selected") : _("Unpin Selected");
     }
 
     /**
@@ -672,7 +611,7 @@ class ClipboardTabContent extends St.Bin {
 
             if (itemIndex < this._allItems.length) {
                 focusedItemId = this._allItems[itemIndex].id;
-                focusedButtonType = ['checkbox', 'row', 'pin', 'delete'][buttonPosition];
+                focusedButtonType = buttonPosition;
             }
         }
 
@@ -690,15 +629,10 @@ class ClipboardTabContent extends St.Bin {
         // Apply search filter if active
         if (isSearching) {
             const filterFn = item => {
-                if (item.type === 'text') {
-                    return item.preview.toLowerCase().includes(this._currentSearchText);
-                }
-                if (item.type === 'file') {
-                    return item.preview.toLowerCase().includes(this._currentSearchText);
-                }
-                return false;
+                const searchTarget = item.type === ClipboardType.TEXT || item.type === ClipboardType.FILE || item.type === ClipboardType.COLOR
+                    ? item.preview : (item.title || item.url);
+                return searchTarget && searchTarget.toLowerCase().includes(this._currentSearchText);
             };
-
             pinnedItems = pinnedItems.filter(filterFn);
             historyItems = historyItems.filter(filterFn);
         }
@@ -708,12 +642,8 @@ class ClipboardTabContent extends St.Bin {
 
         // Show empty state if no items
         if (this._allItems.length === 0) {
-            const emptyText = isSearching
-                ? _("No results found.")
-                : _("Clipboard history is empty.");
-
             this._itemBox.add_child(new St.Label({
-                text: emptyText,
+                text: isSearching ? _("No results found.") : _("Clipboard history is empty."),
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
                 x_expand: true,
@@ -759,25 +689,11 @@ class ClipboardTabContent extends St.Bin {
             const newItemIndex = this._allItems.findIndex(item => item.id === focusedItemId);
 
             if (newItemIndex !== -1) {
-                const buttonTypeOffset = {
-                    'checkbox': 0,
-                    'row': 1,
-                    'pin': 2,
-                    'delete': 3
-                }[focusedButtonType] || 1; // Default to row button
-
-                const targetButtonIndex = (newItemIndex * NUM_FOCUSABLE_ITEMS_PER_ROW) + buttonTypeOffset;
-
-                if (targetButtonIndex < this._gridAllButtons.length) {
-                    this._gridAllButtons[targetButtonIndex].grab_key_focus();
-                    return;
-                }
+                const targetButtonIndex = (newItemIndex * NUM_FOCUSABLE_ITEMS_PER_ROW) + (focusedButtonType || 1);
+                if (targetButtonIndex < this._gridAllButtons.length) this._gridAllButtons[targetButtonIndex].grab_key_focus();
             }
-        }
-
-        // Restore focus to the first item if no previous focused item found
-        if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
-            this._gridAllButtons[1].grab_key_focus(); // Index 1 is the row button
+        } else if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
+            this._gridAllButtons[1].grab_key_focus();
         }
     }
 
@@ -789,48 +705,46 @@ class ClipboardTabContent extends St.Bin {
      * @returns {Object} { layoutMode, icon, title, subtitle }
      */
     _getItemViewConfig(item) {
-        if (item.type === 'image') return { layoutMode: 'image' };
+        // Get default styling from map
+        const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
+        
+        const config = {
+            layoutMode: style.layout,
+            icon: style.icon,
+            text: '' // Initialize text to prevent undefined errors
+        };
 
-        if (item.type === 'file') {
-            return {
-                layoutMode: 'rich',
-                icon: 'text-x-generic-symbolic',
-                title: item.preview || _("Unknown File"),
-                subtitle: item.file_uri
-            };
+        // Hydrate specific fields based on type
+        switch (item.type) {
+            case ClipboardType.FILE:
+                config.title = item.preview || _("Unknown File");
+                config.subtitle = item.file_uri;
+                break;
+            case ClipboardType.URL:
+                config.title = item.title || item.url;
+                config.subtitle = item.url;
+                if (item.icon_filename) {
+                    const iconPath = GLib.build_filenamev([this._manager._linkPreviewsDir, item.icon_filename]);
+                    config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+                }
+                break;
+            case ClipboardType.COLOR:
+                config.title = item.color_value;
+                config.subtitle = item.format_type;
+                config.cssColor = item.color_value;
+                break;
+            case ClipboardType.CODE:
+                config.text = item.preview || '';
+                config.rawLines = item.raw_lines || 0; // Read the integer
+                break;
+            case ClipboardType.TEXT:
+            default:
+                // If item.preview is missing, use item.text or empty string.
+                config.text = item.preview || item.text || '';
+                break;
         }
 
-        if (item.type === 'url') {
-            const config = {
-                layoutMode: 'rich',
-                icon: 'web-browser-symbolic',
-                title: item.title || item.url,
-                subtitle: item.url
-            };
-
-            if (item.icon_filename) {
-                const iconPath = GLib.build_filenamev([
-                    this._manager._linkPreviewsDir,
-                    item.icon_filename
-                ]);
-                const file = Gio.File.new_for_path(iconPath);
-                config.gicon = new Gio.FileIcon({ file: file });
-            }
-
-            return config;
-        }
-
-        if (item.type === 'color') {
-            return {
-                layoutMode: 'rich',
-                icon: 'color-select-symbolic',
-                title: item.color_value,
-                subtitle: item.format_type,
-                cssColor: item.color_value
-            };
-        }
-
-        return { layoutMode: 'text', text: item.preview || '' };
+        return config;
     }
 
     /**
@@ -859,7 +773,7 @@ class ClipboardTabContent extends St.Bin {
         // Checkbox for selection
         const isChecked = this._selectedIds.has(itemData.id);
         const checkboxIcon = new St.Icon({
-            icon_name: isChecked ? 'checkbox-checked-symbolic' : 'checkbox-unchecked-symbolic',
+            icon_name: isChecked ? ClipboardIcons.CHECKBOX_CHECKED : ClipboardIcons.CHECKBOX_UNCHECKED,
             style_class: 'popup-menu-icon',
             icon_size: 16
         });
@@ -874,15 +788,15 @@ class ClipboardTabContent extends St.Bin {
         });
 
         itemCheckbox.connect('clicked', () => {
-             if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
-             if (this._selectedIds.has(itemData.id)) {
-                 this._selectedIds.delete(itemData.id);
-                 checkboxIcon.icon_name = 'checkbox-unchecked-symbolic';
-             } else {
-                 this._selectedIds.add(itemData.id);
-                 checkboxIcon.icon_name = 'checkbox-checked-symbolic';
-             }
-             this._updateSelectionState();
+            if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
+            if (this._selectedIds.has(itemData.id)) {
+                this._selectedIds.delete(itemData.id);
+                checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+            } else {
+                this._selectedIds.add(itemData.id);
+                checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+            }
+            this._updateSelectionState();
         });
 
         mainBox.add_child(itemCheckbox);
@@ -917,66 +831,68 @@ class ClipboardTabContent extends St.Bin {
             mainBox.y_align = Clutter.ActorAlign.FILL;
 
             contentWidget = imageWrapper;
-
-        } else if (config.layoutMode === 'rich') { // Rich Layout
+        } else if (config.layoutMode === 'code') { // Code Layout
             contentWidget = new St.BoxLayout({
                 vertical: false,
                 y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'clipboard-item-rich-container'
+                style_class: 'clipboard-item-code-container'
             });
 
-            // Icon Column
-            const iconParams = {
-                icon_size: 24,
-                style_class: 'clipboard-item-icon'
-            };
-
-            if (config.gicon) {
-                iconParams.gicon = config.gicon;
-            } else {
-                iconParams.icon_name = config.icon || 'text-x-generic-symbolic';
-            }
+            // Icon
+            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
+            iconParams.icon_name = config.icon;
             contentWidget.add_child(new St.Icon(iconParams));
 
-            // Color Column
+            // Code Body
+            const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
+            
+            // Generate Line Numbers String dynamically
+            const lineCount = config.rawLines || 0;
+            const lineNumbersString = Array.from({ length: lineCount }, (_, i) => (i + 1).toString()).join('\n');
+
+            const numLabel = new St.Label({
+                text: lineNumbersString,
+                style_class: 'clipboard-item-code-numbers',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            codeBox.add_child(numLabel);
+
+            // Safety check for text
+            const safeText = config.text || '';
+            const codeLabel = new St.Label({
+                text: safeText,
+                style_class: 'clipboard-item-code-content',
+                x_expand: true,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.CENTER
+            });
+            codeLabel.get_clutter_text().set_use_markup(true);
+            codeLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+            
+            codeBox.add_child(codeLabel);
+            contentWidget.add_child(codeBox);
+            
+            contentWidget.x_expand = true;
+        } else if (config.layoutMode === 'rich') { // Rich Layout
+            contentWidget = new St.BoxLayout({ vertical: false, y_align: Clutter.ActorAlign.CENTER, style_class: 'clipboard-item-rich-container' });
+            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
+            if (config.gicon) iconParams.gicon = config.gicon;
+            else iconParams.icon_name = config.icon;
+            contentWidget.add_child(new St.Icon(iconParams));
+
             if (config.cssColor) {
-                // Color Container
-                const swatchContainer = new St.Bin({
-                    style_class: 'clipboard-color-container',
-                    y_align: Clutter.ActorAlign.CENTER,
-                    x_align: Clutter.ActorAlign.CENTER
-                });
-
-                // Color Swatch
-                const swatch = new St.Bin({
-                    style_class: 'clipboard-color-swatch',
-                    style: `background-color: ${config.cssColor};`
-                });
-
+                const swatchContainer = new St.Bin({ style_class: 'clipboard-item-color-container', y_align: Clutter.ActorAlign.CENTER, x_align: Clutter.ActorAlign.CENTER });
+                const swatch = new St.Bin({ style_class: 'clipboard-item-color-swatch', style: `background-color: ${config.cssColor};` });
                 swatchContainer.set_child(swatch);
                 contentWidget.add_child(swatchContainer);
             }
 
-            // Text Column
-            const textCol = new St.BoxLayout({
-                vertical: true,
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER
-            });
-
-            const titleLabel = new St.Label({
-                text: config.title,
-                style_class: 'clipboard-item-title',
-                x_expand: true
-            });
+            const textCol = new St.BoxLayout({ vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER });
+            const titleLabel = new St.Label({ text: config.title || '', style_class: 'clipboard-item-title', x_expand: true });
             titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
             textCol.add_child(titleLabel);
-
-            const subLabel = new St.Label({
-                text: config.subtitle,
-                style_class: 'clipboard-item-subtitle',
-                x_expand: true
-            });
+            const subLabel = new St.Label({ text: config.subtitle || '', style_class: 'clipboard-item-subtitle', x_expand: true });
             subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
             textCol.add_child(subLabel);
 
@@ -984,48 +900,27 @@ class ClipboardTabContent extends St.Bin {
             contentWidget.x_expand = true;
 
         } else { // Text Layout
-            contentWidget = new St.Label({
-                text: config.text,
-                style_class: 'clipboard-item-text-label',
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER
-            });
+            const safeText = config.text || '';
+            contentWidget = new St.Label({ text: safeText, style_class: 'clipboard-item-text-label', x_expand: true, y_align: Clutter.ActorAlign.CENTER });
             contentWidget.get_clutter_text().set_line_wrap(false);
             contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
         }
 
         mainBox.add_child(contentWidget);
 
-        // This button shows the starred state of the item in the row.
-        const rowStarButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            child: new St.Icon({ icon_size: 16 }),
-            can_focus: true,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
+        const rowStarButton = new St.Button({ style_class: 'button clipboard-icon-button', child: new St.Icon({ icon_size: 16 }), can_focus: true, y_align: Clutter.ActorAlign.CENTER });
         if (isPinned) {
-            rowStarButton.child.icon_name = 'starred-symbolic';
+            rowStarButton.child.icon_name = ClipboardIcons.PIN_FILLED;
             rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
         } else {
-            rowStarButton.child.icon_name = 'non-starred-symbolic';
+            rowStarButton.child.icon_name = ClipboardIcons.PIN_OUTLINE;
             rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
         }
 
-        // Delete button
-        const deleteButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            child: new St.Icon({ icon_name: 'edit-delete-symbolic', icon_size: 16 }),
-            can_focus: true,
-            y_align: Clutter.ActorAlign.CENTER
-        });
+        const deleteButton = new St.Button({ style_class: 'button clipboard-icon-button', child: new St.Icon({ icon_name: ClipboardIcons.DELETE, icon_size: 16 }), can_focus: true, y_align: Clutter.ActorAlign.CENTER });
         deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));
 
-        // Buttons container
-        const buttonsBox = new St.BoxLayout({
-            x_align: Clutter.ActorAlign.END,
-            style_class: 'clipboard-action-buttons'
-        });
+        const buttonsBox = new St.BoxLayout({ x_align: Clutter.ActorAlign.END, style_class: 'clipboard-action-buttons' });
         buttonsBox.add_child(rowStarButton);
         buttonsBox.add_child(deleteButton);
         mainBox.add_child(buttonsBox);

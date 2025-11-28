@@ -2,6 +2,8 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
+import { ClipboardType } from '../constants/clipboardConstants.js';
+
 const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
 
 export class LinkProcessor {
@@ -20,7 +22,7 @@ export class LinkProcessor {
             );
 
             return {
-                type: 'url',
+                type: ClipboardType.URL,
                 url: cleanText,
                 title: cleanText,
                 hash: hash

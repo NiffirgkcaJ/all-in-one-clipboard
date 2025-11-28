@@ -429,17 +429,37 @@
     color: inherit;
 }
 
-.aio-clipboard-container .clipboard-color-container {
+.aio-clipboard-container .clipboard-item-color-container {
     border: 5px solid rgba(128, 128, 128, 0.4);
     border-radius: 8px;
     margin-right: 8px;
     padding: 0;
 }
 
-.aio-clipboard-container .clipboard-color-swatch {
+.aio-clipboard-container .clipboard-item-color-swatch {
     min-width: 48px;
     max-width: 48px;
     min-height: 24px;
     max-height: 24px;
     border-radius: 3px;
+}
+
+.aio-clipboard-container .clipboard-item-code-container {
+    padding: 0;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.aio-clipboard-container .clipboard-item-code-numbers {
+    color: rgba(128, 128, 128, 0.6);
+    text-align: center;
+    margin-right: 8px;
+    font-family: monospace;
+    font-size: 0.80em;
+    min-width: 13px;
+}
+
+.aio-clipboard-container .clipboard-item-code-content {
+    font-family: monospace;
+    font-size: 0.80em;
 }

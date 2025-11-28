@@ -1,7 +1,8 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-// Maximum file size to attempt preview generation
+import { ClipboardType } from '../constants/clipboardConstants.js';
+
 const MAX_PREVIEW_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 export class FileProcessor {
@@ -61,12 +62,12 @@ export class FileProcessor {
                 });
 
                 if (bytes && bytes.length > 0) {
-                     const hash = GLib.compute_checksum_for_data(
+                    const hash = GLib.compute_checksum_for_data(
                         GLib.ChecksumType.SHA256,
                         bytes
                     );
                     return {
-                        type: 'image',
+                        type: ClipboardType.IMAGE,
                         data: bytes,
                         hash,
                         mimetype: mime,
@@ -76,14 +77,9 @@ export class FileProcessor {
             }
 
             // Generic File
-            const uriHash = GLib.compute_checksum_for_string(
-                GLib.ChecksumType.SHA256,
-                uri,
-                -1
-            );
-
+            const uriHash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, uri, -1);
             return {
-                type: 'file',
+                type: ClipboardType.FILE,
                 file_uri: uri,
                 preview: filename, // Store filename as the preview text
                 hash: uriHash

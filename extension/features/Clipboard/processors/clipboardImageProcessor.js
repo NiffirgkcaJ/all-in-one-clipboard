@@ -2,6 +2,8 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 
+import { ClipboardType } from '../constants/clipboardConstants.js';
+
 // Supported image MIME types
 const IMAGE_MIMETYPES = [
     'image/png',
@@ -29,7 +31,12 @@ export class ImageProcessor {
                                 GLib.ChecksumType.SHA256,
                                 data
                             );
-                            resolve({ data, hash, mimetype });
+                            resolve({ 
+                                type: ClipboardType.IMAGE, 
+                                data, 
+                                hash, 
+                                mimetype 
+                            });
                         } else {
                             resolve(null);
                         }
@@ -78,7 +85,7 @@ export class ImageProcessor {
         // Construct the item object
         const item = {
             id,
-            type: 'image',
+            type: ClipboardType.IMAGE, // Use Enum
             timestamp: Math.floor(Date.now() / 1000),
             image_filename: filename,
             hash
