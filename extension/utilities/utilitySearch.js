@@ -51,7 +51,14 @@ export const SearchComponent = GObject.registerClass(
                 this._entry.remove_style_pseudo_class('focus');
             });
 
-            this.actor.add_child(this._entry);
+            clutterText.connect('key-press-event', (actor, event) => this._onKeyPress(actor, event));
+
+            this._entryWrapper = new St.BoxLayout({
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._entryWrapper.add_child(this._entry);
+            this.actor.add_child(this._entryWrapper);
 
             this._clearButton = new St.Button({
                 style_class: 'aio-search-clear-button button',
@@ -65,7 +72,12 @@ export const SearchComponent = GObject.registerClass(
                 visible: false, // Initially hidden
             });
             this._clearButton.connect('clicked', () => this.clearSearch());
-            this.actor.add_child(this._clearButton);
+
+            this._clearButtonWrapper = new St.BoxLayout({
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._clearButtonWrapper.add_child(this._clearButton);
+            this.actor.add_child(this._clearButtonWrapper);
         }
 
         /**
@@ -77,6 +89,43 @@ export const SearchComponent = GObject.registerClass(
             this._clearButton.visible = searchText.length > 0;
 
             this._onSearchChangedCallback?.(searchText);
+        }
+
+        /**
+         * Handle key press events on the search entry.
+         * Allows escaping the entry with Left/Right arrows at text boundaries.
+         *
+         * @param {Clutter.Actor} actor - The source actor
+         * @param {Clutter.Event} event - The key event
+         * @returns {boolean} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @private
+         */
+        _onKeyPress(actor, event) {
+            const symbol = event.get_key_symbol();
+            const text = this._entry.get_text();
+            const cursorPosition = this._entry.clutter_text.get_cursor_position();
+
+            if (symbol === Clutter.KEY_Left) {
+                const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
+                if (isAtStart) {
+                    if (this.actor.navigate_focus(this._entryWrapper, St.DirectionType.TAB_BACKWARD, false)) return Clutter.EVENT_STOP;
+
+                    const parent = this.actor.get_parent();
+                    if (parent && parent.navigate_focus(this.actor, St.DirectionType.TAB_BACKWARD, false)) return Clutter.EVENT_STOP;
+                }
+            } else if (symbol === Clutter.KEY_Right) {
+                const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
+                if (isAtEnd) {
+                    if (this.actor.navigate_focus(this._entryWrapper, St.DirectionType.TAB_FORWARD, false)) return Clutter.EVENT_STOP;
+
+                    if (this._clearButton.visible) {
+                        const parent = this.actor.get_parent();
+                        if (parent && parent.navigate_focus(this.actor, St.DirectionType.TAB_FORWARD, false)) return Clutter.EVENT_STOP;
+                    }
+                }
+            }
+
+            return Clutter.EVENT_PROPAGATE;
         }
 
         /**
