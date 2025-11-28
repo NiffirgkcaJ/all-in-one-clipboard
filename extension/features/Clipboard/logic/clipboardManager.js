@@ -142,47 +142,47 @@ export const ClipboardManager = GObject.registerClass(
          */
         async _processClipboardContent(attempt = 1) {
             try {
-                // 1. Image
+                // Image
                 const imageResult = await ImageProcessor.extract();
                 if (imageResult) {
                     this._processResult(imageResult);
                     return;
                 }
 
-                // 2. Text Extraction
+                // Text Extraction
                 const textResult = await TextProcessor.extract();
                 if (textResult) {
                     const text = textResult.text;
 
-                    // 2a. File
+                    // File
                     const fileResult = await FileProcessor.process(text);
                     if (fileResult) {
                         this._processResult(fileResult);
                         return;
                     }
 
-                    // 2b. Link
+                    // Link
                     const linkResult = LinkProcessor.process(text);
                     if (linkResult) {
                         this._processResult(linkResult);
                         return;
                     }
 
-                    // 2c. Color
+                    // Color
                     const colorResult = ColorProcessor.process(text);
                     if (colorResult) {
                         this._processResult(colorResult);
                         return;
                     }
 
-                    // 2d. Code (NEW)
+                    // Code
                     const codeResult = CodeProcessor.process(text);
                     if (codeResult) {
                         this._processResult(codeResult);
                         return;
                     }
 
-                    // 2e. Fallback Text
+                    // Fallback Text
                     this._processResult(textResult);
                     return;
                 }

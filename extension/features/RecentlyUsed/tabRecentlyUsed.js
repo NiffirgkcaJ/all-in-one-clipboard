@@ -8,6 +8,8 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { ClipboardItemFactory } from '../Clipboard/view/clipboardItemFactory.js';
+import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { RecentItemsManager } from '../../utilities/utilityRecents.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
@@ -513,20 +515,20 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          */
         _createFullWidthClipboardItem(itemData, isPinned, feature = 'clipboard') {
             const isKaomoji = itemData.type === 'kaomoji';
-            const isImage = itemData.type === 'image';
+            const isClipboardItem = feature === 'clipboard';
 
             // Start with the base class
             let styleClass = 'button recently-used-list-item';
 
-            // Add the text class if it's kaomoji or an image
-            if (isImage) {
-                styleClass += ' recently-used-normal-item';
-            } else if (isKaomoji) {
+            // Add the text class if it's kaomoji or a rich clipboard item
+            if (isKaomoji) {
                 styleClass += ' recently-used-bold-item';
+            } else if (isClipboardItem && itemData.type === ClipboardType.IMAGE) {
+                styleClass += ' recently-used-normal-item';
             }
 
             const button = new St.Button({
-                style_class: styleClass, // Use the correctly built class string
+                style_class: styleClass,
                 can_focus: true,
                 x_expand: true,
             });
@@ -534,7 +536,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const box = new St.BoxLayout({
                 x_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
-                x_align: isKaomoji || isImage ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL,
+                x_align: isKaomoji || itemData.type === ClipboardType.IMAGE ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL,
             });
             box.spacing = 8;
             button.set_child(box);
@@ -547,34 +549,25 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                         x_align: Clutter.ActorAlign.CENTER,
                     }),
                 );
-            } else if (isImage) {
-                const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
-
-                // Use wrapper bin for proper sizing
-                const imageWrapper = new St.Bin({
-                    x_expand: true,
-                    y_expand: true,
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
+            } else if (isClipboardItem) {
+                // Use the factory for all clipboard items
+                const config = ClipboardItemFactory.getItemViewConfig(itemData, this._clipboardManager._imagesDir, this._clipboardManager._linkPreviewsDir);
+                const contentWidget = ClipboardItemFactory.createContentWidget(config, itemData, {
+                    imagesDir: this._clipboardManager._imagesDir,
+                    imagePreviewSize: this._imagePreviewSize,
                 });
 
-                const icon = new St.Icon({
-                    gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                    icon_size: this._imagePreviewSize,
-                });
+                // Special handling for image height in Recently Used
+                if (itemData.type === ClipboardType.IMAGE) {
+                    const minHeight = Math.max(this._imagePreviewSize);
+                    button.set_style(`min-height: ${minHeight}px;`);
+                    box.y_expand = true;
+                    box.y_align = Clutter.ActorAlign.FILL;
+                }
 
-                imageWrapper.set_style(`min-height: ${this._imagePreviewSize}px;`);
-                imageWrapper.set_child(icon);
-
-                // Add image class to button and set dynamic height
-                const minHeight = Math.max(this._imagePreviewSize);
-                button.set_style(`min-height: ${minHeight}px;`);
-                box.y_expand = true;
-                box.y_align = Clutter.ActorAlign.FILL;
-
-                box.add_child(imageWrapper);
+                box.add_child(contentWidget);
             } else {
-                // It's a text item from the clipboard
+                // Fallback for other types (shouldn't happen with current features)
                 const label = new St.Label({
                     text: itemData.preview || '',
                     x_expand: true,
@@ -661,14 +654,75 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             let copySuccess = false;
 
             if (feature === 'clipboard') {
-                if (itemData.type === 'text') {
-                    const fullContent = await this._clipboardManager.getContent(itemData.id);
-                    if (fullContent) {
-                        St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, fullContent);
+                copySuccess = await this._copyClipboardItemToSystem(itemData);
+            } else {
+                // This handles emojis, GIFs, kaomojis, symbols
+                const contentToCopy = itemData.full_url || itemData.char || itemData.value || '';
+                if (contentToCopy) {
+                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, contentToCopy);
+                    copySuccess = true;
+                }
+            }
+
+            if (copySuccess) {
+                // If the item was from the clipboard, tell the manager to handle its state.
+                if (feature === 'clipboard') {
+                    this._clipboardManager.promoteItemToTop(itemData.id);
+                }
+
+                // Check if auto-paste is enabled
+                if (AutoPaster.shouldAutoPaste(this._settings, featureKeyMap[feature])) {
+                    await getAutoPaster().trigger();
+                }
+            }
+
+            this._extension._indicator.menu.close();
+        }
+
+        /**
+         * Copy a clipboard item to the system clipboard
+         *
+         * @param {Object} itemData - The clipboard item data
+         * @returns {Promise<boolean>} True if successful
+         * @private
+         */
+        async _copyClipboardItemToSystem(itemData) {
+            let copySuccess = false;
+
+            if (itemData.type === ClipboardType.TEXT || itemData.type === ClipboardType.CODE) {
+                let fullContent = itemData.text;
+                if (!fullContent) {
+                    fullContent = await this._clipboardManager.getContent(itemData.id);
+                }
+                if (fullContent) {
+                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, fullContent);
+                    copySuccess = true;
+                }
+            } else if (itemData.type === ClipboardType.FILE) {
+                try {
+                    const clipboard = St.Clipboard.get_default();
+                    const uriList = itemData.file_uri + '\r\n';
+                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                    copySuccess = true;
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
+                }
+            } else if (itemData.type === ClipboardType.URL || itemData.type === ClipboardType.COLOR) {
+                const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                copySuccess = true;
+            } else if (itemData.type === ClipboardType.IMAGE) {
+                try {
+                    // If this image was originally copied from a file, paste it as a file URI
+                    if (itemData.file_uri) {
+                        const clipboard = St.Clipboard.get_default();
+                        const uriList = itemData.file_uri + '\r\n';
+                        const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
                         copySuccess = true;
-                    }
-                } else if (itemData.type === 'image') {
-                    try {
+                    } else {
+                        // Otherwise, paste the image bytes
                         const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
                         const file = Gio.File.new_for_path(imagePath);
 
@@ -699,33 +753,14 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                             St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
                             copySuccess = true;
                         }
-                    } catch (e) {
-                        console.error(`[AIO-Clipboard] Failed to copy recent image to clipboard: ${e.message}`);
-                        copySuccess = false;
                     }
-                }
-            } else {
-                // This handles emojis, GIFs, kaomojis, symbols
-                const contentToCopy = itemData.full_url || itemData.char || itemData.value || '';
-                if (contentToCopy) {
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, contentToCopy);
-                    copySuccess = true;
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to copy recent image to clipboard: ${e.message}`);
+                    copySuccess = false;
                 }
             }
 
-            if (copySuccess) {
-                // If the item was from the clipboard, tell the manager to handle its state.
-                if (feature === 'clipboard') {
-                    this._clipboardManager.promoteItemToTop(itemData.id);
-                }
-
-                // Check if auto-paste is enabled
-                if (AutoPaster.shouldAutoPaste(this._settings, featureKeyMap[feature])) {
-                    await getAutoPaster().trigger();
-                }
-            }
-
-            this._extension._indicator.menu.close();
+            return copySuccess;
         }
 
         /**
@@ -965,7 +1000,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     return GLib.SOURCE_REMOVE;
                 }
 
-                // Fallback: if somehow no content items exist, focus the first thing
+                // If somehow no content items exist, focus the first thing
                 if (this._focusGrid[0] && this._focusGrid[0][0]) {
                     this._focusGrid[0][0].grab_key_focus();
                 }

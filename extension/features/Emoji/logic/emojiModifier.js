@@ -76,7 +76,7 @@ export class EmojiModifier {
         const components = currentEmojiChar.split(ZWJ);
         let personCount = 0;
 
-        // Case 1: Single component emoji (e.g., 👍, 🙋‍♀️)
+        // Single component emoji (e.g., 👍, 🙋‍♀️)
         if (components.length === 1) {
             const component = components[0];
             let baseComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
@@ -95,7 +95,7 @@ export class EmojiModifier {
             return currentEmojiChar; // Return original if not skinnable or no valid tone
         }
 
-        // Case 2: ZWJ sequence (e.g., 👨‍👩‍👧‍👦)
+        // ZWJ sequence (e.g., 👨‍👩‍👧‍👦)
         const modifiedComponents = components.map((component, index) => {
             let baseOfComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
             let toneStrippedBase = baseOfComponent;

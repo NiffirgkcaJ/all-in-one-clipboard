@@ -10,12 +10,26 @@ import St from 'gi://St';
  */
 export const HorizontalScrollView = GObject.registerClass(
     class HorizontalScrollView extends St.ScrollView {
+        /**
+         * Creates a new HorizontalScrollView instance.
+         * @param {Object} params - Parameters for the ScrollView
+         * @param {St.PolicyType} [params.hscrollbar_policy=St.PolicyType.AUTOMATIC] - Horizontal scrollbar policy
+         * @param {St.PolicyType} [params.vscrollbar_policy=St.PolicyType.NEVER] - Vertical scrollbar policy
+         */
         constructor(params) {
             super(params);
             this.hscrollbar_policy = St.PolicyType.AUTOMATIC;
             this.vscrollbar_policy = St.PolicyType.NEVER;
         }
 
+        /**
+         * Handles scroll events to map vertical wheel scrolling to horizontal scrolling.
+         * - Touchpad vertical swipes are mapped to horizontal scroll.
+         * - Mouse wheel vertical scrolls are animated horizontally.
+         * @param {Clutter.ScrollEvent} event - The scroll event
+         * @returns {Clutter.EventPropagation} - Event propagation status
+         * @override
+         */
         vfunc_scroll_event(event) {
             const adjustment = this.hadjustment;
             if (!adjustment) return Clutter.EVENT_PROPAGATE;

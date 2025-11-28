@@ -281,7 +281,6 @@ export const MasonryLayout = GObject.registerClass(
                     }
                 }
             } else {
-                // 'up' or 'down'
                 // For vertical movement, use a weighted distance metric.
                 const candidatesInDirection = this._spatialMap.filter((item) => {
                     if (item.widget === currentWidget) return false;

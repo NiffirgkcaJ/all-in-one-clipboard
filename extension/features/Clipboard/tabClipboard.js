@@ -2,14 +2,14 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
-import { ClipboardType, ClipboardStyling, ClipboardIcons } from './constants/clipboardConstants.js';
+import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
 
 /**
  * Number of focusable UI elements per clipboard item row
@@ -511,6 +511,16 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         async _copyImageItem(itemData) {
             try {
+                // If this image was originally copied from a file, paste it as a file URI
+                if (itemData.file_uri) {
+                    const clipboard = St.Clipboard.get_default();
+                    const uriList = itemData.file_uri + '\r\n';
+                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                    return true;
+                }
+
+                // Otherwise, paste the image bytes
                 const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
                 const file = Gio.File.new_for_path(imagePath);
 
@@ -541,6 +551,7 @@ export const ClipboardTabContent = GObject.registerClass(
             }
             return false;
         }
+
         /**
          * Handles the click event for a row's pin button when the item is unpinned.
          * @param {object} itemData - The data for the specific item to pin.
@@ -732,56 +743,6 @@ export const ClipboardTabContent = GObject.registerClass(
         }
 
         /**
-         * Maps an item's data to a standardized view configuration.
-         * This acts as the "Map" to normalize Files, Links, and Text.
-         *
-         * @param {Object} item - The raw item data
-         * @returns {Object} { layoutMode, icon, title, subtitle }
-         */
-        _getItemViewConfig(item) {
-            // Get default styling from map
-            const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
-
-            const config = {
-                layoutMode: style.layout,
-                icon: style.icon,
-                text: '', // Initialize text to prevent undefined errors
-            };
-
-            // Hydrate specific fields based on type
-            switch (item.type) {
-                case ClipboardType.FILE:
-                    config.title = item.preview || _('Unknown File');
-                    config.subtitle = item.file_uri;
-                    break;
-                case ClipboardType.URL:
-                    config.title = item.title || item.url;
-                    config.subtitle = item.url;
-                    if (item.icon_filename) {
-                        const iconPath = GLib.build_filenamev([this._manager._linkPreviewsDir, item.icon_filename]);
-                        config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
-                    }
-                    break;
-                case ClipboardType.COLOR:
-                    config.title = item.color_value;
-                    config.subtitle = item.format_type;
-                    config.cssColor = item.color_value;
-                    break;
-                case ClipboardType.CODE:
-                    config.text = item.preview || '';
-                    config.rawLines = item.raw_lines || 0; // Read the integer
-                    break;
-                case ClipboardType.TEXT:
-                default:
-                    // If item.preview is missing, use item.text or empty string.
-                    config.text = item.preview || item.text || '';
-                    break;
-            }
-
-            return config;
-        }
-
-        /**
          * Create a UI widget for a clipboard item.
          *
          * @param {Object} itemData - The clipboard item data.
@@ -836,141 +797,11 @@ export const ClipboardTabContent = GObject.registerClass(
             mainBox.add_child(itemCheckbox);
 
             // Content widget based on item type
-            const config = this._getItemViewConfig(itemData);
-            let contentWidget;
-
-            if (config.layoutMode === 'image') {
-                // Image Layout
-                const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-
-                // Use wrapper bin for proper sizing
-                const imageWrapper = new St.Bin({
-                    x_expand: true,
-                    y_expand: true,
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-
-                const imageActor = new St.Icon({
-                    gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                    icon_size: this._imagePreviewSize,
-                });
-
-                imageWrapper.set_style(`min-height: ${this._imagePreviewSize}px;`);
-                imageWrapper.set_child(imageActor);
-
-                // Add image class to button and set dynamic height
-                const minHeight = Math.max(this._imagePreviewSize);
-                rowButton.set_style(`min-height: ${minHeight}px;`);
-                mainBox.y_expand = true;
-                mainBox.y_align = Clutter.ActorAlign.FILL;
-
-                contentWidget = imageWrapper;
-            } else if (config.layoutMode === 'code') {
-                // Code Layout
-                contentWidget = new St.BoxLayout({
-                    vertical: false,
-                    y_align: Clutter.ActorAlign.CENTER,
-                    style_class: 'clipboard-item-code-container',
-                });
-
-                // Icon
-                const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-                iconParams.icon_name = config.icon;
-                contentWidget.add_child(new St.Icon(iconParams));
-
-                // Code Body
-                const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
-
-                // Generate Line Numbers String dynamically
-                const lineCount = config.rawLines || 0;
-                const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
-
-                const numLabel = new St.Label({
-                    text: lineNumbersString,
-                    style_class: 'clipboard-item-code-numbers',
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                codeBox.add_child(numLabel);
-
-                // Safety check for text
-                const safeText = config.text || '';
-                const codeLabel = new St.Label({
-                    text: safeText,
-                    style_class: 'clipboard-item-code-content',
-                    x_expand: true,
-                    x_align: Clutter.ActorAlign.START,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                codeLabel.get_clutter_text().set_use_markup(true);
-                codeLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-
-                codeBox.add_child(codeLabel);
-                contentWidget.add_child(codeBox);
-
-                contentWidget.x_expand = true;
-            } else if (config.layoutMode === 'rich') {
-                // Rich Layout
-                contentWidget = new St.BoxLayout({
-                    vertical: false,
-                    y_align: Clutter.ActorAlign.CENTER,
-                    style_class: 'clipboard-item-rich-container',
-                });
-                const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-                if (config.gicon) iconParams.gicon = config.gicon;
-                else iconParams.icon_name = config.icon;
-                contentWidget.add_child(new St.Icon(iconParams));
-
-                if (config.cssColor) {
-                    const swatchContainer = new St.Bin({
-                        style_class: 'clipboard-item-color-container',
-                        y_align: Clutter.ActorAlign.CENTER,
-                        x_align: Clutter.ActorAlign.CENTER,
-                    });
-                    const swatch = new St.Bin({
-                        style_class: 'clipboard-item-color-swatch',
-                        style: `background-color: ${config.cssColor};`,
-                    });
-                    swatchContainer.set_child(swatch);
-                    contentWidget.add_child(swatchContainer);
-                }
-
-                const textCol = new St.BoxLayout({
-                    vertical: true,
-                    x_expand: true,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                const titleLabel = new St.Label({
-                    text: config.title || '',
-                    style_class: 'clipboard-item-title',
-                    x_expand: true,
-                });
-                titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-                textCol.add_child(titleLabel);
-                const subLabel = new St.Label({
-                    text: config.subtitle || '',
-                    style_class: 'clipboard-item-subtitle',
-                    x_expand: true,
-                });
-                subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
-                textCol.add_child(subLabel);
-
-                contentWidget.add_child(textCol);
-                contentWidget.x_expand = true;
-            } else {
-                // Text Layout
-                const safeText = config.text || '';
-                contentWidget = new St.Label({
-                    text: safeText,
-                    style_class: 'clipboard-item-text-label',
-                    x_expand: true,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                contentWidget.get_clutter_text().set_line_wrap(false);
-                contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            }
-
+            const config = ClipboardItemFactory.getItemViewConfig(itemData, this._manager._imagesDir, this._manager._linkPreviewsDir);
+            const contentWidget = ClipboardItemFactory.createContentWidget(config, itemData, {
+                imagesDir: this._manager._imagesDir,
+                imagePreviewSize: this._imagePreviewSize,
+            });
             mainBox.add_child(contentWidget);
 
             const rowStarButton = new St.Button({
