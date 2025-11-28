@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 16:29+0000\n"
+"POT-Creation-Date: 2025-11-28 01:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -626,59 +626,59 @@ msgstr ""
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:121
-#: extension/features/Clipboard/tabClipboard.js:614
-#: extension/features/Clipboard/tabClipboard.js:620
+#: extension/features/Clipboard/tabClipboard.js:122
+#: extension/features/Clipboard/tabClipboard.js:565
+#: extension/features/Clipboard/tabClipboard.js:571
 msgid "Select All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:142
-#: extension/features/Clipboard/tabClipboard.js:380
+#: extension/features/Clipboard/tabClipboard.js:143
+#: extension/features/Clipboard/tabClipboard.js:354
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:156
-#: extension/features/Clipboard/tabClipboard.js:637
+#: extension/features/Clipboard/tabClipboard.js:157
+#: extension/features/Clipboard/tabClipboard.js:587
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:169
+#: extension/features/Clipboard/tabClipboard.js:170
 msgid "Delete Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:377
+#: extension/features/Clipboard/tabClipboard.js:354
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:617
+#: extension/features/Clipboard/tabClipboard.js:568
 msgid "Deselect All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:651
+#: extension/features/Clipboard/tabClipboard.js:594
 msgid "Pin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:654
+#: extension/features/Clipboard/tabClipboard.js:594
 msgid "Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:712
+#: extension/features/Clipboard/tabClipboard.js:646
 msgid "No results found."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:713
+#: extension/features/Clipboard/tabClipboard.js:646
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:728
+#: extension/features/Clipboard/tabClipboard.js:658
 msgid "Pinned"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:748
+#: extension/features/Clipboard/tabClipboard.js:678
 msgid "History"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:798
+#: extension/features/Clipboard/tabClipboard.js:720
 msgid "Unknown File"
 msgstr ""
 
