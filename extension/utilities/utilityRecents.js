@@ -40,11 +40,7 @@ export const RecentItemsManager = GObject.registerClass(
             }
             this._maxItemsSettingKey = maxItemsSettingKey.trim();
 
-            this._cacheFilePath = GLib.build_filenamev([
-                GLib.get_user_cache_dir(),
-                this._uuid,
-                this._filename
-            ]);
+            this._cacheFilePath = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid, this._filename]);
             this._isLoaded = false;
             this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
 
@@ -54,21 +50,23 @@ export const RecentItemsManager = GObject.registerClass(
                 this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
                 if (this._isLoaded) {
                     this._pruneRecents();
-                    this._save().catch(e => console.warn(`[AIO-Clipboard] Save after maxItems change failed for ${this._filename}: ${e.message}`));
+                    this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after maxItems change failed for ${this._filename}: ${e.message}`));
                 }
             });
 
             // Asynchronously load the initial list of recents.
-            this._load().then(() => {
-                this._isLoaded = true;
-            }).catch(e => {
-                this._isLoaded = true;
-                console.warn(`[AIO-Clipboard] Initial load of recents from ${this._filename} failed: ${e.message}. Recents will be empty.`);
-                if (this._settings) {
-                    this._recents = [];
-                    this.emit('recents-changed');
-                }
-            });
+            this._load()
+                .then(() => {
+                    this._isLoaded = true;
+                })
+                .catch((e) => {
+                    this._isLoaded = true;
+                    console.warn(`[AIO-Clipboard] Initial load of recents from ${this._filename} failed: ${e.message}. Recents will be empty.`);
+                    if (this._settings) {
+                        this._recents = [];
+                        this.emit('recents-changed');
+                    }
+                });
         }
 
         /**
@@ -146,11 +144,7 @@ export const RecentItemsManager = GObject.registerClass(
                 }
                 const jsonString = JSON.stringify(this._recents, null, 2);
                 const bytes = new GLib.Bytes(new TextEncoder().encode(jsonString));
-                await file.replace_contents_bytes_async(
-                    bytes, null, false,
-                    Gio.FileCreateFlags.REPLACE_DESTINATION | Gio.FileCreateFlags.PRIVATE,
-                    null, null
-                );
+                await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION | Gio.FileCreateFlags.PRIVATE, null, null);
             } catch (e) {
                 console.warn(`[AIO-Clipboard] Failed to save recents to ${this._filename}: ${e.message}`);
             }
@@ -168,14 +162,14 @@ export const RecentItemsManager = GObject.registerClass(
                 return;
             }
             // Remove any existing instance of the item to prevent duplicates.
-            const existingIndex = this._recents.findIndex(r => r.value === item.value);
+            const existingIndex = this._recents.findIndex((r) => r.value === item.value);
             if (existingIndex > -1) {
                 this._recents.splice(existingIndex, 1);
             }
 
             this._recents.unshift({ ...item });
             this._pruneRecents();
-            this._save().catch(e => console.warn(`[AIO-Clipboard] Save after addItem failed for ${this._filename}: ${e.message}`));
+            this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after addItem failed for ${this._filename}: ${e.message}`));
             this.emit('recents-changed');
         }
 
@@ -193,9 +187,7 @@ export const RecentItemsManager = GObject.registerClass(
          */
         _pruneRecents() {
             if (!this._settings) return;
-            const max = (typeof this._maxItems === 'number' && this._maxItems >= 0)
-                        ? this._maxItems
-                        : DEFAULT_MAX_RECENTS_FALLBACK;
+            const max = typeof this._maxItems === 'number' && this._maxItems >= 0 ? this._maxItems : DEFAULT_MAX_RECENTS_FALLBACK;
             if (this._recents.length > max) {
                 this._recents.length = max; // More efficient than splice
             }
@@ -216,5 +208,5 @@ export const RecentItemsManager = GObject.registerClass(
             this._filename = null;
             this._maxItemsSettingKey = null;
         }
-    }
+    },
 );

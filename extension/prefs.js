@@ -82,11 +82,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
         group.add(hideIconRow);
 
-        settings.bind(
-            'hide-panel-icon',
-            hideIconRow, 'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
+        settings.bind('hide-panel-icon', hideIconRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         // Remember last opened tab
         const rememberTabRow = new Adw.SwitchRow({
@@ -95,25 +91,16 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
         group.add(rememberTabRow);
 
-        settings.bind(
-            'remember-last-tab',
-            rememberTabRow, 'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
+        settings.bind('remember-last-tab', rememberTabRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         // Make the "Remember Last Opened Tab" switch sensitive only when the "Hide Panel Icon" switch is off.
-        hideIconRow.bind_property(
-            'active',
-            rememberTabRow,
-            'sensitive',
-            GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN
-        );
+        hideIconRow.bind_property('active', rememberTabRow, 'sensitive', GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.INVERT_BOOLEAN);
 
         // Define our options
         const positionOptions = {
-            'cursor': _('Mouse Cursor'),
-            'center': _('Screen Center'),
-            'window': _('Active Window'),
+            cursor: _('Mouse Cursor'),
+            center: _('Screen Center'),
+            window: _('Active Window'),
         };
         const optionKeys = Object.keys(positionOptions);
         const optionLabels = Object.values(positionOptions);
@@ -153,12 +140,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
 
         // Make the dropdown sensitive only when the icon is hidden
-        hideIconRow.bind_property(
-            'active',
-            positionRow,
-            'sensitive',
-            GObject.BindingFlags.SYNC_CREATE
-        );
+        hideIconRow.bind_property('active', positionRow, 'sensitive', GObject.BindingFlags.SYNC_CREATE);
     }
 
     /**
@@ -172,14 +154,14 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Create a new preferences group with a title and description
         const group = new Adw.PreferencesGroup({
             title: _('Tab Management'),
-            description: _('Customize the visibility, order, and default tab.')
+            description: _('Customize the visibility, order, and default tab.'),
         });
         page.add(group);
 
         // Clean up signal connections when the page is unmapped
         const signalIds = [];
         page.connect('unmap', () => {
-            signalIds.forEach(id => {
+            signalIds.forEach((id) => {
                 if (settings) settings.disconnect(id);
             });
             signalIds.length = 0;
@@ -187,18 +169,22 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         // Define the visibility configuration for each tab
         const TAB_VISIBILITY_CONFIG = {
-            'Recently Used': { key: 'enable-recents-tab', title: _('Recently Used Tab'), subtitle: _('Required when Always Show Main Tabs is off.') },
-            'Emoji':         { key: 'enable-emoji-tab', title: _('Emoji Tab') },
-            'GIF':           { key: 'enable-gif-tab', title: _('GIF Tab') },
-            'Kaomoji':       { key: 'enable-kaomoji-tab', title: _('Kaomoji Tab') },
-            'Symbols':       { key: 'enable-symbols-tab', title: _('Symbols Tab') },
-            'Clipboard':     { key: 'enable-clipboard-tab', title: _('Clipboard Tab') },
+            'Recently Used': {
+                key: 'enable-recents-tab',
+                title: _('Recently Used Tab'),
+                subtitle: _('Required when Always Show Main Tabs is off.'),
+            },
+            Emoji: { key: 'enable-emoji-tab', title: _('Emoji Tab') },
+            GIF: { key: 'enable-gif-tab', title: _('GIF Tab') },
+            Kaomoji: { key: 'enable-kaomoji-tab', title: _('Kaomoji Tab') },
+            Symbols: { key: 'enable-symbols-tab', title: _('Symbols Tab') },
+            Clipboard: { key: 'enable-clipboard-tab', title: _('Clipboard Tab') },
         };
 
         // Create an expander row for visible tabs
         const visibleTabsExpander = new Adw.ExpanderRow({
             title: _('Visible Tabs'),
-            subtitle: _('Show or hide individual tabs from the main bar.')
+            subtitle: _('Show or hide individual tabs from the main bar.'),
         });
         group.add(visibleTabsExpander);
 
@@ -218,14 +204,14 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Create an expander row for tab bar behavior
         const tabBarExpander = new Adw.ExpanderRow({
             title: _('Tab Bar Behavior'),
-            subtitle: _('Configure when the top tab bar is visible.')
+            subtitle: _('Configure when the top tab bar is visible.'),
         });
         group.add(tabBarExpander);
 
         // Create a switch row for always showing the main tabs
         const alwaysShowMainTabsRow = new Adw.SwitchRow({
             title: _('Always Show Main Tabs'),
-            subtitle: _('Keep the main tab buttons visible in every tab.')
+            subtitle: _('Keep the main tab buttons visible in every tab.'),
         });
         settings.bind('always-show-main-tab', alwaysShowMainTabsRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         tabBarExpander.add_row(alwaysShowMainTabsRow); // Add to expander
@@ -233,7 +219,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Create a switch row for hiding the last main tab
         const hideLastMainTabRow = new Adw.SwitchRow({
             title: _('Hide Last Main Tab'),
-            subtitle: _('Automatically hide the last main tab visible.')
+            subtitle: _('Automatically hide the last main tab visible.'),
         });
         settings.bind('hide-last-main-tab', hideLastMainTabRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         tabBarExpander.add_row(hideLastMainTabRow); // Add to expander
@@ -241,12 +227,12 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Create a combo row for the default tab
         const defaultTabRow = new Adw.ComboRow({
             title: _('Default Tab'),
-            subtitle: _('The tab that opens when you first open the menu.')
+            subtitle: _('The tab that opens when you first open the menu.'),
         });
         group.add(defaultTabRow);
 
         // Create a combo row for the default tab
-        const recentsRowData = tabVisibilityRows.find(r => r.name === 'Recently Used');
+        const recentsRowData = tabVisibilityRows.find((r) => r.name === 'Recently Used');
         const recentsRowWidget = recentsRowData?.row;
         const recentsKey = recentsRowData?.config.key;
 
@@ -255,15 +241,15 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         // Update the sensitivity of the tabs based on current settings
         const updateTabToggleSensitivity = () => {
-            const states = tabVisibilityRows.map(item => ({
+            const states = tabVisibilityRows.map((item) => ({
                 row: item.row,
                 enabled: settings.get_boolean(item.config.key),
-                isRecents: item.row === recentsRowWidget
+                isRecents: item.row === recentsRowWidget,
             }));
 
-            const enabledCount = states.filter(state => state.enabled).length;
+            const enabledCount = states.filter((state) => state.enabled).length;
 
-            states.forEach(state => {
+            states.forEach((state) => {
                 const isLastOneEnabled = enabledCount === 1 && state.enabled;
 
                 // Special handling for Recents tab
@@ -285,16 +271,19 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             visibleTabsForModel = [];
 
             // Add visible tabs to the model
-            tabOrder.forEach(originalTabName => {
+            tabOrder.forEach((originalTabName) => {
                 const config = TAB_VISIBILITY_CONFIG[originalTabName];
                 if (!config || settings.get_boolean(config.key)) {
-                    visibleTabsForModel.push({ original: originalTabName, translated: _(originalTabName) });
+                    visibleTabsForModel.push({
+                        original: originalTabName,
+                        translated: _(originalTabName),
+                    });
                 }
             });
 
             // Update the model
-            defaultTabRow.set_model(new Gtk.StringList({ strings: visibleTabsForModel.map(t => t.translated) }));
-            const newIndex = visibleTabsForModel.findIndex(t => t.original === currentDefault);
+            defaultTabRow.set_model(new Gtk.StringList({ strings: visibleTabsForModel.map((t) => t.translated) }));
+            const newIndex = visibleTabsForModel.findIndex((t) => t.original === currentDefault);
 
             // Update selection
             if (newIndex > -1) {
@@ -317,7 +306,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         };
 
         // Connect signals
-        Object.values(TAB_VISIBILITY_CONFIG).forEach(config => {
+        Object.values(TAB_VISIBILITY_CONFIG).forEach((config) => {
             signalIds.push(settings.connect(`changed::${config.key}`, handleSettingsChange));
         });
         signalIds.push(settings.connect('changed::always-show-main-tab', handleSettingsChange));
@@ -339,7 +328,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Create the tab order expander
         const tabOrderExpander = new Adw.ExpanderRow({
             title: _('Tab Order'),
-            subtitle: _('Use the buttons to reorder tabs in the main bar.')
+            subtitle: _('Use the buttons to reorder tabs in the main bar.'),
         });
         group.add(tabOrderExpander);
 
@@ -349,7 +338,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Function to populate the tab order list
         const populateTabOrderList = () => {
             // Remove all previously created rows from the UI.
-            managedRows.forEach(row => tabOrderExpander.remove(row));
+            managedRows.forEach((row) => tabOrderExpander.remove(row));
             managedRows = []; // Clear the reference array.
 
             // Create and add the dynamic re-orderable rows.
@@ -363,7 +352,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 // Create the rows with appropriate title
                 const row = new Adw.ActionRow({
                     // Add a suffix to the title if the tab is hidden
-                    title: isVisible ? _(tabName) : `${_(tabName)} (Hidden)`
+                    title: isVisible ? _(tabName) : `${_(tabName)} (Hidden)`,
                 });
 
                 // Dim the label if the tab is hidden
@@ -374,8 +363,14 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
                 row.add_suffix(buttonBox);
 
-                const upButton = new Gtk.Button({ icon_name: 'go-up-symbolic', sensitive: index > 0 });
-                const downButton = new Gtk.Button({ icon_name: 'go-down-symbolic', sensitive: index < tabOrder.length - 1 });
+                const upButton = new Gtk.Button({
+                    icon_name: 'go-up-symbolic',
+                    sensitive: index > 0,
+                });
+                const downButton = new Gtk.Button({
+                    icon_name: 'go-down-symbolic',
+                    sensitive: index < tabOrder.length - 1,
+                });
 
                 const moveRow = (direction) => {
                     const currentOrder = settings.get_strv('tab-order');
@@ -401,7 +396,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             // Create and add the static reset row at the very end.
             const resetRow = new Adw.ActionRow({
                 title: _('Reset Order'),
-                subtitle: _('Restore the original tab order.')
+                subtitle: _('Restore the original tab order.'),
             });
             tabOrderExpander.add_row(resetRow);
             managedRows.push(resetRow); // Also add to our reference array.
@@ -422,7 +417,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         signalIds.push(settings.connect('changed::tab-order', populateTabOrderList));
 
         // Refresh tab order list when visibility changes
-        Object.values(TAB_VISIBILITY_CONFIG).forEach(config => {
+        Object.values(TAB_VISIBILITY_CONFIG).forEach((config) => {
             if (config.key) {
                 signalIds.push(settings.connect(`changed::${config.key}`, populateTabOrderList));
             }
@@ -438,14 +433,14 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addKeyboardShortcutsGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
             title: _('Keyboard Shortcuts'),
-            description: _('Click on a shortcut to change it. Press Backspace to clear.')
+            description: _('Click on a shortcut to change it. Press Backspace to clear.'),
         });
         page.add(group);
 
         // Global Shortcuts
         const globalExpander = new Adw.ExpanderRow({
             title: _('Global Shortcuts'),
-            subtitle: _('These work even when the menu is closed.')
+            subtitle: _('These work even when the menu is closed.'),
         });
         group.add(globalExpander);
 
@@ -455,10 +450,10 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             { key: 'shortcut-open-gif', title: _('Open GIF Tab') },
             { key: 'shortcut-open-kaomoji', title: _('Open Kaomoji Tab') },
             { key: 'shortcut-open-symbols', title: _('Open Symbols Tab') },
-            { key: 'shortcut-open-clipboard', title: _('Open Clipboard Tab') }
+            { key: 'shortcut-open-clipboard', title: _('Open Clipboard Tab') },
         ];
 
-        globalShortcuts.forEach(shortcut => {
+        globalShortcuts.forEach((shortcut) => {
             const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
             globalExpander.add_row(row);
         });
@@ -466,16 +461,16 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Main Tab Shortcuts
         const mainTabExpander = new Adw.ExpanderRow({
             title: _('Main Tab Navigation'),
-            subtitle: _('Switch between the main tabs within the menu.')
+            subtitle: _('Switch between the main tabs within the menu.'),
         });
         group.add(mainTabExpander);
 
         const mainTabShortcuts = [
             { key: 'shortcut-next-tab', title: _('Next Tab') },
-            { key: 'shortcut-prev-tab', title: _('Previous Tab') }
+            { key: 'shortcut-prev-tab', title: _('Previous Tab') },
         ];
 
-        mainTabShortcuts.forEach(shortcut => {
+        mainTabShortcuts.forEach((shortcut) => {
             const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
             mainTabExpander.add_row(row);
         });
@@ -483,16 +478,16 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Full-View Tab Shortcuts
         const categoryExpander = new Adw.ExpanderRow({
             title: _('Category Navigation'),
-            subtitle: _('Switch between the categories within the tabs.')
+            subtitle: _('Switch between the categories within the tabs.'),
         });
         group.add(categoryExpander);
 
         const categoryShortcuts = [
             { key: 'shortcut-next-category', title: _('Next Category') },
-            { key: 'shortcut-prev-category', title: _('Previous Category') }
+            { key: 'shortcut-prev-category', title: _('Previous Category') },
         ];
 
-        categoryShortcuts.forEach(shortcut => {
+        categoryShortcuts.forEach((shortcut) => {
             const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
             categoryExpander.add_row(row);
         });
@@ -509,14 +504,14 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _createShortcutRow(settings, key, title) {
         const row = new Adw.ActionRow({
             title: title,
-            activatable: true
+            activatable: true,
         });
 
         const currentShortcut = settings.get_strv(key)[0] || _('Disabled');
         const shortcutLabel = new Gtk.ShortcutLabel({
             disabled_text: _('Disabled'),
             accelerator: currentShortcut === _('Disabled') ? '' : currentShortcut,
-            valign: Gtk.Align.CENTER
+            valign: Gtk.Align.CENTER,
         });
         row.add_suffix(shortcutLabel);
 
@@ -524,7 +519,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             const dialog = new Gtk.Dialog({
                 title: _('Set Shortcut'),
                 modal: true,
-                transient_for: row.get_root()
+                transient_for: row.get_root(),
             });
 
             const content = dialog.get_content_area();
@@ -534,16 +529,15 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 margin_top: 12,
                 margin_bottom: 12,
                 margin_start: 12,
-                margin_end: 12
+                margin_end: 12,
             });
             content.append(label);
 
             // Create a key event controller to capture key presses
-            const controller = new Gtk.EventControllerKey({
-                propagation_phase: Gtk.PropagationPhase.CAPTURE
+            const widgetController = new Gtk.EventControllerKey({
+                propagation_phase: Gtk.PropagationPhase.CAPTURE,
             });
-
-            controller.connect('key-pressed', (controller, keyval, keycode, state) => {
+            widgetController.connect('key-pressed', (c, keyval, keycode, state) => {
                 // Cancel
                 if (keyval === Gdk.KEY_Escape) {
                     dialog.close();
@@ -559,13 +553,17 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 }
 
                 // Ignore standalone modifiers
-                const isModifier = (
-                    keyval === Gdk.KEY_Control_L || keyval === Gdk.KEY_Control_R ||
-                    keyval === Gdk.KEY_Shift_L || keyval === Gdk.KEY_Shift_R ||
-                    keyval === Gdk.KEY_Alt_L || keyval === Gdk.KEY_Alt_R ||
-                    keyval === Gdk.KEY_Super_L || keyval === Gdk.KEY_Super_R ||
-                    keyval === Gdk.KEY_Meta_L || keyval === Gdk.KEY_Meta_R
-                );
+                const isModifier =
+                    keyval === Gdk.KEY_Control_L ||
+                    keyval === Gdk.KEY_Control_R ||
+                    keyval === Gdk.KEY_Shift_L ||
+                    keyval === Gdk.KEY_Shift_R ||
+                    keyval === Gdk.KEY_Alt_L ||
+                    keyval === Gdk.KEY_Alt_R ||
+                    keyval === Gdk.KEY_Super_L ||
+                    keyval === Gdk.KEY_Super_R ||
+                    keyval === Gdk.KEY_Meta_L ||
+                    keyval === Gdk.KEY_Meta_R;
 
                 if (isModifier) return Gdk.EVENT_PROPAGATE;
 
@@ -586,7 +584,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 return Gdk.EVENT_STOP;
             });
 
-            dialog.add_controller(controller);
+            dialog.add_controller(widgetController);
             dialog.present();
         });
         return row;
@@ -601,7 +599,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addRecentItemsGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
             title: _('Recent Items Limits'),
-            description: _('Maximum number of items to keep in "Recents" for each feature.')
+            description: _('Maximum number of items to keep in "Recents" for each feature.'),
         });
         page.add(group);
 
@@ -609,10 +607,10 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             { key: 'emoji-recents-max-items', title: _('Maximum Recent Emojis') },
             { key: 'kaomoji-recents-max-items', title: _('Maximum Recent Kaomojis') },
             { key: 'symbols-recents-max-items', title: _('Maximum Recent Symbols') },
-            { key: 'gif-recents-max-items', title: _('Maximum Recent GIFs') }
+            { key: 'gif-recents-max-items', title: _('Maximum Recent GIFs') },
         ];
 
-        items.forEach(item => {
+        items.forEach((item) => {
             // Get the default value dynamically from the GSettings schema.
             const recentDefault = settings.get_default_value(item.key).get_int32();
             const recentRange = this._getRangeFromSchema(settings, item.key);
@@ -620,15 +618,11 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
             const row = new Adw.SpinRow({
                 title: item.title,
-                subtitle: _('Range: %d-%d. Default: %d.').format(
-                    recentRange.min,
-                    recentRange.max,
-                    recentDefault
-                ),
+                subtitle: _('Range: %d-%d. Default: %d.').format(recentRange.min, recentRange.max, recentDefault),
                 adjustment: new Gtk.Adjustment({
                     lower: recentRange.min,
                     upper: recentRange.max,
-                    step_increment: RECENT_INCREMENT_NUMBER
+                    step_increment: RECENT_INCREMENT_NUMBER,
                 }),
             });
             group.add(row);
@@ -660,7 +654,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             'enable-auto-paste',
             autoPasteExpander,
             'enable-expansion', // This property controls the built-in switch
-            Gio.SettingsBindFlags.DEFAULT
+            Gio.SettingsBindFlags.DEFAULT,
         );
 
         // Define the individual toggles that will go inside the expander.
@@ -669,11 +663,11 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             { key: 'auto-paste-gif', title: _('Auto-Paste GIFs') },
             { key: 'auto-paste-kaomoji', title: _('Auto-Paste Kaomojis') },
             { key: 'auto-paste-symbols', title: _('Auto-Paste Symbols') },
-            { key: 'auto-paste-clipboard', title: _('Auto-Paste from Clipboard History') }
+            { key: 'auto-paste-clipboard', title: _('Auto-Paste from Clipboard History') },
         ];
 
         // Create and add each individual SwitchRow inside the expander.
-        features.forEach(feature => {
+        features.forEach((feature) => {
             const row = new Adw.SwitchRow({
                 title: feature.title,
                 // Initially sensitive only if the master switch is on.
@@ -703,15 +697,11 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         const maxItemsRow = new Adw.SpinRow({
             title: _('Maximum Clipboard History'),
-            subtitle: _('Number of items to keep in history (%d-%d). Default: %d.').format(
-                historyRange.min,
-                historyRange.max,
-                historyDefault
-            ),
+            subtitle: _('Number of items to keep in history (%d-%d). Default: %d.').format(historyRange.min, historyRange.max, historyDefault),
             adjustment: new Gtk.Adjustment({
                 lower: historyRange.min,
                 upper: historyRange.max,
-                step_increment: HISTORY_INCREMENT_NUMBER
+                step_increment: HISTORY_INCREMENT_NUMBER,
             }),
         });
         group.add(maxItemsRow);
@@ -723,11 +713,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             subtitle: _('When copying an item from history, make it the most recent.'),
         });
         group.add(updateRecencyRow);
-        settings.bind(
-            'update-recency-on-copy',
-            updateRecencyRow, 'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
+        settings.bind('update-recency-on-copy', updateRecencyRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         // Unpin on paste
         const unpinOnPasteRow = new Adw.SwitchRow({
@@ -735,11 +721,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             subtitle: _('Automatically unpin an item when it is pasted.'),
         });
         group.add(unpinOnPasteRow);
-        settings.bind(
-            'unpin-on-paste',
-            unpinOnPasteRow, 'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
+        settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         // Clipboard image preview sizing
         const previewKey = 'clipboard-image-preview-size';
@@ -748,15 +730,11 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         const previewRow = new Adw.SpinRow({
             title: _('Image Preview Size'),
-            subtitle: _('Pixel size for clipboard image thumbnails (%d-%d). Default: %d.').format(
-                previewRange.min,
-                previewRange.max,
-                previewDefault
-            ),
+            subtitle: _('Pixel size for clipboard image thumbnails (%d-%d). Default: %d.').format(previewRange.min, previewRange.max, previewDefault),
             adjustment: new Gtk.Adjustment({
                 lower: previewRange.min,
                 upper: previewRange.max,
-                step_increment: 8
+                step_increment: 8,
             }),
         });
         group.add(previewRow);
@@ -781,22 +759,18 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             subtitle: _('If off, skinnable emojis are neutral. If on, use the settings below.'),
         });
         group.add(enableCustomTonesRow);
-        settings.bind(
-            'enable-custom-skin-tones',
-            enableCustomTonesRow, 'active',
-            Gio.SettingsBindFlags.DEFAULT
-        );
+        settings.bind('enable-custom-skin-tones', enableCustomTonesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         // Skin tone choices
         const skinTones = [
-            { id: 'light', value: "🏻", label: _("Light") },
-            { id: 'medium-light', value: "🏼", label: _("Medium-Light") },
-            { id: 'medium', value: "🏽", label: _("Medium") },
-            { id: 'medium-dark', value: "🏾", label: _("Medium-Dark") },
-            { id: 'dark', value: "🏿", label: _("Dark") }
+            { id: 'light', value: '🏻', label: _('Light') },
+            { id: 'medium-light', value: '🏼', label: _('Medium-Light') },
+            { id: 'medium', value: '🏽', label: _('Medium') },
+            { id: 'medium-dark', value: '🏾', label: _('Medium-Dark') },
+            { id: 'dark', value: '🏿', label: _('Dark') },
         ];
 
-        const toneLabels = skinTones.map(t => t.label);
+        const toneLabels = skinTones.map((t) => t.label);
 
         const primaryRow = new Adw.ComboRow({
             title: _('Primary Tone / Single Emoji'),
@@ -817,18 +791,8 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         this._bindSkinToneComboRow(settings, secondaryRow, 'custom-skin-tone-secondary', skinTones);
 
         // Bind sensitivity
-        enableCustomTonesRow.bind_property(
-            'active',
-            primaryRow,
-            'sensitive',
-            GObject.BindingFlags.SYNC_CREATE
-        );
-        enableCustomTonesRow.bind_property(
-            'active',
-            secondaryRow,
-            'sensitive',
-            GObject.BindingFlags.SYNC_CREATE
-        );
+        enableCustomTonesRow.bind_property('active', primaryRow, 'sensitive', GObject.BindingFlags.SYNC_CREATE);
+        enableCustomTonesRow.bind_property('active', secondaryRow, 'sensitive', GObject.BindingFlags.SYNC_CREATE);
     }
 
     /**
@@ -840,7 +804,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
      */
     _bindSkinToneComboRow(settings, comboRow, settingKey, skinTones) {
         const currentValue = settings.get_string(settingKey);
-        const currentIndex = skinTones.findIndex(t => t.value === currentValue);
+        const currentIndex = skinTones.findIndex((t) => t.value === currentValue);
         comboRow.set_selected(currentIndex > -1 ? currentIndex : 0);
 
         comboRow.connect('notify::selected', () => {
@@ -852,7 +816,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         settings.connect(`changed::${settingKey}`, () => {
             const newValue = settings.get_string(settingKey);
-            const newIndex = skinTones.findIndex(t => t.value === newValue);
+            const newIndex = skinTones.findIndex((t) => t.value === newValue);
             if (newIndex > -1 && comboRow.get_selected() !== newIndex) {
                 comboRow.set_selected(newIndex);
             }
@@ -868,7 +832,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addGifSettingsGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
             title: _('GIF Settings'),
-            description: _('To search for GIFs, you must select a provider and provide your own API key.')
+            description: _('To search for GIFs, you must select a provider and provide your own API key.'),
         });
         page.add(group);
 
@@ -877,7 +841,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             title: _('GIF Provider'),
             subtitle: _('Select the service to use for fetching GIFs.'),
             model: new Gtk.StringList({
-                strings: [_("Disabled"), _("Tenor"), _("Imgur")]
+                strings: [_('Disabled'), _('Tenor'), _('Imgur')],
             }),
         });
         group.add(providerRow);
@@ -942,11 +906,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         const cacheLimitRow = new Adw.SpinRow({
             title: _('Cache Size Limit (MB)'),
-            subtitle: _('Range: %d-%d MB. Default: %d MB.').format(
-                CACHE_MINIMUM_NUMBER,
-                cacheRange.max,
-                cacheDefault
-            ),
+            subtitle: _('Range: %d-%d MB. Default: %d MB.').format(CACHE_MINIMUM_NUMBER, cacheRange.max, cacheDefault),
             adjustment: new Gtk.Adjustment({
                 lower: CACHE_MINIMUM_NUMBER,
                 upper: cacheRange.max,
@@ -1040,7 +1000,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addDataManagementGroup(page, settings, window) {
         const group = new Adw.PreferencesGroup({
             title: _('Data Management'),
-            description: _('Manage stored data and configure automatic cleanup. Manual actions cannot be undone.')
+            description: _('Manage stored data and configure automatic cleanup. Manual actions cannot be undone.'),
         });
         page.add(group);
 
@@ -1057,7 +1017,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             'clear-data-at-login',
             clearOnStartupExpander,
             'enable-expansion', // This property controls the built-in switch
-            Gio.SettingsBindFlags.DEFAULT
+            Gio.SettingsBindFlags.DEFAULT,
         );
 
         // Define the individual toggles that will go inside the expander
@@ -1070,7 +1030,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         ];
 
         // Create and add each individual SwitchRow to the expander
-        loginClearToggles.forEach(toggle => {
+        loginClearToggles.forEach((toggle) => {
             const row = new Adw.SwitchRow({ title: toggle.title });
             clearOnStartupExpander.add_row(row);
             settings.bind(toggle.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
@@ -1109,24 +1069,40 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Recent items expander
         const recentsExpander = new Adw.ExpanderRow({
             title: _('Recent Item History'),
-            subtitle: _('Clear lists of recently used emojis, GIFs, etc.')
+            subtitle: _('Clear lists of recently used emojis, GIFs, etc.'),
         });
         group.add(recentsExpander);
 
         const recentTypes = [
-            { key: 'emoji', title: _('Recent Emojis'), subtitle: _('Permanently clears the list of recent emojis.') },
-            { key: 'gif', title: _('Recent GIFs'), subtitle: _('Permanently clears the list of recent GIFs.') },
-            { key: 'kaomoji', title: _('Recent Kaomojis'), subtitle: _('Permanently clears the list of recent kaomojis.') },
-            { key: 'symbols', title: _('Recent Symbols'), subtitle: _('Permanently clears the list of recent symbols.') },
+            {
+                key: 'emoji',
+                title: _('Recent Emojis'),
+                subtitle: _('Permanently clears the list of recent emojis.'),
+            },
+            {
+                key: 'gif',
+                title: _('Recent GIFs'),
+                subtitle: _('Permanently clears the list of recent GIFs.'),
+            },
+            {
+                key: 'kaomoji',
+                title: _('Recent Kaomojis'),
+                subtitle: _('Permanently clears the list of recent kaomojis.'),
+            },
+            {
+                key: 'symbols',
+                title: _('Recent Symbols'),
+                subtitle: _('Permanently clears the list of recent symbols.'),
+            },
         ];
-        recentTypes.forEach(type => {
+        recentTypes.forEach((type) => {
             const row = new Adw.ActionRow({ title: type.title, subtitle: type.subtitle });
             row.add_suffix(createClearButton(type.key, window));
             recentsExpander.add_row(row);
         });
         const clearAllRecentsRow = new Adw.ActionRow({
             title: _('All Recent Items'),
-            subtitle: _('Permanently clears all of the above lists at once.')
+            subtitle: _('Permanently clears all of the above lists at once.'),
         });
         clearAllRecentsRow.add_suffix(createClearButton('all', window));
         recentsExpander.add_row(clearAllRecentsRow);
@@ -1134,20 +1110,20 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Clipboard data expander
         const clipboardExpander = new Adw.ExpanderRow({
             title: _('Clipboard Data'),
-            subtitle: _('Permanently delete your saved clipboard history and pinned items.')
+            subtitle: _('Permanently delete your saved clipboard history and pinned items.'),
         });
         group.add(clipboardExpander);
 
         const clearClipboardHistoryRow = new Adw.ActionRow({
             title: _('Clipboard History'),
-            subtitle: _('Permanently clears all saved unpinned clipboard items.')
+            subtitle: _('Permanently clears all saved unpinned clipboard items.'),
         });
         clearClipboardHistoryRow.add_suffix(createClearButton('clipboard-history', window));
         clipboardExpander.add_row(clearClipboardHistoryRow);
 
         const clearPinnedRow = new Adw.ActionRow({
             title: _('Pinned Items'),
-            subtitle: _('Permanently clears all saved pinned clipboard items.')
+            subtitle: _('Permanently clears all saved pinned clipboard items.'),
         });
         clearPinnedRow.add_suffix(createClearButton('clipboard-pinned', window));
         clipboardExpander.add_row(clearPinnedRow);
@@ -1155,13 +1131,13 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Cache expander
         const cacheExpander = new Adw.ExpanderRow({
             title: _('Performance Caches'),
-            subtitle: _('Clear temporary data used to improve loading speed.')
+            subtitle: _('Clear temporary data used to improve loading speed.'),
         });
         group.add(cacheExpander);
 
         const clearGifCacheRow = new Adw.ActionRow({
             title: _('GIF Preview Cache'),
-            subtitle: _('Permanently clears all downloaded GIF preview images.')
+            subtitle: _('Permanently clears all downloaded GIF preview images.'),
         });
         clearGifCacheRow.add_suffix(createClearButton('gif-cache', window));
         cacheExpander.add_row(clearGifCacheRow);

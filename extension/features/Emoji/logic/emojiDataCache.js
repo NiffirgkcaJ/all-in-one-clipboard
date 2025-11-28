@@ -11,10 +11,9 @@ const VS16_CHAR = '\uFE0F';
  * A singleton cache for the pre-processed set of skinnable emoji characters.
  * This performs the expensive task of parsing the emojis.json file only once.
  *
- * @param {string} extensionPath - The root path of the extension.
  * @returns {Promise<Set<string>>} A promise that resolves to the Set of skinnable characters.
  */
-export function getSkinnableCharSet(extensionPath) {
+export function getSkinnableCharSet() {
     if (_skinnableCharSetCache) {
         return Promise.resolve(_skinnableCharSetCache);
     }
@@ -50,7 +49,6 @@ export function getSkinnableCharSet(extensionPath) {
 
             _skinnableCharSetCache = skinnableChars;
             return _skinnableCharSetCache;
-
         } catch (e) {
             console.error(`[AIO-Clipboard] Failed to build skinnable character set cache: ${e.message}`);
             _cachePromise = null; // Allow retrying if it failed

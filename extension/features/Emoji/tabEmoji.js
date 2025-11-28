@@ -27,7 +27,7 @@ const CATEGORY_ICONS_MAP = [
     { keywords: ['activities'], iconFile: 'emoji-activities-symbolic.svg' },
     { keywords: ['objects'], iconFile: 'emoji-objects-symbolic.svg' },
     { keywords: ['symbols'], iconFile: 'emoji-symbols-symbolic.svg' },
-    { keywords: ['flags'], iconFile: 'emoji-flags-symbolic.svg' }
+    { keywords: ['flags'], iconFile: 'emoji-flags-symbolic.svg' },
 ];
 
 /**
@@ -40,359 +40,355 @@ const CATEGORY_ICONS_MAP = [
  * @fires set-main-tab-bar-visibility - Requests to show or hide the main tab bar.
  * @fires navigate-to-main-tab - Requests a navigation to a different main tab.
  */
-export const EmojiTabContent = GObject.registerClass({
-    Signals: {
-        'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-        'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] }
+export const EmojiTabContent = GObject.registerClass(
+    {
+        Signals: {
+            'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
+            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
+        },
     },
-},
-class EmojiTabContent extends St.Bin {
-    constructor(extension, settings) {
-        super({
-            style_class: 'emoji-tab-content',
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
-            y_align: Clutter.ActorAlign.FILL
-        });
-
-        // Initialize synchronous properties
-        this._settings = settings;
-        this._skinToneableBaseChars = new Set();
-        this._skinToneSettingsSignalIds = [];
-        this._alwaysShowTabsSignalId = 0;
-        this._viewer = null;
-
-        // Initialize asynchronous properties
-        this._setupPromise = this._setup(extension, settings);
-        this._setupPromise.catch(e => {
-            console.error('[AIO-Clipboard] Failed to setup Emoji tab:', e);
-        });
-    }
-
-    /**
-     * Performs asynchronous setup tasks.
-     * @param {Extension} extension - The main extension instance.
-     * @param {Gio.Settings} settings - The GSettings instance for the extension.
-     * @private
-     */
-    async _setup(extension, settings) {
-        // Build the set of skinnable base characters.
-        this._skinToneableBaseChars = await getSkinnableCharSet(extension.path);
-
-        // Load GSettings now that data is ready.
-        this._loadAndApplyCustomSkinToneSettings();
-
-        // Configure and create the main UI component.
-        const config = {
-            jsonPath: 'assets/data/emojis.json',
-            parserClass: EmojiJsonParser,
-            recentsFilename: 'recent_emojis.json',
-            recentsMaxItemsKey: 'emoji-recents-max-items',
-            itemsPerRow: 9,
-            categoryPropertyName: 'category',
-            enableTabScrolling: false,
-            sortCategories: false,
-            createSignalPayload: itemData => ({
-                'char': itemData.char || '',
-                'value': itemData.value || '',
-                'name': itemData.name || '',
-                'skinToneSupport': itemData.skinToneSupport || false
-            }),
-            searchFilterFn: this._searchFilter.bind(this),
-            renderGridItemFn: this._renderGridItem.bind(this),
-            renderCategoryButtonFn: this._renderCategoryButton.bind(this),
-        };
-
-        this._viewer = new CategorizedItemViewer(extension, settings, config);
-        this.set_child(this._viewer);
-
-        this._applyBackButtonPreference();
-        this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
-
-        // Connect signals to the now-existing viewer.
-        this._viewer.connect('item-selected', (source, jsonPayload) => {
-            this._onItemSelected(jsonPayload, extension);
-        });
-
-        this._viewer.connect('back-requested', () => {
-            this.emit('navigate-to-main-tab', _("Recently Used"));
-        });
-
-        // Connect GSettings signals for skin tone changes.
-        const skinToneKeys = [
-            ENABLE_CUSTOM_SKIN_TONES_KEY,
-            CUSTOM_SKIN_TONE_PRIMARY_KEY,
-            CUSTOM_SKIN_TONE_SECONDARY_KEY
-        ];
-        skinToneKeys.forEach(key => {
-            const signalId = settings.connect(`changed::${key}`, () => this._onSkinToneSettingsChanged());
-            this._skinToneSettingsSignalIds.push(signalId);
-        });
-    }
-
-    /**
-     * Applies the user's preference for always showing the main tab back button.
-     * @private
-     */
-    _applyBackButtonPreference() {
-        const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
-        this._viewer?.setBackButtonVisible(shouldShowBackButton);
-    }
-
-    // =====================================================================
-    // Signal Handlers and Callbacks
-    // =====================================================================
-
-    /**
-     * Handles the 'item-selected' signal from the viewer.
-     * Determines the correct emoji character (with/without skin tone) and
-     * copies it to the clipboard.
-     * @param {string} jsonPayload - The JSON string payload from the signal.
-     * @param {Extension} extension - The main extension instance.
-     * @private
-     */
-    async _onItemSelected(jsonPayload, extension) {
-        const data = JSON.parse(jsonPayload);
-        const originalChar = data.char || data.value;
-        let charToCopy;
-
-        // If the click is from "Recents", use the character as-is.
-        // Otherwise, apply the dynamic skin tone logic.
-        if (this._viewer._activeCategory === '##RECENTS##') {
-            charToCopy = originalChar;
-        } else {
-            charToCopy = this._getModifiedChar({ ...data, char: originalChar });
-        }
-
-        St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, charToCopy);
-
-        // Check if auto-paste is enabled
-        if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-emoji')) {
-            await getAutoPaster().trigger();
-        }
-
-        extension._indicator.menu?.close();
-    }
-
-    /**
-     * Handles changes in skin tone related GSettings.
-     * Updates internal state and commands the viewer to re-render the grid.
-     * @private
-     */
-    _onSkinToneSettingsChanged() {
-        this._loadAndApplyCustomSkinToneSettings();
-        this._viewer?.rerenderGrid();
-    }
-
-    // =====================================================================
-    // Emoji-Specific Logic
-    // =====================================================================
-
-    /**
-     * Asynchronously builds a Set of single-codepoint, skinnable emoji characters
-     * by parsing the main emoji data file. This Set is a critical dependency
-     * for the `EmojiModifier` logic.
-     * @param {string} extensionPath - The path to the extension's root directory.
-     * @private
-     */
-    async _buildSkinnableCharSet(extensionPath) {
-        const ZWJ_CHAR = '\u200D';
-        const VS16_CHAR = '\uFE0F';
-
-        try {
-            const filePath = GLib.build_filenamev([extensionPath, 'data', 'emojis.json']);
-            const file = Gio.File.new_for_path(filePath);
-
-            // Wrap the callback-based function in a native Promise
-            const bytes = await new Promise((resolve, reject) => {
-                file.load_contents_async(null, (source, res) => {
-                    try {
-                        const [ok, contents] = source.load_contents_finish(res);
-                        if (ok) {
-                            resolve(contents);
-                        } else {
-                            reject(new Error(`Failed to load skinnable character set from ${filePath}`));
-                        }
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
+    class EmojiTabContent extends St.Bin {
+        constructor(extension, settings) {
+            super({
+                style_class: 'emoji-tab-content',
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.FILL,
+                y_align: Clutter.ActorAlign.FILL,
             });
 
-            const jsonString = new TextDecoder('utf-8').decode(bytes);
-            const rawData = JSON.parse(jsonString);
+            // Initialize synchronous properties
+            this._settings = settings;
+            this._skinToneableBaseChars = new Set();
+            this._skinToneSettingsSignalIds = [];
+            this._alwaysShowTabsSignalId = 0;
+            this._viewer = null;
 
-            const parser = new EmojiJsonParser();
-            const emojiData = parser.parse(rawData);
+            // Initialize asynchronous properties
+            this._setupPromise = this._setup(extension, settings);
+            this._setupPromise.catch((e) => {
+                console.error('[AIO-Clipboard] Failed to setup Emoji tab:', e);
+            });
+        }
 
-            const skinnableChars = new Set();
-            for (const item of emojiData) {
-                // We only care about single characters that support skin tones.
-                if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
-                    // Strip the variation selector to get the true base character.
-                    const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
-                    skinnableChars.add(baseChar);
+        /**
+         * Performs asynchronous setup tasks.
+         * @param {Extension} extension - The main extension instance.
+         * @param {Gio.Settings} settings - The GSettings instance for the extension.
+         * @private
+         */
+        async _setup(extension, settings) {
+            // Build the set of skinnable base characters.
+            this._skinToneableBaseChars = await getSkinnableCharSet(extension.path);
+
+            // Load GSettings now that data is ready.
+            this._loadAndApplyCustomSkinToneSettings();
+
+            // Configure and create the main UI component.
+            const config = {
+                jsonPath: 'assets/data/emojis.json',
+                parserClass: EmojiJsonParser,
+                recentsFilename: 'recent_emojis.json',
+                recentsMaxItemsKey: 'emoji-recents-max-items',
+                itemsPerRow: 9,
+                categoryPropertyName: 'category',
+                enableTabScrolling: false,
+                sortCategories: false,
+                createSignalPayload: (itemData) => ({
+                    char: itemData.char || '',
+                    value: itemData.value || '',
+                    name: itemData.name || '',
+                    skinToneSupport: itemData.skinToneSupport || false,
+                }),
+                searchFilterFn: this._searchFilter.bind(this),
+                renderGridItemFn: this._renderGridItem.bind(this),
+                renderCategoryButtonFn: this._renderCategoryButton.bind(this),
+            };
+
+            this._viewer = new CategorizedItemViewer(extension, settings, config);
+            this.set_child(this._viewer);
+
+            this._applyBackButtonPreference();
+            this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
+
+            // Connect signals to the now-existing viewer.
+            this._viewer.connect('item-selected', (source, jsonPayload) => {
+                this._onItemSelected(jsonPayload, extension);
+            });
+
+            this._viewer.connect('back-requested', () => {
+                this.emit('navigate-to-main-tab', _('Recently Used'));
+            });
+
+            // Connect GSettings signals for skin tone changes.
+            const skinToneKeys = [ENABLE_CUSTOM_SKIN_TONES_KEY, CUSTOM_SKIN_TONE_PRIMARY_KEY, CUSTOM_SKIN_TONE_SECONDARY_KEY];
+            skinToneKeys.forEach((key) => {
+                const signalId = settings.connect(`changed::${key}`, () => this._onSkinToneSettingsChanged());
+                this._skinToneSettingsSignalIds.push(signalId);
+            });
+        }
+
+        /**
+         * Applies the user's preference for always showing the main tab back button.
+         * @private
+         */
+        _applyBackButtonPreference() {
+            const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
+            this._viewer?.setBackButtonVisible(shouldShowBackButton);
+        }
+
+        // =====================================================================
+        // Signal Handlers and Callbacks
+        // =====================================================================
+
+        /**
+         * Handles the 'item-selected' signal from the viewer.
+         * Determines the correct emoji character (with/without skin tone) and
+         * copies it to the clipboard.
+         * @param {string} jsonPayload - The JSON string payload from the signal.
+         * @param {Extension} extension - The main extension instance.
+         * @private
+         */
+        async _onItemSelected(jsonPayload, extension) {
+            const data = JSON.parse(jsonPayload);
+            const originalChar = data.char || data.value;
+            let charToCopy;
+
+            // If the click is from "Recents", use the character as-is.
+            // Otherwise, apply the dynamic skin tone logic.
+            if (this._viewer._activeCategory === '##RECENTS##') {
+                charToCopy = originalChar;
+            } else {
+                charToCopy = this._getModifiedChar({ ...data, char: originalChar });
+            }
+
+            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, charToCopy);
+
+            // Check if auto-paste is enabled
+            if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-emoji')) {
+                await getAutoPaster().trigger();
+            }
+
+            extension._indicator.menu?.close();
+        }
+
+        /**
+         * Handles changes in skin tone related GSettings.
+         * Updates internal state and commands the viewer to re-render the grid.
+         * @private
+         */
+        _onSkinToneSettingsChanged() {
+            this._loadAndApplyCustomSkinToneSettings();
+            this._viewer?.rerenderGrid();
+        }
+
+        // =====================================================================
+        // Emoji-Specific Logic
+        // =====================================================================
+
+        /**
+         * Asynchronously builds a Set of single-codepoint, skinnable emoji characters
+         * by parsing the main emoji data file. This Set is a critical dependency
+         * for the `EmojiModifier` logic.
+         * @param {string} extensionPath - The path to the extension's root directory.
+         * @private
+         */
+        async _buildSkinnableCharSet(extensionPath) {
+            const ZWJ_CHAR = '\u200D';
+            const VS16_CHAR = '\uFE0F';
+
+            try {
+                const filePath = GLib.build_filenamev([extensionPath, 'data', 'emojis.json']);
+                const file = Gio.File.new_for_path(filePath);
+
+                // Wrap the callback-based function in a native Promise
+                const bytes = await new Promise((resolve, reject) => {
+                    file.load_contents_async(null, (source, res) => {
+                        try {
+                            const [ok, contents] = source.load_contents_finish(res);
+                            if (ok) {
+                                resolve(contents);
+                            } else {
+                                reject(new Error(`Failed to load skinnable character set from ${filePath}`));
+                            }
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                });
+
+                const jsonString = new TextDecoder('utf-8').decode(bytes);
+                const rawData = JSON.parse(jsonString);
+
+                const parser = new EmojiJsonParser();
+                const emojiData = parser.parse(rawData);
+
+                const skinnableChars = new Set();
+                for (const item of emojiData) {
+                    // We only care about single characters that support skin tones.
+                    if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
+                        // Strip the variation selector to get the true base character.
+                        const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
+                        skinnableChars.add(baseChar);
+                    }
+                }
+                this._skinToneableBaseChars = skinnableChars;
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Failed to build skinnable character set in EmojiTabContent: ${e.message}`);
+                this._skinToneableBaseChars = new Set(); // Ensure it's a valid Set on failure
+            }
+        }
+
+        /**
+         * Reads skin tone preferences from GSettings and updates the internal state.
+         * @private
+         */
+        _loadAndApplyCustomSkinToneSettings() {
+            this._useCustomTones = this._settings.get_boolean(ENABLE_CUSTOM_SKIN_TONES_KEY);
+            this._primarySkinTone = this._settings.get_string(CUSTOM_SKIN_TONE_PRIMARY_KEY);
+            this._secondarySkinTone = this._settings.get_string(CUSTOM_SKIN_TONE_SECONDARY_KEY);
+        }
+
+        /**
+         * Gets the final display character for an emoji, applying skin tones if applicable.
+         * @param {object} itemData - The standardized emoji data object.
+         * @returns {string} The final emoji character to display.
+         * @private
+         */
+        _getModifiedChar(itemData) {
+            return itemData.skinToneSupport
+                ? EmojiModifier.applyCustomTones(itemData.char, this._useCustomTones, this._primarySkinTone, this._secondarySkinTone, this._skinToneableBaseChars)
+                : itemData.char;
+        }
+
+        // =====================================================================
+        // Functions for Viewer Configuration
+        // =====================================================================
+
+        /**
+         * Search filter function passed to the viewer.
+         * @param {object} item - The emoji data object.
+         * @param {string} searchText - The user's search text.
+         * @returns {boolean} True if the item matches the search.
+         * @private
+         */
+        _searchFilter(item, searchText) {
+            // Prepare the user's input once, stripping any prefixes.
+            const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
+
+            // Check the emoji character first.
+            if (item.name.toLowerCase().includes(cleanSearchText)) {
+                return true;
+            }
+
+            // Check keywords first if available.
+            if (item.keywords && item.keywords.some((k) => k.toLowerCase().includes(cleanSearchText))) {
+                return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * Renders a grid item button, passed to the viewer.
+         * @param {object} itemData - The emoji data object.
+         * @returns {St.Button} The configured button for the grid.
+         * @private
+         */
+        _renderGridItem(itemData) {
+            const originalChar = itemData.char || itemData.value;
+            if (!originalChar) return new St.Button();
+
+            let displayChar;
+
+            // If rendering "Recents", display the character as-is (immutable history).
+            // Otherwise, apply dynamic skin tone logic.
+            if (this._viewer._activeCategory === '##RECENTS##') {
+                displayChar = originalChar;
+            } else {
+                displayChar = EmojiModifier.hasSkinTone(originalChar) ? originalChar : this._getModifiedChar({ ...itemData, char: originalChar });
+            }
+
+            const button = new St.Button({
+                style_class: 'emoji-grid-button button',
+                label: displayChar,
+                can_focus: true,
+                x_expand: false,
+            });
+            button.tooltip_text = itemData.name || '';
+            return button;
+        }
+
+        /**
+         * Renders a category tab button, passed to the viewer.
+         * @param {string} categoryId - The name of the category.
+         * @param {string} extensionPath - Path to the extension's root.
+         * @returns {St.Button} The configured button for the category tab bar.
+         * @private
+         */
+        _renderCategoryButton(categoryId) {
+            const lower = categoryId.toLowerCase();
+            let iconFile = 'emoji-objects-symbolic.svg'; // Fallback icon
+
+            for (const m of CATEGORY_ICONS_MAP) {
+                if (m.keywords.some((k) => lower.includes(k))) {
+                    iconFile = m.iconFile;
+                    break;
                 }
             }
-            this._skinToneableBaseChars = skinnableChars;
-        } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to build skinnable character set in EmojiTabContent: ${e.message}`);
-            this._skinToneableBaseChars = new Set(); // Ensure it's a valid Set on failure
-        }
-    }
 
-    /**
-     * Reads skin tone preferences from GSettings and updates the internal state.
-     * @private
-     */
-    _loadAndApplyCustomSkinToneSettings() {
-        this._useCustomTones = this._settings.get_boolean(ENABLE_CUSTOM_SKIN_TONES_KEY);
-        this._primarySkinTone = this._settings.get_string(CUSTOM_SKIN_TONE_PRIMARY_KEY);
-        this._secondarySkinTone = this._settings.get_string(CUSTOM_SKIN_TONE_SECONDARY_KEY);
-    }
+            // Use the helper function to create themed icon
+            const iconWidget = createThemedIcon(iconFile, 16);
 
-    /**
-     * Gets the final display character for an emoji, applying skin tones if applicable.
-     * @param {object} itemData - The standardized emoji data object.
-     * @returns {string} The final emoji character to display.
-     * @private
-     */
-    _getModifiedChar(itemData) {
-        return itemData.skinToneSupport
-            ? EmojiModifier.applyCustomTones(itemData.char, this._useCustomTones, this._primarySkinTone, this._secondarySkinTone, this._skinToneableBaseChars)
-            : itemData.char;
-    }
+            const button = new St.Button({
+                style_class: 'emoji-category-tab-button button',
+                child: iconWidget,
+                can_focus: true,
+                x_expand: false,
+                x_align: Clutter.ActorAlign.CENTER,
+            });
 
-    // =====================================================================
-    // Functions for Viewer Configuration
-    // =====================================================================
-
-    /**
-     * Search filter function passed to the viewer.
-     * @param {object} item - The emoji data object.
-     * @param {string} searchText - The user's search text.
-     * @returns {boolean} True if the item matches the search.
-     * @private
-     */
-    _searchFilter(item, searchText) {
-        // Prepare the user's input once, stripping any prefixes.
-        const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
-
-        // Check the emoji character first.
-        if (item.name.toLowerCase().includes(cleanSearchText)) {
-            return true;
+            button.tooltip_text = _(categoryId);
+            return button;
         }
 
-        // Check keywords first if available.
-        if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(cleanSearchText))) {
-            return true;
+        // =====================================================================
+        // Public Methods & Lifecycle
+        // =====================================================================
+
+        /**
+         * Called by the parent when this tab is selected.
+         */
+        async onTabSelected() {
+            // Wait for the setup promise to resolve
+            await this._setupPromise;
+
+            this.emit('set-main-tab-bar-visibility', false);
+
+            // We can now safely call this, because we know _viewer is not null.
+            this._viewer?.onSelected();
         }
 
-        return false;
-    }
+        /**
+         * Cleans up resources when the widget is destroyed.
+         */
+        destroy() {
+            // Disconnect emoji-specific signals
+            this._skinToneSettingsSignalIds.forEach((id) => {
+                if (this._settings && id > 0) {
+                    this._settings.disconnect(id);
+                }
+            });
 
-    /**
-     * Renders a grid item button, passed to the viewer.
-     * @param {object} itemData - The emoji data object.
-     * @returns {St.Button} The configured button for the grid.
-     * @private
-     */
-    _renderGridItem(itemData) {
-        const originalChar = itemData.char || itemData.value;
-        if (!originalChar) return new St.Button();
-
-        let displayChar;
-
-        // If rendering "Recents", display the character as-is (immutable history).
-        // Otherwise, apply dynamic skin tone logic.
-        if (this._viewer._activeCategory === '##RECENTS##') {
-            displayChar = originalChar;
-        } else {
-            displayChar = EmojiModifier.hasSkinTone(originalChar)
-                ? originalChar
-                : this._getModifiedChar({ ...itemData, char: originalChar });
-        }
-
-        const button = new St.Button({
-            style_class: 'emoji-grid-button button',
-            label: displayChar,
-            can_focus: true,
-            x_expand: false
-        });
-        button.tooltip_text = itemData.name || '';
-        return button;
-    }
-
-    /**
-     * Renders a category tab button, passed to the viewer.
-     * @param {string} categoryId - The name of the category.
-     * @param {string} extensionPath - Path to the extension's root.
-     * @returns {St.Button} The configured button for the category tab bar.
-     * @private
-     */
-    _renderCategoryButton(categoryId, extensionPath) {
-        const lower = categoryId.toLowerCase();
-        let iconFile = 'emoji-objects-symbolic.svg'; // Fallback icon
-
-        for (const m of CATEGORY_ICONS_MAP) {
-            if (m.keywords.some(k => lower.includes(k))) {
-                iconFile = m.iconFile;
-                break;
+            // Disconnect the shared 'always-show-main-tab' signal
+            if (this._alwaysShowTabsSignalId) {
+                this._settings?.disconnect(this._alwaysShowTabsSignalId);
             }
+            this._alwaysShowTabsSignalId = 0;
+
+            // Destroy the child viewer component
+            this._viewer?.destroy();
+            super.destroy();
         }
-
-        // Use the helper function to create themed icon
-        const iconWidget = createThemedIcon(iconFile, 16);
-
-        const button = new St.Button({
-            style_class: 'emoji-category-tab-button button',
-            child: iconWidget,
-            can_focus: true,
-            x_expand: false,
-            x_align: Clutter.ActorAlign.CENTER
-        });
-
-        button.tooltip_text = _(categoryId);
-        return button;
-    }
-
-    // =====================================================================
-    // Public Methods & Lifecycle
-    // =====================================================================
-
-    /**
-     * Called by the parent when this tab is selected.
-     */
-    async onTabSelected() {
-        // Wait for the setup promise to resolve
-        await this._setupPromise;
-
-        this.emit('set-main-tab-bar-visibility', false);
-
-        // We can now safely call this, because we know _viewer is not null.
-        this._viewer?.onSelected();
-    }
-
-    /**
-     * Cleans up resources when the widget is destroyed.
-     */
-    destroy() {
-        // Disconnect emoji-specific signals
-        this._skinToneSettingsSignalIds.forEach(id => {
-            if (this._settings && id > 0) {
-                this._settings.disconnect(id);
-            }
-        });
-
-        // Disconnect the shared 'always-show-main-tab' signal
-        if (this._alwaysShowTabsSignalId) {
-            this._settings?.disconnect(this._alwaysShowTabsSignalId);
-        }
-        this._alwaysShowTabsSignalId = 0;
-
-        // Destroy the child viewer component
-        this._viewer?.destroy();
-        super.destroy();
-    }
-});
+    },
+);

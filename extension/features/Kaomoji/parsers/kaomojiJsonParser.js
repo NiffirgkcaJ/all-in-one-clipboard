@@ -59,29 +59,19 @@ export class KaomojiJsonParser {
                     const description = emoticonObject.description ? dgettext(DATA_DOMAIN, emoticonObject.description) : '';
 
                     // Apply localization to each provided keyword.
-                    const providedKeywords = Array.isArray(emoticonObject.keywords)
-                        ? emoticonObject.keywords.map(k => dgettext(DATA_DOMAIN, k))
-                        : [];
+                    const providedKeywords = Array.isArray(emoticonObject.keywords) ? emoticonObject.keywords.map((k) => dgettext(DATA_DOMAIN, k)) : [];
 
                     const emoticonSlug = emoticonObject.slug || '';
 
                     // Combine all relevant keywords into a single array.
-                    const allKeywords = [
-                        kaomoji,
-                        description,
-                        ...providedKeywords,
-                        innerCategoryName,
-                        greaterCategoryName,
-                        innerCategorySlug,
-                        emoticonSlug,
-                    ].filter(Boolean); // Filter out any empty/null values
+                    const allKeywords = [kaomoji, description, ...providedKeywords, innerCategoryName, greaterCategoryName, innerCategorySlug, emoticonSlug].filter(Boolean); // Filter out any empty/null values
 
                     standardizedData.push({
                         kaomoji: kaomoji,
                         description: description,
                         innerCategory: innerCategoryName,
                         greaterCategory: greaterCategoryName,
-                        keywords: allKeywords
+                        keywords: allKeywords,
                     });
                 }
             }

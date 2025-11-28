@@ -24,11 +24,7 @@ export async function manageCacheSize(cacheDirPath, limitInMB) {
     const files = [];
 
     try {
-        const enumerator = cacheDir.enumerate_children(
-            'standard::name,time::access,standard::size',
-            Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-            null
-        );
+        const enumerator = cacheDir.enumerate_children('standard::name,time::access,standard::size', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 
         while (true) {
             const fileInfo = enumerator.next_file(null);
@@ -62,20 +58,20 @@ export async function manageCacheSize(cacheDirPath, limitInMB) {
 
         try {
             const fileToDelete = Gio.File.new_for_path(file.path);
-            await new Promise((resolve, reject) => {
+            // eslint-disable-next-line no-await-in-loop
+            await new Promise((resolve) => {
                 fileToDelete.delete_async(GLib.PRIORITY_LOW, null, (source, res) => {
                     try {
                         source.delete_finish(res);
                         resolve();
-                    } catch (e) {
+                    } catch {
                         // Don't reject, just warn and continue. The file might have been deleted by another process.
-                        console.warn(`[AIO-Clipboard] Could not delete cache file ${file.path}: ${e.message}`);
                         resolve();
                     }
                 });
             });
             totalSize -= file.size;
-        } catch (e) {
+        } catch {
             // Ignore errors here as well, just move on.
         }
     }

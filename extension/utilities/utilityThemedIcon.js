@@ -20,6 +20,6 @@ export function createThemedIcon(iconFilename, iconSize = 16) {
     return new St.Icon({
         gicon: gicon,
         icon_size: iconSize,
-        style_class: 'system-status-icon'
+        style_class: 'system-status-icon',
     });
 }

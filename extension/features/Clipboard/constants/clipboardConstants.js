@@ -1,52 +1,52 @@
 // Internal Data Types
 export const ClipboardType = {
     IMAGE: 'image',
-    FILE:  'file',
-    URL:   'url',
+    FILE: 'file',
+    URL: 'url',
     COLOR: 'color',
-    CODE:  'code',
-    TEXT:  'text'
+    CODE: 'code',
+    TEXT: 'text',
 };
 
 // Content Styling
 export const ClipboardStyling = {
     [ClipboardType.IMAGE]: {
         icon: 'image-x-generic-symbolic',
-        layout: 'image'
+        layout: 'image',
     },
     [ClipboardType.FILE]: {
         icon: 'text-x-generic-symbolic',
-        layout: 'rich'
+        layout: 'rich',
     },
     [ClipboardType.URL]: {
         icon: 'web-browser-symbolic',
-        layout: 'rich'
+        layout: 'rich',
     },
     [ClipboardType.COLOR]: {
         icon: 'color-select-symbolic',
-        layout: 'rich'
+        layout: 'rich',
     },
     [ClipboardType.CODE]: {
         icon: 'text-x-generic-symbolic',
-        layout: 'code'
+        layout: 'code',
     },
     [ClipboardType.TEXT]: {
         icon: 'text-x-generic-symbolic',
-        layout: 'text'
-    }
+        layout: 'text',
+    },
 };
 
 // UI Control Icons
 export const ClipboardIcons = {
-    CHECKBOX_CHECKED:   'checkbox-checked-symbolic',
+    CHECKBOX_CHECKED: 'checkbox-checked-symbolic',
     CHECKBOX_UNCHECKED: 'checkbox-unchecked-symbolic',
-    CHECKBOX_MIXED:     'checkbox-mixed-symbolic',
+    CHECKBOX_MIXED: 'checkbox-mixed-symbolic',
 
-    PIN_FILLED:   'starred-symbolic',
-    PIN_OUTLINE:  'non-starred-symbolic',
-    DELETE:       'edit-delete-symbolic',
+    PIN_FILLED: 'starred-symbolic',
+    PIN_OUTLINE: 'non-starred-symbolic',
+    DELETE: 'edit-delete-symbolic',
 
-    ACTION_PIN:     'view-pin-symbolic',
+    ACTION_PIN: 'view-pin-symbolic',
     ACTION_PRIVATE: 'view-reveal-symbolic',
-    ACTION_PUBLIC:  'view-conceal-symbolic'
+    ACTION_PUBLIC: 'view-conceal-symbolic',
 };

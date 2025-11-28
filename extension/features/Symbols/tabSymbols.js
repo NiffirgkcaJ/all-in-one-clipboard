@@ -16,187 +16,188 @@ import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
  * @fires set-main-tab-bar-visibility - Requests to show or hide the main tab bar.
  * @fires navigate-to-main-tab - Requests a navigation to a different main tab.
  */
-export const SymbolsTabContent = GObject.registerClass({
-    Signals: {
-        'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-        'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] }
+export const SymbolsTabContent = GObject.registerClass(
+    {
+        Signals: {
+            'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
+            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
+        },
     },
-},
-class SymbolsTabContent extends St.Bin {
-    constructor(extension, settings) {
-        super({
-            style_class: 'symbols-tab-content',
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
-            y_align: Clutter.ActorAlign.FILL
-        });
+    class SymbolsTabContent extends St.Bin {
+        constructor(extension, settings) {
+            super({
+                style_class: 'symbols-tab-content',
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.FILL,
+                y_align: Clutter.ActorAlign.FILL,
+            });
 
-        // Store settings for later use
-        this._settings = settings;
-        this._alwaysShowTabsSignalId = 0;
+            // Store settings for later use
+            this._settings = settings;
+            this._alwaysShowTabsSignalId = 0;
 
-        const config = {
-            jsonPath: 'assets/data/symbols.json',
-            parserClass: SymbolsJsonParser,
-            recentsFilename: 'recent_symbols.json',
-            recentsMaxItemsKey: 'symbols-recents-max-items',
-            itemsPerRow: 9,
-            categoryPropertyName: 'category',
-            enableTabScrolling: true,
-            sortCategories: false,
-            // Ensure the payload is consistent for both old and new item formats.
-            createSignalPayload: itemData => ({
-                'symbol': itemData.symbol || itemData.char || itemData.value || '',
-                'name': itemData.name || ''
-            }),
-            searchFilterFn: this._searchFilter.bind(this),
-            renderGridItemFn: this._renderGridItem.bind(this),
-            renderCategoryButtonFn: this._renderCategoryButton.bind(this),
-        };
+            const config = {
+                jsonPath: 'assets/data/symbols.json',
+                parserClass: SymbolsJsonParser,
+                recentsFilename: 'recent_symbols.json',
+                recentsMaxItemsKey: 'symbols-recents-max-items',
+                itemsPerRow: 9,
+                categoryPropertyName: 'category',
+                enableTabScrolling: true,
+                sortCategories: false,
+                // Ensure the payload is consistent for both old and new item formats.
+                createSignalPayload: (itemData) => ({
+                    symbol: itemData.symbol || itemData.char || itemData.value || '',
+                    name: itemData.name || '',
+                }),
+                searchFilterFn: this._searchFilter.bind(this),
+                renderGridItemFn: this._renderGridItem.bind(this),
+                renderCategoryButtonFn: this._renderCategoryButton.bind(this),
+            };
 
-        this._viewer = new CategorizedItemViewer(extension, settings, config);
-        this.set_child(this._viewer);
+            this._viewer = new CategorizedItemViewer(extension, settings, config);
+            this.set_child(this._viewer);
 
-        this._applyBackButtonPreference();
-        this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
+            this._applyBackButtonPreference();
+            this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
 
-        // Connect to Viewer Signals
-        this._viewer.connect('item-selected', (source, jsonPayload) => {
-            this._onItemSelected(jsonPayload, extension);
-        });
+            // Connect to Viewer Signals
+            this._viewer.connect('item-selected', (source, jsonPayload) => {
+                this._onItemSelected(jsonPayload, extension);
+            });
 
-        this._viewer.connect('back-requested', () => {
-            this.emit('navigate-to-main-tab', _("Recently Used"));
-        });
-    }
+            this._viewer.connect('back-requested', () => {
+                this.emit('navigate-to-main-tab', _('Recently Used'));
+            });
+        }
 
-    /**
-     * Applies the user's preference for always showing the main tab back button.
-     * @private
-     */
-    _applyBackButtonPreference() {
-        const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
-        this._viewer?.setBackButtonVisible(shouldShowBackButton);
-    }
+        /**
+         * Applies the user's preference for always showing the main tab back button.
+         * @private
+         */
+        _applyBackButtonPreference() {
+            const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
+            this._viewer?.setBackButtonVisible(shouldShowBackButton);
+        }
 
-    // =====================================================================
-    // Signal Handlers and Callbacks
-    // =====================================================================
+        // =====================================================================
+        // Signal Handlers and Callbacks
+        // =====================================================================
 
-    /**
-     * Handles the 'item-selected' signal from the viewer.
-     * Copies the selected symbol string to the clipboard.
-     * @param {string} jsonPayload - The JSON string payload from the signal.
-     * @param {Extension} extension - The main extension instance.
-     * @private
-     */
-    async _onItemSelected(jsonPayload, extension) {
-        try {
-            const data = JSON.parse(jsonPayload);
-            // Get the symbol string to copy
-            const symbolToCopy = data.symbol;
-            if (!symbolToCopy) return;
+        /**
+         * Handles the 'item-selected' signal from the viewer.
+         * Copies the selected symbol string to the clipboard.
+         * @param {string} jsonPayload - The JSON string payload from the signal.
+         * @param {Extension} extension - The main extension instance.
+         * @private
+         */
+        async _onItemSelected(jsonPayload, extension) {
+            try {
+                const data = JSON.parse(jsonPayload);
+                // Get the symbol string to copy
+                const symbolToCopy = data.symbol;
+                if (!symbolToCopy) return;
 
-            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, symbolToCopy);
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, symbolToCopy);
 
-            // Check if auto-paste is enabled
-            if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-symbols')) {
-                await getAutoPaster().trigger();
+                // Check if auto-paste is enabled
+                if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-symbols')) {
+                    await getAutoPaster().trigger();
+                }
+
+                extension._indicator.menu?.close();
+            } catch (e) {
+                console.error('[AIO-Clipboard] Error in symbols item selection:', e);
+            }
+        }
+
+        // =====================================================================
+        // Functions for Viewer Configuration
+        // =====================================================================
+
+        /**
+         * Search filter function passed to the viewer.
+         * @param {object} item - The symbol data object.
+         * @param {string} searchText - The user's search text.
+         * @returns {boolean} True if the item matches the search.
+         * @private
+         */
+        _searchFilter(item, searchText) {
+            // Prepare the user's input once, stripping any prefixes.
+            const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
+
+            // Check keywords first if available.
+            if (item.keywords && Array.isArray(item.keywords)) {
+                // Compare the clean search text against all keywords.
+                return item.keywords.some((k) => k.toLowerCase().includes(cleanSearchText));
             }
 
-            extension._indicator.menu?.close();
-        } catch (e) {
-            console.error('[AIO-Clipboard] Error in symbols item selection:', e);
-        }
-    }
-
-    // =====================================================================
-    // Functions for Viewer Configuration
-    // =====================================================================
-
-    /**
-     * Search filter function passed to the viewer.
-     * @param {object} item - The symbol data object.
-     * @param {string} searchText - The user's search text.
-     * @returns {boolean} True if the item matches the search.
-     * @private
-     */
-    _searchFilter(item, searchText) {
-        // Prepare the user's input once, stripping any prefixes.
-        const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
-
-        // Check keywords first if available.
-        if (item.keywords && Array.isArray(item.keywords)) {
-            // Compare the clean search text against all keywords.
-            return item.keywords.some(k => k.toLowerCase().includes(cleanSearchText));
+            // Check symbol string and name.
+            const symbolString = item.char || item.value || '';
+            return symbolString.toLowerCase().includes(cleanSearchText) || (item.name && item.name.toLowerCase().includes(cleanSearchText));
         }
 
-        // Check symbol string and name.
-        const symbolString = item.char || item.value || '';
-        return symbolString.toLowerCase().includes(cleanSearchText) ||
-               (item.name && item.name.toLowerCase().includes(cleanSearchText));
-    }
+        _renderGridItem(itemData) {
+            // Get the symbol string to display
+            const displayString = itemData.symbol || itemData.char || itemData.value;
+            if (!displayString) return new St.Button();
 
-    _renderGridItem(itemData) {
-        // Get the symbol string to display
-        const displayString = itemData.symbol || itemData.char || itemData.value;
-        if (!displayString) return new St.Button();
+            const button = new St.Button({
+                style_class: 'symbol-grid-button button',
+                label: displayString,
+                can_focus: true,
+                x_expand: false,
+            });
 
-        const button = new St.Button({
-            style_class: 'symbol-grid-button button',
-            label: displayString,
-            can_focus: true,
-            x_expand: false
-        });
-
-        // Set tooltip to the name if available, otherwise use the symbol itself.
-        button.tooltip_text = itemData.name || displayString;
-        return button;
-    }
-
-    /**
-     * Renders a category tab button, passed to the viewer.
-     * @param {string} categoryId - The name of the category.
-     * @returns {St.Button} The configured button for the category tab bar.
-     * @private
-     */
-    _renderCategoryButton(categoryId) {
-        const button = new St.Button({
-            style_class: 'symbol-category-tab-button button',
-            can_focus: true,
-            label: _(categoryId),
-            x_expand: false,
-            x_align: Clutter.ActorAlign.START
-        });
-        button.tooltip_text = _(categoryId);
-        return button;
-    }
-
-    // =====================================================================
-    // Public Methods & Lifecycle
-    // =====================================================================
-
-    /**
-     * Called by the parent when this tab is selected.
-     */
-    onTabSelected() {
-        this.emit('set-main-tab-bar-visibility', false);
-        this._viewer?.onSelected();
-    }
-
-    /**
-     * Cleans up resources when the widget is destroyed.
-     */
-    destroy() {
-        // Disconnect the shared 'always-show-main-tab' signal
-        if (this._alwaysShowTabsSignalId) {
-            this._settings?.disconnect(this._alwaysShowTabsSignalId);
+            // Set tooltip to the name if available, otherwise use the symbol itself.
+            button.tooltip_text = itemData.name || displayString;
+            return button;
         }
-        this._alwaysShowTabsSignalId = 0;
 
-        // Destroy the child viewer component
-        this._viewer?.destroy();
-        super.destroy();
-    }
-});
+        /**
+         * Renders a category tab button, passed to the viewer.
+         * @param {string} categoryId - The name of the category.
+         * @returns {St.Button} The configured button for the category tab bar.
+         * @private
+         */
+        _renderCategoryButton(categoryId) {
+            const button = new St.Button({
+                style_class: 'symbol-category-tab-button button',
+                can_focus: true,
+                label: _(categoryId),
+                x_expand: false,
+                x_align: Clutter.ActorAlign.START,
+            });
+            button.tooltip_text = _(categoryId);
+            return button;
+        }
+
+        // =====================================================================
+        // Public Methods & Lifecycle
+        // =====================================================================
+
+        /**
+         * Called by the parent when this tab is selected.
+         */
+        onTabSelected() {
+            this.emit('set-main-tab-bar-visibility', false);
+            this._viewer?.onSelected();
+        }
+
+        /**
+         * Cleans up resources when the widget is destroyed.
+         */
+        destroy() {
+            // Disconnect the shared 'always-show-main-tab' signal
+            if (this._alwaysShowTabsSignalId) {
+                this._settings?.disconnect(this._alwaysShowTabsSignalId);
+            }
+            this._alwaysShowTabsSignalId = 0;
+
+            // Destroy the child viewer component
+            this._viewer?.destroy();
+            super.destroy();
+        }
+    },
+);

@@ -4,9 +4,8 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
  * Gets the monitor at the given coordinates.
  */
 function getMonitorAtPosition(x, y) {
-    const index = Main.layoutManager.monitors.findIndex(monitor => {
-        return x >= monitor.x && x < monitor.x + monitor.width &&
-               y >= monitor.y && y < monitor.y + monitor.height;
+    const index = Main.layoutManager.monitors.findIndex((monitor) => {
+        return x >= monitor.x && x < monitor.x + monitor.width && y >= monitor.y && y < monitor.y + monitor.height;
     });
     return index >= 0 ? Main.layoutManager.monitors[index] : Main.layoutManager.primaryMonitor;
 }

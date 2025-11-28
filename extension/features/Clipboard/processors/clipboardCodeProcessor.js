@@ -8,15 +8,17 @@ const MIN_SCORE_THRESHOLD = 5;
 
 // Highlighting Colors
 const C_KEYWORD = '#ff7b72';
-const C_STRING  = '#a5d6ff';
+const C_STRING = '#a5d6ff';
 const C_COMMENT = '#8b949e';
-const C_NUMBER  = '#79c0ff';
+const C_NUMBER = '#79c0ff';
 
 // Regex Definitions
-const REGEX_KEYWORDS = /\b(function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b/;
+const REGEX_KEYWORDS =
+    /\b(function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b/;
 const REGEX_STRUCTURAL = /[{}[\]();=<>!&|]/g; // Added 'g' flag for counting
 const REGEX_INDENTATION = /^\s{2,}/;
-const REGEX_TOKENIZER = /(\/\/.*)|((['"])(?:(?=(\\?))\4.)*?\3)|(\b(?:function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b)|(\b\d+\b)/g;
+const REGEX_TOKENIZER =
+    /(\/\/.*)|((['"])(?:(?=(\\?))\4.)*?\3)|(\b(?:function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b)|(\b\d+\b)/g;
 
 export class CodeProcessor {
     /**
@@ -37,9 +39,7 @@ export class CodeProcessor {
         const rawPreviewText = previewLines.join('\n');
         const rawLines = previewLines.length;
 
-        const hash = GLib.compute_checksum_for_string(
-            GLib.ChecksumType.SHA256, cleanText, -1
-        );
+        const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
 
         const highlightedPreview = this._highlight(rawPreviewText);
 
@@ -48,7 +48,7 @@ export class CodeProcessor {
             text: cleanText,
             preview: highlightedPreview,
             raw_lines: rawLines,
-            hash: hash
+            hash: hash,
         };
     }
 
@@ -70,7 +70,7 @@ export class CodeProcessor {
             if (REGEX_INDENTATION.test(line)) score += 0.5;
 
             const structureCount = (trimmed.match(REGEX_STRUCTURAL) || []).length;
-            if (structureCount > 0) score += (structureCount * 0.2);
+            if (structureCount > 0) score += structureCount * 0.2;
 
             if (REGEX_KEYWORDS.test(trimmed)) score += 2;
 
@@ -87,12 +87,7 @@ export class CodeProcessor {
      */
     static _escapeHtml(str) {
         if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
     }
 
     /**

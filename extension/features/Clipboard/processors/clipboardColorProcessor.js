@@ -28,15 +28,13 @@ export class ColorProcessor {
         }
 
         if (format) {
-            const hash = GLib.compute_checksum_for_string(
-                GLib.ChecksumType.SHA256, cleanText, -1
-            );
+            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
 
             return {
                 type: ClipboardType.COLOR,
                 color_value: cleanText,
                 format_type: format,
-                hash: hash
+                hash: hash,
             };
         }
 

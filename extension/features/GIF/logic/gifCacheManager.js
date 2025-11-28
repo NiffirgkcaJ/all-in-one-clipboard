@@ -15,11 +15,7 @@ class GifCacheManager {
     constructor(uuid, settings) {
         this._uuid = uuid;
         this._settings = settings;
-        this._gifCacheDir = GLib.build_filenamev([
-            GLib.get_user_cache_dir(),
-            this._uuid,
-            'gif-previews'
-        ]);
+        this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid, 'gif-previews']);
 
         // Instantiate the Debouncer class.
         this._debouncer = new Debouncer(() => {
@@ -50,8 +46,7 @@ class GifCacheManager {
     _runCleanup() {
         try {
             const cacheLimit = this._settings.get_int('gif-cache-limit-mb');
-            manageCacheSize(this._gifCacheDir, cacheLimit)
-                .catch(e => console.warn(`[AIO-Clipboard] GIF cache management failed: ${e.message}`));
+            manageCacheSize(this._gifCacheDir, cacheLimit).catch((e) => console.warn(`[AIO-Clipboard] GIF cache management failed: ${e.message}`));
         } catch (e) {
             console.warn(`[AIO-Clipboard] Could not initiate GIF cache management: ${e.message}`);
         }
@@ -69,20 +64,14 @@ class GifCacheManager {
             }
 
             // Asynchronously list all files in the directory
-            dir.enumerate_children_async(
-                'standard::name',
-                Gio.FileQueryInfoFlags.NONE,
-                GLib.PRIORITY_DEFAULT,
-                null,
-                (source, res) => {
-                    try {
-                        const enumerator = source.enumerate_children_finish(res);
-                        this._deleteFilesInEnumerator(enumerator, dir);
-                    } catch (e) {
-                        console.error(`[AIO-Clipboard] Failed to list files in cache for deletion: ${e.message}`);
-                    }
+            dir.enumerate_children_async('standard::name', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null, (source, res) => {
+                try {
+                    const enumerator = source.enumerate_children_finish(res);
+                    this._deleteFilesInEnumerator(enumerator, dir);
+                } catch {
+                    // Ignore errors if file doesn't exist
                 }
-            );
+            });
         } catch (e) {
             console.error(`[AIO-Clipboard] Failed to access cache directory for clearing: ${e.message}`);
         }
@@ -119,7 +108,7 @@ class GifCacheManager {
                     child.delete_async(GLib.PRIORITY_DEFAULT, null, (sourceDelete, resDelete) => {
                         try {
                             sourceDelete.delete_finish(resDelete);
-                        } catch(e) {
+                        } catch {
                             // Ignore if a file couldn't be deleted (e.g., already gone)
                         }
                     });
@@ -127,8 +116,7 @@ class GifCacheManager {
 
                 // Look for the next batch of files
                 this._deleteFilesInEnumerator(enumerator, parentDir);
-
-            } catch(e) {
+            } catch (e) {
                 console.error(`[AIO-Clipboard] Error while deleting cache files: ${e.message}`);
             }
         });

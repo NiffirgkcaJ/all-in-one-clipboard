@@ -24,968 +24,1047 @@ const NUM_FOCUSABLE_ITEMS_PER_ROW = 4;
  * with search, selection, pinning, and deletion capabilities.
  */
 export const ClipboardTabContent = GObject.registerClass(
-class ClipboardTabContent extends St.Bin {
-    /**
-     * Initialize the clipboard tab content
-     *
-     * @param {Object} extension - The extension instance
-     * @param {Gio.Settings} settings - Extension settings
-     * @param {ClipboardManager} manager - Clipboard manager instance
-     */
-    constructor(extension, settings, manager) {
-        super({
-            y_align: Clutter.ActorAlign.FILL,
-            x_align: Clutter.ActorAlign.FILL,
-            x_expand: true,
-            y_expand: true,
-        });
-
-        this._extension = extension;
-        this._settings = settings;
-        this._manager = manager;
-
-        // Read the image size setting
-        this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-
-        // Listen for changes to the setting
-        this._settingSignalId = this._settings.connect('changed::clipboard-image-preview-size', () => {
-            this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-            this._redraw();
-        });
-
-        // State management
-        this._selectedIds = new Set();
-        this._currentSearchText = "";
-        this._allItems = [];
-        this._isPrivateMode = false;
-        this._gridAllButtons = [];
-        this._currentlyFocusedRow = null;
-        this._checkboxIconsMap = new Map();
-
-        // Main container
-        this._mainBox = new St.BoxLayout({
-            vertical: true,
-            style_class: 'aio-clipboard-container',
-            x_expand: true
-        });
-        this.set_child(this._mainBox);
-
-        // Build UI components
-        this._buildSearchComponent();
-        this._buildSelectionBar();
-        this._buildScrollableList();
-        this._setupKeyboardNavigation();
-        this._connectManagerSignals();
-    }
-
-    // ===========================
-    // UI Construction Methods
-    // ===========================
-
-    /**
-     * Build and add the search component to the UI
-     */
-    _buildSearchComponent() {
-        this._searchComponent = new SearchComponent(searchText => {
-            this._currentSearchText = searchText.toLowerCase().trim();
-            this._redraw();
-        });
-
-        const searchWidget = this._searchComponent.getWidget();
-        searchWidget.x_expand = true;
-        this._mainBox.add_child(searchWidget);
-    }
-
-    /**
-     * Build the selection action bar with control buttons
-     */
-    _buildSelectionBar() {
-        const selectionBar = new St.BoxLayout({
-            style_class: 'clipboard-selection-bar',
-            vertical: false,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-        selectionBar.spacing = 8;
-
-        // Select All button
-        this._selectAllIcon = new St.Icon({
-            style_class: 'popup-menu-icon',
-            icon_name: ClipboardIcons.CHECKBOX_UNCHECKED,
-            icon_size: 16
-        });
-
-        this._selectAllButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            can_focus: true,
-            child: this._selectAllIcon
-        });
-        this._selectAllButton.tooltip_text = _("Select All");
-        this._selectAllButton.connect('clicked', () => this._onSelectAllClicked());
-        selectionBar.add_child(this._selectAllButton);
-
-        // Action buttons container (right-aligned)
-        const actionButtonsBox = new St.BoxLayout({
-            x_expand: true,
-            x_align: Clutter.ActorAlign.END
-        });
-        actionButtonsBox.spacing = 4;
-        selectionBar.add_child(actionButtonsBox);
-
-        // Private Mode button
-        this._privateModeButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            can_focus: true,
-            child: new St.Icon({
-                icon_name: ClipboardIcons.ACTION_PRIVATE,
-                icon_size: 16
-            })
-        });
-        this._privateModeButton.tooltip_text = _("Start Private Mode (Pause Recording)");
-        this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
-        actionButtonsBox.add_child(this._privateModeButton);
-
-        // Pin Selected button (for pinning/unpinning)
-        this._pinSelectedButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            can_focus: false,
-            reactive: false,
-            child: new St.Icon({
-                icon_name: ClipboardIcons.ACTION_PIN,
-                icon_size: 16
-            })
-        });
-        this._pinSelectedButton.tooltip_text = _("Pin/Unpin Selected");
-        this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
-
-        // Delete Selected button
-        this._deleteSelectedButton = new St.Button({
-            style_class: 'button clipboard-icon-button',
-            can_focus: false,
-            reactive: false,
-            child: new St.Icon({
-                icon_name: ClipboardIcons.DELETE,
-                icon_size: 16
-            })
-        });
-        this._deleteSelectedButton.tooltip_text = _("Delete Selected");
-        this._deleteSelectedButton.connect('clicked', () => this._onDeleteSelected());
-
-        actionButtonsBox.add_child(this._pinSelectedButton);
-        actionButtonsBox.add_child(this._deleteSelectedButton);
-        this._mainBox.add_child(selectionBar);
-    }
-
-    /**
-     * Build the scrollable list container for clipboard items
-     */
-    _buildScrollableList() {
-        this._scrollView = new St.ScrollView({
-            style_class: 'menu-scrollview',
-            overlay_scrollbars: true,
-            x_expand: true,
-            y_expand: true
-        });
-        this._mainBox.add_child(this._scrollView);
-
-        this._itemBox = new St.BoxLayout({
-            vertical: true,
-            style_class: 'clipboard-item-box'
-        });
-        this._scrollView.set_child(this._itemBox);
-    }
-
-    /**
-     * Setup keyboard navigation handlers for the UI
-     */
-    _setupKeyboardNavigation() {
-        // Header navigation
-        const selectionBar = this._mainBox.get_child_at_index(1);
-        selectionBar.set_reactive(true);
-        selectionBar.connect('key-press-event', this._onHeaderKeyPress.bind(this));
-
-        // Grid navigation
-        this._itemBox.set_reactive(true);
-        this._itemBox.connect('key-press-event', this._onGridKeyPress.bind(this));
-    }
-
-    /**
-     * Connect to clipboard manager signals
-     */
-    _connectManagerSignals() {
-        this._historyChangedId = this._manager.connect('history-changed', () => {
-            this._redraw();
-        });
-
-        this._pinnedChangedId = this._manager.connect('pinned-list-changed', () => {
-            this._redraw();
-        });
-    }
-
-    // ===========================
-    // Keyboard Navigation Methods
-    // ===========================
-
-    /**
-     * Get all focusable header buttons
-     *
-     * @returns {St.Button[]} Array of focusable header buttons
-     */
-    _getHeaderButtons() {
-        return [
-            this._selectAllButton,
-            this._privateModeButton,
-            this._pinSelectedButton,
-            this._deleteSelectedButton
-        ].filter(button => button.can_focus && button.visible);
-    }
-
-    /**
-     * Handle keyboard navigation in the header bar
-     *
-     * @param {St.Widget} actor - The actor that received the event
-     * @param {Clutter.Event} event - The key press event
-     * @returns {boolean} EVENT_STOP if handled, EVENT_PROPAGATE otherwise
-     */
-    _onHeaderKeyPress(actor, event) {
-        const symbol = event.get_key_symbol();
-        if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right && symbol !== Clutter.KEY_Down) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        const headerButtons = this._getHeaderButtons();
-        if (headerButtons.length === 0) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        const currentFocus = global.stage.get_key_focus();
-        const currentIndex = headerButtons.indexOf(currentFocus);
-
-        if (currentIndex === -1) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        if (symbol === Clutter.KEY_Left && currentIndex > 0) {
-            headerButtons[currentIndex - 1].grab_key_focus();
-            return Clutter.EVENT_STOP;
-        }
-        if (symbol === Clutter.KEY_Right && currentIndex < headerButtons.length - 1) {
-            headerButtons[currentIndex + 1].grab_key_focus();
-            return Clutter.EVENT_STOP;
-        }
-        if (symbol === Clutter.KEY_Down && this._gridAllButtons.length > 1) {
-            this._gridAllButtons[1].grab_key_focus();
-            return Clutter.EVENT_STOP;
-        }
-
-        return Clutter.EVENT_PROPAGATE;
-    }
-
-    /**
-     * Handle keyboard navigation in the grid of clipboard items
-     *
-     * @param {St.Widget} actor - The actor that received the event
-     * @param {Clutter.Event} event - The key press event
-     * @returns {boolean} EVENT_STOP if handled, EVENT_PROPAGATE otherwise
-     */
-    _onGridKeyPress(actor, event) {
-        const symbol = event.get_key_symbol();
-        const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
-        if (!isArrowKey || this._gridAllButtons.length === 0) return Clutter.EVENT_PROPAGATE;
-
-        const currentFocus = global.stage.get_key_focus();
-        const currentIndex = this._gridAllButtons.indexOf(currentFocus);
-
-        if (currentIndex === -1) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        let targetIndex = -1;
-
-        switch (symbol) {
-            case Clutter.KEY_Left:
-                if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW > 0) {
-                    targetIndex = currentIndex - 1;
-                }
-                break;
-
-            case Clutter.KEY_Right:
-                if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW < NUM_FOCUSABLE_ITEMS_PER_ROW - 1) {
-                    targetIndex = currentIndex + 1;
-                }
-                break;
-
-            case Clutter.KEY_Up:
-                if (currentIndex >= NUM_FOCUSABLE_ITEMS_PER_ROW) {
-                    targetIndex = currentIndex - NUM_FOCUSABLE_ITEMS_PER_ROW;
-                } else {
-                    // Navigate to header if at top row
-                    const headerButtons = this._getHeaderButtons();
-                    if (headerButtons.length > 0) {
-                        headerButtons[0].grab_key_focus();
-                    }
-                }
-                break;
-
-            case Clutter.KEY_Down:
-                if (currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW < this._gridAllButtons.length) {
-                    targetIndex = currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW;
-                }
-                break;
-        }
-
-        if (targetIndex !== -1) {
-            this._gridAllButtons[targetIndex].grab_key_focus();
-            return Clutter.EVENT_STOP;
-        }
-        return Clutter.EVENT_PROPAGATE;
-    }
-
-    // ===========================
-    // Action Handler Methods
-    // ===========================
-
-    /**
-     * Toggle private mode (pause/resume clipboard recording)
-     */
-    _onPrivateModeToggled() {
-        this._isPrivateMode = !this._isPrivateMode;
-        this._manager.setPaused(this._isPrivateMode);
-        this._privateModeButton.child.icon_name = this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC : ClipboardIcons.ACTION_PRIVATE;
-        this._privateModeButton.tooltip_text = this._isPrivateMode ? _("Stop Private Mode (Resume Recording)") : _("Start Private Mode (Pause Recording)");
-    }
-
-    /**
-     * Handle Select All / Deselect All button click
-     */
-    _onSelectAllClicked() {
-        const shouldSelectAll = this._selectedIds.size < this._allItems.length;
-
-        if (shouldSelectAll) {
-            // Select all items
-            this._allItems.forEach(item => {
-                this._selectedIds.add(item.id);
-                const icon = this._checkboxIconsMap.get(item.id);
-                if (icon) {
-                    icon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
-                }
-            });
-        } else {
-            // Deselect all items
-            this._selectedIds.clear();
-            this._allItems.forEach(item => {
-                const icon = this._checkboxIconsMap.get(item.id);
-                if (icon) {
-                    icon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
-                }
-            });
-        }
-
-        this._updateSelectionState();
-    }
-
-    /**
-     * Pin all selected items
-     */
-    async _onPinSelected() {
-        const selectedIds = [...this._selectedIds];
-        if (selectedIds.length === 0) {
-            return;
-        }
-
-        const pinnedItems = this._manager.getPinnedItems();
-        const historyItems = this._manager.getHistoryItems();
-
-        const unpinnedSelected = selectedIds.filter(id =>
-            historyItems.some(item => item.id === id)
-        );
-        const pinnedSelected = selectedIds.filter(id =>
-            pinnedItems.some(item => item.id === id)
-        );
-
-        // Pin unpinned selected items, unpin pinned selected items
-        if (unpinnedSelected.length > 0) {
-            await Promise.all(unpinnedSelected.map(id => this._manager.pinItem(id)));
-        } else if (pinnedSelected.length > 0) {
-            await Promise.all(pinnedSelected.map(id => this._manager.unpinItem(id)));
-        }
-    }
-
-    /**
-     * Delete all selected items
-     */
-    async _onDeleteSelected() {
-        const idsToDelete = [...this._selectedIds];
-
-        if (idsToDelete.length === 0) {
-            return;
-        }
-
-        await Promise.all(idsToDelete.map(id => this._manager.deleteItem(id)));
-        // Deletion is a final action, so we explicitly clear the selection here.
-        this._selectedIds.clear();
-    }
-
-    /**
-     * Copy a clipboard item to the system clipboard
-     *
-     * @param {Object} itemData - The clipboard item data
-     */
-    async _onItemCopyToClipboard(itemData) {
-        this._manager.setDebounce();
-        let copySuccess = false;
-
-        switch (itemData.type) {
-            case ClipboardType.FILE:
-                try {
-                    const clipboard = St.Clipboard.get_default();
-                    const uriList = itemData.file_uri + "\r\n";
-                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
-                    copySuccess = true;
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
-                }
-                break;
-            case ClipboardType.URL:
-            case ClipboardType.COLOR:
-                const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
-                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
-                copySuccess = true;
-                break;
-            case ClipboardType.TEXT:
-            case ClipboardType.CODE:
-                let content = itemData.text; 
-                if (!content) {
-                    content = await this._manager.getContent(itemData.id);
-                }
-
-                if (!content && itemData.preview) {
-                    content = itemData.type === ClipboardType.CODE 
-                        ? itemData.preview.replace(/<[^>]*>/g, '') 
-                        : itemData.preview;
-                }
-
-                if (content) {
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, content);
-                    copySuccess = true;
-                }
-                break;
-            case ClipboardType.IMAGE:
-                try {
-                    const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-                    const file = Gio.File.new_for_path(imagePath);
-                    let mimetype = 'image/png';
-                    const lower = itemData.image_filename.toLowerCase();
-                    if (lower.endsWith('jpg') || lower.endsWith('jpeg')) mimetype = 'image/jpeg';
-                    else if (lower.endsWith('gif')) mimetype = 'image/gif';
-                    else if (lower.endsWith('webp')) mimetype = 'image/webp';
-
-                    const bytes = await new Promise((resolve, reject) => {
-                        file.load_contents_async(null, (source, res) => {
-                            try {
-                                const [ok, contents] = source.load_contents_finish(res);
-                                resolve(ok ? contents : null);
-                            } catch (e) { reject(e); }
-                        });
-                    });
-                    if (bytes) {
-                        St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
-                        copySuccess = true;
-                    }
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to copy image: ${e.message}`);
-                }
-                break;
-        }
-
-        if (copySuccess) {
-            // Check if auto-paste is enabled
-            if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-clipboard')) {
-                this._manager.setDebounce(); // Extra debounce for clipboard
-                await getAutoPaster().trigger();
-            }
-
-            // Promote copied item to top
-            this._manager.promoteItemToTop(itemData.id);
-        }
-
-        this._extension._indicator.menu.close();
-    }
-
-    /**
-     * Handles the click event for a row's pin button when the item is unpinned.
-     * @param {object} itemData - The data for the specific item to pin.
-     * @private
-     */
-    _onPinItemClicked(itemData) {
-        this._manager.pinItem(itemData.id);
-    }
-
-    /**
-     * Handles the click event for a row's star button when the item is pinned.
-     * @param {object} itemData - The data for the specific item to unpin.
-     * @private
-     */
-    _onUnpinItemClicked(itemData) {
-        this._manager.unpinItem(itemData.id);
-    }
-
-    // ===========================
-    // UI State Methods
-    // ===========================
-
-    /**
-     * Update the UI state based on current selection
-     */
-    _updateSelectionState() {
-        const numSelected = this._selectedIds.size;
-        const totalItems = this._allItems.length;
-        const canSelect = totalItems > 0;
-        const hasSelection = numSelected > 0;
-
-        // Move focus away from disabled buttons
-        const currentFocus = global.stage.get_key_focus();
-        if (!hasSelection &&
-            (currentFocus === this._pinSelectedButton ||
-             currentFocus === this._deleteSelectedButton)) {
-            this._selectAllButton.grab_key_focus();
-        }
-
-        // Enable/disable action buttons based on selection
-        this._pinSelectedButton.set_reactive(hasSelection);
-        this._pinSelectedButton.set_can_focus(hasSelection);
-        this._deleteSelectedButton.set_reactive(hasSelection);
-        this._deleteSelectedButton.set_can_focus(hasSelection);
-
-        // Update Select All button state
-        this._selectAllButton.set_reactive(canSelect);
-
-        if (!canSelect || numSelected === 0) {
-            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
-            this._selectAllButton.tooltip_text = _("Select All");
-        } else if (numSelected === totalItems) {
-            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
-            this._selectAllButton.tooltip_text = _("Deselect All");
-        } else {
-            this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_MIXED;
-            this._selectAllButton.tooltip_text = _("Select All");
-        }
-
-        // Update the pin button's appearance based on the selection context
-        this._updatePinButtonState();
-    }
-
-    /**
-     * Updates the pin button's icon and tooltip based on the current selection.
-     * - If any selected item is unpinned, the action is to "Pin".
-     * - If all selected items are already pinned, the action is to "Unpin".
-     */
-    _updatePinButtonState() {
-        // The icon for the action button should always be the generic 'pin' icon.
-        this._pinSelectedButton.child.icon_name = ClipboardIcons.ACTION_PIN;
-        if (this._selectedIds.size === 0) {
-            this._pinSelectedButton.tooltip_text = _("Pin/Unpin Selected");
-            return;
-        }
-
-        const selectedIds = [...this._selectedIds];
-        const historyItems = this._manager.getHistoryItems();
-        const hasUnpinnedSelection = selectedIds.some(id => historyItems.some(item => item.id === id));
-        this._pinSelectedButton.tooltip_text = hasUnpinnedSelection ? _("Pin Selected") : _("Unpin Selected");
-    }
-
-    /**
-     * Redraw the entire clipboard list
-     * Preserves focus on the same item if it still exists after redraw
-     */
-    _redraw() {
-        // Track which item and button type had focus before redraw
-        const currentFocus = global.stage.get_key_focus();
-        let focusedItemId = null;
-        let focusedButtonType = null; // 'checkbox', 'row', 'pin', 'delete'
-
-        if (this._gridAllButtons.includes(currentFocus)) {
-            const buttonIndex = this._gridAllButtons.indexOf(currentFocus);
-            const itemIndex = Math.floor(buttonIndex / NUM_FOCUSABLE_ITEMS_PER_ROW);
-            const buttonPosition = buttonIndex % NUM_FOCUSABLE_ITEMS_PER_ROW;
-
-            if (itemIndex < this._allItems.length) {
-                focusedItemId = this._allItems[itemIndex].id;
-                focusedButtonType = buttonPosition;
-            }
-        }
-
-        // Clear existing items
-        this._itemBox.destroy_all_children();
-        this._gridAllButtons = [];
-        this._currentlyFocusedRow = null;
-        this._checkboxIconsMap.clear();
-
-        // Get items from manager
-        let pinnedItems = this._manager.getPinnedItems();
-        let historyItems = this._manager.getHistoryItems();
-        const isSearching = this._currentSearchText.length > 0;
-
-        // Apply search filter if active
-        if (isSearching) {
-            const filterFn = item => {
-                const searchTarget = item.type === ClipboardType.TEXT || item.type === ClipboardType.FILE || item.type === ClipboardType.COLOR
-                    ? item.preview : (item.title || item.url);
-                return searchTarget && searchTarget.toLowerCase().includes(this._currentSearchText);
-            };
-            pinnedItems = pinnedItems.filter(filterFn);
-            historyItems = historyItems.filter(filterFn);
-        }
-
-        this._allItems = [...pinnedItems, ...historyItems];
-        this._updateSelectionState();
-
-        // Show empty state if no items
-        if (this._allItems.length === 0) {
-            this._itemBox.add_child(new St.Label({
-                text: isSearching ? _("No results found.") : _("Clipboard history is empty."),
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-                x_expand: true,
-                y_expand: true
-            }));
-            return;
-        }
-
-        // Add pinned items section
-        if (pinnedItems.length > 0) {
-            this._itemBox.add_child(new St.Label({
-                text: _("Pinned"),
-                style_class: 'clipboard-section-header'
-            }));
-
-            pinnedItems.forEach(item => {
-                this._itemBox.add_child(this._createItemWidget(item, true));
-            });
-        }
-
-        // Add separator between sections
-        if (pinnedItems.length > 0 && historyItems.length > 0) {
-            this._itemBox.add_child(new St.Widget({
-                style_class: 'clipboard-separator',
-                x_expand: true
-            }));
-        }
-
-        // Add history items section
-        if (historyItems.length > 0) {
-            this._itemBox.add_child(new St.Label({
-                text: _("History"),
-                style_class: 'clipboard-section-header'
-            }));
-
-            historyItems.forEach(item => {
-                this._itemBox.add_child(this._createItemWidget(item, false));
-            });
-        }
-
-        // Restore focus to the same item if it still exists
-        if (focusedItemId) {
-            const newItemIndex = this._allItems.findIndex(item => item.id === focusedItemId);
-
-            if (newItemIndex !== -1) {
-                const targetButtonIndex = (newItemIndex * NUM_FOCUSABLE_ITEMS_PER_ROW) + (focusedButtonType || 1);
-                if (targetButtonIndex < this._gridAllButtons.length) this._gridAllButtons[targetButtonIndex].grab_key_focus();
-            }
-        } else if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
-            this._gridAllButtons[1].grab_key_focus();
-        }
-    }
-
-    /**
-     * Maps an item's data to a standardized view configuration.
-     * This acts as the "Map" to normalize Files, Links, and Text.
-     *
-     * @param {Object} item - The raw item data
-     * @returns {Object} { layoutMode, icon, title, subtitle }
-     */
-    _getItemViewConfig(item) {
-        // Get default styling from map
-        const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
-        
-        const config = {
-            layoutMode: style.layout,
-            icon: style.icon,
-            text: '' // Initialize text to prevent undefined errors
-        };
-
-        // Hydrate specific fields based on type
-        switch (item.type) {
-            case ClipboardType.FILE:
-                config.title = item.preview || _("Unknown File");
-                config.subtitle = item.file_uri;
-                break;
-            case ClipboardType.URL:
-                config.title = item.title || item.url;
-                config.subtitle = item.url;
-                if (item.icon_filename) {
-                    const iconPath = GLib.build_filenamev([this._manager._linkPreviewsDir, item.icon_filename]);
-                    config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
-                }
-                break;
-            case ClipboardType.COLOR:
-                config.title = item.color_value;
-                config.subtitle = item.format_type;
-                config.cssColor = item.color_value;
-                break;
-            case ClipboardType.CODE:
-                config.text = item.preview || '';
-                config.rawLines = item.raw_lines || 0; // Read the integer
-                break;
-            case ClipboardType.TEXT:
-            default:
-                // If item.preview is missing, use item.text or empty string.
-                config.text = item.preview || item.text || '';
-                break;
-        }
-
-        return config;
-    }
-
-    /**
-     * Create a UI widget for a clipboard item.
-     *
-     * @param {Object} itemData - The clipboard item data.
-     * @param {boolean} isPinned - Whether the item is pinned.
-     * @returns {St.Button} The row button widget.
-     */
-    _createItemWidget(itemData, isPinned) {
-        // Main row button
-        const rowButton = new St.Button({
-            style_class: 'button clipboard-item-button',
-            can_focus: true
-        });
-        rowButton.connect('clicked', () => this._onItemCopyToClipboard(itemData));
-
-        const mainBox = new St.BoxLayout({
-            vertical: false,
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'clipboard-row-content'
-        });
-        rowButton.set_child(mainBox);
-
-        // Checkbox for selection
-        const isChecked = this._selectedIds.has(itemData.id);
-        const checkboxIcon = new St.Icon({
-            icon_name: isChecked ? ClipboardIcons.CHECKBOX_CHECKED : ClipboardIcons.CHECKBOX_UNCHECKED,
-            style_class: 'popup-menu-icon',
-            icon_size: 16
-        });
-        this._checkboxIconsMap.set(itemData.id, checkboxIcon);
-
-        const itemCheckbox = new St.Button({
-            style_class: 'button clipboard-item-checkbox',
-            child: checkboxIcon,
-            can_focus: true,
-            y_expand: false,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        itemCheckbox.connect('clicked', () => {
-            if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
-            if (this._selectedIds.has(itemData.id)) {
-                this._selectedIds.delete(itemData.id);
-                checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
-            } else {
-                this._selectedIds.add(itemData.id);
-                checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
-            }
-            this._updateSelectionState();
-        });
-
-        mainBox.add_child(itemCheckbox);
-
-        // Content widget based on item type
-        const config = this._getItemViewConfig(itemData);
-        let contentWidget;
-
-        if (config.layoutMode === 'image') { // Image Layout
-            const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-
-            // Use wrapper bin for proper sizing
-            const imageWrapper = new St.Bin({
+    class ClipboardTabContent extends St.Bin {
+        /**
+         * Initialize the clipboard tab content
+         *
+         * @param {Object} extension - The extension instance
+         * @param {Gio.Settings} settings - Extension settings
+         * @param {ClipboardManager} manager - Clipboard manager instance
+         */
+        constructor(extension, settings, manager) {
+            super({
+                y_align: Clutter.ActorAlign.FILL,
+                x_align: Clutter.ActorAlign.FILL,
                 x_expand: true,
                 y_expand: true,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER
             });
 
-            const imageActor = new St.Icon({
-                gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-                icon_size: this._imagePreviewSize
+            this._extension = extension;
+            this._settings = settings;
+            this._manager = manager;
+
+            // Read the image size setting
+            this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
+
+            // Listen for changes to the setting
+            this._settingSignalId = this._settings.connect('changed::clipboard-image-preview-size', () => {
+                this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
+                this._redraw();
             });
 
-            imageWrapper.set_style(`min-height: ${this._imagePreviewSize}px;`);
-            imageWrapper.set_child(imageActor);
+            // State management
+            this._selectedIds = new Set();
+            this._currentSearchText = '';
+            this._allItems = [];
+            this._isPrivateMode = false;
+            this._gridAllButtons = [];
+            this._currentlyFocusedRow = null;
+            this._checkboxIconsMap = new Map();
 
-            // Add image class to button and set dynamic height
-            const minHeight = Math.max(this._imagePreviewSize);
-            rowButton.set_style(`min-height: ${minHeight}px;`);
-            mainBox.y_expand = true;
-            mainBox.y_align = Clutter.ActorAlign.FILL;
+            // Main container
+            this._mainBox = new St.BoxLayout({
+                vertical: true,
+                style_class: 'aio-clipboard-container',
+                x_expand: true,
+            });
+            this.set_child(this._mainBox);
 
-            contentWidget = imageWrapper;
-        } else if (config.layoutMode === 'code') { // Code Layout
-            contentWidget = new St.BoxLayout({
+            // Build UI components
+            this._buildSearchComponent();
+            this._buildSelectionBar();
+            this._buildScrollableList();
+            this._setupKeyboardNavigation();
+            this._connectManagerSignals();
+        }
+
+        // ===========================
+        // UI Construction Methods
+        // ===========================
+
+        /**
+         * Build and add the search component to the UI
+         */
+        _buildSearchComponent() {
+            this._searchComponent = new SearchComponent((searchText) => {
+                this._currentSearchText = searchText.toLowerCase().trim();
+                this._redraw();
+            });
+
+            const searchWidget = this._searchComponent.getWidget();
+            searchWidget.x_expand = true;
+            this._mainBox.add_child(searchWidget);
+        }
+
+        /**
+         * Build the selection action bar with control buttons
+         */
+        _buildSelectionBar() {
+            const selectionBar = new St.BoxLayout({
+                style_class: 'clipboard-selection-bar',
                 vertical: false,
                 y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'clipboard-item-code-container'
+            });
+            selectionBar.spacing = 8;
+
+            // Select All button
+            this._selectAllIcon = new St.Icon({
+                style_class: 'popup-menu-icon',
+                icon_name: ClipboardIcons.CHECKBOX_UNCHECKED,
+                icon_size: 16,
             });
 
-            // Icon
-            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-            iconParams.icon_name = config.icon;
-            contentWidget.add_child(new St.Icon(iconParams));
-
-            // Code Body
-            const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
-            
-            // Generate Line Numbers String dynamically
-            const lineCount = config.rawLines || 0;
-            const lineNumbersString = Array.from({ length: lineCount }, (_, i) => (i + 1).toString()).join('\n');
-
-            const numLabel = new St.Label({
-                text: lineNumbersString,
-                style_class: 'clipboard-item-code-numbers',
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER
+            this._selectAllButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                can_focus: true,
+                child: this._selectAllIcon,
             });
-            codeBox.add_child(numLabel);
+            this._selectAllButton.tooltip_text = _('Select All');
+            this._selectAllButton.connect('clicked', () => this._onSelectAllClicked());
+            selectionBar.add_child(this._selectAllButton);
 
-            // Safety check for text
-            const safeText = config.text || '';
-            const codeLabel = new St.Label({
-                text: safeText,
-                style_class: 'clipboard-item-code-content',
+            // Action buttons container (right-aligned)
+            const actionButtonsBox = new St.BoxLayout({
                 x_expand: true,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER
+                x_align: Clutter.ActorAlign.END,
             });
-            codeLabel.get_clutter_text().set_use_markup(true);
-            codeLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            
-            codeBox.add_child(codeLabel);
-            contentWidget.add_child(codeBox);
-            
-            contentWidget.x_expand = true;
-        } else if (config.layoutMode === 'rich') { // Rich Layout
-            contentWidget = new St.BoxLayout({ vertical: false, y_align: Clutter.ActorAlign.CENTER, style_class: 'clipboard-item-rich-container' });
-            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-            if (config.gicon) iconParams.gicon = config.gicon;
-            else iconParams.icon_name = config.icon;
-            contentWidget.add_child(new St.Icon(iconParams));
+            actionButtonsBox.spacing = 4;
+            selectionBar.add_child(actionButtonsBox);
 
-            if (config.cssColor) {
-                const swatchContainer = new St.Bin({ style_class: 'clipboard-item-color-container', y_align: Clutter.ActorAlign.CENTER, x_align: Clutter.ActorAlign.CENTER });
-                const swatch = new St.Bin({ style_class: 'clipboard-item-color-swatch', style: `background-color: ${config.cssColor};` });
-                swatchContainer.set_child(swatch);
-                contentWidget.add_child(swatchContainer);
-            }
-
-            const textCol = new St.BoxLayout({ vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER });
-            const titleLabel = new St.Label({ text: config.title || '', style_class: 'clipboard-item-title', x_expand: true });
-            titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            textCol.add_child(titleLabel);
-            const subLabel = new St.Label({ text: config.subtitle || '', style_class: 'clipboard-item-subtitle', x_expand: true });
-            subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
-            textCol.add_child(subLabel);
-
-            contentWidget.add_child(textCol);
-            contentWidget.x_expand = true;
-
-        } else { // Text Layout
-            const safeText = config.text || '';
-            contentWidget = new St.Label({ text: safeText, style_class: 'clipboard-item-text-label', x_expand: true, y_align: Clutter.ActorAlign.CENTER });
-            contentWidget.get_clutter_text().set_line_wrap(false);
-            contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-        }
-
-        mainBox.add_child(contentWidget);
-
-        const rowStarButton = new St.Button({ style_class: 'button clipboard-icon-button', child: new St.Icon({ icon_size: 16 }), can_focus: true, y_align: Clutter.ActorAlign.CENTER });
-        if (isPinned) {
-            rowStarButton.child.icon_name = ClipboardIcons.PIN_FILLED;
-            rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
-        } else {
-            rowStarButton.child.icon_name = ClipboardIcons.PIN_OUTLINE;
-            rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
-        }
-
-        const deleteButton = new St.Button({ style_class: 'button clipboard-icon-button', child: new St.Icon({ icon_name: ClipboardIcons.DELETE, icon_size: 16 }), can_focus: true, y_align: Clutter.ActorAlign.CENTER });
-        deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));
-
-        const buttonsBox = new St.BoxLayout({ x_align: Clutter.ActorAlign.END, style_class: 'clipboard-action-buttons' });
-        buttonsBox.add_child(rowStarButton);
-        buttonsBox.add_child(deleteButton);
-        mainBox.add_child(buttonsBox);
-
-        // Register focus
-        const rowItems = [itemCheckbox, rowButton, rowStarButton, deleteButton];
-        this._gridAllButtons.push(...rowItems);
-
-        // Setup focus styling for all buttons in the row
-        for (const item of rowItems) {
-            item.connect('key-focus-in', () => {
-                if (this._currentlyFocusedRow) this._currentlyFocusedRow.remove_style_class_name('focused');
-                rowButton.add_style_class_name('focused');
-                this._currentlyFocusedRow = rowButton;
-                ensureActorVisibleInScrollView(this._scrollView, rowButton);
+            // Private Mode button
+            this._privateModeButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                can_focus: true,
+                child: new St.Icon({
+                    icon_name: ClipboardIcons.ACTION_PRIVATE,
+                    icon_size: 16,
+                }),
             });
-            item.connect('key-focus-out', () => rowButton.remove_style_class_name('focused'));
-        }
-        return rowButton;
-    }
+            this._privateModeButton.tooltip_text = _('Start Private Mode (Pause Recording)');
+            this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
+            actionButtonsBox.add_child(this._privateModeButton);
 
-    // ===========================
-    // Lifecycle Methods
-    // ===========================
+            // Pin Selected button (for pinning/unpinning)
+            this._pinSelectedButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                can_focus: false,
+                reactive: false,
+                child: new St.Icon({
+                    icon_name: ClipboardIcons.ACTION_PIN,
+                    icon_size: 16,
+                }),
+            });
+            this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
+            this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
-    /**
-     * Called when the tab is selected/activated
-     */
-    onTabSelected() {
-        this._redraw();
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-            this._searchComponent?.grabFocus();
-            return GLib.SOURCE_REMOVE;
-        });
-    }
+            // Delete Selected button
+            this._deleteSelectedButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                can_focus: false,
+                reactive: false,
+                child: new St.Icon({
+                    icon_name: ClipboardIcons.DELETE,
+                    icon_size: 16,
+                }),
+            });
+            this._deleteSelectedButton.tooltip_text = _('Delete Selected');
+            this._deleteSelectedButton.connect('clicked', () => this._onDeleteSelected());
 
-    /**
-     * Called by the parent when the main menu is closed.
-     * Resets the tab's state, such as clearing the search field.
-     */
-    onMenuClosed() {
-        // Clear search text and redraw the list without the filter
-        this._searchComponent?.clearSearch();
-    }
-
-    /**
-     * Cleanup when the widget is destroyed
-     */
-    destroy() {
-        // Tell it to stop listening for our image size setting changes
-        if (this._settings && this._settingSignalId > 0) {
-            this._settings.disconnect(this._settingSignalId);
+            actionButtonsBox.add_child(this._pinSelectedButton);
+            actionButtonsBox.add_child(this._deleteSelectedButton);
+            this._mainBox.add_child(selectionBar);
         }
 
-        if (this._manager) {
-            if (this._historyChangedId) {
-                this._manager.disconnect(this._historyChangedId);
+        /**
+         * Build the scrollable list container for clipboard items
+         */
+        _buildScrollableList() {
+            this._scrollView = new St.ScrollView({
+                style_class: 'menu-scrollview',
+                overlay_scrollbars: true,
+                x_expand: true,
+                y_expand: true,
+            });
+            this._mainBox.add_child(this._scrollView);
+
+            this._itemBox = new St.BoxLayout({
+                vertical: true,
+                style_class: 'clipboard-item-box',
+            });
+            this._scrollView.set_child(this._itemBox);
+        }
+
+        /**
+         * Setup keyboard navigation handlers for the UI
+         */
+        _setupKeyboardNavigation() {
+            // Header navigation
+            const selectionBar = this._mainBox.get_child_at_index(1);
+            selectionBar.set_reactive(true);
+            selectionBar.connect('key-press-event', this._onHeaderKeyPress.bind(this));
+
+            // Grid navigation
+            this._itemBox.set_reactive(true);
+            this._itemBox.connect('key-press-event', this._onGridKeyPress.bind(this));
+        }
+
+        /**
+         * Connect to clipboard manager signals
+         */
+        _connectManagerSignals() {
+            this._historyChangedId = this._manager.connect('history-changed', () => {
+                this._redraw();
+            });
+
+            this._pinnedChangedId = this._manager.connect('pinned-list-changed', () => {
+                this._redraw();
+            });
+        }
+
+        // ===========================
+        // Keyboard Navigation Methods
+        // ===========================
+
+        /**
+         * Get all focusable header buttons
+         *
+         * @returns {St.Button[]} Array of focusable header buttons
+         */
+        _getHeaderButtons() {
+            return [this._selectAllButton, this._privateModeButton, this._pinSelectedButton, this._deleteSelectedButton].filter((button) => button.can_focus && button.visible);
+        }
+
+        /**
+         * Handle keyboard navigation in the header bar
+         *
+         * @param {St.Widget} actor - The actor that received the event
+         * @param {Clutter.Event} event - The key press event
+         * @returns {boolean} EVENT_STOP if handled, EVENT_PROPAGATE otherwise
+         */
+        _onHeaderKeyPress(actor, event) {
+            const symbol = event.get_key_symbol();
+            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right && symbol !== Clutter.KEY_Down) {
+                return Clutter.EVENT_PROPAGATE;
             }
-            if (this._pinnedChangedId) {
-                this._manager.disconnect(this._pinnedChangedId);
+
+            const headerButtons = this._getHeaderButtons();
+            if (headerButtons.length === 0) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            const currentFocus = global.stage.get_key_focus();
+            const currentIndex = headerButtons.indexOf(currentFocus);
+
+            if (currentIndex === -1) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (symbol === Clutter.KEY_Left && currentIndex > 0) {
+                headerButtons[currentIndex - 1].grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            if (symbol === Clutter.KEY_Right && currentIndex < headerButtons.length - 1) {
+                headerButtons[currentIndex + 1].grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            if (symbol === Clutter.KEY_Down && this._gridAllButtons.length > 1) {
+                this._gridAllButtons[1].grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Handle keyboard navigation in the grid of clipboard items
+         *
+         * @param {St.Widget} actor - The actor that received the event
+         * @param {Clutter.Event} event - The key press event
+         * @returns {boolean} EVENT_STOP if handled, EVENT_PROPAGATE otherwise
+         */
+        _onGridKeyPress(actor, event) {
+            const symbol = event.get_key_symbol();
+            const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
+            if (!isArrowKey || this._gridAllButtons.length === 0) return Clutter.EVENT_PROPAGATE;
+
+            const currentFocus = global.stage.get_key_focus();
+            const currentIndex = this._gridAllButtons.indexOf(currentFocus);
+
+            if (currentIndex === -1) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            let targetIndex = -1;
+
+            switch (symbol) {
+                case Clutter.KEY_Left:
+                    if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW > 0) {
+                        targetIndex = currentIndex - 1;
+                    }
+                    break;
+
+                case Clutter.KEY_Right:
+                    if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW < NUM_FOCUSABLE_ITEMS_PER_ROW - 1) {
+                        targetIndex = currentIndex + 1;
+                    }
+                    break;
+
+                case Clutter.KEY_Up:
+                    if (currentIndex >= NUM_FOCUSABLE_ITEMS_PER_ROW) {
+                        targetIndex = currentIndex - NUM_FOCUSABLE_ITEMS_PER_ROW;
+                    } else {
+                        // Navigate to header if at top row
+                        const headerButtons = this._getHeaderButtons();
+                        if (headerButtons.length > 0) {
+                            headerButtons[0].grab_key_focus();
+                        }
+                    }
+                    break;
+
+                case Clutter.KEY_Down:
+                    if (currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW < this._gridAllButtons.length) {
+                        targetIndex = currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW;
+                    }
+                    break;
+            }
+
+            if (targetIndex !== -1) {
+                this._gridAllButtons[targetIndex].grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        // ===========================
+        // Action Handler Methods
+        // ===========================
+
+        /**
+         * Toggle private mode (pause/resume clipboard recording)
+         */
+        _onPrivateModeToggled() {
+            this._isPrivateMode = !this._isPrivateMode;
+            this._manager.setPaused(this._isPrivateMode);
+            this._privateModeButton.child.icon_name = this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC : ClipboardIcons.ACTION_PRIVATE;
+            this._privateModeButton.tooltip_text = this._isPrivateMode ? _('Stop Private Mode (Resume Recording)') : _('Start Private Mode (Pause Recording)');
+        }
+
+        /**
+         * Handle Select All / Deselect All button click
+         */
+        _onSelectAllClicked() {
+            const shouldSelectAll = this._selectedIds.size < this._allItems.length;
+
+            if (shouldSelectAll) {
+                // Select all items
+                this._allItems.forEach((item) => {
+                    this._selectedIds.add(item.id);
+                    const icon = this._checkboxIconsMap.get(item.id);
+                    if (icon) {
+                        icon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                    }
+                });
+            } else {
+                // Deselect all items
+                this._selectedIds.clear();
+                this._allItems.forEach((item) => {
+                    const icon = this._checkboxIconsMap.get(item.id);
+                    if (icon) {
+                        icon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                    }
+                });
+            }
+
+            this._updateSelectionState();
+        }
+
+        /**
+         * Pin all selected items
+         */
+        async _onPinSelected() {
+            const selectedIds = [...this._selectedIds];
+            if (selectedIds.length === 0) {
+                return;
+            }
+
+            const pinnedItems = this._manager.getPinnedItems();
+            const historyItems = this._manager.getHistoryItems();
+
+            const unpinnedSelected = selectedIds.filter((id) => historyItems.some((item) => item.id === id));
+            const pinnedSelected = selectedIds.filter((id) => pinnedItems.some((item) => item.id === id));
+
+            // Pin unpinned selected items, unpin pinned selected items
+            if (unpinnedSelected.length > 0) {
+                await Promise.all(unpinnedSelected.map((id) => this._manager.pinItem(id)));
+            } else if (pinnedSelected.length > 0) {
+                await Promise.all(pinnedSelected.map((id) => this._manager.unpinItem(id)));
             }
         }
 
-        this._searchComponent?.destroy();
-        this._manager = null;
-        super.destroy();
-    }
-});
+        /**
+         * Delete all selected items
+         */
+        async _onDeleteSelected() {
+            const idsToDelete = [...this._selectedIds];
+
+            if (idsToDelete.length === 0) {
+                return;
+            }
+
+            await Promise.all(idsToDelete.map((id) => this._manager.deleteItem(id)));
+            // Deletion is a final action, so we explicitly clear the selection here.
+            this._selectedIds.clear();
+        }
+
+        /**
+         * Copy a clipboard item to the system clipboard
+         *
+         * @param {Object} itemData - The clipboard item data
+         */
+        async _onItemCopyToClipboard(itemData) {
+            let copySuccess = false;
+
+            switch (itemData.type) {
+                case ClipboardType.FILE:
+                    copySuccess = await this._copyFileItem(itemData);
+                    break;
+                case ClipboardType.URL:
+                case ClipboardType.COLOR: {
+                    const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
+                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                    copySuccess = true;
+                    break;
+                }
+                case ClipboardType.TEXT:
+                case ClipboardType.CODE:
+                    copySuccess = await this._copyTextItem(itemData);
+                    break;
+                case ClipboardType.IMAGE:
+                    copySuccess = await this._copyImageItem(itemData);
+                    break;
+            }
+
+            if (copySuccess) {
+                // Check if auto-paste is enabled
+                if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-clipboard')) {
+                    await getAutoPaster().trigger();
+                }
+
+                // Promote copied item to top
+                this._manager.promoteItemToTop(itemData.id);
+            }
+
+            this._extension._indicator.menu.close();
+        }
+
+        /**
+         * Copy a file item to the clipboard
+         * @param {Object} itemData - The file item data
+         * @returns {Promise<boolean>} True if successful
+         * @private
+         */
+        async _copyFileItem(itemData) {
+            try {
+                const clipboard = St.Clipboard.get_default();
+                const uriList = itemData.file_uri + '\r\n';
+                const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                return true;
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
+                return false;
+            }
+        }
+
+        /**
+         * Copy a text or code item to the clipboard
+         * @param {Object} itemData - The text/code item data
+         * @returns {Promise<boolean>} True if successful
+         * @private
+         */
+        async _copyTextItem(itemData) {
+            let content = itemData.text;
+            if (!content) {
+                content = await this._manager.getContent(itemData.id);
+            }
+
+            // For CODE type, never use preview as it contains HTML markup
+            // For TEXT type, use preview as fallback only if text is not available
+            if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
+                content = itemData.preview;
+            } else if (!content && itemData.type === ClipboardType.CODE) {
+                // CODE type missing content, refusing to use preview
+            }
+
+            if (content) {
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, content);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Copy an image item to the clipboard
+         * @param {Object} itemData - The image item data
+         * @returns {Promise<boolean>} True if successful
+         * @private
+         */
+        async _copyImageItem(itemData) {
+            try {
+                const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
+                const file = Gio.File.new_for_path(imagePath);
+
+                // Determine MIME type from filename
+                let mimetype = 'image/png';
+                const lower = itemData.image_filename.toLowerCase();
+                if (lower.endsWith('jpg') || lower.endsWith('jpeg')) mimetype = 'image/jpeg';
+                else if (lower.endsWith('gif')) mimetype = 'image/gif';
+                else if (lower.endsWith('webp')) mimetype = 'image/webp';
+
+                const bytes = await new Promise((resolve, reject) => {
+                    file.load_contents_async(null, (source, res) => {
+                        try {
+                            const [ok, contents] = source.load_contents_finish(res);
+                            resolve(ok ? contents : null);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                });
+
+                if (bytes) {
+                    St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
+                    return true;
+                }
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Failed to copy image: ${e.message}`);
+            }
+            return false;
+        }
+        /**
+         * Handles the click event for a row's pin button when the item is unpinned.
+         * @param {object} itemData - The data for the specific item to pin.
+         * @private
+         */
+        _onPinItemClicked(itemData) {
+            this._manager.pinItem(itemData.id);
+        }
+
+        /**
+         * Handles the click event for a row's star button when the item is pinned.
+         * @param {object} itemData - The data for the specific item to unpin.
+         * @private
+         */
+        _onUnpinItemClicked(itemData) {
+            this._manager.unpinItem(itemData.id);
+        }
+
+        // ===========================
+        // UI State Methods
+        // ===========================
+
+        /**
+         * Update the UI state based on current selection
+         */
+        _updateSelectionState() {
+            const numSelected = this._selectedIds.size;
+            const totalItems = this._allItems.length;
+            const canSelect = totalItems > 0;
+            const hasSelection = numSelected > 0;
+
+            // Move focus away from disabled buttons
+            const currentFocus = global.stage.get_key_focus();
+            if (!hasSelection && (currentFocus === this._pinSelectedButton || currentFocus === this._deleteSelectedButton)) {
+                this._selectAllButton.grab_key_focus();
+            }
+
+            // Enable/disable action buttons based on selection
+            this._pinSelectedButton.set_reactive(hasSelection);
+            this._pinSelectedButton.set_can_focus(hasSelection);
+            this._deleteSelectedButton.set_reactive(hasSelection);
+            this._deleteSelectedButton.set_can_focus(hasSelection);
+
+            // Update Select All button state
+            this._selectAllButton.set_reactive(canSelect);
+
+            if (!canSelect || numSelected === 0) {
+                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                this._selectAllButton.tooltip_text = _('Select All');
+            } else if (numSelected === totalItems) {
+                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                this._selectAllButton.tooltip_text = _('Deselect All');
+            } else {
+                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_MIXED;
+                this._selectAllButton.tooltip_text = _('Select All');
+            }
+
+            // Update the pin button's appearance based on the selection context
+            this._updatePinButtonState();
+        }
+
+        /**
+         * Updates the pin button's icon and tooltip based on the current selection.
+         * - If any selected item is unpinned, the action is to "Pin".
+         * - If all selected items are already pinned, the action is to "Unpin".
+         */
+        _updatePinButtonState() {
+            // The icon for the action button should always be the generic 'pin' icon.
+            this._pinSelectedButton.child.icon_name = ClipboardIcons.ACTION_PIN;
+            if (this._selectedIds.size === 0) {
+                this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
+                return;
+            }
+
+            const selectedIds = [...this._selectedIds];
+            const historyItems = this._manager.getHistoryItems();
+            const hasUnpinnedSelection = selectedIds.some((id) => historyItems.some((item) => item.id === id));
+            this._pinSelectedButton.tooltip_text = hasUnpinnedSelection ? _('Pin Selected') : _('Unpin Selected');
+        }
+
+        /**
+         * Redraw the entire clipboard list
+         * Preserves focus on the same item if it still exists after redraw
+         */
+        _redraw() {
+            // Track which item and button type had focus before redraw
+            const currentFocus = global.stage.get_key_focus();
+            let focusedItemId = null;
+            let focusedButtonType = null; // 'checkbox', 'row', 'pin', 'delete'
+
+            if (this._gridAllButtons.includes(currentFocus)) {
+                const buttonIndex = this._gridAllButtons.indexOf(currentFocus);
+                const itemIndex = Math.floor(buttonIndex / NUM_FOCUSABLE_ITEMS_PER_ROW);
+                const buttonPosition = buttonIndex % NUM_FOCUSABLE_ITEMS_PER_ROW;
+
+                if (itemIndex < this._allItems.length) {
+                    focusedItemId = this._allItems[itemIndex].id;
+                    focusedButtonType = buttonPosition;
+                }
+            }
+
+            // Clear existing items
+            this._itemBox.destroy_all_children();
+            this._gridAllButtons = [];
+            this._currentlyFocusedRow = null;
+            this._checkboxIconsMap.clear();
+
+            // Get items from manager
+            let pinnedItems = this._manager.getPinnedItems();
+            let historyItems = this._manager.getHistoryItems();
+            const isSearching = this._currentSearchText.length > 0;
+
+            // Apply search filter if active
+            if (isSearching) {
+                const filterFn = (item) => {
+                    const searchTarget = item.type === ClipboardType.TEXT || item.type === ClipboardType.FILE || item.type === ClipboardType.COLOR ? item.preview : item.title || item.url;
+                    return searchTarget && searchTarget.toLowerCase().includes(this._currentSearchText);
+                };
+                pinnedItems = pinnedItems.filter(filterFn);
+                historyItems = historyItems.filter(filterFn);
+            }
+
+            this._allItems = [...pinnedItems, ...historyItems];
+            this._updateSelectionState();
+
+            // Show empty state if no items
+            if (this._allItems.length === 0) {
+                this._itemBox.add_child(
+                    new St.Label({
+                        text: isSearching ? _('No results found.') : _('Clipboard history is empty.'),
+                        x_align: Clutter.ActorAlign.CENTER,
+                        y_align: Clutter.ActorAlign.CENTER,
+                        x_expand: true,
+                        y_expand: true,
+                    }),
+                );
+                return;
+            }
+
+            // Add pinned items section
+            if (pinnedItems.length > 0) {
+                this._itemBox.add_child(
+                    new St.Label({
+                        text: _('Pinned'),
+                        style_class: 'clipboard-section-header',
+                    }),
+                );
+
+                pinnedItems.forEach((item) => {
+                    this._itemBox.add_child(this._createItemWidget(item, true));
+                });
+            }
+
+            // Add separator between sections
+            if (pinnedItems.length > 0 && historyItems.length > 0) {
+                this._itemBox.add_child(
+                    new St.Widget({
+                        style_class: 'clipboard-separator',
+                        x_expand: true,
+                    }),
+                );
+            }
+
+            // Add history items section
+            if (historyItems.length > 0) {
+                this._itemBox.add_child(
+                    new St.Label({
+                        text: _('History'),
+                        style_class: 'clipboard-section-header',
+                    }),
+                );
+
+                historyItems.forEach((item) => {
+                    this._itemBox.add_child(this._createItemWidget(item, false));
+                });
+            }
+
+            // Restore focus to the same item if it still exists
+            if (focusedItemId) {
+                const newItemIndex = this._allItems.findIndex((item) => item.id === focusedItemId);
+
+                if (newItemIndex !== -1) {
+                    const targetButtonIndex = newItemIndex * NUM_FOCUSABLE_ITEMS_PER_ROW + (focusedButtonType || 1);
+                    if (targetButtonIndex < this._gridAllButtons.length) this._gridAllButtons[targetButtonIndex].grab_key_focus();
+                }
+            } else if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
+                this._gridAllButtons[1].grab_key_focus();
+            }
+        }
+
+        /**
+         * Maps an item's data to a standardized view configuration.
+         * This acts as the "Map" to normalize Files, Links, and Text.
+         *
+         * @param {Object} item - The raw item data
+         * @returns {Object} { layoutMode, icon, title, subtitle }
+         */
+        _getItemViewConfig(item) {
+            // Get default styling from map
+            const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
+
+            const config = {
+                layoutMode: style.layout,
+                icon: style.icon,
+                text: '', // Initialize text to prevent undefined errors
+            };
+
+            // Hydrate specific fields based on type
+            switch (item.type) {
+                case ClipboardType.FILE:
+                    config.title = item.preview || _('Unknown File');
+                    config.subtitle = item.file_uri;
+                    break;
+                case ClipboardType.URL:
+                    config.title = item.title || item.url;
+                    config.subtitle = item.url;
+                    if (item.icon_filename) {
+                        const iconPath = GLib.build_filenamev([this._manager._linkPreviewsDir, item.icon_filename]);
+                        config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+                    }
+                    break;
+                case ClipboardType.COLOR:
+                    config.title = item.color_value;
+                    config.subtitle = item.format_type;
+                    config.cssColor = item.color_value;
+                    break;
+                case ClipboardType.CODE:
+                    config.text = item.preview || '';
+                    config.rawLines = item.raw_lines || 0; // Read the integer
+                    break;
+                case ClipboardType.TEXT:
+                default:
+                    // If item.preview is missing, use item.text or empty string.
+                    config.text = item.preview || item.text || '';
+                    break;
+            }
+
+            return config;
+        }
+
+        /**
+         * Create a UI widget for a clipboard item.
+         *
+         * @param {Object} itemData - The clipboard item data.
+         * @param {boolean} isPinned - Whether the item is pinned.
+         * @returns {St.Button} The row button widget.
+         */
+        _createItemWidget(itemData, isPinned) {
+            // Main row button
+            const rowButton = new St.Button({
+                style_class: 'button clipboard-item-button',
+                can_focus: true,
+            });
+            rowButton.connect('clicked', () => this._onItemCopyToClipboard(itemData));
+
+            const mainBox = new St.BoxLayout({
+                vertical: false,
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: 'clipboard-row-content',
+            });
+            rowButton.set_child(mainBox);
+
+            // Checkbox for selection
+            const isChecked = this._selectedIds.has(itemData.id);
+            const checkboxIcon = new St.Icon({
+                icon_name: isChecked ? ClipboardIcons.CHECKBOX_CHECKED : ClipboardIcons.CHECKBOX_UNCHECKED,
+                style_class: 'popup-menu-icon',
+                icon_size: 16,
+            });
+            this._checkboxIconsMap.set(itemData.id, checkboxIcon);
+
+            const itemCheckbox = new St.Button({
+                style_class: 'button clipboard-item-checkbox',
+                child: checkboxIcon,
+                can_focus: true,
+                y_expand: false,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            itemCheckbox.connect('clicked', () => {
+                if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
+                if (this._selectedIds.has(itemData.id)) {
+                    this._selectedIds.delete(itemData.id);
+                    checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                } else {
+                    this._selectedIds.add(itemData.id);
+                    checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                }
+                this._updateSelectionState();
+            });
+
+            mainBox.add_child(itemCheckbox);
+
+            // Content widget based on item type
+            const config = this._getItemViewConfig(itemData);
+            let contentWidget;
+
+            if (config.layoutMode === 'image') {
+                // Image Layout
+                const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
+
+                // Use wrapper bin for proper sizing
+                const imageWrapper = new St.Bin({
+                    x_expand: true,
+                    y_expand: true,
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+
+                const imageActor = new St.Icon({
+                    gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
+                    icon_size: this._imagePreviewSize,
+                });
+
+                imageWrapper.set_style(`min-height: ${this._imagePreviewSize}px;`);
+                imageWrapper.set_child(imageActor);
+
+                // Add image class to button and set dynamic height
+                const minHeight = Math.max(this._imagePreviewSize);
+                rowButton.set_style(`min-height: ${minHeight}px;`);
+                mainBox.y_expand = true;
+                mainBox.y_align = Clutter.ActorAlign.FILL;
+
+                contentWidget = imageWrapper;
+            } else if (config.layoutMode === 'code') {
+                // Code Layout
+                contentWidget = new St.BoxLayout({
+                    vertical: false,
+                    y_align: Clutter.ActorAlign.CENTER,
+                    style_class: 'clipboard-item-code-container',
+                });
+
+                // Icon
+                const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
+                iconParams.icon_name = config.icon;
+                contentWidget.add_child(new St.Icon(iconParams));
+
+                // Code Body
+                const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
+
+                // Generate Line Numbers String dynamically
+                const lineCount = config.rawLines || 0;
+                const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
+
+                const numLabel = new St.Label({
+                    text: lineNumbersString,
+                    style_class: 'clipboard-item-code-numbers',
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                codeBox.add_child(numLabel);
+
+                // Safety check for text
+                const safeText = config.text || '';
+                const codeLabel = new St.Label({
+                    text: safeText,
+                    style_class: 'clipboard-item-code-content',
+                    x_expand: true,
+                    x_align: Clutter.ActorAlign.START,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                codeLabel.get_clutter_text().set_use_markup(true);
+                codeLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+
+                codeBox.add_child(codeLabel);
+                contentWidget.add_child(codeBox);
+
+                contentWidget.x_expand = true;
+            } else if (config.layoutMode === 'rich') {
+                // Rich Layout
+                contentWidget = new St.BoxLayout({
+                    vertical: false,
+                    y_align: Clutter.ActorAlign.CENTER,
+                    style_class: 'clipboard-item-rich-container',
+                });
+                const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
+                if (config.gicon) iconParams.gicon = config.gicon;
+                else iconParams.icon_name = config.icon;
+                contentWidget.add_child(new St.Icon(iconParams));
+
+                if (config.cssColor) {
+                    const swatchContainer = new St.Bin({
+                        style_class: 'clipboard-item-color-container',
+                        y_align: Clutter.ActorAlign.CENTER,
+                        x_align: Clutter.ActorAlign.CENTER,
+                    });
+                    const swatch = new St.Bin({
+                        style_class: 'clipboard-item-color-swatch',
+                        style: `background-color: ${config.cssColor};`,
+                    });
+                    swatchContainer.set_child(swatch);
+                    contentWidget.add_child(swatchContainer);
+                }
+
+                const textCol = new St.BoxLayout({
+                    vertical: true,
+                    x_expand: true,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                const titleLabel = new St.Label({
+                    text: config.title || '',
+                    style_class: 'clipboard-item-title',
+                    x_expand: true,
+                });
+                titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+                textCol.add_child(titleLabel);
+                const subLabel = new St.Label({
+                    text: config.subtitle || '',
+                    style_class: 'clipboard-item-subtitle',
+                    x_expand: true,
+                });
+                subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
+                textCol.add_child(subLabel);
+
+                contentWidget.add_child(textCol);
+                contentWidget.x_expand = true;
+            } else {
+                // Text Layout
+                const safeText = config.text || '';
+                contentWidget = new St.Label({
+                    text: safeText,
+                    style_class: 'clipboard-item-text-label',
+                    x_expand: true,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                contentWidget.get_clutter_text().set_line_wrap(false);
+                contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+            }
+
+            mainBox.add_child(contentWidget);
+
+            const rowStarButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                child: new St.Icon({ icon_size: 16 }),
+                can_focus: true,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            if (isPinned) {
+                rowStarButton.child.icon_name = ClipboardIcons.PIN_FILLED;
+                rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
+            } else {
+                rowStarButton.child.icon_name = ClipboardIcons.PIN_OUTLINE;
+                rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
+            }
+
+            const deleteButton = new St.Button({
+                style_class: 'button clipboard-icon-button',
+                child: new St.Icon({ icon_name: ClipboardIcons.DELETE, icon_size: 16 }),
+                can_focus: true,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));
+
+            const buttonsBox = new St.BoxLayout({
+                x_align: Clutter.ActorAlign.END,
+                style_class: 'clipboard-action-buttons',
+            });
+            buttonsBox.add_child(rowStarButton);
+            buttonsBox.add_child(deleteButton);
+            mainBox.add_child(buttonsBox);
+
+            // Register focus
+            const rowItems = [itemCheckbox, rowButton, rowStarButton, deleteButton];
+            this._gridAllButtons.push(...rowItems);
+
+            // Setup focus styling for all buttons in the row
+            for (const item of rowItems) {
+                item.connect('key-focus-in', () => {
+                    if (this._currentlyFocusedRow) this._currentlyFocusedRow.remove_style_class_name('focused');
+                    rowButton.add_style_class_name('focused');
+                    this._currentlyFocusedRow = rowButton;
+                    ensureActorVisibleInScrollView(this._scrollView, rowButton);
+                });
+                item.connect('key-focus-out', () => rowButton.remove_style_class_name('focused'));
+            }
+            return rowButton;
+        }
+
+        // ===========================
+        // Lifecycle Methods
+        // ===========================
+
+        /**
+         * Called when the tab is selected/activated
+         */
+        onTabSelected() {
+            this._redraw();
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._searchComponent?.grabFocus();
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        /**
+         * Called by the parent when the main menu is closed.
+         * Resets the tab's state, such as clearing the search field.
+         */
+        onMenuClosed() {
+            // Clear search text and redraw the list without the filter
+            this._searchComponent?.clearSearch();
+        }
+
+        /**
+         * Cleanup when the widget is destroyed
+         */
+        destroy() {
+            // Tell it to stop listening for our image size setting changes
+            if (this._settings && this._settingSignalId > 0) {
+                this._settings.disconnect(this._settingSignalId);
+            }
+
+            if (this._manager) {
+                if (this._historyChangedId) {
+                    this._manager.disconnect(this._historyChangedId);
+                }
+                if (this._pinnedChangedId) {
+                    this._manager.disconnect(this._pinnedChangedId);
+                }
+            }
+
+            this._searchComponent?.destroy();
+            this._manager = null;
+            super.destroy();
+        }
+    },
+);

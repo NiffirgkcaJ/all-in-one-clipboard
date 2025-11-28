@@ -19,9 +19,7 @@ class AutoPaster {
      */
     _getVirtualKeyboard() {
         if (!this._virtualKeyboard) {
-            this._virtualKeyboard = Clutter.get_default_backend()
-                .get_default_seat()
-                .create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+            this._virtualKeyboard = Clutter.get_default_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
         }
         return this._virtualKeyboard;
     }
@@ -41,7 +39,7 @@ class AutoPaster {
                 const timestamp = GLib.get_monotonic_time();
 
                 const KEY_LEFTSHIFT = 42; // Left Shift
-                const KEY_INSERT = 110;   // Insert
+                const KEY_INSERT = 110; // Insert
 
                 try {
                     keyboard.notify_key(timestamp, KEY_LEFTSHIFT, Clutter.KeyState.PRESSED);

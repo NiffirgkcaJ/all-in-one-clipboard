@@ -25,7 +25,7 @@ export class FileProcessor {
         }
 
         // Extract single URI from potential multi-line input
-        const lines = cleanText.split(/[\r\n]+/).filter(l => l.trim() !== '');
+        const lines = cleanText.split(/[\r\n]+/).filter((l) => l.trim() !== '');
         if (lines.length !== 1) return null;
 
         const uri = lines[0].startsWith('file://') ? lines[0] : `file://${lines[0]}`;
@@ -34,11 +34,7 @@ export class FileProcessor {
             const file = Gio.File.new_for_uri(uri);
 
             // Safely query metadata without reading file content
-            const info = file.query_info(
-                'standard::name,standard::content-type,standard::type,standard::size',
-                Gio.FileQueryInfoFlags.NONE,
-                null
-            );
+            const info = file.query_info('standard::name,standard::content-type,standard::type,standard::size', Gio.FileQueryInfoFlags.NONE, null);
 
             if (info.get_file_type() !== Gio.FileType.REGULAR) {
                 return null;
@@ -55,23 +51,20 @@ export class FileProcessor {
                         try {
                             const [ok, content] = source.load_contents_finish(res);
                             resolve(ok ? content : null);
-                        } catch (e) {
+                        } catch {
                             resolve(null);
                         }
                     });
                 });
 
                 if (bytes && bytes.length > 0) {
-                    const hash = GLib.compute_checksum_for_data(
-                        GLib.ChecksumType.SHA256,
-                        bytes
-                    );
+                    const hash = GLib.compute_checksum_for_data(GLib.ChecksumType.SHA256, bytes);
                     return {
                         type: ClipboardType.IMAGE,
                         data: bytes,
                         hash,
                         mimetype: mime,
-                        file_uri: uri
+                        file_uri: uri,
                     };
                 }
             }
@@ -82,10 +75,9 @@ export class FileProcessor {
                 type: ClipboardType.FILE,
                 file_uri: uri,
                 preview: filename, // Store filename as the preview text
-                hash: uriHash
+                hash: uriHash,
             };
-
-        } catch (e) {
+        } catch {
             // Permission errors, invalid URIs, etc.
             return null;
         }

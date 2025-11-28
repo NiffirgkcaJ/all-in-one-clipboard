@@ -37,11 +37,10 @@ export class SymbolsJsonParser {
         for (const categoryEntry of rawCategoryData) {
             // Validate the structure of each top-level category object.
             if (!categoryEntry || typeof categoryEntry.name !== 'string' || !Array.isArray(categoryEntry.symbols)) {
-                 continue;
+                continue;
             }
 
             const categoryName = dgettext(DATA_DOMAIN, categoryEntry.name.trim());
-            const categorySlug = categoryEntry.slug || '';
 
             // Loop through symbol objects instead of strings.
             for (const symbolObject of categoryEntry.symbols) {
@@ -65,7 +64,7 @@ export class SymbolsJsonParser {
                     codepoint,
                     codepoint.replace(/^u\+/i, ''), // Search without the "U+" prefix
                     categoryEntry.slug || '',
-                    symbolObject.category_code || ''
+                    symbolObject.category_code || '',
                 ].filter(Boolean); // Filter out any empty/null values
 
                 standardizedData.push({
@@ -73,7 +72,7 @@ export class SymbolsJsonParser {
                     name: symbolName,
                     category: categoryName,
                     codepoint: codepoint,
-                    keywords: allKeywords
+                    keywords: allKeywords,
                 });
             }
         }

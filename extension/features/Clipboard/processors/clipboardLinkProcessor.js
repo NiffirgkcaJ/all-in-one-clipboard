@@ -17,15 +17,13 @@ export class LinkProcessor {
         const cleanText = text.trim();
 
         if (URL_REGEX.test(cleanText)) {
-            const hash = GLib.compute_checksum_for_string(
-                GLib.ChecksumType.SHA256, cleanText, -1
-            );
+            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
 
             return {
                 type: ClipboardType.URL,
                 url: cleanText,
                 title: cleanText,
-                hash: hash
+                hash: hash,
             };
         }
         return null;
@@ -77,20 +75,19 @@ export class LinkProcessor {
                     const baseUri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
                     const resolvedUri = GLib.Uri.resolve_relative(baseUri.to_string(), iconUrl, GLib.UriFlags.NONE);
                     iconUrl = resolvedUri || iconUrl;
-                } catch (e) {
+                } catch {
                     // Fallback manual resolution if GLib fails
                     if (iconUrl.startsWith('//')) {
                         iconUrl = 'https:' + iconUrl;
                     } else if (iconUrl.startsWith('/')) {
-                        const match = url.match(/^(https?:\/\/[^\/]+)/);
+                        const match = url.match(/^(https?:\/\/[^/]+)/);
                         if (match) iconUrl = match[1] + iconUrl;
                     }
                 }
             }
 
             return { title, iconUrl };
-
-        } catch (e) {
+        } catch {
             return { title: null, iconUrl: null };
         }
     }
@@ -118,9 +115,7 @@ export class LinkProcessor {
             else if (iconUrl.endsWith('.jpg') || iconUrl.endsWith('.jpeg')) ext = 'jpg';
 
             const filename = `${fileBasename}.${ext}`;
-            const file = Gio.File.new_for_path(
-                GLib.build_filenamev([destinationDir, filename])
-            );
+            const file = Gio.File.new_for_path(GLib.build_filenamev([destinationDir, filename]));
 
             // Write to disk
             await new Promise((resolve, reject) => {
@@ -137,16 +132,17 @@ export class LinkProcessor {
             });
 
             return filename;
-        } catch (e) {
+        } catch {
             return null;
         }
     }
 
     static _decodeEntities(str) {
-        return str.replace(/&amp;/g, '&')
-                  .replace(/&lt;/g, '<')
-                  .replace(/&gt;/g, '>')
-                  .replace(/&#39;/g, "'")
-                  .replace(/&quot;/g, '"');
+        return str
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"');
     }
 }

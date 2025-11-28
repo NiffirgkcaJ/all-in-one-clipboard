@@ -3,9 +3,7 @@ const VS16 = '\uFE0F'; // Variation Selector-16 (for emoji presentation)
 const HANDSHAKE_CHAR = '\u{1F91D}'; // Handshake Emoji
 
 // Standard Unicode Skin Tone Modifiers
-const SKIN_TONE_MODIFIERS = [
-    "🏻", "🏼", "🏽", "🏾", "🏿",
-];
+const SKIN_TONE_MODIFIERS = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 
 // Map of precomposed multi-person emojis to their modern ZWJ sequence equivalents.
 // This allows applying dual, different skin tones to older emoji characters.
@@ -14,7 +12,7 @@ const PRECOMPOSED_TO_ZWJ_MAP = {
     '\u{1F46B}': '👩‍🤝‍👨', // Woman and Man Holding Hands
     '\u{1F46C}': '👨‍🤝‍👨', // Men Holding Hands
     '\u{1F48F}': '🧑‍❤️‍💋‍🧑', // Kiss: People
-    '\u{1F491}': '🧑‍❤️‍🧑',  // Couple with Heart: People
+    '\u{1F491}': '🧑‍❤️‍🧑', // Couple with Heart: People
 };
 
 /**
@@ -29,7 +27,7 @@ export class EmojiModifier {
      */
     static hasSkinTone(char) {
         if (!char) return false;
-        return SKIN_TONE_MODIFIERS.some(tone => char.includes(tone));
+        return SKIN_TONE_MODIFIERS.some((tone) => char.includes(tone));
     }
 
     /**
@@ -53,15 +51,14 @@ export class EmojiModifier {
         const validSecondaryTone = SKIN_TONE_MODIFIERS.includes(secondaryTone) ? secondaryTone : null;
 
         // On-the-fly conversion for applying dual, different tones to specific precomposed emojis.
-        if (useCustomTones && validPrimaryTone && validSecondaryTone &&
-            validPrimaryTone !== validSecondaryTone && PRECOMPOSED_TO_ZWJ_MAP[currentEmojiChar]) {
+        if (useCustomTones && validPrimaryTone && validSecondaryTone && validPrimaryTone !== validSecondaryTone && PRECOMPOSED_TO_ZWJ_MAP[currentEmojiChar]) {
             currentEmojiChar = PRECOMPOSED_TO_ZWJ_MAP[currentEmojiChar];
         }
 
         // If custom tones are disabled, strip any existing skin tones to return a neutral emoji.
         if (!useCustomTones) {
             const components = currentEmojiChar.split(ZWJ);
-            const neutralComponents = components.map(comp => {
+            const neutralComponents = components.map((comp) => {
                 let baseComp = comp.endsWith(VS16) ? comp.slice(0, -1) : comp;
                 let stripped = baseComp;
                 for (const mod of SKIN_TONE_MODIFIERS) {
@@ -85,10 +82,10 @@ export class EmojiModifier {
             let baseComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
             let toneStrippedBase = baseComponent;
             for (const mod of SKIN_TONE_MODIFIERS) {
-                 if (toneStrippedBase.endsWith(mod)) {
-                     toneStrippedBase = toneStrippedBase.slice(0, -mod.length);
-                     break;
-                 }
+                if (toneStrippedBase.endsWith(mod)) {
+                    toneStrippedBase = toneStrippedBase.slice(0, -mod.length);
+                    break;
+                }
             }
 
             if (skinToneableBaseChars.has(toneStrippedBase) && validPrimaryTone) {
@@ -103,10 +100,10 @@ export class EmojiModifier {
             let baseOfComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
             let toneStrippedBase = baseOfComponent;
             for (const mod of SKIN_TONE_MODIFIERS) {
-                 if (toneStrippedBase.endsWith(mod)) {
-                     toneStrippedBase = toneStrippedBase.slice(0, -mod.length);
-                     break;
-                 }
+                if (toneStrippedBase.endsWith(mod)) {
+                    toneStrippedBase = toneStrippedBase.slice(0, -mod.length);
+                    break;
+                }
             }
 
             // The handshake character itself is not skinnable.

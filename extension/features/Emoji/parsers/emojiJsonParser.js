@@ -35,7 +35,7 @@ export class EmojiJsonParser {
         for (const category of rawCategoryData) {
             // Validate the structure of each category object.
             if (!category || typeof category.name !== 'string' || !Array.isArray(category.emojis)) {
-                 continue; // Skip invalid category entries silently.
+                continue; // Skip invalid category entries silently.
             }
 
             const categoryName = dgettext(DATA_DOMAIN, category.name.trim());
@@ -45,21 +45,20 @@ export class EmojiJsonParser {
                 if (rawEmojiEntry && typeof rawEmojiEntry.emoji === 'string' && typeof rawEmojiEntry.name === 'string') {
                     // Prepare codepoints for keyword inclusion
                     const codepoints = rawEmojiEntry.codepoints || [];
-                    const strippedCodepoints = codepoints.map(c => c.replace(/^u\+/i, ''));
+                    const strippedCodepoints = codepoints.map((c) => c.replace(/^u\+/i, ''));
 
                     standardizedData.push({
                         char: rawEmojiEntry.emoji,
                         name: dgettext(DATA_DOMAIN, rawEmojiEntry.name),
                         category: categoryName,
                         skinToneSupport: rawEmojiEntry.skin_tone_support || false,
-                        keywords: [ // Add all codepoint variations to keywords
+                        keywords: [
+                            // Add all codepoint variations to keywords
                             ...codepoints,
                             ...strippedCodepoints,
-                            ...(Array.isArray(rawEmojiEntry.keywords)
-                                ? rawEmojiEntry.keywords.map(k => dgettext(DATA_DOMAIN, k))
-                                : [])
+                            ...(Array.isArray(rawEmojiEntry.keywords) ? rawEmojiEntry.keywords.map((k) => dgettext(DATA_DOMAIN, k)) : []),
                         ],
-                        codepoints: codepoints
+                        codepoints: codepoints,
                     });
                 }
             }

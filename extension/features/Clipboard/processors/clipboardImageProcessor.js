@@ -5,13 +5,7 @@ import St from 'gi://St';
 import { ClipboardType } from '../constants/clipboardConstants.js';
 
 // Supported image MIME types
-const IMAGE_MIMETYPES = [
-    'image/png',
-    'image/jpeg',
-    'image/jpg',
-    'image/gif',
-    'image/webp'
-];
+const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 
 export class ImageProcessor {
     /**
@@ -20,27 +14,26 @@ export class ImageProcessor {
      */
     static async extract() {
         for (const mimetype of IMAGE_MIMETYPES) {
-            const result = await new Promise(resolve => {
+            // eslint-disable-next-line no-await-in-loop
+            const result = await new Promise((resolve) => {
                 St.Clipboard.get_default().get_content(
                     St.ClipboardType.CLIPBOARD,
                     mimetype,
-                    (_, bytes) => {
+
+                    (_clipboard, bytes) => {
                         if (bytes && bytes.get_size() > 0) {
                             const data = bytes.get_data();
-                            const hash = GLib.compute_checksum_for_data(
-                                GLib.ChecksumType.SHA256,
-                                data
-                            );
-                            resolve({ 
-                                type: ClipboardType.IMAGE, 
-                                data, 
-                                hash, 
-                                mimetype 
+                            const hash = GLib.compute_checksum_for_data(GLib.ChecksumType.SHA256, data);
+                            resolve({
+                                type: ClipboardType.IMAGE,
+                                data,
+                                hash,
+                                mimetype,
                             });
                         } else {
                             resolve(null);
                         }
-                    }
+                    },
                 );
             });
 
@@ -65,18 +58,10 @@ export class ImageProcessor {
         const filename = `${Date.now()}_${id.substring(0, 8)}.${extension}`;
 
         try {
-            const file = Gio.File.new_for_path(
-                GLib.build_filenamev([imagesDir, filename])
-            );
+            const file = Gio.File.new_for_path(GLib.build_filenamev([imagesDir, filename]));
 
             const bytesToSave = GLib.Bytes.new(data);
-            file.replace_contents(
-                bytesToSave.get_data(),
-                null,
-                false,
-                Gio.FileCreateFlags.REPLACE_DESTINATION,
-                null
-            );
+            file.replace_contents(bytesToSave.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
         } catch (e) {
             console.error(`[AIO-Clipboard] Failed to save image file: ${e.message}`);
             return null;
@@ -88,7 +73,7 @@ export class ImageProcessor {
             type: ClipboardType.IMAGE, // Use Enum
             timestamp: Math.floor(Date.now() / 1000),
             image_filename: filename,
-            hash
+            hash,
         };
 
         if (file_uri) {
