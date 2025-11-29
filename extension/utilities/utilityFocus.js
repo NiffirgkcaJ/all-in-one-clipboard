@@ -76,7 +76,7 @@ export const FocusUtils = {
         const symbol = event.get_key_symbol();
 
         if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
-            return this.handleRowNavigation(event, items, currentIndex, itemsPerRow, onBoundary);
+            return this.handleLinearNavigation(event, items, currentIndex, { wrap: false, onBoundary });
         }
 
         if (symbol === Clutter.KEY_Up || symbol === Clutter.KEY_Down) {

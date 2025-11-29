@@ -13,6 +13,7 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { createThemedIcon } from './utilities/utilityThemedIcon.js';
 import { eventMatchesShortcut } from './utilities/utilityShortcutMatcher.js';
+import { FocusUtils } from './utilities/utilityFocus.js';
 import { positionMenu } from './utilities/utilityMenuPositioner.js';
 import { getAutoPaster, destroyAutoPaster } from './utilities/utilityAutoPaste.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
@@ -633,15 +634,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            if (currentIndex === 0 && symbol === Clutter.KEY_Left) {
-                return Clutter.EVENT_STOP;
-            }
-
-            if (currentIndex === buttons.length - 1 && symbol === Clutter.KEY_Right) {
-                return Clutter.EVENT_STOP;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
+            return FocusUtils.handleLinearNavigation(event, buttons, currentIndex);
         }
 
         /**

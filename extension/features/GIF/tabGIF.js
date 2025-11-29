@@ -10,6 +10,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { createThemedIcon } from '../../utilities/utilityThemedIcon.js';
 import { Debouncer } from '../../utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../utilities/utilityShortcutMatcher.js';
+import { FocusUtils } from '../../utilities/utilityFocus.js';
 import { getGifCacheManager } from './logic/gifCacheManager.js';
 import { GifManager } from './logic/gifManager.js';
 import { MasonryLayout } from '../../utilities/utilityMasonryLayout.js';
@@ -655,22 +656,14 @@ export const GIFTabContent = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            switch (symbol) {
-                case Clutter.KEY_Left:
-                    if (currentIndex > 0) {
-                        this._headerFocusables[currentIndex - 1].grab_key_focus();
-                    }
-                    return Clutter.EVENT_STOP;
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                // Use FocusUtils for linear navigation with trapped boundaries
+                return FocusUtils.handleLinearNavigation(event, this._headerFocusables, currentIndex);
+            }
 
-                case Clutter.KEY_Right:
-                    if (currentIndex < this._headerFocusables.length - 1) {
-                        this._headerFocusables[currentIndex + 1].grab_key_focus();
-                    }
-                    return Clutter.EVENT_STOP;
-
-                case Clutter.KEY_Down:
-                    this._focusNextElementDown();
-                    return Clutter.EVENT_STOP;
+            if (symbol === Clutter.KEY_Down) {
+                this._focusNextElementDown();
+                return Clutter.EVENT_STOP;
             }
 
             return Clutter.EVENT_PROPAGATE;

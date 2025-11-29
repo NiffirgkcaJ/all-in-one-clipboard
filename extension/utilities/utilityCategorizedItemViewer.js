@@ -9,6 +9,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { createThemedIcon } from './utilityThemedIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
+import { FocusUtils } from './utilityFocus.js';
 import { RecentItemsManager } from './utilityRecents.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
@@ -297,6 +298,26 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
+         * Get all focusable header elements (back button + category tabs)
+         * @returns {Array<St.Button>} Array of focusable actors
+         * @private
+         */
+        _getHeaderFocusables() {
+            const focusables = [];
+
+            // Add back button if visible and focusable
+            if (this._backButton?.visible && this._backButton?.can_focus) {
+                focusables.push(this._backButton);
+            }
+
+            // Add all category tab buttons
+            const categoryButtons = this._categoryTabBar.get_children();
+            focusables.push(...categoryButtons.filter((btn) => btn.can_focus));
+
+            return focusables;
+        }
+
+        /**
          * Handles Left/Right arrow key presses for navigating between the back button and category tabs.
          * @param {Clutter.Actor} actor - The actor that received the event.
          * @param {Clutter.Event} event - The key press event.
@@ -305,34 +326,25 @@ export const CategorizedItemViewer = GObject.registerClass(
          */
         _onFocusRingKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
-            const children = this._categoryTabBar.get_children();
-            if (children.length === 0) return Clutter.EVENT_PROPAGATE;
+
+            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            const focusables = this._getHeaderFocusables();
+            if (focusables.length === 0) {
+                return Clutter.EVENT_PROPAGATE;
+            }
 
             const currentFocus = global.stage.get_key_focus();
-            const firstTab = children[0];
-            const lastTab = children[children.length - 1];
-            const isBackButtonVisible = this._backButton?.visible;
+            const currentIndex = focusables.indexOf(currentFocus);
 
-            if (symbol === Clutter.KEY_Left) {
-                if (isBackButtonVisible && currentFocus === this._backButton) {
-                    return Clutter.EVENT_STOP; // Trap focus at the start
-                }
-                if (currentFocus === firstTab) {
-                    if (isBackButtonVisible) {
-                        this._backButton.grab_key_focus();
-                    }
-                    return Clutter.EVENT_STOP;
-                }
-            } else if (symbol === Clutter.KEY_Right) {
-                if (isBackButtonVisible && currentFocus === this._backButton) {
-                    firstTab.grab_key_focus();
-                    return Clutter.EVENT_STOP;
-                }
-                if (currentFocus === lastTab) {
-                    return Clutter.EVENT_STOP; // Trap focus at the end
-                }
+            if (currentIndex === -1) {
+                return Clutter.EVENT_PROPAGATE;
             }
-            return Clutter.EVENT_PROPAGATE;
+
+            // Use FocusUtils for linear navigation with trapped boundaries
+            return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
         }
 
         /**
@@ -343,9 +355,6 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _onGridKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-            const itemsPerRow = this._config.itemsPerRow;
-
             if (!this._gridAllButtons || this._gridAllButtons.length === 0) {
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -357,41 +366,18 @@ export const CategorizedItemViewer = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            let targetIndex = -1;
-
-            switch (symbol) {
-                case Clutter.KEY_Left:
-                    if (currentIndex > 0) {
-                        targetIndex = currentIndex - 1;
-                    }
-                    break;
-                case Clutter.KEY_Right:
-                    if (currentIndex < this._gridAllButtons.length - 1) {
-                        targetIndex = currentIndex + 1;
-                    }
-                    break;
-                case Clutter.KEY_Up:
-                    if (currentIndex >= itemsPerRow) {
-                        targetIndex = currentIndex - itemsPerRow;
-                    } else {
-                        // In the top row, so focus moves up to the search bar
+            // Use FocusUtils for grid navigation with boundary handling
+            return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._config.itemsPerRow, {
+                onBoundary: (side) => {
+                    if (side === 'up') {
+                        // Focus search bar when pressing Up from top row
                         this._searchComponent?.grabFocus();
                         return Clutter.EVENT_STOP;
                     }
-                    break;
-                case Clutter.KEY_Down:
-                    if (currentIndex + itemsPerRow < this._gridAllButtons.length) {
-                        targetIndex = currentIndex + itemsPerRow;
-                    }
-                    break;
-            }
-
-            if (targetIndex !== -1) {
-                this._gridAllButtons[targetIndex].grab_key_focus();
-                return Clutter.EVENT_STOP;
-            }
-
-            return Clutter.EVENT_STOP;
+                    // Trap focus at other boundaries
+                    return undefined;
+                },
+            });
         }
 
         /**
