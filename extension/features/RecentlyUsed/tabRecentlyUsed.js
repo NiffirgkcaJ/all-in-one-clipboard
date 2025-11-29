@@ -13,6 +13,7 @@ import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { RecentItemsManager } from '../../utilities/utilityRecents.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { FocusUtils } from '../../utilities/utilityFocus.js';
 
 // ============================================================================
 // Constants
@@ -83,6 +84,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._focusGrid = [];
             this._renderSession = null;
 
+            // Outer scroll lock mechanism for custom scroll containers
+            this._outerScrollLocked = false;
+            this._lockedScrollValue = 0;
+            this._scrollLockHandler = null;
+            this._previousFocus = null;
+            this._lockTimeoutId = null;
+
             this._buildUI();
 
             // Store the promise so the creator can wait for initialization to complete.
@@ -117,6 +125,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 overlay_scrollbars: true,
                 visible: false, // Start hidden, show only if there's content
             });
+
+            this._scrollView.connect('scroll-event', () => {
+                this._unlockOuterScroll();
+                return Clutter.EVENT_PROPAGATE;
+            });
+
             wrapper.add_child(this._scrollView);
 
             this._mainContainer = new St.BoxLayout({
@@ -153,7 +167,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._settingsBtn.connect('clicked', () => {
                 const returnValue = this._extension.openPreferences();
 
-                // Handle promise rejection if user closes the preferences window
                 if (returnValue && typeof returnValue.catch === 'function') {
                     returnValue.catch(() => {
                         // Ignore errors from user closing the window
@@ -213,10 +226,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this.emit('navigate-to-main-tab', tabToNavigateTo);
             });
 
-            // Ensure "Show All" button scrolls into view when focused
             showAllBtn.connect('key-focus-in', () => {
+                this._previousFocus = showAllBtn;
+
                 GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    ensureActorVisibleInScrollView(this._scrollView, showAllBtn);
+                    ensureActorVisibleInScrollView(this._scrollView, section);
                     return GLib.SOURCE_REMOVE;
                 });
             });
@@ -317,16 +331,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._renderGridSection('symbols');
             this._renderListSection('clipboard');
 
-            // Centralized visibility logic
             const sectionOrder = ['pinned', 'emoji', 'gif', 'kaomoji', 'symbols', 'clipboard'];
             const visibleSections = sectionOrder.map((id) => this._sections[id]).filter((s) => s && s.section.visible);
 
             if (visibleSections.length === 0) {
-                // No content, so show the empty view and hide the scroll view
                 this._scrollView.visible = false;
                 this._emptyView.visible = true;
             } else {
-                // There is content, so show the scroll view and hide the empty view
                 this._scrollView.visible = true;
                 this._emptyView.visible = false;
 
@@ -336,7 +347,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 }
             }
 
-            // Settings button is always the last focusable element
             this._focusGrid.push([this._settingsBtn]);
         }
 
@@ -357,32 +367,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._focusGrid.push([sectionData.showAllBtn]);
 
             const container = new St.BoxLayout({ vertical: true, x_expand: true });
+            const useNestedScroll = items.length > MAX_PINNED_DISPLAY_COUNT;
             let pinnedScrollView = null;
 
-            items.forEach((item) => {
-                const widget = this._createFullWidthClipboardItem(item, true);
-                container.add_child(widget);
-
-                // Ensure item scrolls into view when focused
-                widget.connect('key-focus-in', () => {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        // Defensive check: Only run if the widget is part of the main UI tree.
-                        if (widget.get_stage()) {
-                            if (pinnedScrollView) {
-                                ensureActorVisibleInScrollView(pinnedScrollView, widget);
-                            } else {
-                                ensureActorVisibleInScrollView(this._scrollView, widget);
-                            }
-                        }
-                        return GLib.SOURCE_REMOVE;
-                    });
-                });
-
-                this._focusGrid.push([widget]);
-            });
+            const pinnedWidgets = new Set();
 
             // Add nested scroll view if too many pinned items
-            if (items.length > MAX_PINNED_DISPLAY_COUNT) {
+            if (useNestedScroll) {
                 pinnedScrollView = new St.ScrollView({
                     hscrollbar_policy: St.PolicyType.NEVER,
                     vscrollbar_policy: St.PolicyType.AUTOMATIC,
@@ -390,9 +381,85 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     x_expand: true,
                 });
                 pinnedScrollView.style = `height: ${MAX_PINNED_DISPLAY_COUNT * PINNED_ITEM_HEIGHT}px;`;
+
                 pinnedScrollView.set_child(container);
                 sectionData.bodyContainer.set_child(pinnedScrollView);
-            } else {
+
+                sectionData.showAllBtn.connect('key-focus-in', () => {
+                    this._unlockOuterScroll();
+
+                    pinnedWidgets.add(sectionData.showAllBtn);
+                    this._previousFocus = sectionData.showAllBtn;
+
+                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        if (sectionData.section.get_stage()) {
+                            ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
+                        }
+                        return GLib.SOURCE_REMOVE;
+                    });
+                });
+            }
+
+            items.forEach((item) => {
+                const widget = this._createFullWidthClipboardItem(item, true);
+                container.add_child(widget);
+
+                pinnedWidgets.add(widget);
+
+                // Set up scroll adjustment based on whether we're using nested scroll
+                if (useNestedScroll) {
+                    widget.connect('key-focus-in', () => {
+                        const isEnteringFromOutside = !pinnedWidgets.has(this._previousFocus);
+
+                        if (isEnteringFromOutside) {
+                            this._unlockOuterScroll();
+
+                            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                                if (widget.get_stage()) {
+                                    ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
+                                    ensureActorVisibleInScrollView(pinnedScrollView, widget);
+
+                                    // Wait for scroll animation before locking
+                                    this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+                                        this._lockTimeoutId = null;
+                                        this._lockOuterScroll();
+                                        return GLib.SOURCE_REMOVE;
+                                    });
+                                }
+                                return GLib.SOURCE_REMOVE;
+                            });
+                        } else {
+                            this._lockOuterScroll();
+
+                            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                                if (widget.get_stage()) {
+                                    ensureActorVisibleInScrollView(pinnedScrollView, widget);
+                                }
+                                return GLib.SOURCE_REMOVE;
+                            });
+                        }
+
+                        this._previousFocus = widget;
+                    });
+                } else {
+                    widget.connect('key-focus-in', () => {
+                        this._unlockOuterScroll();
+
+                        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            if (widget.get_stage()) {
+                                ensureActorVisibleInScrollView(this._scrollView, widget);
+                            }
+                            return GLib.SOURCE_REMOVE;
+                        });
+
+                        this._previousFocus = widget;
+                    });
+                }
+
+                this._focusGrid.push([widget]);
+            });
+
+            if (!useNestedScroll) {
                 sectionData.bodyContainer.set_child(container);
             }
         }
@@ -582,10 +649,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._onItemClicked(isKaomoji ? itemData.rawItem : itemData, feature);
             });
 
-            // Ensure button scrolls into view when focused
             button.connect('key-focus-in', () => {
+                this._unlockOuterScroll();
+
                 GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    // Only run if the widget is part of the main UI tree.
                     if (button.get_stage()) {
                         ensureActorVisibleInScrollView(this._scrollView, button);
                     }
@@ -621,6 +688,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             // Ensure button scrolls into view when focused
             button.connect('key-focus-in', () => {
+                // Unlock outer scroll for grid items
+                this._unlockOuterScroll();
+
                 GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     ensureActorVisibleInScrollView(this._scrollView, button);
                     return GLib.SOURCE_REMOVE;
@@ -859,6 +929,60 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         }
 
         /**
+         * Lock the outer scroll view to prevent automatic focus tracking
+         * @private
+         */
+        _lockOuterScroll() {
+            // Clear any pending lock timeout
+            if (this._lockTimeoutId) {
+                GLib.source_remove(this._lockTimeoutId);
+                this._lockTimeoutId = null;
+            }
+
+            if (this._outerScrollLocked) {
+                return; // Already locked
+            }
+
+            // Remember current scroll position
+            this._lockedScrollValue = this._scrollView.vadjustment.value;
+            this._outerScrollLocked = true;
+
+            // Monitor adjustment changes and force it back to locked position
+            this._scrollLockHandler = this._scrollView.vadjustment.connect('notify::value', () => {
+                if (this._outerScrollLocked) {
+                    // Force scroll back to locked position
+                    if (this._scrollView.vadjustment.value !== this._lockedScrollValue) {
+                        this._scrollView.vadjustment.set_value(this._lockedScrollValue);
+                    }
+                }
+            });
+        }
+
+        /**
+         * Unlock the outer scroll view to allow normal scrolling
+         * @private
+         */
+        _unlockOuterScroll() {
+            // Clear any pending lock timeout
+            if (this._lockTimeoutId) {
+                GLib.source_remove(this._lockTimeoutId);
+                this._lockTimeoutId = null;
+            }
+
+            if (!this._outerScrollLocked) {
+                return; // Already unlocked
+            }
+
+            this._outerScrollLocked = false;
+
+            // Disconnect the lock handler
+            if (this._scrollLockHandler) {
+                this._scrollView.vadjustment.disconnect(this._scrollLockHandler);
+                this._scrollLockHandler = null;
+            }
+        }
+
+        /**
          * Handle keyboard navigation with arrow keys
          *
          * @param {Clutter.Actor} actor - The actor that received the key press
@@ -894,15 +1018,28 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             if (rowIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            // Calculate next focus position based on arrow key
             let nextRow = rowIndex,
                 nextCol = colIndex;
+
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                const currentRow = this._focusGrid[rowIndex];
+                const currentRowIndex = currentRow.indexOf(currentFocus);
+
+                if (currentRowIndex !== -1) {
+                    const result = FocusUtils.handleRowNavigation(event, currentRow, currentRowIndex, currentRow.length);
+                    if (result === Clutter.EVENT_STOP) {
+                        return Clutter.EVENT_STOP;
+                    }
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
 
             if (symbol === Clutter.KEY_Up) {
                 if (rowIndex > 0) {
                     nextRow--;
                 } else {
-                    return Clutter.EVENT_PROPAGATE; // Let menu handle upward navigation
+                    this._unlockOuterScroll();
+                    return Clutter.EVENT_PROPAGATE;
                 }
             } else if (symbol === Clutter.KEY_Down) {
                 if (rowIndex < this._focusGrid.length - 1) {
@@ -910,15 +1047,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 } else {
                     return Clutter.EVENT_STOP; // Prevent navigation beyond last row
                 }
-            } else if (symbol === Clutter.KEY_Left) {
-                if (colIndex > 0) nextCol--;
-            } else if (symbol === Clutter.KEY_Right) {
-                if (colIndex < this._focusGrid[rowIndex].length - 1) nextCol++;
             } else {
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            // Handle single-item rows (like "Show All" buttons)
             if (this._focusGrid[nextRow].length === 1) {
                 nextCol = 0;
             } else {
@@ -927,12 +1059,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             const targetWidget = this._focusGrid[nextRow][nextCol];
 
-            // Special handling for settings button (excluded from auto-focus)
             if (targetWidget === this._settingsBtn) {
                 this._settingsBtn.can_focus = true;
                 this._settingsBtn.grab_key_focus();
 
-                // Disable focus participation again after focusing
                 if (this._settingsBtnFocusTimeoutId) {
                     GLib.source_remove(this._settingsBtnFocusTimeoutId);
                 }
@@ -966,7 +1096,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             });
 
             this._renderAll();
-            this._restoreFocus();
+
+            this._unlockOuterScroll();
+
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+                this._restoreFocus();
+                return GLib.SOURCE_REMOVE;
+            });
         }
 
         /**
@@ -974,39 +1110,95 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _restoreFocus() {
-            // Use idle_add to ensure the UI is fully rendered before grabbing focus
             GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                 if (this._focusGrid.length === 0) {
                     return GLib.SOURCE_REMOVE;
                 }
 
-                // Find the first actual content item (not a "Show All" button, not settings button)
-                for (let i = 0; i < this._focusGrid.length; i++) {
-                    const row = this._focusGrid[i];
+                const showAllButtons = new Set();
+                for (const section of Object.values(this._sections)) {
+                    if (section.showAllBtn) {
+                        showAllButtons.add(section.showAllBtn);
+                    }
+                }
 
-                    // Skip empty rows
-                    if (row.length === 0) continue;
-
-                    const firstItemInRow = row[0];
-
-                    // Skip the settings button (always last)
-                    if (firstItemInRow === this._settingsBtn) continue;
-
-                    // Skip "Show All" buttons - they have the specific style class
-                    if (firstItemInRow.style_class?.includes('recently-used-show-all-button')) continue;
-
-                    // This is a content item! Focus it and exit
-                    firstItemInRow.grab_key_focus();
+                if (this._tryFocusContentItem(showAllButtons)) {
                     return GLib.SOURCE_REMOVE;
                 }
 
-                // If somehow no content items exist, focus the first thing
-                if (this._focusGrid[0] && this._focusGrid[0][0]) {
-                    this._focusGrid[0][0].grab_key_focus();
+                if (this._tryFocusShowAllButton(showAllButtons)) {
+                    return GLib.SOURCE_REMOVE;
                 }
 
+                this._tryFocusAnyWidget();
                 return GLib.SOURCE_REMOVE;
             });
+        }
+
+        /**
+         * Try to focus the first content item (not Show All button, not settings)
+         * @param {Set} showAllButtons - Set of Show All buttons to skip
+         * @returns {boolean} True if successfully focused an item
+         * @private
+         */
+        _tryFocusContentItem(showAllButtons) {
+            for (let i = 0; i < this._focusGrid.length; i++) {
+                const row = this._focusGrid[i];
+                if (!row || row.length === 0) continue;
+
+                const firstItemInRow = row[0];
+                if (!firstItemInRow || !firstItemInRow.visible || !firstItemInRow.get_stage()) continue;
+                if (firstItemInRow === this._settingsBtn) continue;
+                if (showAllButtons.has(firstItemInRow)) continue;
+
+                try {
+                    firstItemInRow.grab_key_focus();
+                    return true;
+                } catch {
+                    continue;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Try to focus any Show All button that's visible
+         * @param {Set} showAllButtons - Set of Show All buttons
+         * @returns {boolean} True if successfully focused a button
+         * @private
+         */
+        _tryFocusShowAllButton(showAllButtons) {
+            for (const button of showAllButtons) {
+                if (button && button.visible && button.get_stage()) {
+                    try {
+                        button.grab_key_focus();
+                        return true;
+                    } catch {
+                        continue;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Last resort: try to focus any visible widget in the grid
+         * @private
+         */
+        _tryFocusAnyWidget() {
+            for (let i = 0; i < this._focusGrid.length; i++) {
+                if (this._focusGrid[i] && this._focusGrid[i][0]) {
+                    const widget = this._focusGrid[i][0];
+                    if (widget && widget.visible && widget.get_stage()) {
+                        try {
+                            widget.grab_key_focus();
+                            return;
+                        } catch {
+                            continue;
+                        }
+                    }
+                }
+            }
         }
 
         /**
