@@ -5,13 +5,14 @@ import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { ClipboardType } from '../../features/Clipboard/constants/clipboardConstants.js';
 import { createThemedIcon } from '../../utilities/utilityThemedIcon.js';
 import { Debouncer } from '../../utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../utilities/utilityFocus.js';
-import { getGifCacheManager } from './logic/gifCacheManager.js';
+import { GifDownloadService } from './logic/gifDownloadService.js';
+import { GifItemFactory } from './view/gifItemFactory.js';
 import { GifManager } from './logic/gifManager.js';
 import { MasonryLayout } from '../../utilities/utilityMasonryLayout.js';
 import { RecentItemsManager } from '../../utilities/utilityRecents.js';
@@ -52,8 +53,9 @@ export const GIFTabContent = GObject.registerClass(
          *
          * @param {object} extension - The extension instance
          * @param {Gio.Settings} settings - Extension settings
+         * @param {ClipboardManager} clipboardManager - The clipboard manager instance
          */
-        constructor(extension, settings) {
+        constructor(extension, settings, clipboardManager) {
             super({
                 vertical: true,
                 style_class: 'gif-tab-content',
@@ -65,6 +67,7 @@ export const GIFTabContent = GObject.registerClass(
             this.connect('captured-event', this._onGlobalKeyPress.bind(this));
             this._httpSession = new Soup.Session();
             this._extension = extension;
+            this._clipboardManager = clipboardManager;
 
             this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._extension.uuid, 'gif-previews']);
 
@@ -75,8 +78,8 @@ export const GIFTabContent = GObject.registerClass(
 
             this._settings = settings;
             this._gifManager = new GifManager(settings, extension.uuid);
+            this._downloadService = new GifDownloadService(this._httpSession, clipboardManager);
 
-            // State management
             this._isDestroyed = false;
             this._providerChangedSignalId = 0;
             this._isClearingForCategoryChange = false;
@@ -97,6 +100,7 @@ export const GIFTabContent = GObject.registerClass(
             this._infoLabel = null;
             this._infoBar = null;
             this._currentSearchQuery = null;
+            this._currentLoadingSession = null;
             this._provider = this._settings.get_string(GIF_PROVIDER_KEY);
 
             this._searchDebouncer = new Debouncer((query) => {
@@ -106,6 +110,10 @@ export const GIFTabContent = GObject.registerClass(
             }, SEARCH_DEBOUNCE_TIME_MS);
 
             this._buildUISkeleton();
+
+            // Initialize Item Factory after UI skeleton (needs scrollView)
+            this._itemFactory = new GifItemFactory(this._downloadService, this._gifCacheDir, this._scrollView);
+
             this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._updateBackButtonPreference());
             this._connectProviderChangedSignal();
             this._loadInitialData().catch((e) => this._renderErrorState(e.message));
@@ -279,7 +287,13 @@ export const GIFTabContent = GObject.registerClass(
             this._masonryView = new MasonryLayout({
                 columns: ITEMS_PER_ROW,
                 spacing: 2,
-                renderItemFn: this._renderMasonryItem.bind(this),
+                renderItemFn: (itemData) => {
+                    const bin = this._itemFactory.createItem(itemData, this._onGifSelected.bind(this));
+                    if (bin) {
+                        this._gridAllButtons.push(bin);
+                    }
+                    return bin;
+                },
                 visible: true, // Start visible
             });
 
@@ -376,10 +390,8 @@ export const GIFTabContent = GObject.registerClass(
             this._setOnlineMode(searchWidget);
             this._addTrendingButton();
 
-            // Set the initial active category
             this._setInitialCategory();
 
-            // Load categories asynchronously
             this._loadCategories().catch((e) => {
                 console.warn(`[AIO-Clipboard] Could not fetch GIF categories: ${e.message}`);
             });
@@ -750,15 +762,23 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _loadCategoryContent(category) {
+            // Generate a new session ID for this load
+            const sessionId = Symbol('loading-session');
+            this._currentLoadingSession = sessionId;
+
             if (category.id === 'recents') {
                 this._displayRecents();
             } else if (category.id === 'trending') {
-                this._fetchAndDisplayTrending().catch((e) => {
-                    this._renderErrorState(e.message);
+                this._fetchAndDisplayTrending(null, sessionId).catch((e) => {
+                    if (this._currentLoadingSession === sessionId) {
+                        this._renderErrorState(e.message);
+                    }
                 });
             } else {
-                this._performSearch(category.searchTerm).catch((e) => {
-                    this._renderErrorState(e.message);
+                this._performSearch(category.searchTerm, null, sessionId).catch((e) => {
+                    if (this._currentLoadingSession === sessionId) {
+                        this._renderErrorState(e.message);
+                    }
                 });
             }
         }
@@ -831,9 +851,14 @@ export const GIFTabContent = GObject.registerClass(
          * Fetch and display trending GIFs.
          *
          * @param {string|null} [nextPos=null] - Pagination token for loading more
+         * @param {Symbol|null} [sessionId=null] - The session ID to validate against
          * @private
          */
-        async _fetchAndDisplayTrending(nextPos = null) {
+        async _fetchAndDisplayTrending(nextPos = null, sessionId = null) {
+            if (sessionId && sessionId !== this._currentLoadingSession) {
+                return;
+            }
+
             if (!nextPos) {
                 this._renderLoadingState();
             } else {
@@ -842,6 +867,12 @@ export const GIFTabContent = GObject.registerClass(
 
             try {
                 const { results, nextPos: newNextPos } = await this._gifManager.getTrending(nextPos);
+
+                // Check session again after await
+                if (sessionId && sessionId !== this._currentLoadingSession) {
+                    return;
+                }
+
                 this._nextPos = newNextPos;
 
                 if (results.length > 0) {
@@ -850,9 +881,15 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderInfoState(_('No trending GIFs found.'));
                 }
             } catch (e) {
-                this._renderErrorState(e.message);
+                // Check session before rendering error
+                if (!sessionId || sessionId === this._currentLoadingSession) {
+                    this._renderErrorState(e.message);
+                }
             } finally {
-                this._showSpinner(false);
+                // Only hide spinner if we're still in the same session
+                if (!sessionId || sessionId === this._currentLoadingSession) {
+                    this._showSpinner(false);
+                }
             }
         }
 
@@ -861,9 +898,14 @@ export const GIFTabContent = GObject.registerClass(
          *
          * @param {string} query - The search query
          * @param {string|null} [nextPos=null] - Pagination token for loading more
+         * @param {Symbol|null} [sessionId=null] - The session ID to validate against
          * @private
          */
-        async _performSearch(query, nextPos = null) {
+        async _performSearch(query, nextPos = null, sessionId = null) {
+            if (sessionId && sessionId !== this._currentLoadingSession) {
+                return;
+            }
+
             if (!nextPos) {
                 this._renderLoadingState();
             } else {
@@ -872,6 +914,12 @@ export const GIFTabContent = GObject.registerClass(
 
             try {
                 const { results, nextPos: newNextPos } = await this._gifManager.search(query, nextPos);
+
+                // Check session again after await
+                if (sessionId && sessionId !== this._currentLoadingSession) {
+                    return;
+                }
+
                 this._nextPos = newNextPos;
 
                 if (results.length > 0) {
@@ -880,9 +928,13 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderInfoState(_("No results found for '%s'.").format(query));
                 }
             } catch (e) {
-                this._renderErrorState(e.message);
+                if (!sessionId || sessionId === this._currentLoadingSession) {
+                    this._renderErrorState(e.message);
+                }
             } finally {
-                this._showSpinner(false);
+                if (!sessionId || sessionId === this._currentLoadingSession) {
+                    this._showSpinner(false);
+                }
             }
         }
 
@@ -952,11 +1004,11 @@ export const GIFTabContent = GObject.registerClass(
 
             // If we're in search mode, use the search query
             if (this._currentSearchQuery) {
-                await this._performSearch(this._currentSearchQuery, this._nextPos);
+                await this._performSearch(this._currentSearchQuery, this._nextPos, this._currentLoadingSession);
             } else if (this._activeCategory?.id === 'trending') {
-                await this._fetchAndDisplayTrending(this._nextPos);
+                await this._fetchAndDisplayTrending(this._nextPos, this._currentLoadingSession);
             } else if (this._activeCategory?.searchTerm) {
-                await this._performSearch(this._activeCategory.searchTerm, this._nextPos);
+                await this._performSearch(this._activeCategory.searchTerm, this._nextPos, this._currentLoadingSession);
             }
 
             this._isLoadingMore = false;
@@ -965,201 +1017,6 @@ export const GIFTabContent = GObject.registerClass(
         // ===========================
         // Grid Rendering Methods
         // ===========================
-
-        /**
-         * Render a single GIF item in the masonry layout.
-         *
-         * @param {object} itemData - The GIF data
-         * @param {string} itemData.preview_url - URL for the preview image
-         * @param {string} itemData.full_url - URL for the full GIF
-         * @param {string} [itemData.description] - Description/title of the GIF
-         * @param {number} itemData.width - Width of the GIF
-         * @param {number} itemData.height - Height of the GIF
-         * @param {object} renderSession - Session object for tracking async operations
-         * @returns {St.Bin|null} The rendered widget or null if invalid
-         * @private
-         */
-        _renderMasonryItem(itemData, renderSession) {
-            if (!this._isValidItemData(itemData)) {
-                console.warn('[AIO-Clipboard] Skipping item with invalid data:', itemData);
-                return null;
-            }
-
-            const bin = new St.Bin({
-                style_class: 'gif-grid-button button',
-                reactive: true,
-                can_focus: true,
-                track_hover: true,
-            });
-
-            bin.tooltip_text = itemData.description || '';
-
-            bin.connect('button-press-event', () => {
-                this._onGifSelected(itemData);
-                return Clutter.EVENT_STOP;
-            });
-
-            bin.connect('key-press-event', (actor, event) => {
-                const symbol = event.get_key_symbol();
-                if (symbol === Clutter.KEY_Return || symbol === Clutter.KEY_KP_Enter) {
-                    this._onGifSelected(itemData);
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            });
-
-            bin.connect('key-focus-in', () => {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    ensureActorVisibleInScrollView(this._scrollView, bin);
-                    return GLib.SOURCE_REMOVE;
-                });
-            });
-
-            this._setIconFromUrl(bin, itemData.preview_url, renderSession).catch(() => {
-                /* Ignore */
-            });
-            this._gridAllButtons.push(bin);
-
-            return bin;
-        }
-
-        /**
-         * Validate that item data has all required properties.
-         *
-         * @param {object} itemData - The item data to validate
-         * @returns {boolean} True if valid
-         * @private
-         */
-        _isValidItemData(itemData) {
-            return itemData && itemData.preview_url && itemData.width && itemData.height;
-        }
-
-        /**
-         * Load and set the preview image for a GIF item.
-         *
-         * @param {St.Bin} bin - The container widget
-         * @param {string} url - The preview image URL
-         * @param {object} renderSession - Session object for tracking async operations
-         * @private
-         */
-        async _setIconFromUrl(bin, url, renderSession) {
-            try {
-                const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, url, -1);
-                const filename = `${hash}.gif`;
-                const file = Gio.File.new_for_path(GLib.build_filenamev([this._gifCacheDir, filename]));
-
-                if (!file.query_exists(null)) {
-                    const bytes = await this._fetchImageBytes(url);
-                    // Save the bytes to the file
-                    await this._saveBytesToFile(file, bytes);
-
-                    // Trigger cache cleanup
-                    getGifCacheManager().triggerDebouncedCleanup();
-                }
-
-                if (this._isDestroyed || renderSession !== this._renderSession) {
-                    return;
-                }
-
-                // Set the preview image
-                const imageActor = new St.Bin({
-                    style: `
-                    background-image: url("file://${file.get_path()}");
-                    background-size: cover;
-                    background-repeat: no-repeat;
-                `,
-                    x_expand: true,
-                    y_expand: true,
-                });
-
-                bin.set_child(imageActor);
-            } catch (e) {
-                // Handle errors gracefully
-                if (this._isDestroyed || renderSession !== this._renderSession || !bin.get_stage()) {
-                    // If the context has changed, do nothing. The error is irrelevant now.
-                    return;
-                }
-                this._handleImageLoadError(bin, e, renderSession);
-            }
-        }
-
-        /**
-         * Saves a GLib.Bytes object to a file, wrapping the callback-based
-         * function in a Promise to guarantee completion.
-         * @private
-         */
-        async _saveBytesToFile(file, bytes) {
-            return new Promise((resolve, reject) => {
-                file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.NONE, null, (source, res) => {
-                    try {
-                        // When this callback runs, the file is guaranteed to be on disk.
-                        source.replace_contents_finish(res);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-        }
-
-        /**
-         * Fetch image bytes from a URL.
-         *
-         * @param {string} url - The image URL
-         * @returns {Promise<GLib.Bytes>} The image bytes
-         * @private
-         */
-        async _fetchImageBytes(url) {
-            const message = new Soup.Message({
-                method: 'GET',
-                uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
-            });
-
-            return new Promise((resolve, reject) => {
-                this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
-                    if (this._isDestroyed) {
-                        reject(new Error('GIF Tab was destroyed.'));
-                        return;
-                    }
-
-                    if (message.get_status() >= 300) {
-                        reject(new Error(`HTTP Error ${message.get_status()}`));
-                        return;
-                    }
-
-                    try {
-                        resolve(session.send_and_read_finish(res));
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-        }
-
-        /**
-         * Handle errors when loading preview images.
-         *
-         * @param {St.Bin} bin - The container widget
-         * @param {Error} error - The error that occurred
-         * @param {object} renderSession - Session object for tracking async operations
-         * @private
-         */
-        _handleImageLoadError(bin, error, renderSession) {
-            if (this._isDestroyed || renderSession !== this._renderSession || !bin.get_stage()) {
-                return;
-            }
-
-            bin.set_child(
-                new St.Icon({
-                    icon_name: 'image-missing-symbolic',
-                    icon_size: 64,
-                }),
-            );
-
-            if (!error.message.startsWith('GIF Tab') && !error.message.startsWith('Render session')) {
-                console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${error.message}`);
-            }
-        }
 
         /**
          * Render the grid with GIF items.
@@ -1176,10 +1033,10 @@ export const GIFTabContent = GObject.registerClass(
             if (replace) {
                 this._gridAllButtons = [];
                 this._masonryView.clear();
-                this._renderSession = {};
+                this._itemFactory.startNewSession();
             }
 
-            this._masonryView.addItems(results, this._renderSession);
+            this._masonryView.addItems(results);
         }
 
         // ===========================
@@ -1263,7 +1120,57 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
-            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, gifObject.full_url);
+            const pasteBehavior = this._settings.get_int('gif-paste-behavior'); // 0=Link, 1=Image
+            let clipboardSetSuccess = false;
+
+            if (pasteBehavior === 1 && this._clipboardManager) {
+                try {
+                    const existingItem = this._clipboardManager.getItemBySourceUrl(gifObject.full_url);
+
+                    if (existingItem && existingItem.file_uri) {
+                        // Reuse existing item
+                        this._clipboardManager.addExternalItem(existingItem);
+
+                        const clipboard = St.Clipboard.get_default();
+                        const uriList = existingItem.file_uri + '\r\n';
+                        const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', uriBytes);
+                        clipboardSetSuccess = true;
+                    } else {
+                        const filename = `${GLib.uuid_string_random()}.gif`;
+                        const path = GLib.build_filenamev([this._clipboardManager.imagesDir, filename]);
+
+                        const bytes = await this._downloadService.downloadAndSave(gifObject.full_url, path);
+
+                        const item = {
+                            id: GLib.uuid_string_random(),
+                            type: ClipboardType.IMAGE,
+                            timestamp: Math.floor(Date.now() / 1000),
+                            image_filename: filename,
+                            file_uri: `file://${path}`,
+                            source_url: gifObject.full_url, // Save URL for future deduplication
+                            hash: GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, bytes),
+                            width: gifObject.width,
+                            height: gifObject.height,
+                        };
+
+                        this._clipboardManager.addExternalItem(item);
+
+                        const clipboard = St.Clipboard.get_default();
+                        const uriList = item.file_uri + '\r\n';
+                        const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', uriBytes);
+                        clipboardSetSuccess = true;
+                    }
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to paste GIF image: ${e.message}`);
+                }
+            }
+
+            // Fallback to Link Mode if Image Mode failed or is disabled
+            if (!clipboardSetSuccess) {
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, gifObject.full_url);
+            }
 
             if (gifObject.preview_url && gifObject.width && gifObject.height) {
                 const recentItem = {

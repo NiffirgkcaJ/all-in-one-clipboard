@@ -560,8 +560,8 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 throw new Error(`Class '${className}' not found in module: ${moduleUrl}`);
             }
 
-            // Clipboard tab needs special constructor arguments
-            if (tabName === _('Clipboard')) {
+            // Clipboard tab and GIF tab need special constructor arguments
+            if (tabName === _('Clipboard') || tabName === _('GIF')) {
                 return new tabModule[className](this._extension, this._settings, this._clipboardManager);
             }
 

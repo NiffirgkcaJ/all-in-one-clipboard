@@ -52,6 +52,9 @@ export const ClipboardManager = GObject.registerClass(
             this._imagesDir = GLib.build_filenamev([this._dataDir, 'images']);
             this._textsDir = GLib.build_filenamev([this._dataDir, 'texts']);
 
+            // Expose images directory for external use
+            this.imagesDir = this._imagesDir;
+
             this._historyFile = Gio.File.new_for_path(GLib.build_filenamev([this._cacheDir, 'history_clipboard.json']));
             this._pinnedFile = Gio.File.new_for_path(GLib.build_filenamev([this._dataDir, 'pinned_clipboard.json']));
 
@@ -354,6 +357,24 @@ export const ClipboardManager = GObject.registerClass(
                 this._saveHistory();
                 this.emit('history-changed');
             }
+        }
+
+        /**
+         * Add an item to history from an external source
+         * @param {Object} item - The item to add
+         */
+        addExternalItem(item) {
+            this._addItemToHistory(item);
+        }
+
+        /**
+         * Find an existing item by its source URL
+         * @param {string} url - The source URL to search for
+         * @returns {Object|null} The found item or null
+         */
+        getItemBySourceUrl(url) {
+            if (!url) return null;
+            return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
         }
 
         /**

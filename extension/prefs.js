@@ -888,6 +888,18 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             imgurRow.set_visible(selectedProvider === 'imgur');
         });
 
+        // GIF Paste Behavior
+        const pasteBehaviorRow = new Adw.ComboRow({
+            title: _('Paste Behavior'),
+            subtitle: _('Choose how GIFs are pasted.'),
+            model: new Gtk.StringList({ strings: [_('Paste Link'), _('Paste Image')] }),
+        });
+        group.add(pasteBehaviorRow);
+
+        // Bind the setting
+        // 0 = Link, 1 = Image
+        settings.bind('gif-paste-behavior', pasteBehaviorRow, 'selected', Gio.SettingsBindFlags.DEFAULT);
+
         // Cache size limit expander
         const cacheLimitExpander = new Adw.ExpanderRow({
             title: _('Limit GIF Preview Cache Size'),
