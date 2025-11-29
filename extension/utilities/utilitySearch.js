@@ -1,6 +1,7 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 /**
@@ -72,6 +73,7 @@ export const SearchComponent = GObject.registerClass(
                 visible: false, // Initially hidden
             });
             this._clearButton.connect('clicked', () => this.clearSearch());
+            this._clearButton.connect('key-press-event', (actor, event) => this._onKeyPress(actor, event));
 
             this._clearButtonWrapper = new St.BoxLayout({
                 y_align: Clutter.ActorAlign.CENTER,
@@ -102,26 +104,34 @@ export const SearchComponent = GObject.registerClass(
          */
         _onKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
+            if (actor === this._clearButton) {
+                if (symbol === Clutter.KEY_Right) {
+                    return Clutter.EVENT_STOP; // Trap focus at the end
+                }
+                if (symbol === Clutter.KEY_Left) {
+                    // Navigate back to entry
+                    this._entry.grab_key_focus();
+                    return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
             const text = this._entry.get_text();
             const cursorPosition = this._entry.clutter_text.get_cursor_position();
 
             if (symbol === Clutter.KEY_Left) {
                 const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
                 if (isAtStart) {
-                    if (this.actor.navigate_focus(this._entryWrapper, St.DirectionType.TAB_BACKWARD, false)) return Clutter.EVENT_STOP;
-
-                    const parent = this.actor.get_parent();
-                    if (parent && parent.navigate_focus(this.actor, St.DirectionType.TAB_BACKWARD, false)) return Clutter.EVENT_STOP;
+                    return Clutter.EVENT_STOP; // Trap focus at the start
                 }
             } else if (symbol === Clutter.KEY_Right) {
                 const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
                 if (isAtEnd) {
-                    if (this.actor.navigate_focus(this._entryWrapper, St.DirectionType.TAB_FORWARD, false)) return Clutter.EVENT_STOP;
-
                     if (this._clearButton.visible) {
-                        const parent = this.actor.get_parent();
-                        if (parent && parent.navigate_focus(this.actor, St.DirectionType.TAB_FORWARD, false)) return Clutter.EVENT_STOP;
+                        this._clearButton.grab_key_focus();
+                        return Clutter.EVENT_STOP;
                     }
+                    return Clutter.EVENT_STOP; // Trap focus if no clear button
                 }
             }
 

@@ -7,6 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
+import { FocusUtils } from '../../utilities/utilityFocus.js';
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
@@ -259,13 +260,8 @@ export const ClipboardTabContent = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            if (symbol === Clutter.KEY_Left && currentIndex > 0) {
-                headerButtons[currentIndex - 1].grab_key_focus();
-                return Clutter.EVENT_STOP;
-            }
-            if (symbol === Clutter.KEY_Right && currentIndex < headerButtons.length - 1) {
-                headerButtons[currentIndex + 1].grab_key_focus();
-                return Clutter.EVENT_STOP;
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                return FocusUtils.handleLinearNavigation(event, headerButtons, currentIndex);
             }
             if (symbol === Clutter.KEY_Down && this._gridAllButtons.length > 1) {
                 this._gridAllButtons[1].grab_key_focus();
@@ -294,44 +290,24 @@ export const ClipboardTabContent = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            let targetIndex = -1;
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                return FocusUtils.handleRowNavigation(event, this._gridAllButtons, currentIndex, NUM_FOCUSABLE_ITEMS_PER_ROW);
+            }
 
-            switch (symbol) {
-                case Clutter.KEY_Left:
-                    if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW > 0) {
-                        targetIndex = currentIndex - 1;
-                    }
-                    break;
-
-                case Clutter.KEY_Right:
-                    if (currentIndex % NUM_FOCUSABLE_ITEMS_PER_ROW < NUM_FOCUSABLE_ITEMS_PER_ROW - 1) {
-                        targetIndex = currentIndex + 1;
-                    }
-                    break;
-
-                case Clutter.KEY_Up:
-                    if (currentIndex >= NUM_FOCUSABLE_ITEMS_PER_ROW) {
-                        targetIndex = currentIndex - NUM_FOCUSABLE_ITEMS_PER_ROW;
-                    } else {
+            if (symbol === Clutter.KEY_Up || symbol === Clutter.KEY_Down) {
+                return FocusUtils.handleColumnNavigation(event, this._gridAllButtons, currentIndex, NUM_FOCUSABLE_ITEMS_PER_ROW, (side) => {
+                    if (side === 'up') {
                         // Navigate to header if at top row
                         const headerButtons = this._getHeaderButtons();
                         if (headerButtons.length > 0) {
                             headerButtons[0].grab_key_focus();
                         }
+                        return Clutter.EVENT_STOP;
                     }
-                    break;
-
-                case Clutter.KEY_Down:
-                    if (currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW < this._gridAllButtons.length) {
-                        targetIndex = currentIndex + NUM_FOCUSABLE_ITEMS_PER_ROW;
-                    }
-                    break;
+                    return undefined;
+                });
             }
 
-            if (targetIndex !== -1) {
-                this._gridAllButtons[targetIndex].grab_key_focus();
-                return Clutter.EVENT_STOP;
-            }
             return Clutter.EVENT_PROPAGATE;
         }
 
