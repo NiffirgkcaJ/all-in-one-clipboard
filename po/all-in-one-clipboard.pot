@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-29 14:38+0000\n"
+"POT-Creation-Date: 2025-11-29 16:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgid "All-in-One Clipboard"
 msgstr ""
 
 #: extension/extension.js:542 extension/features/Emoji/tabEmoji.js:120
-#: extension/features/GIF/tabGIF.js:155
+#: extension/features/GIF/tabGIF.js:163
 #: extension/features/Kaomoji/tabKaomoji.js:71
 #: extension/features/Symbols/tabSymbols.js:71
 msgid "Recently Used"
@@ -34,15 +34,15 @@ msgstr ""
 msgid "Clipboard"
 msgstr ""
 
-#: extension/extension.js:978
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
-msgid "Emoji"
-msgstr ""
-
-#: extension/extension.js:979
+#: extension/extension.js:564 extension/extension.js:979
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:681
 msgid "GIF"
+msgstr ""
+
+#: extension/extension.js:978
+#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
+msgid "Emoji"
 msgstr ""
 
 #: extension/extension.js:980
@@ -464,165 +464,181 @@ msgid "Imgur Client ID"
 msgstr ""
 
 #: extension/prefs.js:893
-msgid "Limit GIF Preview Cache Size"
+msgid "Paste Behavior"
 msgstr ""
 
 #: extension/prefs.js:894
+msgid "Choose how GIFs are pasted."
+msgstr ""
+
+#: extension/prefs.js:895
+msgid "Paste Link"
+msgstr ""
+
+#: extension/prefs.js:895
+msgid "Paste Image"
+msgstr ""
+
+#: extension/prefs.js:905
+msgid "Limit GIF Preview Cache Size"
+msgstr ""
+
+#: extension/prefs.js:906
 msgid "Turn off for an unlimited cache size."
 msgstr ""
 
-#: extension/prefs.js:908
+#: extension/prefs.js:920
 msgid "Cache Size Limit (MB)"
 msgstr ""
 
-#: extension/prefs.js:909
+#: extension/prefs.js:921
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr ""
 
-#: extension/prefs.js:1002
+#: extension/prefs.js:1014
 msgid "Data Management"
 msgstr ""
 
-#: extension/prefs.js:1003
+#: extension/prefs.js:1015
 msgid ""
 "Manage stored data and configure automatic cleanup. Manual actions cannot be "
 "undone."
 msgstr ""
 
-#: extension/prefs.js:1009
+#: extension/prefs.js:1021
 msgid "Clear Data at Login"
 msgstr ""
 
-#: extension/prefs.js:1010
+#: extension/prefs.js:1022
 msgid "Automatically clear selected data at every login"
 msgstr ""
 
-#: extension/prefs.js:1025
+#: extension/prefs.js:1037
 msgid "Clear Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:1026
+#: extension/prefs.js:1038
 msgid "Clear Recent Emojis"
 msgstr ""
 
-#: extension/prefs.js:1027
+#: extension/prefs.js:1039
 msgid "Clear Recent GIFs"
 msgstr ""
 
-#: extension/prefs.js:1028
+#: extension/prefs.js:1040
 msgid "Clear Recent Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:1029
+#: extension/prefs.js:1041
 msgid "Clear Recent Symbols"
 msgstr ""
 
-#: extension/prefs.js:1043 extension/prefs.js:1055
+#: extension/prefs.js:1055 extension/prefs.js:1067
 msgid "Clear"
 msgstr ""
 
-#: extension/prefs.js:1049
+#: extension/prefs.js:1061
 msgid "Are you sure?"
 msgstr ""
 
-#: extension/prefs.js:1050
+#: extension/prefs.js:1062
 msgid "The selected data will be permanently deleted."
 msgstr ""
 
-#: extension/prefs.js:1054
+#: extension/prefs.js:1066
 msgid "Cancel"
 msgstr ""
 
-#: extension/prefs.js:1071
+#: extension/prefs.js:1083
 msgid "Recent Item History"
 msgstr ""
 
-#: extension/prefs.js:1072
+#: extension/prefs.js:1084
 msgid "Clear lists of recently used emojis, GIFs, etc."
 msgstr ""
 
-#: extension/prefs.js:1079
+#: extension/prefs.js:1091
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
 msgid "Recent Emojis"
 msgstr ""
 
-#: extension/prefs.js:1080
+#: extension/prefs.js:1092
 msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
-#: extension/prefs.js:1084
+#: extension/prefs.js:1096
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
 msgid "Recent GIFs"
 msgstr ""
 
-#: extension/prefs.js:1085
+#: extension/prefs.js:1097
 msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
-#: extension/prefs.js:1089
+#: extension/prefs.js:1101
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:182
 msgid "Recent Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:1090
+#: extension/prefs.js:1102
 msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
-#: extension/prefs.js:1094
+#: extension/prefs.js:1106
 #: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
 msgid "Recent Symbols"
 msgstr ""
 
-#: extension/prefs.js:1095
+#: extension/prefs.js:1107
 msgid "Permanently clears the list of recent symbols."
 msgstr ""
 
-#: extension/prefs.js:1104
+#: extension/prefs.js:1116
 msgid "All Recent Items"
 msgstr ""
 
-#: extension/prefs.js:1105
+#: extension/prefs.js:1117
 msgid "Permanently clears all of the above lists at once."
 msgstr ""
 
-#: extension/prefs.js:1112
+#: extension/prefs.js:1124
 msgid "Clipboard Data"
 msgstr ""
 
-#: extension/prefs.js:1113
+#: extension/prefs.js:1125
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr ""
 
-#: extension/prefs.js:1118
+#: extension/prefs.js:1130
 msgid "Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:1119
+#: extension/prefs.js:1131
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr ""
 
-#: extension/prefs.js:1125
+#: extension/prefs.js:1137
 msgid "Pinned Items"
 msgstr ""
 
-#: extension/prefs.js:1126
+#: extension/prefs.js:1138
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr ""
 
-#: extension/prefs.js:1133
+#: extension/prefs.js:1145
 msgid "Performance Caches"
 msgstr ""
 
-#: extension/prefs.js:1134
+#: extension/prefs.js:1146
 msgid "Clear temporary data used to improve loading speed."
 msgstr ""
 
-#: extension/prefs.js:1139
+#: extension/prefs.js:1151
 msgid "GIF Preview Cache"
 msgstr ""
 
-#: extension/prefs.js:1140
+#: extension/prefs.js:1152
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
@@ -678,42 +694,42 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:229
+#: extension/features/GIF/tabGIF.js:237
 msgid "Online search is disabled."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:419 extension/features/GIF/tabGIF.js:520
-#: extension/features/GIF/tabGIF.js:529
+#: extension/features/GIF/tabGIF.js:431 extension/features/GIF/tabGIF.js:532
+#: extension/features/GIF/tabGIF.js:541
 #: extension/utilities/utilityCategorizedItemViewer.js:547
 msgid "Recents"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:466
+#: extension/features/GIF/tabGIF.js:478
 msgid "No categories available."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:540 extension/features/GIF/tabGIF.js:546
+#: extension/features/GIF/tabGIF.js:552 extension/features/GIF/tabGIF.js:558
 msgid "Trending"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:547
+#: extension/features/GIF/tabGIF.js:559
 msgid "Trending GIFs"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:826
+#: extension/features/GIF/tabGIF.js:846
 msgid "No recent GIFs."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:850
+#: extension/features/GIF/tabGIF.js:881
 msgid "No trending GIFs found."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:880
+#: extension/features/GIF/tabGIF.js:928
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:1231
+#: extension/features/GIF/tabGIF.js:1088
 #, javascript-format
 msgid ""
 "Error: %s\n"
