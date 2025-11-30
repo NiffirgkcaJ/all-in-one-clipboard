@@ -74,6 +74,6 @@ export class GifDownloadService {
         const bytes = await this.fetchImageBytes(url);
         const file = Gio.File.new_for_path(destPath);
         await this.saveBytesToFile(file, bytes);
-        return bytes; // Return bytes in case caller needs them (e.g. for checksum)
+        return bytes;
     }
 }

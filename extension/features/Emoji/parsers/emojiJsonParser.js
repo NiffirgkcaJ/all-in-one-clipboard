@@ -23,7 +23,6 @@ export class EmojiJsonParser {
      *   Each object includes `category`, `char`, `name`, `skinToneSupport`, and `keywords`.
      */
     parse(jsonData) {
-        // Access the 'data' key to get the array we need to process.
         const rawCategoryData = jsonData.data;
         const standardizedData = [];
 
@@ -33,17 +32,14 @@ export class EmojiJsonParser {
         }
 
         for (const category of rawCategoryData) {
-            // Validate the structure of each category object.
             if (!category || typeof category.name !== 'string' || !Array.isArray(category.emojis)) {
-                continue; // Skip invalid category entries silently.
+                continue;
             }
 
             const categoryName = dgettext(DATA_DOMAIN, category.name.trim());
 
             for (const rawEmojiEntry of category.emojis) {
-                // Validate the structure of each emoji entry within the category.
                 if (rawEmojiEntry && typeof rawEmojiEntry.emoji === 'string' && typeof rawEmojiEntry.name === 'string') {
-                    // Prepare codepoints for keyword inclusion
                     const codepoints = rawEmojiEntry.codepoints || [];
                     const strippedCodepoints = codepoints.map((c) => c.replace(/^u\+/i, ''));
 
@@ -52,12 +48,7 @@ export class EmojiJsonParser {
                         name: dgettext(DATA_DOMAIN, rawEmojiEntry.name),
                         category: categoryName,
                         skinToneSupport: rawEmojiEntry.skin_tone_support || false,
-                        keywords: [
-                            // Add all codepoint variations to keywords
-                            ...codepoints,
-                            ...strippedCodepoints,
-                            ...(Array.isArray(rawEmojiEntry.keywords) ? rawEmojiEntry.keywords.map((k) => dgettext(DATA_DOMAIN, k)) : []),
-                        ],
+                        keywords: [...codepoints, ...strippedCodepoints, ...(Array.isArray(rawEmojiEntry.keywords) ? rawEmojiEntry.keywords.map((k) => dgettext(DATA_DOMAIN, k)) : [])],
                         codepoints: codepoints,
                     });
                 }

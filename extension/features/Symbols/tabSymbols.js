@@ -5,7 +5,9 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { CategorizedItemViewer } from '../../utilities/utilityCategorizedItemViewer.js';
 import { SymbolsJsonParser } from './parsers/symbolsJsonParser.js';
+import { SymbolsViewRenderer } from './view/symbolsViewRenderer.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { SymbolsSettings, SymbolsUI } from './constants/symbolsConstants.js';
 
 /**
  * A content widget for the "Symbols" tab.
@@ -33,16 +35,17 @@ export const SymbolsTabContent = GObject.registerClass(
                 y_align: Clutter.ActorAlign.FILL,
             });
 
-            // Store settings for later use
             this._settings = settings;
             this._alwaysShowTabsSignalId = 0;
+
+            this._viewRenderer = new SymbolsViewRenderer();
 
             const config = {
                 jsonPath: 'assets/data/symbols.json',
                 parserClass: SymbolsJsonParser,
                 recentsFilename: 'recent_symbols.json',
-                recentsMaxItemsKey: 'symbols-recents-max-items',
-                itemsPerRow: 9,
+                recentsMaxItemsKey: SymbolsSettings.RECENTS_MAX_ITEMS_KEY,
+                itemsPerRow: SymbolsUI.ITEMS_PER_ROW,
                 categoryPropertyName: 'category',
                 enableTabScrolling: true,
                 sortCategories: false,
@@ -51,9 +54,9 @@ export const SymbolsTabContent = GObject.registerClass(
                     symbol: itemData.symbol || itemData.char || itemData.value || '',
                     name: itemData.name || '',
                 }),
-                searchFilterFn: this._searchFilter.bind(this),
-                renderGridItemFn: this._renderGridItem.bind(this),
-                renderCategoryButtonFn: this._renderCategoryButton.bind(this),
+                searchFilterFn: (item, searchText) => this._viewRenderer.searchFilter(item, searchText),
+                renderGridItemFn: (itemData) => this._viewRenderer.renderGridItem(itemData),
+                renderCategoryButtonFn: (categoryId) => this._viewRenderer.renderCategoryButton(categoryId),
             };
 
             this._viewer = new CategorizedItemViewer(extension, settings, config);
@@ -62,7 +65,6 @@ export const SymbolsTabContent = GObject.registerClass(
             this._applyBackButtonPreference();
             this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
 
-            // Connect to Viewer Signals
             this._viewer.connect('item-selected', (source, jsonPayload) => {
                 this._onItemSelected(jsonPayload, extension);
             });
@@ -95,13 +97,11 @@ export const SymbolsTabContent = GObject.registerClass(
         async _onItemSelected(jsonPayload, extension) {
             try {
                 const data = JSON.parse(jsonPayload);
-                // Get the symbol string to copy
                 const symbolToCopy = data.symbol;
                 if (!symbolToCopy) return;
 
                 St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, symbolToCopy);
 
-                // Check if auto-paste is enabled
                 if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-symbols')) {
                     await getAutoPaster().trigger();
                 }
@@ -110,67 +110,6 @@ export const SymbolsTabContent = GObject.registerClass(
             } catch (e) {
                 console.error('[AIO-Clipboard] Error in symbols item selection:', e);
             }
-        }
-
-        // =====================================================================
-        // Functions for Viewer Configuration
-        // =====================================================================
-
-        /**
-         * Search filter function passed to the viewer.
-         * @param {object} item - The symbol data object.
-         * @param {string} searchText - The user's search text.
-         * @returns {boolean} True if the item matches the search.
-         * @private
-         */
-        _searchFilter(item, searchText) {
-            // Prepare the user's input once, stripping any prefixes.
-            const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
-
-            // Check keywords first if available.
-            if (item.keywords && Array.isArray(item.keywords)) {
-                // Compare the clean search text against all keywords.
-                return item.keywords.some((k) => k.toLowerCase().includes(cleanSearchText));
-            }
-
-            // Check symbol string and name.
-            const symbolString = item.char || item.value || '';
-            return symbolString.toLowerCase().includes(cleanSearchText) || (item.name && item.name.toLowerCase().includes(cleanSearchText));
-        }
-
-        _renderGridItem(itemData) {
-            // Get the symbol string to display
-            const displayString = itemData.symbol || itemData.char || itemData.value;
-            if (!displayString) return new St.Button();
-
-            const button = new St.Button({
-                style_class: 'symbol-grid-button button',
-                label: displayString,
-                can_focus: true,
-                x_expand: false,
-            });
-
-            // Set tooltip to the name if available, otherwise use the symbol itself.
-            button.tooltip_text = itemData.name || displayString;
-            return button;
-        }
-
-        /**
-         * Renders a category tab button, passed to the viewer.
-         * @param {string} categoryId - The name of the category.
-         * @returns {St.Button} The configured button for the category tab bar.
-         * @private
-         */
-        _renderCategoryButton(categoryId) {
-            const button = new St.Button({
-                style_class: 'symbol-category-tab-button button',
-                can_focus: true,
-                label: _(categoryId),
-                x_expand: false,
-                x_align: Clutter.ActorAlign.START,
-            });
-            button.tooltip_text = _(categoryId);
-            return button;
         }
 
         // =====================================================================
@@ -189,13 +128,11 @@ export const SymbolsTabContent = GObject.registerClass(
          * Cleans up resources when the widget is destroyed.
          */
         destroy() {
-            // Disconnect the shared 'always-show-main-tab' signal
             if (this._alwaysShowTabsSignalId) {
                 this._settings?.disconnect(this._alwaysShowTabsSignalId);
             }
             this._alwaysShowTabsSignalId = 0;
 
-            // Destroy the child viewer component
             this._viewer?.destroy();
             super.destroy();
         }

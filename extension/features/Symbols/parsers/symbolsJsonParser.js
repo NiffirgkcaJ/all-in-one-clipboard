@@ -25,7 +25,6 @@ export class SymbolsJsonParser {
      *   Each object includes `symbol`, `name`, `category`, `codepoint`, and `keywords`.
      */
     parse(jsonData) {
-        // Access the 'data' key to get the array we need to process.
         const rawCategoryData = jsonData.data;
         const standardizedData = [];
 
@@ -35,16 +34,13 @@ export class SymbolsJsonParser {
         }
 
         for (const categoryEntry of rawCategoryData) {
-            // Validate the structure of each top-level category object.
             if (!categoryEntry || typeof categoryEntry.name !== 'string' || !Array.isArray(categoryEntry.symbols)) {
                 continue;
             }
 
             const categoryName = dgettext(DATA_DOMAIN, categoryEntry.name.trim());
 
-            // Loop through symbol objects instead of strings.
             for (const symbolObject of categoryEntry.symbols) {
-                // Validate the new symbol object structure.
                 if (!symbolObject || typeof symbolObject.symbol !== 'string' || typeof symbolObject.name !== 'string') {
                     continue;
                 }
@@ -52,20 +48,18 @@ export class SymbolsJsonParser {
                 const symbolChar = symbolObject.symbol.trim();
                 if (symbolChar === '') continue;
 
-                // Localize the symbol name.
                 const symbolName = dgettext(DATA_DOMAIN, symbolObject.name);
                 const codepoint = symbolObject.codepoint || '';
 
-                // Collect keywords for searching.
                 const allKeywords = [
                     symbolObject.symbol.trim(),
                     symbolName,
                     categoryName,
                     codepoint,
-                    codepoint.replace(/^u\+/i, ''), // Search without the "U+" prefix
+                    codepoint.replace(/^u\+/i, ''),
                     categoryEntry.slug || '',
                     symbolObject.category_code || '',
-                ].filter(Boolean); // Filter out any empty/null values
+                ].filter(Boolean);
 
                 standardizedData.push({
                     symbol: symbolObject.symbol.trim(),

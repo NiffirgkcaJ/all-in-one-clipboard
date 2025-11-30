@@ -17,7 +17,6 @@ class GifCacheManager {
         this._settings = settings;
         this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid, 'gif-previews']);
 
-        // Instantiate the Debouncer class.
         this._debouncer = new Debouncer(() => {
             this._runCleanup();
         }, 5000);
@@ -60,16 +59,15 @@ class GifCacheManager {
         try {
             const dir = Gio.File.new_for_path(this._gifCacheDir);
             if (!dir.query_exists(null)) {
-                return; // Nothing to clear
+                return;
             }
 
-            // Asynchronously list all files in the directory
             dir.enumerate_children_async('standard::name', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null, (source, res) => {
                 try {
                     const enumerator = source.enumerate_children_finish(res);
                     this._deleteFilesInEnumerator(enumerator, dir);
                 } catch {
-                    // Ignore errors if file doesn't exist
+                    /* ignore */
                 }
             });
         } catch (e) {
@@ -97,24 +95,21 @@ class GifCacheManager {
             try {
                 const files = source.next_files_finish(res);
                 if (files.length === 0) {
-                    // No more files, we are done.
-                    enumerator.close_async(GLib.PRIORITY_DEFAULT, null, null); // Clean up the enumerator
+                    enumerator.close_async(GLib.PRIORITY_DEFAULT, null, null);
                     return;
                 }
 
-                // Delete each file found in this batch
                 for (const fileInfo of files) {
                     const child = parentDir.get_child(fileInfo.get_name());
                     child.delete_async(GLib.PRIORITY_DEFAULT, null, (sourceDelete, resDelete) => {
                         try {
                             sourceDelete.delete_finish(resDelete);
                         } catch {
-                            // Ignore if a file couldn't be deleted (e.g., already gone)
+                            /* ignore */
                         }
                     });
                 }
 
-                // Look for the next batch of files
                 this._deleteFilesInEnumerator(enumerator, parentDir);
             } catch (e) {
                 console.error(`[AIO-Clipboard] Error while deleting cache files: ${e.message}`);

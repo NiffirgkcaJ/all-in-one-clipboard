@@ -19,13 +19,7 @@ import { RecentItemsManager } from '../../utilities/utilityRecents.js';
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../utilities/utilityHorizontalScrollView.js';
-
-// Constants
-const GIF_PROVIDER_KEY = 'gif-provider';
-const GIF_RECENTS_MAX_ITEMS_KEY = 'gif-recents-max-items';
-const RECENTS_ICON_FILENAME = 'utility-recents-symbolic.svg';
-const SEARCH_DEBOUNCE_TIME_MS = 300;
-const ITEMS_PER_ROW = 4;
+import { GifSettings, GifUI, GifIcons } from './constants/gifConstants.js';
 
 /**
  * GIFTabContent - Main UI component for the GIF tab.
@@ -101,17 +95,16 @@ export const GIFTabContent = GObject.registerClass(
             this._infoBar = null;
             this._currentSearchQuery = null;
             this._currentLoadingSession = null;
-            this._provider = this._settings.get_string(GIF_PROVIDER_KEY);
+            this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
 
             this._searchDebouncer = new Debouncer((query) => {
                 this._performSearch(query).catch((e) => {
                     this._renderErrorState(e.message);
                 });
-            }, SEARCH_DEBOUNCE_TIME_MS);
+            }, GifUI.SEARCH_DEBOUNCE_TIME_MS);
 
             this._buildUISkeleton();
 
-            // Initialize Item Factory after UI skeleton (needs scrollView)
             this._itemFactory = new GifItemFactory(this._downloadService, this._gifCacheDir, this._scrollView);
 
             this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._updateBackButtonPreference());
@@ -285,7 +278,7 @@ export const GIFTabContent = GObject.registerClass(
 
             // Create the Masonry view for displaying GIFs
             this._masonryView = new MasonryLayout({
-                columns: ITEMS_PER_ROW,
+                columns: GifUI.ITEMS_PER_ROW,
                 spacing: 2,
                 renderItemFn: (itemData) => {
                     const bin = this._itemFactory.createItem(itemData, this._onGifSelected.bind(this));
@@ -297,7 +290,6 @@ export const GIFTabContent = GObject.registerClass(
                 visible: true, // Start visible
             });
 
-            // Create the Bin that will hold info/error messages
             this._infoBin = new St.Bin({
                 x_expand: true,
                 y_expand: true,
@@ -308,16 +300,13 @@ export const GIFTabContent = GObject.registerClass(
             this._infoLabel = new St.Label();
             this._infoBin.set_child(this._infoLabel);
 
-            // Add both to the container. We will toggle their visibility.
             this._scrollableContainer.add_child(this._masonryView);
             this._scrollableContainer.add_child(this._infoBin);
 
-            // Handle key navigation from the grid to the search/header
             this._scrollableContainer.reactive = true;
-            this._scrollableContainer.connect('key-press-event', (actor, event) => {
+            this._scrollableContainer.connect('key-press-event', (_actor, event) => {
                 const symbol = event.get_key_symbol();
                 if (symbol === Clutter.KEY_Up) {
-                    // This event propagated up, meaning we hit the grid's top edge.
                     const searchWidget = this._searchComponent?.getWidget();
                     if (searchWidget && searchWidget.visible) {
                         this._searchComponent.grabFocus();
@@ -362,8 +351,8 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _connectProviderChangedSignal() {
-            this._providerChangedSignalId = this._settings.connect(`changed::${GIF_PROVIDER_KEY}`, () => {
-                this._provider = this._settings.get_string(GIF_PROVIDER_KEY);
+            this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
+                this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
             });
         }
 
@@ -404,7 +393,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         _initializeRecentsManager() {
             if (!this._recentItemsManager) {
-                this._recentItemsManager = new RecentItemsManager(this._extension.uuid, this._settings, 'recent_gifs.json', GIF_RECENTS_MAX_ITEMS_KEY);
+                this._recentItemsManager = new RecentItemsManager(this._extension.uuid, this._settings, 'recent_gifs.json', GifSettings.RECENTS_MAX_ITEMS_KEY);
 
                 this._recentsSignalId = this._recentItemsManager.connect('recents-changed', () => {
                     if (this._activeCategory?.id === 'recents') {
@@ -469,7 +458,6 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _setInitialCategory() {
-            // Default to trending since it's always available
             const trendingCategory = this._tabButtons['trending']?.categoryData;
 
             if (trendingCategory) {
@@ -490,7 +478,6 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _createHeaderButton(categoryData, params) {
-            // Extract tooltip_text so it isn't passed to the constructor
             const { tooltip_text, ...constructorParams } = params;
 
             const button = new St.Button({
@@ -498,23 +485,18 @@ export const GIFTabContent = GObject.registerClass(
                 ...constructorParams,
             });
 
-            // Set tooltip explicitly after creation
             if (tooltip_text) {
                 button.tooltip_text = tooltip_text;
             }
 
-            // Attach Data
             button.categoryData = categoryData;
 
-            // Connect Focus Signal
             button.connect('key-focus-in', () => {
                 scrollToItemCentered(this.headerScrollView, button);
             });
 
-            // Connect Click Signal
             button.connect('clicked', () => this._setActiveCategory(categoryData));
 
-            // Register in internal lists
             this._tabButtons[categoryData.id] = button;
             this.headerBox.add_child(button);
             this._headerFocusables.push(button);
@@ -533,7 +515,7 @@ export const GIFTabContent = GObject.registerClass(
                 isSpecial: true,
             };
 
-            const iconWidget = createThemedIcon(RECENTS_ICON_FILENAME, 16);
+            const iconWidget = createThemedIcon(GifIcons.RECENTS, 16);
 
             this._createHeaderButton(category, {
                 style_class: 'aio-clipboard-tab-button button',
@@ -592,13 +574,11 @@ export const GIFTabContent = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            // Check Next Category Shortcuts
             if (eventMatchesShortcut(event, this._settings, 'shortcut-next-category')) {
                 this._cycleCategory(1);
                 return Clutter.EVENT_STOP;
             }
 
-            // Check Previous Category Shortcuts
             if (eventMatchesShortcut(event, this._settings, 'shortcut-prev-category')) {
                 this._cycleCategory(-1);
                 return Clutter.EVENT_STOP;
@@ -612,12 +592,10 @@ export const GIFTabContent = GObject.registerClass(
          * @param {number} direction
          */
         _cycleCategory(direction) {
-            // Get available tabs
             const children = this.headerBox.get_children();
             const categories = [];
 
             children.forEach((child) => {
-                // We stored the category data on the button object in _addCategoryButton
                 if (child.categoryData) {
                     categories.push(child.categoryData);
                 }
@@ -625,18 +603,14 @@ export const GIFTabContent = GObject.registerClass(
 
             if (categories.length <= 1) return;
 
-            // Find current index
             const currentIndex = categories.findIndex((c) => c.id === this._activeCategory?.id);
             if (currentIndex === -1) return;
 
-            // Calculate new index
             let newIndex = (currentIndex + direction) % categories.length;
             if (newIndex < 0) newIndex += categories.length;
 
-            // Activate
             this._setActiveCategory(categories[newIndex]);
 
-            // Ensure the button is visible in the scroll view
             const button = this._tabButtons[categories[newIndex].id];
             if (button) {
                 GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
@@ -669,7 +643,6 @@ export const GIFTabContent = GObject.registerClass(
             }
 
             if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
-                // Use FocusUtils for linear navigation with trapped boundaries
                 return FocusUtils.handleLinearNavigation(event, this._headerFocusables, currentIndex);
             }
 
@@ -746,7 +719,6 @@ export const GIFTabContent = GObject.registerClass(
             this._activeCategory = category;
             this._highlightTab(category.id);
 
-            // Clear search bar without triggering search
             this._isClearingForCategoryChange = true;
             this._searchComponent.clearSearch();
             this._isClearingForCategoryChange = false;
@@ -762,7 +734,6 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _loadCategoryContent(category) {
-            // Generate a new session ID for this load
             const sessionId = Symbol('loading-session');
             this._currentLoadingSession = sessionId;
 
@@ -1199,7 +1170,7 @@ export const GIFTabContent = GObject.registerClass(
         onTabSelected() {
             this.emit('set-main-tab-bar-visibility', false);
 
-            const currentProvider = this._settings.get_string(GIF_PROVIDER_KEY);
+            const currentProvider = this._settings.get_string(GifSettings.PROVIDER_KEY);
 
             if (this._provider !== currentProvider) {
                 this._provider = currentProvider;

@@ -52,7 +52,6 @@ export const ClipboardManager = GObject.registerClass(
             this._imagesDir = GLib.build_filenamev([this._dataDir, 'images']);
             this._textsDir = GLib.build_filenamev([this._dataDir, 'texts']);
 
-            // Expose images directory for external use
             this.imagesDir = this._imagesDir;
 
             this._historyFile = Gio.File.new_for_path(GLib.build_filenamev([this._cacheDir, 'history_clipboard.json']));

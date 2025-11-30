@@ -45,16 +45,13 @@ export const ClipboardTabContent = GObject.registerClass(
             this._settings = settings;
             this._manager = manager;
 
-            // Read the image size setting
             this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
 
-            // Listen for changes to the setting
             this._settingSignalId = this._settings.connect('changed::clipboard-image-preview-size', () => {
                 this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
                 this._redraw();
             });
 
-            // State management
             this._selectedIds = new Set();
             this._currentSearchText = '';
             this._allItems = [];
@@ -63,7 +60,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._currentlyFocusedRow = null;
             this._checkboxIconsMap = new Map();
 
-            // Main container
             this._mainBox = new St.BoxLayout({
                 vertical: true,
                 style_class: 'aio-clipboard-container',
@@ -71,7 +67,6 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             this.set_child(this._mainBox);
 
-            // Build UI components
             this._buildSearchComponent();
             this._buildSelectionBar();
             this._buildScrollableList();
@@ -124,7 +119,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectAllButton.connect('clicked', () => this._onSelectAllClicked());
             selectionBar.add_child(this._selectAllButton);
 
-            // Action buttons container (right-aligned)
             const actionButtonsBox = new St.BoxLayout({
                 x_expand: true,
                 x_align: Clutter.ActorAlign.END,
@@ -145,7 +139,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
             actionButtonsBox.add_child(this._privateModeButton);
 
-            // Pin Selected button (for pinning/unpinning)
             this._pinSelectedButton = new St.Button({
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
@@ -158,7 +151,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
             this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
-            // Delete Selected button
             this._deleteSelectedButton = new St.Button({
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
@@ -332,7 +324,6 @@ export const ClipboardTabContent = GObject.registerClass(
             const shouldSelectAll = this._selectedIds.size < this._allItems.length;
 
             if (shouldSelectAll) {
-                // Select all items
                 this._allItems.forEach((item) => {
                     this._selectedIds.add(item.id);
                     const icon = this._checkboxIconsMap.get(item.id);
@@ -341,7 +332,6 @@ export const ClipboardTabContent = GObject.registerClass(
                     }
                 });
             } else {
-                // Deselect all items
                 this._selectedIds.clear();
                 this._allItems.forEach((item) => {
                     const icon = this._checkboxIconsMap.get(item.id);
@@ -421,12 +411,10 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             if (copySuccess) {
-                // Check if auto-paste is enabled
                 if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-clipboard')) {
                     await getAutoPaster().trigger();
                 }
 
-                // Promote copied item to top
                 this._manager.promoteItemToTop(itemData.id);
             }
 

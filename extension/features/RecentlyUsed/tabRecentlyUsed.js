@@ -2,25 +2,18 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Pango from 'gi://Pango';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
-import { ClipboardItemFactory } from '../Clipboard/view/clipboardItemFactory.js';
 import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
+import { FocusUtils } from '../../utilities/utilityFocus.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { RecentItemsManager } from '../../utilities/utilityRecents.js';
+import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
-import { FocusUtils } from '../../utilities/utilityFocus.js';
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const PINNED_ITEM_HEIGHT = 48;
-const MAX_PINNED_DISPLAY_COUNT = 5;
+import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
 // ============================================================================
 // RecentlyUsedTabContent Class
@@ -53,7 +46,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         constructor(extension, settings, clipboardManager) {
             super({
                 vertical: true,
-                style_class: 'recently-used-tab-content',
+                style_class: RecentlyUsedStyles.TAB_CONTENT,
                 x_expand: true,
                 y_expand: true,
             });
@@ -68,23 +61,16 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._clipboardManager = clipboardManager;
             this._settingsBtnFocusTimeoutId = 0;
 
-            // Read the image size setting
-            this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-
-            // Store recent managers for different feature types
+            this._imagePreviewSize = this._settings.get_int(RecentlyUsedSettings.CLIPBOARD_IMAGE_PREVIEW_SIZE);
             this._recentManagers = {};
-
-            // Track connected signals for cleanup
             this._signalIds = [];
-
-            // Store section UI elements
             this._sections = {};
 
-            // 2D grid representing focusable elements for keyboard navigation
+            // 2D grid for keyboard navigation
             this._focusGrid = [];
             this._renderSession = null;
 
-            // Outer scroll lock mechanism for custom scroll containers
+            // Scroll lock mechanism prevents auto-scroll when nested scroll views have focus
             this._outerScrollLocked = false;
             this._lockedScrollValue = 0;
             this._scrollLockHandler = null;
@@ -93,7 +79,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._buildUI();
 
-            // Store the promise so the creator can wait for initialization to complete.
             this.initializationPromise = this._loadRecentManagers()
                 .then(() => this._connectSignalsAndRender())
                 .catch((e) => console.error('[AIO-Clipboard] Failed to load recent managers:', e));
@@ -108,7 +93,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _buildUI() {
-            // Create a main wrapper that will hold everything
             const wrapper = new St.Widget({
                 layout_manager: new Clutter.BinLayout(),
                 x_expand: true,
@@ -116,14 +100,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             });
             this.add_child(wrapper);
 
-            // Layer 1: Scrollable content container (bottom layer)
             this._scrollView = new St.ScrollView({
                 hscrollbar_policy: St.PolicyType.NEVER,
                 vscrollbar_policy: St.PolicyType.AUTOMATIC,
                 x_expand: true,
                 y_expand: true,
                 overlay_scrollbars: true,
-                visible: false, // Start hidden, show only if there's content
+                visible: false,
             });
 
             this._scrollView.connect('scroll-event', () => {
@@ -135,55 +118,30 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._mainContainer = new St.BoxLayout({
                 vertical: true,
-                style_class: 'recently-used-container',
+                style_class: RecentlyUsedStyles.CONTAINER,
             });
             this._scrollView.set_child(this._mainContainer);
 
-            // Layer 2: Empty view (bottom layer, alternative to scroll view)
-            this._emptyView = new St.Bin({
-                x_expand: true,
-                y_expand: true,
-                visible: false,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            this._emptyView.set_child(new St.Label({ text: _('No recent items yet.') }));
+            this._emptyView = RecentlyUsedViewRenderer.createEmptyView();
             wrapper.add_child(this._emptyView);
 
-            // Layer 3: Floating settings button (top layer, positioned at bottom-right)
-            this._settingsBtn = new St.Button({
-                style_class: 'recently-used-settings-button button',
-                child: new St.Icon({
-                    icon_name: 'emblem-system-symbolic',
-                    style_class: 'popup-menu-icon',
-                }),
-                can_focus: false,
-                reactive: true,
-                x_expand: true,
-                y_expand: true,
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.END,
-            });
+            this._settingsBtn = RecentlyUsedViewRenderer.createSettingsButton();
             this._settingsBtn.connect('clicked', () => {
                 const returnValue = this._extension.openPreferences();
 
                 if (returnValue && typeof returnValue.catch === 'function') {
-                    returnValue.catch(() => {
-                        // Ignore errors from user closing the window
-                    });
+                    returnValue.catch(() => {});
                 }
             });
             wrapper.add_child(this._settingsBtn);
 
-            // Add all content sections
-            this._addSection('pinned', _('Pinned Clipboard'), _('Clipboard'));
-            this._addSection('emoji', _('Recent Emojis'), _('Emoji'));
-            this._addSection('gif', _('Recent GIFs'), _('GIF'));
-            this._addSection('kaomoji', _('Recent Kaomojis'), _('Kaomoji'));
-            this._addSection('symbols', _('Recent Symbols'), _('Symbols'));
-            this._addSection('clipboard', _('Recent Clipboard History'), _('Clipboard'));
+            this._addSection(RecentlyUsedSections.PINNED);
+            this._addSection(RecentlyUsedSections.EMOJI);
+            this._addSection(RecentlyUsedSections.GIF);
+            this._addSection(RecentlyUsedSections.KAOMOJI);
+            this._addSection(RecentlyUsedSections.SYMBOLS);
+            this._addSection(RecentlyUsedSections.CLIPBOARD);
 
-            // Enable keyboard navigation
             this.reactive = true;
             this.connect('key-press-event', this._onKeyPress.bind(this));
         }
@@ -191,39 +149,22 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         /**
          * Add a collapsible section with header and "Show All" button
          *
-         * @param {string} id - Unique identifier for the section
-         * @param {string} title - Display title for the section header
-         * @param {string} tabToNavigateTo - Target tab name when "Show All" is clicked
+         * @param {object} sectionConfig - Section configuration from RecentlyUsedSections
          * @private
          */
-        _addSection(id, title, tabToNavigateTo) {
-            // Separator line
-            const separator = new St.Widget({
-                style_class: 'recently-used-separator',
-                visible: false,
-            });
+        _addSection(sectionConfig) {
+            const separator = RecentlyUsedViewRenderer.createSectionSeparator();
             this._mainContainer.add_child(separator);
 
-            // Section container
             const section = new St.BoxLayout({
                 vertical: true,
-                style_class: 'recently-used-section',
+                style_class: RecentlyUsedStyles.SECTION,
                 x_expand: true,
             });
 
-            // Header with title and "Show All" button
-            const header = new St.BoxLayout({
-                style_class: 'recently-used-header',
-                x_expand: true,
-            });
-
-            const showAllBtn = new St.Button({
-                label: _('Show All'),
-                style_class: 'recently-used-show-all-button button',
-                can_focus: true,
-            });
+            const { header, showAllBtn } = RecentlyUsedViewRenderer.createSectionHeader(sectionConfig.getTitle());
             showAllBtn.connect('clicked', () => {
-                this.emit('navigate-to-main-tab', tabToNavigateTo);
+                this.emit('navigate-to-main-tab', sectionConfig.targetTab);
             });
 
             showAllBtn.connect('key-focus-in', () => {
@@ -235,27 +176,17 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 });
             });
 
-            header.add_child(
-                new St.Label({
-                    text: title,
-                    style_class: 'recently-used-title',
-                    x_expand: true,
-                }),
-            );
-            header.add_child(showAllBtn);
+            section.add_child(header);
 
-            // Body container for dynamic content
             const bodyContainer = new St.Bin({
                 x_expand: true,
                 x_align: Clutter.ActorAlign.FILL,
             });
 
-            section.add_child(header);
             section.add_child(bodyContainer);
             this._mainContainer.add_child(section);
 
-            // Store the separator along with the other section parts
-            this._sections[id] = { section, showAllBtn, bodyContainer, separator };
+            this._sections[sectionConfig.id] = { section, showAllBtn, bodyContainer, separator };
         }
 
         // ========================================================================
@@ -268,16 +199,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @async
          */
         async _loadRecentManagers() {
-            const features = ['emoji', 'kaomoji', 'symbols', 'gif'];
-            const config = {
-                emoji: { file: 'recent_emojis.json', key: 'emoji-recents-max-items' },
-                kaomoji: { file: 'recent_kaomojis.json', key: 'kaomoji-recents-max-items' },
-                symbols: { file: 'recent_symbols.json', key: 'symbols-recents-max-items' },
-                gif: { file: 'recent_gifs.json', key: 'gif-recents-max-items' },
-            };
+            const features = [RecentlyUsedFeatures.EMOJI, RecentlyUsedFeatures.KAOMOJI, RecentlyUsedFeatures.SYMBOLS, RecentlyUsedFeatures.GIF];
 
             for (const feature of features) {
-                this._recentManagers[feature] = new RecentItemsManager(this._extension.uuid, this._settings, config[feature].file, config[feature].key);
+                this._recentManagers[feature.id] = new RecentItemsManager(this._extension.uuid, this._settings, feature.filename, feature.maxItemsKey);
             }
         }
 
@@ -286,7 +211,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _connectSignalsAndRender() {
-            // Listen for clipboard changes
             this._signalIds.push({
                 obj: this._clipboardManager,
                 id: this._clipboardManager.connect('history-changed', () => this._renderAll()),
@@ -296,7 +220,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 id: this._clipboardManager.connect('pinned-list-changed', () => this._renderAll()),
             });
 
-            // Listen for recent item changes
             Object.entries(this._recentManagers).forEach(([_feature, manager]) => {
                 this._signalIds.push({
                     obj: manager,
@@ -319,7 +242,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._renderSession = {};
             this._focusGrid = [];
 
-            // Hide all separators before we begin rendering
             for (const id in this._sections) {
                 this._sections[id].separator.visible = false;
             }
@@ -331,8 +253,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._renderGridSection('symbols');
             this._renderListSection('clipboard');
 
-            const sectionOrder = ['pinned', 'emoji', 'gif', 'kaomoji', 'symbols', 'clipboard'];
-            const visibleSections = sectionOrder.map((id) => this._sections[id]).filter((s) => s && s.section.visible);
+            const visibleSections = RecentlyUsedUI.SECTION_ORDER.map((id) => this._sections[id]).filter((s) => s && s.section.visible);
 
             if (visibleSections.length === 0) {
                 this._scrollView.visible = false;
@@ -341,7 +262,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._scrollView.visible = true;
                 this._emptyView.visible = false;
 
-                // Show separators for all but the first visible section
                 for (let i = 1; i < visibleSections.length; i++) {
                     visibleSections[i].separator.visible = true;
                 }
@@ -367,12 +287,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._focusGrid.push([sectionData.showAllBtn]);
 
             const container = new St.BoxLayout({ vertical: true, x_expand: true });
-            const useNestedScroll = items.length > MAX_PINNED_DISPLAY_COUNT;
+            const useNestedScroll = items.length > RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT;
             let pinnedScrollView = null;
 
             const pinnedWidgets = new Set();
 
-            // Add nested scroll view if too many pinned items
             if (useNestedScroll) {
                 pinnedScrollView = new St.ScrollView({
                     hscrollbar_policy: St.PolicyType.NEVER,
@@ -380,7 +299,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     overlay_scrollbars: true,
                     x_expand: true,
                 });
-                pinnedScrollView.style = `height: ${MAX_PINNED_DISPLAY_COUNT * PINNED_ITEM_HEIGHT}px;`;
+                pinnedScrollView.style = `height: ${RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT * RecentlyUsedUI.PINNED_ITEM_HEIGHT}px;`;
 
                 pinnedScrollView.set_child(container);
                 sectionData.bodyContainer.set_child(pinnedScrollView);
@@ -406,7 +325,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
                 pinnedWidgets.add(widget);
 
-                // Set up scroll adjustment based on whether we're using nested scroll
                 if (useNestedScroll) {
                     widget.connect('key-focus-in', () => {
                         const isEnteringFromOutside = !pinnedWidgets.has(this._previousFocus);
@@ -419,7 +337,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                                     ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
                                     ensureActorVisibleInScrollView(pinnedScrollView, widget);
 
-                                    // Wait for scroll animation before locking
                                     this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
                                         this._lockTimeoutId = null;
                                         this._lockOuterScroll();
@@ -473,27 +390,23 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         _renderListSection(id) {
             const sectionData = this._sections[id];
             const settingKeyMap = {
-                kaomoji: 'enable-kaomoji-tab',
-                clipboard: 'enable-clipboard-tab',
+                kaomoji: RecentlyUsedSettings.ENABLE_KAOMOJI_TAB,
+                clipboard: RecentlyUsedSettings.ENABLE_CLIPBOARD_TAB,
             };
 
-            // If the corresponding tab for this section is disabled in preferences, hide the section.
             const settingKey = settingKeyMap[id];
             if (settingKey && !this._settings.get_boolean(settingKey)) {
                 sectionData.section.hide();
                 return;
             }
 
-            // Get the data for this section
             const items = id === 'kaomoji' ? this._recentManagers.kaomoji.getRecents().slice(0, 5) : this._clipboardManager.getHistoryItems().slice(0, 5);
 
-            // If there are no items to show, hide the section.
             if (items.length === 0) {
                 sectionData.section.hide();
                 return;
             }
 
-            // If both rules pass, show and build the section.
             sectionData.section.show();
             this._focusGrid.push([sectionData.showAllBtn]);
 
@@ -519,12 +432,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const sectionData = this._sections[id];
             const manager = this._recentManagers[id];
             const settingKeyMap = {
-                emoji: 'enable-emoji-tab',
-                gif: 'enable-gif-tab',
-                symbols: 'enable-symbols-tab',
+                emoji: RecentlyUsedSettings.ENABLE_EMOJI_TAB,
+                gif: RecentlyUsedSettings.ENABLE_GIF_TAB,
+                symbols: RecentlyUsedSettings.ENABLE_SYMBOLS_TAB,
             };
 
-            // If the corresponding tab for this section is disabled in preferences, hide the section.
             const settingKey = settingKeyMap[id];
             if (settingKey && !this._settings.get_boolean(settingKey)) {
                 sectionData.section.hide();
@@ -533,23 +445,20 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             if (!manager) return;
 
-            // Get the data for this section
             const items = manager.getRecents().slice(0, 5);
 
-            // If there are no items to show, hide the section.
             if (items.length === 0) {
                 sectionData.section.hide();
                 return;
             }
 
-            // If both rules pass, show and build the section.
             sectionData.section.show();
             this._focusGrid.push([sectionData.showAllBtn]);
 
             const grid = new St.Widget({
                 layout_manager: new Clutter.GridLayout({
                     column_homogeneous: true,
-                    column_spacing: 4,
+                    column_spacing: RecentlyUsedUI.GRID_COLUMN_SPACING,
                 }),
                 x_expand: true,
             });
@@ -561,6 +470,21 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 const widget = this._createGridItem(item, id);
                 layout.attach(widget, index, 0, 1, 1);
                 sectionFocusables.push(widget);
+
+                if (id === 'gif' && item.preview_url) {
+                    const context = {
+                        httpSession: this._httpSession,
+                        gifCacheDir: this._gifCacheDir,
+                        isDestroyed: () => this._isDestroyed,
+                        currentRenderSession: () => this._renderSession,
+                        getGifCacheManager,
+                    };
+                    RecentlyUsedViewRenderer.updateGifButtonWithPreview(widget, item.preview_url, this._renderSession, context).catch((e) => {
+                        if (!e.message.startsWith('Recently Used Tab')) {
+                            console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${e.message}`);
+                        }
+                    });
+                }
             });
 
             this._focusGrid.push(sectionFocusables);
@@ -581,72 +505,15 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _createFullWidthClipboardItem(itemData, isPinned, feature = 'clipboard') {
-            const isKaomoji = itemData.type === 'kaomoji';
-            const isClipboardItem = feature === 'clipboard';
+            const context = {
+                clipboardManager: this._clipboardManager,
+                imagePreviewSize: this._imagePreviewSize,
+            };
 
-            // Start with the base class
-            let styleClass = 'button recently-used-list-item';
+            const button = RecentlyUsedViewRenderer.createFullWidthListItem(itemData, isPinned, feature, context);
 
-            // Add the text class if it's kaomoji or a rich clipboard item
-            if (isKaomoji) {
-                styleClass += ' recently-used-bold-item';
-            } else if (isClipboardItem && itemData.type === ClipboardType.IMAGE) {
-                styleClass += ' recently-used-normal-item';
-            }
-
-            const button = new St.Button({
-                style_class: styleClass,
-                can_focus: true,
-                x_expand: true,
-            });
-
-            const box = new St.BoxLayout({
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                x_align: isKaomoji || itemData.type === ClipboardType.IMAGE ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL,
-            });
-            box.spacing = 8;
-            button.set_child(box);
-
-            if (isKaomoji) {
-                box.add_child(
-                    new St.Label({
-                        text: itemData.preview || '',
-                        y_align: Clutter.ActorAlign.CENTER,
-                        x_align: Clutter.ActorAlign.CENTER,
-                    }),
-                );
-            } else if (isClipboardItem) {
-                // Use the factory for all clipboard items
-                const config = ClipboardItemFactory.getItemViewConfig(itemData, this._clipboardManager._imagesDir, this._clipboardManager._linkPreviewsDir);
-                const contentWidget = ClipboardItemFactory.createContentWidget(config, itemData, {
-                    imagesDir: this._clipboardManager._imagesDir,
-                    imagePreviewSize: this._imagePreviewSize,
-                });
-
-                // Special handling for image height in Recently Used
-                if (itemData.type === ClipboardType.IMAGE) {
-                    const minHeight = Math.max(this._imagePreviewSize);
-                    button.set_style(`min-height: ${minHeight}px;`);
-                    box.y_expand = true;
-                    box.y_align = Clutter.ActorAlign.FILL;
-                }
-
-                box.add_child(contentWidget);
-            } else {
-                // Fallback for other types (shouldn't happen with current features)
-                const label = new St.Label({
-                    text: itemData.preview || '',
-                    x_expand: true,
-                });
-                label.get_clutter_text().set_line_wrap(false);
-                label.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-                box.add_child(label);
-            }
-
-            // Handle click events
             button.connect('clicked', () => {
-                this._onItemClicked(isKaomoji ? itemData.rawItem : itemData, feature);
+                this._onItemClicked(itemData.type === 'kaomoji' ? itemData.rawItem : itemData, feature);
             });
 
             button.connect('key-focus-in', () => {
@@ -667,28 +534,16 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * Create a grid item button for emoji/GIF/symbol content
          *
          * @param {object} itemData - Item data
+         * @param {string} feature - Feature type ('emoji', 'gif', 'symbols')
          * @returns {St.Button} The created button widget
          * @private
          */
         _createGridItem(itemData, feature) {
-            const button = new St.Button({
-                style_class: 'button recently-used-grid-item',
-                can_focus: true,
-            });
-
-            if (feature === 'gif') {
-                this._setStretchedGifIcon(button, itemData.preview_url, this._renderSession);
-                button.tooltip_text = itemData.description || _('GIF');
-            } else {
-                button.label = itemData.char || itemData.value || '';
-                button.tooltip_text = itemData.name || button.label;
-            }
+            const button = RecentlyUsedViewRenderer.createGridItem(itemData, feature);
 
             button.connect('clicked', () => this._onItemClicked(itemData, feature));
 
-            // Ensure button scrolls into view when focused
             button.connect('key-focus-in', () => {
-                // Unlock outer scroll for grid items
                 this._unlockOuterScroll();
 
                 GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
@@ -713,20 +568,20 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @async
          */
         async _onItemClicked(itemData, feature) {
-            const featureKeyMap = {
-                emoji: 'auto-paste-emoji',
-                gif: 'auto-paste-gif',
-                kaomoji: 'auto-paste-kaomoji',
-                symbols: 'auto-paste-symbols',
-                clipboard: 'auto-paste-clipboard',
+            const featureConfigs = {
+                emoji: RecentlyUsedFeatures.EMOJI,
+                gif: RecentlyUsedFeatures.GIF,
+                kaomoji: RecentlyUsedFeatures.KAOMOJI,
+                symbols: RecentlyUsedFeatures.SYMBOLS,
             };
+            const featureConfig = featureConfigs[feature];
+            const autoPasteKey = featureConfig ? featureConfig.autoPasteKey : RecentlyUsedSettings.AUTO_PASTE_CLIPBOARD;
 
             let copySuccess = false;
 
             if (feature === 'clipboard') {
                 copySuccess = await this._copyClipboardItemToSystem(itemData);
             } else {
-                // This handles emojis, GIFs, kaomojis, symbols
                 const contentToCopy = itemData.full_url || itemData.char || itemData.value || '';
                 if (contentToCopy) {
                     St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, contentToCopy);
@@ -735,13 +590,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             }
 
             if (copySuccess) {
-                // If the item was from the clipboard, tell the manager to handle its state.
                 if (feature === 'clipboard') {
                     this._clipboardManager.promoteItemToTop(itemData.id);
                 }
 
-                // Check if auto-paste is enabled
-                if (AutoPaster.shouldAutoPaste(this._settings, featureKeyMap[feature])) {
+                if (AutoPaster.shouldAutoPaste(this._settings, autoPasteKey)) {
                     await getAutoPaster().trigger();
                 }
             }
@@ -784,7 +637,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 copySuccess = true;
             } else if (itemData.type === ClipboardType.IMAGE) {
                 try {
-                    // If this image was originally copied from a file, paste it as a file URI
                     if (itemData.file_uri) {
                         const clipboard = St.Clipboard.get_default();
                         const uriList = itemData.file_uri + '\r\n';
@@ -792,12 +644,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                         clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
                         copySuccess = true;
                     } else {
-                        // Otherwise, paste the image bytes
                         const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
                         const file = Gio.File.new_for_path(imagePath);
 
-                        // Determine MIME type from filename
-                        let mimetype = 'image/png'; // Default
+                        let mimetype = 'image/png';
                         const lowerCaseFilename = itemData.image_filename.toLowerCase();
 
                         if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) {
@@ -834,123 +684,24 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         }
 
         /**
-         * Fetch image bytes from a URL.
-         *
-         * @param {string} url - The image URL
-         * @returns {Promise<GLib.Bytes>} The image bytes
-         * @private
-         */
-        async _fetchImageBytes(url) {
-            const message = new Soup.Message({
-                method: 'GET',
-                uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
-            });
-
-            return new Promise((resolve, reject) => {
-                this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
-                    if (this._isDestroyed) {
-                        reject(new Error('Recently Used Tab was destroyed.'));
-                        return;
-                    }
-                    if (message.get_status() >= 300) {
-                        reject(new Error(`HTTP Error ${message.get_status()}`));
-                        return;
-                    }
-                    try {
-                        resolve(session.send_and_read_finish(res));
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-        }
-
-        /**
-         * Saves a GLib.Bytes object to a file, wrapping the callback-based
-         * function in a Promise to guarantee completion.
-         * @private
-         */
-        async _saveBytesToFile(file, bytes) {
-            return new Promise((resolve, reject) => {
-                file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.NONE, null, (source, res) => {
-                    try {
-                        source.replace_contents_finish(res);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-        }
-
-        /**
-         * Load and display GIF preview image asynchronously
-         *
-         * @param {St.Button} button - Button to update with GIF icon
-         * @param {string} url - URL of the GIF preview image
-         * @param {object} renderSession - The session token for this render pass
-         * @private
-         * @async
-         */
-        async _setStretchedGifIcon(button, url, renderSession) {
-            const icon = new St.Icon({
-                style_class: 'recently-used-gif-icon',
-                icon_name: 'image-x-generic-symbolic',
-                icon_size: 64,
-            });
-            button.set_child(icon);
-
-            if (!url) return;
-
-            try {
-                const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, url, -1);
-                const filename = `${hash}.gif`;
-                const file = Gio.File.new_for_path(GLib.build_filenamev([this._gifCacheDir, filename]));
-
-                if (!file.query_exists(null)) {
-                    const bytes = await this._fetchImageBytes(url);
-                    await this._saveBytesToFile(file, bytes);
-
-                    // Trigger cleanup of old cached GIFs
-                    getGifCacheManager().triggerDebouncedCleanup();
-                }
-
-                if (this._isDestroyed || renderSession !== this._renderSession) {
-                    return;
-                }
-
-                // Successfully loaded the GIF, update the icon
-                icon.set_gicon(new Gio.FileIcon({ file }));
-            } catch (e) {
-                if (!e.message.startsWith('Recently Used Tab')) {
-                    console.warn(`[AIO-Clipboard] Failed to load recent GIF preview: ${e.message}`);
-                }
-            }
-        }
-
-        /**
          * Lock the outer scroll view to prevent automatic focus tracking
          * @private
          */
         _lockOuterScroll() {
-            // Clear any pending lock timeout
             if (this._lockTimeoutId) {
                 GLib.source_remove(this._lockTimeoutId);
                 this._lockTimeoutId = null;
             }
 
             if (this._outerScrollLocked) {
-                return; // Already locked
+                return;
             }
 
-            // Remember current scroll position
             this._lockedScrollValue = this._scrollView.vadjustment.value;
             this._outerScrollLocked = true;
 
-            // Monitor adjustment changes and force it back to locked position
             this._scrollLockHandler = this._scrollView.vadjustment.connect('notify::value', () => {
                 if (this._outerScrollLocked) {
-                    // Force scroll back to locked position
                     if (this._scrollView.vadjustment.value !== this._lockedScrollValue) {
                         this._scrollView.vadjustment.set_value(this._lockedScrollValue);
                     }
@@ -963,19 +714,17 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _unlockOuterScroll() {
-            // Clear any pending lock timeout
             if (this._lockTimeoutId) {
                 GLib.source_remove(this._lockTimeoutId);
                 this._lockTimeoutId = null;
             }
 
             if (!this._outerScrollLocked) {
-                return; // Already unlocked
+                return;
             }
 
             this._outerScrollLocked = false;
 
-            // Disconnect the lock handler
             if (this._scrollLockHandler) {
                 this._scrollView.vadjustment.disconnect(this._scrollLockHandler);
                 this._scrollLockHandler = null;
@@ -995,7 +744,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const currentFocus = global.stage.get_key_focus();
             const allFocusable = this._focusGrid.flat();
 
-            // If no item is focused, start navigation from first item
             if (!allFocusable.includes(currentFocus)) {
                 if (symbol === Clutter.KEY_Down && this._focusGrid.length > 0) {
                     this._focusGrid[0][0].grab_key_focus();
@@ -1045,7 +793,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 if (rowIndex < this._focusGrid.length - 1) {
                     nextRow++;
                 } else {
-                    return Clutter.EVENT_STOP; // Prevent navigation beyond last row
+                    return Clutter.EVENT_STOP;
                 }
             } else {
                 return Clutter.EVENT_PROPAGATE;
@@ -1086,10 +834,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * Called when tab becomes active - show tab bar and render content
          */
         onTabSelected() {
-            // Show the main tab bar
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 if (!this._isDestroyed) {
-                    // A safety check in case the tab is destroyed quickly
                     this.emit('set-main-tab-bar-visibility', true);
                 }
                 return GLib.SOURCE_REMOVE;
@@ -1210,7 +956,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._settingsBtnFocusTimeoutId = 0;
             }
 
-            // Mark as destroyed to prevent async callbacks from acting on this tab
             this._isDestroyed = true;
 
             if (this._httpSession) {
@@ -1218,7 +963,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._httpSession = null;
             }
 
-            // Disconnect all connected signals
             this._signalIds.forEach(({ obj, id }) => {
                 obj.disconnect(id);
             });

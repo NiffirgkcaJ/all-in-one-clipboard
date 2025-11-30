@@ -23,7 +23,6 @@ export class KaomojiJsonParser {
      *   Each object includes `kaomoji`, `description`, `innerCategory`, `greaterCategory`, and `keywords`.
      */
     parse(jsonData) {
-        // Access the 'data' key to get the array we need to process.
         const rawGreaterCategoryData = jsonData.data;
         const standardizedData = [];
 
@@ -33,7 +32,6 @@ export class KaomojiJsonParser {
         }
 
         for (const greaterCategoryEntry of rawGreaterCategoryData) {
-            // Validate the structure of each top-level category object.
             if (!greaterCategoryEntry || typeof greaterCategoryEntry.name !== 'string' || !Array.isArray(greaterCategoryEntry.categories)) {
                 continue;
             }
@@ -41,7 +39,6 @@ export class KaomojiJsonParser {
             const greaterCategoryName = dgettext(DATA_DOMAIN, greaterCategoryEntry.name.trim());
 
             for (const innerCategoryEntry of greaterCategoryEntry.categories) {
-                // Validate the structure of each sub-category object.
                 if (!innerCategoryEntry || typeof innerCategoryEntry.name !== 'string' || !Array.isArray(innerCategoryEntry.emoticons)) {
                     continue;
                 }
@@ -55,16 +52,13 @@ export class KaomojiJsonParser {
                     }
 
                     const kaomoji = emoticonObject.kaomoji.trim();
-                    // Apply localization to the description if it exists.
                     const description = emoticonObject.description ? dgettext(DATA_DOMAIN, emoticonObject.description) : '';
 
-                    // Apply localization to each provided keyword.
                     const providedKeywords = Array.isArray(emoticonObject.keywords) ? emoticonObject.keywords.map((k) => dgettext(DATA_DOMAIN, k)) : [];
 
                     const emoticonSlug = emoticonObject.slug || '';
 
-                    // Combine all relevant keywords into a single array.
-                    const allKeywords = [kaomoji, description, ...providedKeywords, innerCategoryName, greaterCategoryName, innerCategorySlug, emoticonSlug].filter(Boolean); // Filter out any empty/null values
+                    const allKeywords = [kaomoji, description, ...providedKeywords, innerCategoryName, greaterCategoryName, innerCategorySlug, emoticonSlug].filter(Boolean);
 
                     standardizedData.push({
                         kaomoji: kaomoji,

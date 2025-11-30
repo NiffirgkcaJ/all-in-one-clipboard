@@ -33,15 +33,12 @@ export function getSkinnableCharSet() {
             const jsonString = new TextDecoder('utf-8').decode(bytes.get_data());
             const rawData = JSON.parse(jsonString);
 
-            // Use the existing parser to get standardized data
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);
 
             const skinnableChars = new Set();
             for (const item of emojiData) {
-                // We only care about single characters that support skin tones.
                 if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
-                    // Strip the variation selector to get the true base character.
                     const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
                     skinnableChars.add(baseChar);
                 }
@@ -51,8 +48,8 @@ export function getSkinnableCharSet() {
             return _skinnableCharSetCache;
         } catch (e) {
             console.error(`[AIO-Clipboard] Failed to build skinnable character set cache: ${e.message}`);
-            _cachePromise = null; // Allow retrying if it failed
-            return new Set(); // Return empty set on failure
+            _cachePromise = null;
+            return new Set();
         }
     })();
 

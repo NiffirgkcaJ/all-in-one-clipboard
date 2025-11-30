@@ -50,12 +50,10 @@ export class EmojiModifier {
         const validPrimaryTone = SKIN_TONE_MODIFIERS.includes(primaryTone) ? primaryTone : null;
         const validSecondaryTone = SKIN_TONE_MODIFIERS.includes(secondaryTone) ? secondaryTone : null;
 
-        // On-the-fly conversion for applying dual, different tones to specific precomposed emojis.
         if (useCustomTones && validPrimaryTone && validSecondaryTone && validPrimaryTone !== validSecondaryTone && PRECOMPOSED_TO_ZWJ_MAP[currentEmojiChar]) {
             currentEmojiChar = PRECOMPOSED_TO_ZWJ_MAP[currentEmojiChar];
         }
 
-        // If custom tones are disabled, strip any existing skin tones to return a neutral emoji.
         if (!useCustomTones) {
             const components = currentEmojiChar.split(ZWJ);
             const neutralComponents = components.map((comp) => {
@@ -72,11 +70,9 @@ export class EmojiModifier {
             return neutralComponents.join(ZWJ);
         }
 
-        // If custom tones are enabled, proceed to apply them.
         const components = currentEmojiChar.split(ZWJ);
         let personCount = 0;
 
-        // Single component emoji (e.g., 👍, 🙋‍♀️)
         if (components.length === 1) {
             const component = components[0];
             let baseComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
@@ -92,10 +88,9 @@ export class EmojiModifier {
                 const newEmoji = toneStrippedBase + validPrimaryTone;
                 return component.endsWith(VS16) ? newEmoji + VS16 : newEmoji;
             }
-            return currentEmojiChar; // Return original if not skinnable or no valid tone
+            return currentEmojiChar;
         }
 
-        // ZWJ sequence (e.g., 👨‍👩‍👧‍👦)
         const modifiedComponents = components.map((component, index) => {
             let baseOfComponent = component.endsWith(VS16) ? component.slice(0, -1) : component;
             let toneStrippedBase = baseOfComponent;
@@ -106,7 +101,6 @@ export class EmojiModifier {
                 }
             }
 
-            // The handshake character itself is not skinnable.
             if (toneStrippedBase === HANDSHAKE_CHAR) {
                 return component;
             }
@@ -118,7 +112,6 @@ export class EmojiModifier {
                 if (personCount === 1 && validPrimaryTone) {
                     toneToApply = validPrimaryTone;
                 } else if (personCount >= 2) {
-                    // Use secondary tone if valid, otherwise fall back to primary tone.
                     toneToApply = validSecondaryTone || validPrimaryTone;
                 }
 
@@ -130,7 +123,7 @@ export class EmojiModifier {
                     return newComp;
                 }
             }
-            return component; // Return original component if not skinnable
+            return component;
         });
 
         return modifiedComponents.join(ZWJ);

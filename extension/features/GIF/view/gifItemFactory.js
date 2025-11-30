@@ -20,7 +20,7 @@ export class GifItemFactory {
         this._downloadService = downloadService;
         this._cacheDir = cacheDir;
         this._scrollView = scrollView;
-        this._renderSession = {}; // Track current render session to avoid race conditions
+        this._renderSession = {};
     }
 
     /**
@@ -118,7 +118,6 @@ export class GifItemFactory {
                 return;
             }
 
-            // Set the preview image
             const imageActor = new St.Bin({
                 style: `
                     background-image: url("file://${file.get_path()}");
@@ -131,7 +130,6 @@ export class GifItemFactory {
 
             bin.set_child(imageActor);
         } catch (e) {
-            // Handle errors gracefully
             if (session !== this._renderSession || !bin.get_stage()) {
                 return;
             }
