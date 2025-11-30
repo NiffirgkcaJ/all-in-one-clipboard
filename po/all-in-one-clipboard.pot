@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-29 16:38+0000\n"
+"POT-Creation-Date: 2025-11-30 13:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,37 +21,30 @@ msgstr ""
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: extension/extension.js:542 extension/features/Emoji/tabEmoji.js:120
-#: extension/features/GIF/tabGIF.js:163
-#: extension/features/Kaomoji/tabKaomoji.js:71
-#: extension/features/Symbols/tabSymbols.js:71
+#: extension/extension.js:542 extension/features/Emoji/tabEmoji.js:97
+#: extension/features/GIF/tabGIF.js:156
+#: extension/features/Kaomoji/tabKaomoji.js:73
+#: extension/features/Symbols/tabSymbols.js:73
 msgid "Recently Used"
 msgstr ""
 
 #: extension/extension.js:564 extension/extension.js:977
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:179
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
 msgid "Clipboard"
 msgstr ""
 
 #: extension/extension.js:564 extension/extension.js:979
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:681
 msgid "GIF"
 msgstr ""
 
 #: extension/extension.js:978
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
 msgid "Emoji"
 msgstr ""
 
 #: extension/extension.js:980
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:182
 msgid "Kaomoji"
 msgstr ""
 
 #: extension/extension.js:981
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
 msgid "Symbols"
 msgstr ""
 
@@ -559,7 +552,6 @@ msgid "Clear lists of recently used emojis, GIFs, etc."
 msgstr ""
 
 #: extension/prefs.js:1091
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:180
 msgid "Recent Emojis"
 msgstr ""
 
@@ -568,7 +560,6 @@ msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
 #: extension/prefs.js:1096
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:181
 msgid "Recent GIFs"
 msgstr ""
 
@@ -577,7 +568,6 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
 #: extension/prefs.js:1101
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:182
 msgid "Recent Kaomojis"
 msgstr ""
 
@@ -586,7 +576,6 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
 #: extension/prefs.js:1106
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:183
 msgid "Recent Symbols"
 msgstr ""
 
@@ -642,115 +631,98 @@ msgstr ""
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:123
-#: extension/features/Clipboard/tabClipboard.js:579
-#: extension/features/Clipboard/tabClipboard.js:585
+#: extension/features/Clipboard/tabClipboard.js:118
+#: extension/features/Clipboard/tabClipboard.js:567
+#: extension/features/Clipboard/tabClipboard.js:573
 msgid "Select All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:144
-#: extension/features/Clipboard/tabClipboard.js:325
+#: extension/features/Clipboard/tabClipboard.js:138
+#: extension/features/Clipboard/tabClipboard.js:317
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:158
-#: extension/features/Clipboard/tabClipboard.js:601
+#: extension/features/Clipboard/tabClipboard.js:151
+#: extension/features/Clipboard/tabClipboard.js:589
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:171
+#: extension/features/Clipboard/tabClipboard.js:163
 msgid "Delete Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:325
+#: extension/features/Clipboard/tabClipboard.js:317
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:582
+#: extension/features/Clipboard/tabClipboard.js:570
 msgid "Deselect All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:608
+#: extension/features/Clipboard/tabClipboard.js:596
 msgid "Pin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:608
+#: extension/features/Clipboard/tabClipboard.js:596
 msgid "Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:660
+#: extension/features/Clipboard/tabClipboard.js:648
 msgid "No results found."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:660
+#: extension/features/Clipboard/tabClipboard.js:648
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:674
+#: extension/features/Clipboard/tabClipboard.js:662
 msgid "Pinned"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:698
+#: extension/features/Clipboard/tabClipboard.js:686
 msgid "History"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:237
+#: extension/features/GIF/tabGIF.js:230
 msgid "Online search is disabled."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:431 extension/features/GIF/tabGIF.js:532
-#: extension/features/GIF/tabGIF.js:541
+#: extension/features/GIF/tabGIF.js:420 extension/features/GIF/tabGIF.js:514
+#: extension/features/GIF/tabGIF.js:523
 #: extension/utilities/utilityCategorizedItemViewer.js:547
 msgid "Recents"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:478
+#: extension/features/GIF/tabGIF.js:466
 msgid "No categories available."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:552 extension/features/GIF/tabGIF.js:558
+#: extension/features/GIF/tabGIF.js:534 extension/features/GIF/tabGIF.js:540
 msgid "Trending"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:559
+#: extension/features/GIF/tabGIF.js:541
 msgid "Trending GIFs"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:846
+#: extension/features/GIF/tabGIF.js:817
 msgid "No recent GIFs."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:881
+#: extension/features/GIF/tabGIF.js:852
 msgid "No trending GIFs found."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:928
+#: extension/features/GIF/tabGIF.js:899
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:1088
+#: extension/features/GIF/tabGIF.js:1059
 #, javascript-format
 msgid ""
 "Error: %s\n"
 "Please check your API key and network connection."
-msgstr ""
-
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:150
-#: extension/utilities/utilityCategorizedItemViewer.js:635
-msgid "No recent items yet."
-msgstr ""
-
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:179
-msgid "Pinned Clipboard"
-msgstr ""
-
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:184
-msgid "Recent Clipboard History"
-msgstr ""
-
-#: extension/features/RecentlyUsed/tabRecentlyUsed.js:221
-msgid "Show All"
 msgstr ""
 
 #: extension/utilities/utilityCategorizedItemViewer.js:74
@@ -767,6 +739,10 @@ msgstr ""
 
 #: extension/utilities/utilityCategorizedItemViewer.js:634
 msgid "No items match your search."
+msgstr ""
+
+#: extension/utilities/utilityCategorizedItemViewer.js:635
+msgid "No recent items yet."
 msgstr ""
 
 #: extension/utilities/utilitySearch.js:34
