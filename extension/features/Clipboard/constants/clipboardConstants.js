@@ -11,42 +11,75 @@ export const ClipboardType = {
 // Content Styling
 export const ClipboardStyling = {
     [ClipboardType.IMAGE]: {
-        icon: 'image-x-generic-symbolic',
+        icon: 'clipboard-type-image-symbolic.svg',
+        iconSize: 16,
         layout: 'image',
     },
     [ClipboardType.FILE]: {
-        icon: 'text-x-generic-symbolic',
+        icon: 'clipboard-type-file-symbolic.svg',
+        iconSize: 16,
         layout: 'rich',
     },
     [ClipboardType.URL]: {
-        icon: 'web-browser-symbolic',
+        icon: 'clipboard-type-link-symbolic.svg',
+        iconSize: 16,
         layout: 'rich',
     },
     [ClipboardType.COLOR]: {
-        icon: 'color-select-symbolic',
+        icon: 'clipboard-type-color-symbolic.svg',
+        iconSize: 16,
         layout: 'rich',
     },
     [ClipboardType.CODE]: {
-        icon: 'text-x-generic-symbolic',
+        icon: 'clipboard-type-code-symbolic.svg',
+        iconSize: 16,
         layout: 'code',
     },
     [ClipboardType.TEXT]: {
-        icon: 'text-x-generic-symbolic',
+        icon: 'clipboard-type-text-symbolic.svg',
+        iconSize: 16,
         layout: 'text',
     },
 };
 
 // UI Control Icons
 export const ClipboardIcons = {
-    CHECKBOX_CHECKED: 'checkbox-checked-symbolic',
-    CHECKBOX_UNCHECKED: 'checkbox-unchecked-symbolic',
-    CHECKBOX_MIXED: 'checkbox-mixed-symbolic',
+    CHECKBOX_CHECKED: {
+        icon: 'clipboard-checkbox-checked-symbolic.svg',
+        iconSize: 16,
+    },
+    CHECKBOX_UNCHECKED: {
+        icon: 'clipboard-checkbox-unchecked-symbolic.svg',
+        iconSize: 16,
+    },
+    CHECKBOX_MIXED: {
+        icon: 'clipboard-checkbox-mixed-symbolic.svg',
+        iconSize: 16,
+    },
 
-    PIN_FILLED: 'starred-symbolic',
-    PIN_OUTLINE: 'non-starred-symbolic',
-    DELETE: 'edit-delete-symbolic',
+    STAR_FILLED: {
+        icon: 'clipboard-star-filled-symbolic.svg',
+        iconSize: 16,
+    },
+    STAR_UNFILLED: {
+        icon: 'clipboard-star-unfilled-symbolic.svg',
+        iconSize: 16,
+    },
+    DELETE: {
+        icon: 'clipboard-delete-symbolic.svg',
+        iconSize: 16,
+    },
 
-    ACTION_PIN: 'view-pin-symbolic',
-    ACTION_PRIVATE: 'view-reveal-symbolic',
-    ACTION_PUBLIC: 'view-conceal-symbolic',
+    ACTION_PIN: {
+        icon: 'clipboard-pin-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PRIVATE: {
+        icon: 'clipboard-eye-reveal-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PUBLIC: {
+        icon: 'clipboard-eye-conceal-symbolic.svg',
+        iconSize: 16,
+    },
 };

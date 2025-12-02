@@ -2,9 +2,9 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createThemedIcon } from '../../../utilities/utilityThemedIcon.js';
-import { EmojiCategoryIcons } from '../constants/emojiConstants.js';
+import { createStaticIcon } from '../../../utilities/utilityIcon.js';
 import { EmojiModifier } from '../logic/emojiModifier.js';
+import { EmojiCategoryIcons, EmojiUI } from '../constants/emojiConstants.js';
 
 /**
  * EmojiViewRenderer - Handles rendering of emoji UI components
@@ -88,7 +88,7 @@ export class EmojiViewRenderer {
             }
         }
 
-        const iconWidget = createThemedIcon(iconFile, 16);
+        const iconWidget = createStaticIcon(iconFile, EmojiUI.CATEGORY_ICON_SIZE, 'emoji-category-icon');
 
         const button = new St.Button({
             style_class: 'emoji-category-tab-button button',

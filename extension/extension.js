@@ -11,7 +11,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
-import { createThemedIcon } from './utilities/utilityThemedIcon.js';
+import { createStaticIcon } from './utilities/utilityIcon.js';
 import { eventMatchesShortcut } from './utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from './utilities/utilityFocus.js';
 import { positionMenu } from './utilities/utilityMenuPositioner.js';
@@ -34,36 +34,42 @@ const TABS = [
     {
         name: 'Recently Used',
         icon: 'utility-recents-symbolic.svg',
+        iconSize: 16,
         isFullView: false,
         settingKey: 'enable-recents-tab',
     },
     {
         name: 'Emoji',
         icon: 'main-emoji-symbolic.svg',
+        iconSize: 16,
         isFullView: true,
         settingKey: 'enable-emoji-tab',
     },
     {
         name: 'GIF',
         icon: 'main-gif-symbolic.svg',
+        iconSize: 16,
         isFullView: true,
         settingKey: 'enable-gif-tab',
     },
     {
         name: 'Kaomoji',
         icon: 'main-kaomoji-symbolic.svg',
+        iconSize: 16,
         isFullView: true,
         settingKey: 'enable-kaomoji-tab',
     },
     {
         name: 'Symbols',
         icon: 'main-symbols-symbolic.svg',
+        iconSize: 16,
         isFullView: true,
         settingKey: 'enable-symbols-tab',
     },
     {
         name: 'Clipboard',
         icon: 'main-clipboard-symbolic.svg',
+        iconSize: 16,
         isFullView: false,
         settingKey: 'enable-clipboard-tab',
     },
@@ -252,7 +258,8 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 if (!tabConfig) return;
 
                 const iconFile = tabConfig.icon;
-                const iconWidget = createThemedIcon(iconFile, 16);
+                const iconSize = tabConfig.iconSize;
+                const iconWidget = createStaticIcon(iconFile, iconSize);
 
                 const button = new St.Button({
                     style_class: 'aio-clipboard-tab-button button',

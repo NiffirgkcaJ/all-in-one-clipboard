@@ -7,6 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { ClipboardItemFactory } from '../../Clipboard/view/clipboardItemFactory.js';
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
+import { createDynamicIcon } from '../../../utilities/utilityIcon.js';
 import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
 
 /**
@@ -97,11 +98,7 @@ export function createGridItem(itemData, feature) {
 
     if (feature === 'gif') {
         // Placeholder icon gets replaced with actual GIF after async load
-        const icon = new St.Icon({
-            style_class: RecentlyUsedStyles.GIF_ICON,
-            icon_name: RecentlyUsedIcons.GIF_PLACEHOLDER,
-            icon_size: 64,
-        });
+        const icon = createDynamicIcon(RecentlyUsedIcons.GIF_PLACEHOLDER.icon, RecentlyUsedIcons.GIF_PLACEHOLDER.iconSize, RecentlyUsedStyles.GIF_ICON);
         button.set_child(icon);
         button.tooltip_text = itemData.description || RecentlyUsedMessages.GIF_TOOLTIP_FALLBACK();
     } else {
@@ -165,12 +162,11 @@ export function createEmptyView() {
  * @returns {St.Button} The settings button widget
  */
 export function createSettingsButton() {
+    const icon = createDynamicIcon(RecentlyUsedIcons.SETTINGS.icon, RecentlyUsedIcons.SETTINGS.iconSize, 'popup-menu-icon');
+
     const settingsBtn = new St.Button({
         style_class: RecentlyUsedStyles.SETTINGS_BUTTON,
-        child: new St.Icon({
-            icon_name: RecentlyUsedIcons.SETTINGS,
-            style_class: 'popup-menu-icon',
-        }),
+        child: icon,
         can_focus: false,
         reactive: true,
         x_expand: true,

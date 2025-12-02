@@ -7,7 +7,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardType } from '../../features/Clipboard/constants/clipboardConstants.js';
-import { createThemedIcon } from '../../utilities/utilityThemedIcon.js';
+import { createStaticIcon } from '../../utilities/utilityIcon.js';
 import { Debouncer } from '../../utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../utilities/utilityFocus.js';
@@ -145,10 +145,7 @@ export const GIFTabContent = GObject.registerClass(
 
             const backButton = new St.Button({
                 style_class: 'aio-clipboard-back-button button',
-                child: new St.Icon({
-                    icon_name: 'go-previous-symbolic',
-                    style_class: 'popup-menu-icon',
-                }),
+                child: createStaticIcon(GifIcons.BACK_BUTTON.icon, GifIcons.BACK_BUTTON.iconSize, 'popup-menu-icon'),
                 y_align: Clutter.ActorAlign.CENTER,
                 can_focus: true,
             });
@@ -218,11 +215,7 @@ export const GIFTabContent = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-            const infoIcon = new St.Icon({
-                icon_name: 'help-about-symbolic',
-                style_class: 'popup-menu-icon',
-                icon_size: 16,
-            });
+            const infoIcon = createStaticIcon(GifIcons.INFO.icon, GifIcons.INFO.iconSize, 'popup-menu-icon');
 
             const spacer = new St.Widget({ width: 8 });
 
@@ -515,7 +508,7 @@ export const GIFTabContent = GObject.registerClass(
                 isSpecial: true,
             };
 
-            const iconWidget = createThemedIcon(GifIcons.RECENTS, 16);
+            const iconWidget = createStaticIcon(GifIcons.RECENTS.icon, GifIcons.RECENTS.iconSize, 'gif-recents-icon');
 
             this._createHeaderButton(category, {
                 style_class: 'aio-clipboard-tab-button button',

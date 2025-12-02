@@ -3,7 +3,10 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
+
+import { createStaticIcon } from '../../../utilities/utilityIcon.js';
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
+import { GifIcons } from '../constants/gifConstants.js';
 
 /**
  * GifItemFactory
@@ -145,12 +148,7 @@ export class GifItemFactory {
      * @private
      */
     _handleError(bin, error) {
-        bin.set_child(
-            new St.Icon({
-                icon_name: 'image-missing-symbolic',
-                icon_size: 64,
-            }),
-        );
+        bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER.icon, GifIcons.ERROR_PLACEHOLDER.iconSize));
 
         if (!error.message.startsWith('GIF Tab') && !error.message.startsWith('Render session')) {
             console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${error.message}`);

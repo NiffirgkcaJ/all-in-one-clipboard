@@ -3,14 +3,15 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
 import { FocusUtils } from '../../utilities/utilityFocus.js';
 import { SearchComponent } from '../../utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
 import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
+import { createStaticIconButton, createDynamicIconButton, setIcon } from '../../utilities/utilityIcon.js';
 
 /**
  * Number of focusable UI elements per clipboard item row
@@ -104,18 +105,13 @@ export const ClipboardTabContent = GObject.registerClass(
             selectionBar.spacing = 8;
 
             // Select All button
-            this._selectAllIcon = new St.Icon({
-                style_class: 'popup-menu-icon',
-                icon_name: ClipboardIcons.CHECKBOX_UNCHECKED,
-                icon_size: 16,
-            });
-
-            this._selectAllButton = new St.Button({
+            this._selectAllButton = createDynamicIconButton(ClipboardIcons.CHECKBOX_UNCHECKED.icon, ClipboardIcons.CHECKBOX_UNCHECKED.iconSize, {
                 style_class: 'button clipboard-icon-button',
-                can_focus: true,
-                child: this._selectAllIcon,
+                tooltip_text: _('Select All'),
             });
-            this._selectAllButton.tooltip_text = _('Select All');
+            // Store icon reference for updates
+            this._selectAllIcon = this._selectAllButton.child;
+
             this._selectAllButton.connect('clicked', () => this._onSelectAllClicked());
             selectionBar.add_child(this._selectAllButton);
 
@@ -127,40 +123,27 @@ export const ClipboardTabContent = GObject.registerClass(
             selectionBar.add_child(actionButtonsBox);
 
             // Private Mode button
-            this._privateModeButton = new St.Button({
+            this._privateModeButton = createDynamicIconButton(ClipboardIcons.ACTION_PRIVATE.icon, ClipboardIcons.ACTION_PRIVATE.iconSize, {
                 style_class: 'button clipboard-icon-button',
-                can_focus: true,
-                child: new St.Icon({
-                    icon_name: ClipboardIcons.ACTION_PRIVATE,
-                    icon_size: 16,
-                }),
+                tooltip_text: _('Start Private Mode (Pause Recording)'),
             });
-            this._privateModeButton.tooltip_text = _('Start Private Mode (Pause Recording)');
             this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
             actionButtonsBox.add_child(this._privateModeButton);
 
-            this._pinSelectedButton = new St.Button({
+            this._pinSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_PIN.icon, ClipboardIcons.ACTION_PIN.iconSize, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
                 reactive: false,
-                child: new St.Icon({
-                    icon_name: ClipboardIcons.ACTION_PIN,
-                    icon_size: 16,
-                }),
+                tooltip_text: _('Pin/Unpin Selected'),
             });
-            this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
             this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
-            this._deleteSelectedButton = new St.Button({
+            this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.DELETE.icon, ClipboardIcons.DELETE.iconSize, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
                 reactive: false,
-                child: new St.Icon({
-                    icon_name: ClipboardIcons.DELETE,
-                    icon_size: 16,
-                }),
+                tooltip_text: _('Delete Selected'),
             });
-            this._deleteSelectedButton.tooltip_text = _('Delete Selected');
             this._deleteSelectedButton.connect('clicked', () => this._onDeleteSelected());
 
             actionButtonsBox.add_child(this._pinSelectedButton);
@@ -313,7 +296,7 @@ export const ClipboardTabContent = GObject.registerClass(
         _onPrivateModeToggled() {
             this._isPrivateMode = !this._isPrivateMode;
             this._manager.setPaused(this._isPrivateMode);
-            this._privateModeButton.child.icon_name = this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC : ClipboardIcons.ACTION_PRIVATE;
+            setIcon(this._privateModeButton.child, this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC.icon : ClipboardIcons.ACTION_PRIVATE.icon);
             this._privateModeButton.tooltip_text = this._isPrivateMode ? _('Stop Private Mode (Resume Recording)') : _('Start Private Mode (Pause Recording)');
         }
 
@@ -328,7 +311,7 @@ export const ClipboardTabContent = GObject.registerClass(
                     this._selectedIds.add(item.id);
                     const icon = this._checkboxIconsMap.get(item.id);
                     if (icon) {
-                        icon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                        setIcon(icon, ClipboardIcons.CHECKBOX_CHECKED.icon);
                     }
                 });
             } else {
@@ -336,7 +319,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 this._allItems.forEach((item) => {
                     const icon = this._checkboxIconsMap.get(item.id);
                     if (icon) {
-                        icon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                        setIcon(icon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
                     }
                 });
             }
@@ -563,13 +546,13 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectAllButton.set_reactive(canSelect);
 
             if (!canSelect || numSelected === 0) {
-                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
                 this._selectAllButton.tooltip_text = _('Select All');
             } else if (numSelected === totalItems) {
-                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_CHECKED.icon);
                 this._selectAllButton.tooltip_text = _('Deselect All');
             } else {
-                this._selectAllIcon.icon_name = ClipboardIcons.CHECKBOX_MIXED;
+                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_MIXED.icon);
                 this._selectAllButton.tooltip_text = _('Select All');
             }
 
@@ -584,7 +567,7 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _updatePinButtonState() {
             // The icon for the action button should always be the generic 'pin' icon.
-            this._pinSelectedButton.child.icon_name = ClipboardIcons.ACTION_PIN;
+            setIcon(this._pinSelectedButton.child, ClipboardIcons.ACTION_PIN.icon);
             if (this._selectedIds.size === 0) {
                 this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
                 return;
@@ -731,29 +714,22 @@ export const ClipboardTabContent = GObject.registerClass(
 
             // Checkbox for selection
             const isChecked = this._selectedIds.has(itemData.id);
-            const checkboxIcon = new St.Icon({
-                icon_name: isChecked ? ClipboardIcons.CHECKBOX_CHECKED : ClipboardIcons.CHECKBOX_UNCHECKED,
-                style_class: 'popup-menu-icon',
-                icon_size: 16,
-            });
-            this._checkboxIconsMap.set(itemData.id, checkboxIcon);
-
-            const itemCheckbox = new St.Button({
+            const itemCheckbox = createDynamicIconButton(isChecked ? ClipboardIcons.CHECKBOX_CHECKED.icon : ClipboardIcons.CHECKBOX_UNCHECKED.icon, ClipboardIcons.CHECKBOX_CHECKED.iconSize, {
                 style_class: 'button clipboard-item-checkbox',
-                child: checkboxIcon,
-                can_focus: true,
                 y_expand: false,
                 y_align: Clutter.ActorAlign.CENTER,
             });
+            const checkboxIcon = itemCheckbox.child;
+            this._checkboxIconsMap.set(itemData.id, checkboxIcon);
 
             itemCheckbox.connect('clicked', () => {
                 if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
                 if (this._selectedIds.has(itemData.id)) {
                     this._selectedIds.delete(itemData.id);
-                    checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_UNCHECKED;
+                    setIcon(checkboxIcon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
                 } else {
                     this._selectedIds.add(itemData.id);
-                    checkboxIcon.icon_name = ClipboardIcons.CHECKBOX_CHECKED;
+                    setIcon(checkboxIcon, ClipboardIcons.CHECKBOX_CHECKED.icon);
                 }
                 this._updateSelectionState();
             });
@@ -768,24 +744,24 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             mainBox.add_child(contentWidget);
 
-            const rowStarButton = new St.Button({
-                style_class: 'button clipboard-icon-button',
-                child: new St.Icon({ icon_size: 16 }),
-                can_focus: true,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
+            const rowStarButton = createDynamicIconButton(
+                '', // Empty initially, set below
+                ClipboardIcons.STAR_FILLED.iconSize,
+                {
+                    style_class: 'button clipboard-icon-button',
+                    y_align: Clutter.ActorAlign.CENTER,
+                },
+            );
             if (isPinned) {
-                rowStarButton.child.icon_name = ClipboardIcons.PIN_FILLED;
+                setIcon(rowStarButton.child, ClipboardIcons.STAR_FILLED.icon);
                 rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
             } else {
-                rowStarButton.child.icon_name = ClipboardIcons.PIN_OUTLINE;
+                setIcon(rowStarButton.child, ClipboardIcons.STAR_UNFILLED.icon);
                 rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
             }
 
-            const deleteButton = new St.Button({
+            const deleteButton = createDynamicIconButton(ClipboardIcons.DELETE.icon, ClipboardIcons.DELETE.iconSize, {
                 style_class: 'button clipboard-icon-button',
-                child: new St.Icon({ icon_name: ClipboardIcons.DELETE, icon_size: 16 }),
-                can_focus: true,
                 y_align: Clutter.ActorAlign.CENTER,
             });
             deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));

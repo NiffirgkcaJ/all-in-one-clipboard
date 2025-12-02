@@ -9,6 +9,7 @@ export const EmojiSettings = {
 // UI Configuration
 export const EmojiUI = {
     ITEMS_PER_ROW: 9,
+    CATEGORY_ICON_SIZE: 16,
 };
 
 // Category Icon Mappings

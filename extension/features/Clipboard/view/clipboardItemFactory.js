@@ -4,6 +4,7 @@ import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
+import { createDynamicIcon } from '../../../utilities/utilityIcon.js';
 import { ClipboardType, ClipboardStyling } from '../constants/clipboardConstants.js';
 
 export class ClipboardItemFactory {
@@ -101,9 +102,8 @@ export class ClipboardItemFactory {
             });
 
             // Icon
-            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-            iconParams.icon_name = config.icon;
-            contentWidget.add_child(new St.Icon(iconParams));
+            const icon = createDynamicIcon(config.icon, config.iconSize, 'clipboard-item-icon');
+            contentWidget.add_child(icon);
 
             // Code Body
             const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
@@ -143,10 +143,17 @@ export class ClipboardItemFactory {
                 y_align: Clutter.ActorAlign.CENTER,
                 style_class: 'clipboard-item-rich-container',
             });
-            const iconParams = { icon_size: 24, style_class: 'clipboard-item-icon' };
-            if (config.gicon) iconParams.gicon = config.gicon;
-            else iconParams.icon_name = config.icon;
-            contentWidget.add_child(new St.Icon(iconParams));
+            let icon;
+            if (config.gicon) {
+                icon = new St.Icon({
+                    icon_size: 24,
+                    style_class: 'clipboard-item-icon',
+                    gicon: config.gicon,
+                });
+            } else {
+                icon = createDynamicIcon(config.icon, config.iconSize, 'clipboard-item-icon');
+            }
+            contentWidget.add_child(icon);
 
             if (config.cssColor) {
                 const swatchContainer = new St.Bin({

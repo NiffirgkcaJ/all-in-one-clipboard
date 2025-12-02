@@ -10,7 +10,22 @@ export const GifUI = {
     SEARCH_DEBOUNCE_TIME_MS: 300,
 };
 
-// Icon Filenames
+// Icon Definitions
 export const GifIcons = {
-    RECENTS: 'utility-recents-symbolic.svg',
+    RECENTS: {
+        icon: 'utility-recents-symbolic.svg',
+        iconSize: 16,
+    },
+    BACK_BUTTON: {
+        icon: 'utility-backwards-symbolic.svg',
+        iconSize: 16,
+    },
+    INFO: {
+        icon: 'gif-information-symbolic.svg',
+        iconSize: 16,
+    },
+    ERROR_PLACEHOLDER: {
+        icon: 'gif-missing-symbolic.svg',
+        iconSize: 64,
+    },
 };

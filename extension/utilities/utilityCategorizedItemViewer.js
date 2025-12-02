@@ -3,10 +3,10 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createThemedIcon } from './utilityThemedIcon.js';
+import { createStaticIcon } from './utilityIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
@@ -15,7 +15,16 @@ import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 
 const RECENTS_TAB_ID = '##RECENTS##';
-const RECENTS_CUSTOM_ICON_FILENAME = 'utility-recents-symbolic.svg';
+const ViewerIcons = {
+    RECENTS: {
+        icon: 'utility-recents-symbolic.svg',
+        iconSize: 16,
+    },
+    BACK_BUTTON: {
+        icon: 'utility-backwards-symbolic.svg',
+        iconSize: 16,
+    },
+};
 
 /**
  * @typedef {object} ViewerConfig
@@ -154,10 +163,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._backButton = new St.Button({
                 style_class: 'aio-clipboard-back-button button',
-                child: new St.Icon({
-                    icon_name: 'go-previous-symbolic',
-                    style_class: 'popup-menu-icon',
-                }),
+                child: createStaticIcon(ViewerIcons.BACK_BUTTON.icon, ViewerIcons.BACK_BUTTON.iconSize, 'popup-menu-icon'),
                 y_align: Clutter.ActorAlign.CENTER,
                 can_focus: true,
             });
@@ -535,7 +541,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                 let button;
                 if (tabId === RECENTS_TAB_ID) {
                     // Use the helper function to create themed icon
-                    const iconWidget = createThemedIcon(RECENTS_CUSTOM_ICON_FILENAME, 16);
+                    const iconWidget = createStaticIcon(ViewerIcons.RECENTS.icon, ViewerIcons.RECENTS.iconSize, 'categorized-item-viewer-recents-icon');
 
                     button = new St.Button({
                         style_class: 'aio-clipboard-tab-button button',

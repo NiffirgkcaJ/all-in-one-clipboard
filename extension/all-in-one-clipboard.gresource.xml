@@ -8,6 +8,21 @@
         <file>assets/data/symbols.json</file>
 
         <!-- Icon Files -->
+        <file>assets/icons/clipboard-checkbox-checked-symbolic.svg</file>
+        <file>assets/icons/clipboard-checkbox-mixed-symbolic.svg</file>
+        <file>assets/icons/clipboard-checkbox-unchecked-symbolic.svg</file>
+        <file>assets/icons/clipboard-delete-symbolic.svg</file>
+        <file>assets/icons/clipboard-eye-conceal-symbolic.svg</file>
+        <file>assets/icons/clipboard-eye-reveal-symbolic.svg</file>
+        <file>assets/icons/clipboard-pin-symbolic.svg</file>
+        <file>assets/icons/clipboard-star-filled-symbolic.svg</file>
+        <file>assets/icons/clipboard-star-unfilled-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-code-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-color-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-file-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-image-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-link-symbolic.svg</file>
+        <file>assets/icons/clipboard-type-text-symbolic.svg</file>
         <file>assets/icons/emoji-activities-symbolic.svg</file>
         <file>assets/icons/emoji-animals_nature-symbolic.svg</file>
         <file>assets/icons/emoji-flags-symbolic.svg</file>
@@ -17,11 +32,16 @@
         <file>assets/icons/emoji-smileys_emotion-symbolic.svg</file>
         <file>assets/icons/emoji-symbols-symbolic.svg</file>
         <file>assets/icons/emoji-travel_places-symbolic.svg</file>
+        <file>assets/icons/gif-information-symbolic.svg</file>
+        <file>assets/icons/gif-missing-symbolic.svg</file>
         <file>assets/icons/main-clipboard-symbolic.svg</file>
         <file>assets/icons/main-emoji-symbolic.svg</file>
         <file>assets/icons/main-gif-symbolic.svg</file>
         <file>assets/icons/main-kaomoji-symbolic.svg</file>
         <file>assets/icons/main-symbols-symbolic.svg</file>
+        <file>assets/icons/recently-used-settings-symbolic.svg</file>
+        <file>assets/icons/utility-backwards-symbolic.svg</file>
+        <file>assets/icons/utility-clear-symbolic.svg</file>
         <file>assets/icons/utility-recents-symbolic.svg</file>
     </gresource>
 </gresources>

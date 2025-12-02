@@ -1,8 +1,16 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import { createStaticIcon } from './utilityIcon.js';
+
+const SearchIcons = {
+    CLEAR: {
+        icon: 'utility-clear-symbolic.svg',
+        iconSize: 16,
+    },
+};
 
 /**
  * A self-contained search bar component.
@@ -63,11 +71,7 @@ export const SearchComponent = GObject.registerClass(
 
             this._clearButton = new St.Button({
                 style_class: 'aio-search-clear-button button',
-                child: new St.Icon({
-                    icon_name: 'edit-clear-symbolic',
-                    style_class: 'button-symbolic',
-                    icon_size: 16,
-                }),
+                child: createStaticIcon(SearchIcons.CLEAR.icon, SearchIcons.CLEAR.iconSize),
                 can_focus: true,
                 y_align: Clutter.ActorAlign.CENTER,
                 visible: false, // Initially hidden

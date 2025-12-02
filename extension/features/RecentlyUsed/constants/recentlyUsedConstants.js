@@ -118,8 +118,14 @@ export const RecentlyUsedStyles = {
 
 // Icon Names
 export const RecentlyUsedIcons = {
-    SETTINGS: 'emblem-system-symbolic',
-    GIF_PLACEHOLDER: 'image-x-generic-symbolic',
+    SETTINGS: {
+        icon: 'recently-used-settings-symbolic.svg',
+        iconSize: 16,
+    },
+    GIF_PLACEHOLDER: {
+        icon: 'clipboard-type-image-symbolic.svg',
+        iconSize: 64,
+    },
 };
 
 // Messages
