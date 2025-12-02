@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-30 13:16+0000\n"
+"POT-Creation-Date: 2025-12-02 18:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,34 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension/extension.js:80
+#: extension/extension.js:86
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: extension/extension.js:542 extension/features/Emoji/tabEmoji.js:97
-#: extension/features/GIF/tabGIF.js:156
+#: extension/extension.js:549 extension/features/Emoji/tabEmoji.js:97
+#: extension/features/GIF/tabGIF.js:153
 #: extension/features/Kaomoji/tabKaomoji.js:73
 #: extension/features/Symbols/tabSymbols.js:73
 msgid "Recently Used"
 msgstr ""
 
-#: extension/extension.js:564 extension/extension.js:977
+#: extension/extension.js:571 extension/extension.js:984
 msgid "Clipboard"
 msgstr ""
 
-#: extension/extension.js:564 extension/extension.js:979
+#: extension/extension.js:571 extension/extension.js:986
 msgid "GIF"
 msgstr ""
 
-#: extension/extension.js:978
+#: extension/extension.js:985
 msgid "Emoji"
 msgstr ""
 
-#: extension/extension.js:980
+#: extension/extension.js:987
 msgid "Kaomoji"
 msgstr ""
 
-#: extension/extension.js:981
+#: extension/extension.js:988
 msgid "Symbols"
 msgstr ""
 
@@ -631,120 +631,120 @@ msgstr ""
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:118
-#: extension/features/Clipboard/tabClipboard.js:567
-#: extension/features/Clipboard/tabClipboard.js:573
+#: extension/features/Clipboard/tabClipboard.js:110
+#: extension/features/Clipboard/tabClipboard.js:550
+#: extension/features/Clipboard/tabClipboard.js:556
 msgid "Select All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:138
-#: extension/features/Clipboard/tabClipboard.js:317
+#: extension/features/Clipboard/tabClipboard.js:128
+#: extension/features/Clipboard/tabClipboard.js:300
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:151
-#: extension/features/Clipboard/tabClipboard.js:589
+#: extension/features/Clipboard/tabClipboard.js:137
+#: extension/features/Clipboard/tabClipboard.js:572
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:163
+#: extension/features/Clipboard/tabClipboard.js:145
 msgid "Delete Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:317
+#: extension/features/Clipboard/tabClipboard.js:300
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:570
+#: extension/features/Clipboard/tabClipboard.js:553
 msgid "Deselect All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:596
+#: extension/features/Clipboard/tabClipboard.js:579
 msgid "Pin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:596
+#: extension/features/Clipboard/tabClipboard.js:579
 msgid "Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:648
+#: extension/features/Clipboard/tabClipboard.js:631
 msgid "No results found."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:648
+#: extension/features/Clipboard/tabClipboard.js:631
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:662
+#: extension/features/Clipboard/tabClipboard.js:645
 msgid "Pinned"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:686
+#: extension/features/Clipboard/tabClipboard.js:669
 msgid "History"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:230
+#: extension/features/GIF/tabGIF.js:223
 msgid "Online search is disabled."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:420 extension/features/GIF/tabGIF.js:514
-#: extension/features/GIF/tabGIF.js:523
-#: extension/utilities/utilityCategorizedItemViewer.js:547
+#: extension/features/GIF/tabGIF.js:413 extension/features/GIF/tabGIF.js:507
+#: extension/features/GIF/tabGIF.js:516
+#: extension/utilities/utilityCategorizedItemViewer.js:553
 msgid "Recents"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:466
+#: extension/features/GIF/tabGIF.js:459
 msgid "No categories available."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:534 extension/features/GIF/tabGIF.js:540
+#: extension/features/GIF/tabGIF.js:527 extension/features/GIF/tabGIF.js:533
 msgid "Trending"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:541
+#: extension/features/GIF/tabGIF.js:534
 msgid "Trending GIFs"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:817
+#: extension/features/GIF/tabGIF.js:810
 msgid "No recent GIFs."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:852
+#: extension/features/GIF/tabGIF.js:845
 msgid "No trending GIFs found."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:899
+#: extension/features/GIF/tabGIF.js:892
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:1059
+#: extension/features/GIF/tabGIF.js:1052
 #, javascript-format
 msgid ""
 "Error: %s\n"
 "Please check your API key and network connection."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:74
+#: extension/utilities/utilityCategorizedItemViewer.js:83
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:469
+#: extension/utilities/utilityCategorizedItemViewer.js:475
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:633
+#: extension/utilities/utilityCategorizedItemViewer.js:639
 msgid "No items available."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:634
+#: extension/utilities/utilityCategorizedItemViewer.js:640
 msgid "No items match your search."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:635
+#: extension/utilities/utilityCategorizedItemViewer.js:641
 msgid "No recent items yet."
 msgstr ""
 
-#: extension/utilities/utilitySearch.js:34
+#: extension/utilities/utilitySearch.js:42
 msgid "Search..."
 msgstr ""
