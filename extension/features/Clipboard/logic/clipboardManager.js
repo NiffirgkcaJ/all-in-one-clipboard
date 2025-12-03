@@ -12,6 +12,7 @@ import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
+import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
 const MAX_RETRIES = 3;
@@ -39,6 +40,7 @@ export const ClipboardManager = GObject.registerClass(
          *
          * @param {string} uuid - Extension UUID
          * @param {Gio.Settings} settings - Extension settings
+         * @param {string} extensionPath - Path to extension directory
          */
         constructor(uuid, settings) {
             super();
@@ -101,6 +103,13 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if data loaded successfully
          */
         async loadAndPrepare() {
+            // Initialize ContactProcessor FIRST (before loading history)
+            try {
+                ContactProcessor.init();
+            } catch (e) {
+                console.error(`[AIO-Clipboard] ContactProcessor.init() failed: ${e.message}\n${e.stack}`);
+            }
+
             this._initialLoadSuccess = await this.loadData();
             return this._initialLoadSuccess;
         }
@@ -170,6 +179,13 @@ export const ClipboardManager = GObject.registerClass(
                         return;
                     }
 
+                    // Contact
+                    const contactResult = await ContactProcessor.process(text);
+                    if (contactResult) {
+                        this._processResult(contactResult);
+                        return;
+                    }
+
                     // Color
                     const colorResult = ColorProcessor.process(text);
                     if (colorResult) {
@@ -228,6 +244,9 @@ export const ClipboardManager = GObject.registerClass(
                     break;
                 case ClipboardType.TEXT:
                     this._handleExtractedContent(result, TextProcessor, this._textsDir);
+                    break;
+                case ClipboardType.CONTACT:
+                    this._handleContactItem(result);
                     break;
                 default:
                     console.warn(`[AIO-Clipboard] Unknown result type: ${result.type}`);
@@ -306,6 +325,50 @@ export const ClipboardManager = GObject.registerClass(
                 preview: colorResult.color_value,
             };
             this._addItemToHistory(newItem);
+        }
+
+        /**
+         * Handle contact clipboard items
+         *
+         * @param {Object} contactResult - Extracted contact content
+         * @private
+         */
+        _handleContactItem(contactResult) {
+            const newItem = {
+                id: GLib.uuid_string_random(),
+                type: ClipboardType.CONTACT,
+                timestamp: Math.floor(Date.now() / 1000),
+                subtype: contactResult.subtype,
+                text: contactResult.text,
+                preview: contactResult.preview,
+                hash: contactResult.hash,
+                metadata: contactResult.metadata,
+            };
+            this._addItemToHistory(newItem);
+
+            // For emails, try to fetch the provider's icon
+            if (newItem.subtype === 'email') {
+                const parts = newItem.text.split('@');
+                if (parts.length === 2) {
+                    const domain = parts[1];
+                    const url = `https://${domain}`;
+
+                    LinkProcessor.fetchMetadata(url)
+                        .then(async (metadata) => {
+                            if (metadata.iconUrl) {
+                                const filename = await LinkProcessor.downloadFavicon(metadata.iconUrl, this._imagesDir, newItem.id);
+                                if (filename) {
+                                    newItem.icon_filename = filename;
+                                    this._saveHistory();
+                                    this.emit('history-changed');
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            // Ignore errors for icon fetching
+                        });
+                }
+            }
         }
 
         /**

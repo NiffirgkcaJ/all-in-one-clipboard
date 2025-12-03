@@ -1,0 +1,1738 @@
+[
+    {
+        "name": "Afghanistan",
+        "code": "AF",
+        "dial_code": "+93",
+        "emoji": "🇦🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/af.svg"
+    },
+    {
+        "name": "Albania",
+        "code": "AL",
+        "dial_code": "+355",
+        "emoji": "🇦🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/al.svg"
+    },
+    {
+        "name": "Algeria",
+        "code": "DZ",
+        "dial_code": "+213",
+        "emoji": "🇩🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/dz.svg"
+    },
+    {
+        "name": "American Samoa",
+        "code": "AS",
+        "dial_code": "+1684",
+        "emoji": "🇦🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/as.svg"
+    },
+    {
+        "name": "Andorra",
+        "code": "AD",
+        "dial_code": "+376",
+        "emoji": "🇦🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ad.svg"
+    },
+    {
+        "name": "Angola",
+        "code": "AO",
+        "dial_code": "+244",
+        "emoji": "🇦🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ao.svg"
+    },
+    {
+        "name": "Anguilla",
+        "code": "AI",
+        "dial_code": "+1264",
+        "emoji": "🇦🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ai.svg"
+    },
+    {
+        "name": "Antigua and Barbuda",
+        "code": "AG",
+        "dial_code": "+1268",
+        "emoji": "🇦🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ag.svg"
+    },
+    {
+        "name": "Argentina",
+        "code": "AR",
+        "dial_code": "+54",
+        "emoji": "🇦🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ar.svg"
+    },
+    {
+        "name": "Armenia",
+        "code": "AM",
+        "dial_code": "+374",
+        "emoji": "🇦🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/am.svg"
+    },
+    {
+        "name": "Aruba",
+        "code": "AW",
+        "dial_code": "+297",
+        "emoji": "🇦🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/aw.svg"
+    },
+    {
+        "name": "Australia",
+        "code": "AU",
+        "dial_code": "+61",
+        "emoji": "🇦🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/au.svg"
+    },
+    {
+        "name": "Austria",
+        "code": "AT",
+        "dial_code": "+43",
+        "emoji": "🇦🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/at.svg"
+    },
+    {
+        "name": "Azerbaijan",
+        "code": "AZ",
+        "dial_code": "+994",
+        "emoji": "🇦🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/az.svg"
+    },
+    {
+        "name": "Bahamas",
+        "code": "BS",
+        "dial_code": "+1242",
+        "emoji": "🇧🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bs.svg"
+    },
+    {
+        "name": "Bahrain",
+        "code": "BH",
+        "dial_code": "+973",
+        "emoji": "🇧🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bh.svg"
+    },
+    {
+        "name": "Bangladesh",
+        "code": "BD",
+        "dial_code": "+880",
+        "emoji": "🇧🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bd.svg"
+    },
+    {
+        "name": "Barbados",
+        "code": "BB",
+        "dial_code": "+1246",
+        "emoji": "🇧🇧",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bb.svg"
+    },
+    {
+        "name": "Belarus",
+        "code": "BY",
+        "dial_code": "+375",
+        "emoji": "🇧🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/by.svg"
+    },
+    {
+        "name": "Belgium",
+        "code": "BE",
+        "dial_code": "+32",
+        "emoji": "🇧🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/be.svg"
+    },
+    {
+        "name": "Belize",
+        "code": "BZ",
+        "dial_code": "+501",
+        "emoji": "🇧🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bz.svg"
+    },
+    {
+        "name": "Benin",
+        "code": "BJ",
+        "dial_code": "+229",
+        "emoji": "🇧🇯",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bj.svg"
+    },
+    {
+        "name": "Bermuda",
+        "code": "BM",
+        "dial_code": "+1441",
+        "emoji": "🇧🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bm.svg"
+    },
+    {
+        "name": "Bhutan",
+        "code": "BT",
+        "dial_code": "+975",
+        "emoji": "🇧🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bt.svg"
+    },
+    {
+        "name": "Bolivia",
+        "code": "BO",
+        "dial_code": "+591",
+        "emoji": "🇧🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bo.svg"
+    },
+    {
+        "name": "Bosnia and Herzegovina",
+        "code": "BA",
+        "dial_code": "+387",
+        "emoji": "🇧🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ba.svg"
+    },
+    {
+        "name": "Botswana",
+        "code": "BW",
+        "dial_code": "+267",
+        "emoji": "🇧🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bw.svg"
+    },
+    {
+        "name": "Bouvet Island",
+        "code": "BV",
+        "dial_code": "+47",
+        "emoji": "🇧🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bv.svg"
+    },
+    {
+        "name": "Brazil",
+        "code": "BR",
+        "dial_code": "+55",
+        "emoji": "🇧🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/br.svg"
+    },
+    {
+        "name": "British Indian Ocean Territory",
+        "code": "IO",
+        "dial_code": "+246",
+        "emoji": "🇮🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/io.svg"
+    },
+    {
+        "name": "British Virgin Islands",
+        "code": "VG",
+        "dial_code": "+1284",
+        "emoji": "🇻🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/vg.svg"
+    },
+    {
+        "name": "Brunei",
+        "code": "BN",
+        "dial_code": "+673",
+        "emoji": "🇧🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bn.svg"
+    },
+    {
+        "name": "Bulgaria",
+        "code": "BG",
+        "dial_code": "+359",
+        "emoji": "🇧🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bg.svg"
+    },
+    {
+        "name": "Burkina Faso",
+        "code": "BF",
+        "dial_code": "+226",
+        "emoji": "🇧🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bf.svg"
+    },
+    {
+        "name": "Burundi",
+        "code": "BI",
+        "dial_code": "+257",
+        "emoji": "🇧🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bi.svg"
+    },
+    {
+        "name": "Cambodia",
+        "code": "KH",
+        "dial_code": "+855",
+        "emoji": "🇰🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kh.svg"
+    },
+    {
+        "name": "Cameroon",
+        "code": "CM",
+        "dial_code": "+237",
+        "emoji": "🇨🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cm.svg"
+    },
+    {
+        "name": "Canada",
+        "code": "CA",
+        "dial_code": "+1",
+        "emoji": "🇨🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ca.svg"
+    },
+    {
+        "name": "Cape Verde",
+        "code": "CV",
+        "dial_code": "+238",
+        "emoji": "🇨🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cv.svg"
+    },
+    {
+        "name": "Caribbean Netherlands",
+        "code": "BQ",
+        "dial_code": "+599",
+        "emoji": "🇧🇶",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bq.svg"
+    },
+    {
+        "name": "Cayman Islands",
+        "code": "KY",
+        "dial_code": "+1345",
+        "emoji": "🇰🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ky.svg"
+    },
+    {
+        "name": "Central African Republic",
+        "code": "CF",
+        "dial_code": "+236",
+        "emoji": "🇨🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cf.svg"
+    },
+    {
+        "name": "Chad",
+        "code": "TD",
+        "dial_code": "+235",
+        "emoji": "🇹🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/td.svg"
+    },
+    {
+        "name": "Chile",
+        "code": "CL",
+        "dial_code": "+56",
+        "emoji": "🇨🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cl.svg"
+    },
+    {
+        "name": "China",
+        "code": "CN",
+        "dial_code": "+86",
+        "emoji": "🇨🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cn.svg"
+    },
+    {
+        "name": "Christmas Island",
+        "code": "CX",
+        "dial_code": "+61",
+        "emoji": "🇨🇽",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cx.svg"
+    },
+    {
+        "name": "Cocos (Keeling) Islands",
+        "code": "CC",
+        "dial_code": "+61",
+        "emoji": "🇨🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cc.svg"
+    },
+    {
+        "name": "Colombia",
+        "code": "CO",
+        "dial_code": "+57",
+        "emoji": "🇨🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/co.svg"
+    },
+    {
+        "name": "Comoros",
+        "code": "KM",
+        "dial_code": "+269",
+        "emoji": "🇰🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/km.svg"
+    },
+    {
+        "name": "Cook Islands",
+        "code": "CK",
+        "dial_code": "+682",
+        "emoji": "🇨🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ck.svg"
+    },
+    {
+        "name": "Costa Rica",
+        "code": "CR",
+        "dial_code": "+506",
+        "emoji": "🇨🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cr.svg"
+    },
+    {
+        "name": "Croatia",
+        "code": "HR",
+        "dial_code": "+385",
+        "emoji": "🇭🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/hr.svg"
+    },
+    {
+        "name": "Cuba",
+        "code": "CU",
+        "dial_code": "+53",
+        "emoji": "🇨🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cu.svg"
+    },
+    {
+        "name": "Curaçao",
+        "code": "CW",
+        "dial_code": "+599",
+        "emoji": "🇨🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cw.svg"
+    },
+    {
+        "name": "Cyprus",
+        "code": "CY",
+        "dial_code": "+357",
+        "emoji": "🇨🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cy.svg"
+    },
+    {
+        "name": "Czechia",
+        "code": "CZ",
+        "dial_code": "+420",
+        "emoji": "🇨🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cz.svg"
+    },
+    {
+        "name": "DR Congo",
+        "code": "CD",
+        "dial_code": "+243",
+        "emoji": "🇨🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cd.svg"
+    },
+    {
+        "name": "Denmark",
+        "code": "DK",
+        "dial_code": "+45",
+        "emoji": "🇩🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/dk.svg"
+    },
+    {
+        "name": "Djibouti",
+        "code": "DJ",
+        "dial_code": "+253",
+        "emoji": "🇩🇯",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/dj.svg"
+    },
+    {
+        "name": "Dominica",
+        "code": "DM",
+        "dial_code": "+1767",
+        "emoji": "🇩🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/dm.svg"
+    },
+    {
+        "name": "Dominican Republic",
+        "code": "DO",
+        "dial_code": "+1809",
+        "emoji": "🇩🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/do.svg"
+    },
+    {
+        "name": "Ecuador",
+        "code": "EC",
+        "dial_code": "+593",
+        "emoji": "🇪🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ec.svg"
+    },
+    {
+        "name": "Egypt",
+        "code": "EG",
+        "dial_code": "+20",
+        "emoji": "🇪🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/eg.svg"
+    },
+    {
+        "name": "El Salvador",
+        "code": "SV",
+        "dial_code": "+503",
+        "emoji": "🇸🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sv.svg"
+    },
+    {
+        "name": "Equatorial Guinea",
+        "code": "GQ",
+        "dial_code": "+240",
+        "emoji": "🇬🇶",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gq.svg"
+    },
+    {
+        "name": "Eritrea",
+        "code": "ER",
+        "dial_code": "+291",
+        "emoji": "🇪🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/er.svg"
+    },
+    {
+        "name": "Estonia",
+        "code": "EE",
+        "dial_code": "+372",
+        "emoji": "🇪🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ee.svg"
+    },
+    {
+        "name": "Eswatini",
+        "code": "SZ",
+        "dial_code": "+268",
+        "emoji": "🇸🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sz.svg"
+    },
+    {
+        "name": "Ethiopia",
+        "code": "ET",
+        "dial_code": "+251",
+        "emoji": "🇪🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/et.svg"
+    },
+    {
+        "name": "Falkland Islands",
+        "code": "FK",
+        "dial_code": "+500",
+        "emoji": "🇫🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fk.svg"
+    },
+    {
+        "name": "Faroe Islands",
+        "code": "FO",
+        "dial_code": "+298",
+        "emoji": "🇫🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fo.svg"
+    },
+    {
+        "name": "Fiji",
+        "code": "FJ",
+        "dial_code": "+679",
+        "emoji": "🇫🇯",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fj.svg"
+    },
+    {
+        "name": "Finland",
+        "code": "FI",
+        "dial_code": "+358",
+        "emoji": "🇫🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fi.svg"
+    },
+    {
+        "name": "France",
+        "code": "FR",
+        "dial_code": "+33",
+        "emoji": "🇫🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fr.svg"
+    },
+    {
+        "name": "French Guiana",
+        "code": "GF",
+        "dial_code": "+594",
+        "emoji": "🇬🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gf.svg"
+    },
+    {
+        "name": "French Polynesia",
+        "code": "PF",
+        "dial_code": "+689",
+        "emoji": "🇵🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pf.svg"
+    },
+    {
+        "name": "French Southern and Antarctic Lands",
+        "code": "TF",
+        "dial_code": "+262",
+        "emoji": "🇹🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tf.svg"
+    },
+    {
+        "name": "Gabon",
+        "code": "GA",
+        "dial_code": "+241",
+        "emoji": "🇬🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ga.svg"
+    },
+    {
+        "name": "Gambia",
+        "code": "GM",
+        "dial_code": "+220",
+        "emoji": "🇬🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gm.svg"
+    },
+    {
+        "name": "Georgia",
+        "code": "GE",
+        "dial_code": "+995",
+        "emoji": "🇬🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ge.svg"
+    },
+    {
+        "name": "Germany",
+        "code": "DE",
+        "dial_code": "+49",
+        "emoji": "🇩🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/de.svg"
+    },
+    {
+        "name": "Ghana",
+        "code": "GH",
+        "dial_code": "+233",
+        "emoji": "🇬🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gh.svg"
+    },
+    {
+        "name": "Gibraltar",
+        "code": "GI",
+        "dial_code": "+350",
+        "emoji": "🇬🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gi.svg"
+    },
+    {
+        "name": "Greece",
+        "code": "GR",
+        "dial_code": "+30",
+        "emoji": "🇬🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gr.svg"
+    },
+    {
+        "name": "Greenland",
+        "code": "GL",
+        "dial_code": "+299",
+        "emoji": "🇬🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gl.svg"
+    },
+    {
+        "name": "Grenada",
+        "code": "GD",
+        "dial_code": "+1473",
+        "emoji": "🇬🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gd.svg"
+    },
+    {
+        "name": "Guadeloupe",
+        "code": "GP",
+        "dial_code": "+590",
+        "emoji": "🇬🇵",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gp.svg"
+    },
+    {
+        "name": "Guam",
+        "code": "GU",
+        "dial_code": "+1671",
+        "emoji": "🇬🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gu.svg"
+    },
+    {
+        "name": "Guatemala",
+        "code": "GT",
+        "dial_code": "+502",
+        "emoji": "🇬🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gt.svg"
+    },
+    {
+        "name": "Guernsey",
+        "code": "GG",
+        "dial_code": "+44",
+        "emoji": "🇬🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gg.svg"
+    },
+    {
+        "name": "Guinea",
+        "code": "GN",
+        "dial_code": "+224",
+        "emoji": "🇬🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gn.svg"
+    },
+    {
+        "name": "Guinea-Bissau",
+        "code": "GW",
+        "dial_code": "+245",
+        "emoji": "🇬🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gw.svg"
+    },
+    {
+        "name": "Guyana",
+        "code": "GY",
+        "dial_code": "+592",
+        "emoji": "🇬🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gy.svg"
+    },
+    {
+        "name": "Haiti",
+        "code": "HT",
+        "dial_code": "+509",
+        "emoji": "🇭🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ht.svg"
+    },
+    {
+        "name": "Honduras",
+        "code": "HN",
+        "dial_code": "+504",
+        "emoji": "🇭🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/hn.svg"
+    },
+    {
+        "name": "Hong Kong",
+        "code": "HK",
+        "dial_code": "+852",
+        "emoji": "🇭🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/hk.svg"
+    },
+    {
+        "name": "Hungary",
+        "code": "HU",
+        "dial_code": "+36",
+        "emoji": "🇭🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/hu.svg"
+    },
+    {
+        "name": "Iceland",
+        "code": "IS",
+        "dial_code": "+354",
+        "emoji": "🇮🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/is.svg"
+    },
+    {
+        "name": "India",
+        "code": "IN",
+        "dial_code": "+91",
+        "emoji": "🇮🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/in.svg"
+    },
+    {
+        "name": "Indonesia",
+        "code": "ID",
+        "dial_code": "+62",
+        "emoji": "🇮🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/id.svg"
+    },
+    {
+        "name": "Iran",
+        "code": "IR",
+        "dial_code": "+98",
+        "emoji": "🇮🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ir.svg"
+    },
+    {
+        "name": "Iraq",
+        "code": "IQ",
+        "dial_code": "+964",
+        "emoji": "🇮🇶",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/iq.svg"
+    },
+    {
+        "name": "Ireland",
+        "code": "IE",
+        "dial_code": "+353",
+        "emoji": "🇮🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ie.svg"
+    },
+    {
+        "name": "Isle of Man",
+        "code": "IM",
+        "dial_code": "+44",
+        "emoji": "🇮🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/im.svg"
+    },
+    {
+        "name": "Israel",
+        "code": "IL",
+        "dial_code": "+972",
+        "emoji": "🇮🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/il.svg"
+    },
+    {
+        "name": "Italy",
+        "code": "IT",
+        "dial_code": "+39",
+        "emoji": "🇮🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/it.svg"
+    },
+    {
+        "name": "Ivory Coast",
+        "code": "CI",
+        "dial_code": "+225",
+        "emoji": "🇨🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ci.svg"
+    },
+    {
+        "name": "Jamaica",
+        "code": "JM",
+        "dial_code": "+1876",
+        "emoji": "🇯🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/jm.svg"
+    },
+    {
+        "name": "Japan",
+        "code": "JP",
+        "dial_code": "+81",
+        "emoji": "🇯🇵",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/jp.svg"
+    },
+    {
+        "name": "Jersey",
+        "code": "JE",
+        "dial_code": "+44",
+        "emoji": "🇯🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/je.svg"
+    },
+    {
+        "name": "Jordan",
+        "code": "JO",
+        "dial_code": "+962",
+        "emoji": "🇯🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/jo.svg"
+    },
+    {
+        "name": "Kazakhstan",
+        "code": "KZ",
+        "dial_code": "+7",
+        "emoji": "🇰🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kz.svg"
+    },
+    {
+        "name": "Kenya",
+        "code": "KE",
+        "dial_code": "+254",
+        "emoji": "🇰🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ke.svg"
+    },
+    {
+        "name": "Kiribati",
+        "code": "KI",
+        "dial_code": "+686",
+        "emoji": "🇰🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ki.svg"
+    },
+    {
+        "name": "Kosovo",
+        "code": "XK",
+        "dial_code": "+383",
+        "emoji": "🇽🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/xk.svg"
+    },
+    {
+        "name": "Kuwait",
+        "code": "KW",
+        "dial_code": "+965",
+        "emoji": "🇰🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kw.svg"
+    },
+    {
+        "name": "Kyrgyzstan",
+        "code": "KG",
+        "dial_code": "+996",
+        "emoji": "🇰🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kg.svg"
+    },
+    {
+        "name": "Laos",
+        "code": "LA",
+        "dial_code": "+856",
+        "emoji": "🇱🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/la.svg"
+    },
+    {
+        "name": "Latvia",
+        "code": "LV",
+        "dial_code": "+371",
+        "emoji": "🇱🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lv.svg"
+    },
+    {
+        "name": "Lebanon",
+        "code": "LB",
+        "dial_code": "+961",
+        "emoji": "🇱🇧",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lb.svg"
+    },
+    {
+        "name": "Lesotho",
+        "code": "LS",
+        "dial_code": "+266",
+        "emoji": "🇱🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ls.svg"
+    },
+    {
+        "name": "Liberia",
+        "code": "LR",
+        "dial_code": "+231",
+        "emoji": "🇱🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lr.svg"
+    },
+    {
+        "name": "Libya",
+        "code": "LY",
+        "dial_code": "+218",
+        "emoji": "🇱🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ly.svg"
+    },
+    {
+        "name": "Liechtenstein",
+        "code": "LI",
+        "dial_code": "+423",
+        "emoji": "🇱🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/li.svg"
+    },
+    {
+        "name": "Lithuania",
+        "code": "LT",
+        "dial_code": "+370",
+        "emoji": "🇱🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lt.svg"
+    },
+    {
+        "name": "Luxembourg",
+        "code": "LU",
+        "dial_code": "+352",
+        "emoji": "🇱🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lu.svg"
+    },
+    {
+        "name": "Macau",
+        "code": "MO",
+        "dial_code": "+853",
+        "emoji": "🇲🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mo.svg"
+    },
+    {
+        "name": "Madagascar",
+        "code": "MG",
+        "dial_code": "+261",
+        "emoji": "🇲🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mg.svg"
+    },
+    {
+        "name": "Malawi",
+        "code": "MW",
+        "dial_code": "+265",
+        "emoji": "🇲🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mw.svg"
+    },
+    {
+        "name": "Malaysia",
+        "code": "MY",
+        "dial_code": "+60",
+        "emoji": "🇲🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/my.svg"
+    },
+    {
+        "name": "Maldives",
+        "code": "MV",
+        "dial_code": "+960",
+        "emoji": "🇲🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mv.svg"
+    },
+    {
+        "name": "Mali",
+        "code": "ML",
+        "dial_code": "+223",
+        "emoji": "🇲🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ml.svg"
+    },
+    {
+        "name": "Malta",
+        "code": "MT",
+        "dial_code": "+356",
+        "emoji": "🇲🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mt.svg"
+    },
+    {
+        "name": "Marshall Islands",
+        "code": "MH",
+        "dial_code": "+692",
+        "emoji": "🇲🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mh.svg"
+    },
+    {
+        "name": "Martinique",
+        "code": "MQ",
+        "dial_code": "+596",
+        "emoji": "🇲🇶",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mq.svg"
+    },
+    {
+        "name": "Mauritania",
+        "code": "MR",
+        "dial_code": "+222",
+        "emoji": "🇲🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mr.svg"
+    },
+    {
+        "name": "Mauritius",
+        "code": "MU",
+        "dial_code": "+230",
+        "emoji": "🇲🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mu.svg"
+    },
+    {
+        "name": "Mayotte",
+        "code": "YT",
+        "dial_code": "+262",
+        "emoji": "🇾🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/yt.svg"
+    },
+    {
+        "name": "Mexico",
+        "code": "MX",
+        "dial_code": "+52",
+        "emoji": "🇲🇽",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mx.svg"
+    },
+    {
+        "name": "Micronesia",
+        "code": "FM",
+        "dial_code": "+691",
+        "emoji": "🇫🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/fm.svg"
+    },
+    {
+        "name": "Moldova",
+        "code": "MD",
+        "dial_code": "+373",
+        "emoji": "🇲🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/md.svg"
+    },
+    {
+        "name": "Monaco",
+        "code": "MC",
+        "dial_code": "+377",
+        "emoji": "🇲🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mc.svg"
+    },
+    {
+        "name": "Mongolia",
+        "code": "MN",
+        "dial_code": "+976",
+        "emoji": "🇲🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mn.svg"
+    },
+    {
+        "name": "Montenegro",
+        "code": "ME",
+        "dial_code": "+382",
+        "emoji": "🇲🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/me.svg"
+    },
+    {
+        "name": "Montserrat",
+        "code": "MS",
+        "dial_code": "+1664",
+        "emoji": "🇲🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ms.svg"
+    },
+    {
+        "name": "Morocco",
+        "code": "MA",
+        "dial_code": "+212",
+        "emoji": "🇲🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ma.svg"
+    },
+    {
+        "name": "Mozambique",
+        "code": "MZ",
+        "dial_code": "+258",
+        "emoji": "🇲🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mz.svg"
+    },
+    {
+        "name": "Myanmar",
+        "code": "MM",
+        "dial_code": "+95",
+        "emoji": "🇲🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mm.svg"
+    },
+    {
+        "name": "Namibia",
+        "code": "NA",
+        "dial_code": "+264",
+        "emoji": "🇳🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/na.svg"
+    },
+    {
+        "name": "Nauru",
+        "code": "NR",
+        "dial_code": "+674",
+        "emoji": "🇳🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nr.svg"
+    },
+    {
+        "name": "Nepal",
+        "code": "NP",
+        "dial_code": "+977",
+        "emoji": "🇳🇵",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/np.svg"
+    },
+    {
+        "name": "Netherlands",
+        "code": "NL",
+        "dial_code": "+31",
+        "emoji": "🇳🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nl.svg"
+    },
+    {
+        "name": "New Caledonia",
+        "code": "NC",
+        "dial_code": "+687",
+        "emoji": "🇳🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nc.svg"
+    },
+    {
+        "name": "New Zealand",
+        "code": "NZ",
+        "dial_code": "+64",
+        "emoji": "🇳🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nz.svg"
+    },
+    {
+        "name": "Nicaragua",
+        "code": "NI",
+        "dial_code": "+505",
+        "emoji": "🇳🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ni.svg"
+    },
+    {
+        "name": "Niger",
+        "code": "NE",
+        "dial_code": "+227",
+        "emoji": "🇳🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ne.svg"
+    },
+    {
+        "name": "Nigeria",
+        "code": "NG",
+        "dial_code": "+234",
+        "emoji": "🇳🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ng.svg"
+    },
+    {
+        "name": "Niue",
+        "code": "NU",
+        "dial_code": "+683",
+        "emoji": "🇳🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nu.svg"
+    },
+    {
+        "name": "Norfolk Island",
+        "code": "NF",
+        "dial_code": "+672",
+        "emoji": "🇳🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/nf.svg"
+    },
+    {
+        "name": "North Korea",
+        "code": "KP",
+        "dial_code": "+850",
+        "emoji": "🇰🇵",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kp.svg"
+    },
+    {
+        "name": "North Macedonia",
+        "code": "MK",
+        "dial_code": "+389",
+        "emoji": "🇲🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mk.svg"
+    },
+    {
+        "name": "Northern Mariana Islands",
+        "code": "MP",
+        "dial_code": "+1670",
+        "emoji": "🇲🇵",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mp.svg"
+    },
+    {
+        "name": "Norway",
+        "code": "NO",
+        "dial_code": "+47",
+        "emoji": "🇳🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/no.svg"
+    },
+    {
+        "name": "Oman",
+        "code": "OM",
+        "dial_code": "+968",
+        "emoji": "🇴🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/om.svg"
+    },
+    {
+        "name": "Pakistan",
+        "code": "PK",
+        "dial_code": "+92",
+        "emoji": "🇵🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pk.svg"
+    },
+    {
+        "name": "Palau",
+        "code": "PW",
+        "dial_code": "+680",
+        "emoji": "🇵🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pw.svg"
+    },
+    {
+        "name": "Palestine",
+        "code": "PS",
+        "dial_code": "+970",
+        "emoji": "🇵🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ps.svg"
+    },
+    {
+        "name": "Panama",
+        "code": "PA",
+        "dial_code": "+507",
+        "emoji": "🇵🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pa.svg"
+    },
+    {
+        "name": "Papua New Guinea",
+        "code": "PG",
+        "dial_code": "+675",
+        "emoji": "🇵🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pg.svg"
+    },
+    {
+        "name": "Paraguay",
+        "code": "PY",
+        "dial_code": "+595",
+        "emoji": "🇵🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/py.svg"
+    },
+    {
+        "name": "Peru",
+        "code": "PE",
+        "dial_code": "+51",
+        "emoji": "🇵🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pe.svg"
+    },
+    {
+        "name": "Philippines",
+        "code": "PH",
+        "dial_code": "+63",
+        "emoji": "🇵🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ph.svg"
+    },
+    {
+        "name": "Pitcairn Islands",
+        "code": "PN",
+        "dial_code": "+64",
+        "emoji": "🇵🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pn.svg"
+    },
+    {
+        "name": "Poland",
+        "code": "PL",
+        "dial_code": "+48",
+        "emoji": "🇵🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pl.svg"
+    },
+    {
+        "name": "Portugal",
+        "code": "PT",
+        "dial_code": "+351",
+        "emoji": "🇵🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pt.svg"
+    },
+    {
+        "name": "Puerto Rico",
+        "code": "PR",
+        "dial_code": "+1787",
+        "emoji": "🇵🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pr.svg"
+    },
+    {
+        "name": "Qatar",
+        "code": "QA",
+        "dial_code": "+974",
+        "emoji": "🇶🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/qa.svg"
+    },
+    {
+        "name": "Republic of the Congo",
+        "code": "CG",
+        "dial_code": "+242",
+        "emoji": "🇨🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/cg.svg"
+    },
+    {
+        "name": "Romania",
+        "code": "RO",
+        "dial_code": "+40",
+        "emoji": "🇷🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ro.svg"
+    },
+    {
+        "name": "Russia",
+        "code": "RU",
+        "dial_code": "+7",
+        "emoji": "🇷🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ru.svg"
+    },
+    {
+        "name": "Rwanda",
+        "code": "RW",
+        "dial_code": "+250",
+        "emoji": "🇷🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/rw.svg"
+    },
+    {
+        "name": "Réunion",
+        "code": "RE",
+        "dial_code": "+262",
+        "emoji": "🇷🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/re.svg"
+    },
+    {
+        "name": "Saint Barthélemy",
+        "code": "BL",
+        "dial_code": "+590",
+        "emoji": "🇧🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/bl.svg"
+    },
+    {
+        "name": "Saint Helena, Ascension and Tristan da Cunha",
+        "code": "SH",
+        "dial_code": "+290",
+        "emoji": "🇸🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sh.svg"
+    },
+    {
+        "name": "Saint Kitts and Nevis",
+        "code": "KN",
+        "dial_code": "+1869",
+        "emoji": "🇰🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kn.svg"
+    },
+    {
+        "name": "Saint Lucia",
+        "code": "LC",
+        "dial_code": "+1758",
+        "emoji": "🇱🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lc.svg"
+    },
+    {
+        "name": "Saint Martin",
+        "code": "MF",
+        "dial_code": "+590",
+        "emoji": "🇲🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/mf.svg"
+    },
+    {
+        "name": "Saint Pierre and Miquelon",
+        "code": "PM",
+        "dial_code": "+508",
+        "emoji": "🇵🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/pm.svg"
+    },
+    {
+        "name": "Saint Vincent and the Grenadines",
+        "code": "VC",
+        "dial_code": "+1784",
+        "emoji": "🇻🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/vc.svg"
+    },
+    {
+        "name": "Samoa",
+        "code": "WS",
+        "dial_code": "+685",
+        "emoji": "🇼🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ws.svg"
+    },
+    {
+        "name": "San Marino",
+        "code": "SM",
+        "dial_code": "+378",
+        "emoji": "🇸🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sm.svg"
+    },
+    {
+        "name": "Saudi Arabia",
+        "code": "SA",
+        "dial_code": "+966",
+        "emoji": "🇸🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sa.svg"
+    },
+    {
+        "name": "Senegal",
+        "code": "SN",
+        "dial_code": "+221",
+        "emoji": "🇸🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sn.svg"
+    },
+    {
+        "name": "Serbia",
+        "code": "RS",
+        "dial_code": "+381",
+        "emoji": "🇷🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/rs.svg"
+    },
+    {
+        "name": "Seychelles",
+        "code": "SC",
+        "dial_code": "+248",
+        "emoji": "🇸🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sc.svg"
+    },
+    {
+        "name": "Sierra Leone",
+        "code": "SL",
+        "dial_code": "+232",
+        "emoji": "🇸🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sl.svg"
+    },
+    {
+        "name": "Singapore",
+        "code": "SG",
+        "dial_code": "+65",
+        "emoji": "🇸🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sg.svg"
+    },
+    {
+        "name": "Sint Maarten",
+        "code": "SX",
+        "dial_code": "+1721",
+        "emoji": "🇸🇽",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sx.svg"
+    },
+    {
+        "name": "Slovakia",
+        "code": "SK",
+        "dial_code": "+421",
+        "emoji": "🇸🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sk.svg"
+    },
+    {
+        "name": "Slovenia",
+        "code": "SI",
+        "dial_code": "+386",
+        "emoji": "🇸🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/si.svg"
+    },
+    {
+        "name": "Solomon Islands",
+        "code": "SB",
+        "dial_code": "+677",
+        "emoji": "🇸🇧",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sb.svg"
+    },
+    {
+        "name": "Somalia",
+        "code": "SO",
+        "dial_code": "+252",
+        "emoji": "🇸🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/so.svg"
+    },
+    {
+        "name": "South Africa",
+        "code": "ZA",
+        "dial_code": "+27",
+        "emoji": "🇿🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/za.svg"
+    },
+    {
+        "name": "South Georgia",
+        "code": "GS",
+        "dial_code": "+500",
+        "emoji": "🇬🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gs.svg"
+    },
+    {
+        "name": "South Korea",
+        "code": "KR",
+        "dial_code": "+82",
+        "emoji": "🇰🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/kr.svg"
+    },
+    {
+        "name": "South Sudan",
+        "code": "SS",
+        "dial_code": "+211",
+        "emoji": "🇸🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ss.svg"
+    },
+    {
+        "name": "Spain",
+        "code": "ES",
+        "dial_code": "+34",
+        "emoji": "🇪🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/es.svg"
+    },
+    {
+        "name": "Sri Lanka",
+        "code": "LK",
+        "dial_code": "+94",
+        "emoji": "🇱🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/lk.svg"
+    },
+    {
+        "name": "Sudan",
+        "code": "SD",
+        "dial_code": "+249",
+        "emoji": "🇸🇩",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sd.svg"
+    },
+    {
+        "name": "Suriname",
+        "code": "SR",
+        "dial_code": "+597",
+        "emoji": "🇸🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sr.svg"
+    },
+    {
+        "name": "Svalbard and Jan Mayen",
+        "code": "SJ",
+        "dial_code": "+4779",
+        "emoji": "🇸🇯",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sj.svg"
+    },
+    {
+        "name": "Sweden",
+        "code": "SE",
+        "dial_code": "+46",
+        "emoji": "🇸🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/se.svg"
+    },
+    {
+        "name": "Switzerland",
+        "code": "CH",
+        "dial_code": "+41",
+        "emoji": "🇨🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ch.svg"
+    },
+    {
+        "name": "Syria",
+        "code": "SY",
+        "dial_code": "+963",
+        "emoji": "🇸🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/sy.svg"
+    },
+    {
+        "name": "São Tomé and Príncipe",
+        "code": "ST",
+        "dial_code": "+239",
+        "emoji": "🇸🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/st.svg"
+    },
+    {
+        "name": "Taiwan",
+        "code": "TW",
+        "dial_code": "+886",
+        "emoji": "🇹🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tw.svg"
+    },
+    {
+        "name": "Tajikistan",
+        "code": "TJ",
+        "dial_code": "+992",
+        "emoji": "🇹🇯",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tj.svg"
+    },
+    {
+        "name": "Tanzania",
+        "code": "TZ",
+        "dial_code": "+255",
+        "emoji": "🇹🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tz.svg"
+    },
+    {
+        "name": "Thailand",
+        "code": "TH",
+        "dial_code": "+66",
+        "emoji": "🇹🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/th.svg"
+    },
+    {
+        "name": "Timor-Leste",
+        "code": "TL",
+        "dial_code": "+670",
+        "emoji": "🇹🇱",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tl.svg"
+    },
+    {
+        "name": "Togo",
+        "code": "TG",
+        "dial_code": "+228",
+        "emoji": "🇹🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tg.svg"
+    },
+    {
+        "name": "Tokelau",
+        "code": "TK",
+        "dial_code": "+690",
+        "emoji": "🇹🇰",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tk.svg"
+    },
+    {
+        "name": "Tonga",
+        "code": "TO",
+        "dial_code": "+676",
+        "emoji": "🇹🇴",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/to.svg"
+    },
+    {
+        "name": "Trinidad and Tobago",
+        "code": "TT",
+        "dial_code": "+1868",
+        "emoji": "🇹🇹",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tt.svg"
+    },
+    {
+        "name": "Tunisia",
+        "code": "TN",
+        "dial_code": "+216",
+        "emoji": "🇹🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tn.svg"
+    },
+    {
+        "name": "Turkey",
+        "code": "TR",
+        "dial_code": "+90",
+        "emoji": "🇹🇷",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tr.svg"
+    },
+    {
+        "name": "Turkmenistan",
+        "code": "TM",
+        "dial_code": "+993",
+        "emoji": "🇹🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tm.svg"
+    },
+    {
+        "name": "Turks and Caicos Islands",
+        "code": "TC",
+        "dial_code": "+1649",
+        "emoji": "🇹🇨",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tc.svg"
+    },
+    {
+        "name": "Tuvalu",
+        "code": "TV",
+        "dial_code": "+688",
+        "emoji": "🇹🇻",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/tv.svg"
+    },
+    {
+        "name": "Uganda",
+        "code": "UG",
+        "dial_code": "+256",
+        "emoji": "🇺🇬",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ug.svg"
+    },
+    {
+        "name": "Ukraine",
+        "code": "UA",
+        "dial_code": "+380",
+        "emoji": "🇺🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ua.svg"
+    },
+    {
+        "name": "United Arab Emirates",
+        "code": "AE",
+        "dial_code": "+971",
+        "emoji": "🇦🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ae.svg"
+    },
+    {
+        "name": "United Kingdom",
+        "code": "GB",
+        "dial_code": "+44",
+        "emoji": "🇬🇧",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/gb.svg"
+    },
+    {
+        "name": "United States",
+        "code": "US",
+        "dial_code": "+1",
+        "emoji": "🇺🇸",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/us.svg"
+    },
+    {
+        "name": "United States Minor Outlying Islands",
+        "code": "UM",
+        "dial_code": "+268",
+        "emoji": "🇺🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/um.svg"
+    },
+    {
+        "name": "United States Virgin Islands",
+        "code": "VI",
+        "dial_code": "+1340",
+        "emoji": "🇻🇮",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/vi.svg"
+    },
+    {
+        "name": "Uruguay",
+        "code": "UY",
+        "dial_code": "+598",
+        "emoji": "🇺🇾",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/uy.svg"
+    },
+    {
+        "name": "Uzbekistan",
+        "code": "UZ",
+        "dial_code": "+998",
+        "emoji": "🇺🇿",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/uz.svg"
+    },
+    {
+        "name": "Vanuatu",
+        "code": "VU",
+        "dial_code": "+678",
+        "emoji": "🇻🇺",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/vu.svg"
+    },
+    {
+        "name": "Vatican City",
+        "code": "VA",
+        "dial_code": "+3906698",
+        "emoji": "🇻🇦",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/va.svg"
+    },
+    {
+        "name": "Venezuela",
+        "code": "VE",
+        "dial_code": "+58",
+        "emoji": "🇻🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ve.svg"
+    },
+    {
+        "name": "Vietnam",
+        "code": "VN",
+        "dial_code": "+84",
+        "emoji": "🇻🇳",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/vn.svg"
+    },
+    {
+        "name": "Wallis and Futuna",
+        "code": "WF",
+        "dial_code": "+681",
+        "emoji": "🇼🇫",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/wf.svg"
+    },
+    {
+        "name": "Western Sahara",
+        "code": "EH",
+        "dial_code": "+2125288",
+        "emoji": "🇪🇭",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/eh.svg"
+    },
+    {
+        "name": "Yemen",
+        "code": "YE",
+        "dial_code": "+967",
+        "emoji": "🇾🇪",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ye.svg"
+    },
+    {
+        "name": "Zambia",
+        "code": "ZM",
+        "dial_code": "+260",
+        "emoji": "🇿🇲",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/zm.svg"
+    },
+    {
+        "name": "Zimbabwe",
+        "code": "ZW",
+        "dial_code": "+263",
+        "emoji": "🇿🇼",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/zw.svg"
+    },
+    {
+        "name": "Åland Islands",
+        "code": "AX",
+        "dial_code": "+35818",
+        "emoji": "🇦🇽",
+        "flag_path": "resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/ax.svg"
+    }
+]

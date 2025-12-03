@@ -6,6 +6,7 @@ export const ClipboardType = {
     COLOR: 'color',
     CODE: 'code',
     TEXT: 'text',
+    CONTACT: 'contact',
 };
 
 // Content Styling
@@ -24,6 +25,18 @@ export const ClipboardStyling = {
         icon: 'clipboard-type-link-symbolic.svg',
         iconSize: 16,
         layout: 'rich',
+    },
+    [ClipboardType.CONTACT]: {
+        layout: 'rich',
+        iconSize: 16,
+        subtypes: {
+            email: {
+                icon: 'clipboard-type-contact-email-symbolic.svg',
+            },
+            phone: {
+                icon: 'clipboard-type-contact-phone-symbolic.svg',
+            },
+        },
     },
     [ClipboardType.COLOR]: {
         icon: 'clipboard-type-color-symbolic.svg',
@@ -82,4 +95,9 @@ export const ClipboardIcons = {
         icon: 'clipboard-eye-conceal-symbolic.svg',
         iconSize: 16,
     },
+};
+
+// Icon Size Configuration
+export const IconSizes = {
+    RICH_LAYOUT: 16,
 };

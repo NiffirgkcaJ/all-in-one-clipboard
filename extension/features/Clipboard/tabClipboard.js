@@ -384,8 +384,9 @@ export const ClipboardTabContent = GObject.registerClass(
                     copySuccess = true;
                     break;
                 }
-                case ClipboardType.TEXT:
+                case ClipboardType.CONTACT:
                 case ClipboardType.CODE:
+                case ClipboardType.TEXT:
                     copySuccess = await this._copyTextItem(itemData);
                     break;
                 case ClipboardType.IMAGE:

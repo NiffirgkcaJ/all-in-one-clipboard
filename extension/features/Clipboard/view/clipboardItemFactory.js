@@ -5,7 +5,7 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { createDynamicIcon } from '../../../utilities/utilityIcon.js';
-import { ClipboardType, ClipboardStyling } from '../constants/clipboardConstants.js';
+import { ClipboardType, ClipboardStyling, IconSizes } from '../constants/clipboardConstants.js';
 
 export class ClipboardItemFactory {
     /**
@@ -48,6 +48,27 @@ export class ClipboardItemFactory {
             case ClipboardType.CODE:
                 config.text = item.preview || '';
                 config.rawLines = item.raw_lines || 0;
+                break;
+            case ClipboardType.CONTACT:
+                config.title = item.preview || item.text || 'Unknown Contact';
+                config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
+
+                // Set default subtype icon from constants
+                if (style.subtypes && style.subtypes[item.subtype]) {
+                    config.icon = style.subtypes[item.subtype].icon;
+                }
+
+                // For emails: use fetched icon if available
+                if (item.subtype === 'email' && item.icon_filename && imagesDir) {
+                    const iconPath = GLib.build_filenamev([imagesDir, item.icon_filename]);
+                    config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+                }
+
+                // For phone numbers: use new format (code)
+                if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
+                    const countryCode = item.metadata.code.toLowerCase();
+                    config.flagPath = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/${countryCode}.svg`;
+                }
                 break;
             case ClipboardType.TEXT:
             default:
@@ -146,9 +167,17 @@ export class ClipboardItemFactory {
             let icon;
             if (config.gicon) {
                 icon = new St.Icon({
-                    icon_size: 24,
+                    icon_size: IconSizes.RICH_LAYOUT,
                     style_class: 'clipboard-item-icon',
                     gicon: config.gicon,
+                });
+            } else if (config.flagPath) {
+                // Use SVG flag from GResource
+                const file = Gio.File.new_for_uri(config.flagPath);
+                icon = new St.Icon({
+                    icon_size: IconSizes.RICH_LAYOUT,
+                    style_class: 'clipboard-item-icon',
+                    gicon: new Gio.FileIcon({ file: file }),
                 });
             } else {
                 icon = createDynamicIcon(config.icon, config.iconSize, 'clipboard-item-icon');
@@ -158,8 +187,8 @@ export class ClipboardItemFactory {
             if (config.cssColor) {
                 const swatchContainer = new St.Bin({
                     style_class: 'clipboard-item-color-container',
-                    y_align: Clutter.ActorAlign.CENTER,
                     x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
                 });
                 const swatch = new St.Bin({
                     style_class: 'clipboard-item-color-swatch',
