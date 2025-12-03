@@ -131,9 +131,16 @@ export class GifItemFactory {
                 y_expand: true,
             });
 
-            bin.set_child(imageActor);
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (session !== this._renderSession) {
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                bin.set_child(imageActor);
+                return GLib.SOURCE_REMOVE;
+            });
         } catch (e) {
-            if (session !== this._renderSession || !bin.get_stage()) {
+            if (session !== this._renderSession) {
                 return;
             }
             this._handleError(bin, e);
@@ -148,10 +155,22 @@ export class GifItemFactory {
      * @private
      */
     _handleError(bin, error) {
-        bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER.icon, GifIcons.ERROR_PLACEHOLDER.iconSize));
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            if (bin.get_stage()) {
+                bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER.icon, GifIcons.ERROR_PLACEHOLDER.iconSize));
+            }
+            return GLib.SOURCE_REMOVE;
+        });
 
         if (!error.message.startsWith('GIF Tab') && !error.message.startsWith('Render session')) {
             console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${error.message}`);
         }
+    }
+
+    /**
+     * Clean up resources.
+     */
+    destroy() {
+        this._renderSession = Symbol('destroyed');
     }
 }

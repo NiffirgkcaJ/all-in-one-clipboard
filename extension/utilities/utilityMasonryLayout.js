@@ -32,7 +32,6 @@ export const MasonryLayout = GObject.registerClass(
             super({
                 layout_manager: new Clutter.BinLayout(),
                 x_expand: true,
-                reactive: true, // Make the layout listen for events
             });
 
             const { columns = 4, spacing = 2, renderItemFn } = params;
@@ -47,7 +46,14 @@ export const MasonryLayout = GObject.registerClass(
 
             // Properties for keyboard navigation
             this._spatialMap = [];
-            this.connect('key-press-event', this._onKeyPress.bind(this));
+            this.reactive = true;
+            this.connect('key-press-event', this.handleKeyPress.bind(this));
+
+            this._isDestroyed = false;
+            this.connect('destroy', () => {
+                this._isDestroyed = true;
+                this._cleanupPendingCallbacks();
+            });
         }
 
         /**
@@ -128,19 +134,27 @@ export const MasonryLayout = GObject.registerClass(
 
             // Build the map and find the overall boundaries of the grid.
             const mapData = widgets.map((widget) => {
-                const box = widget.get_allocation_box();
-                if (box.y1 < minY) minY = box.y1;
-                if (box.x1 < minX) minX = box.x1;
-                if (box.x2 > maxX) maxX = box.x2;
-                if (box.y2 > maxY) maxY = box.y2;
+                // Use synchronous coordinates since allocation may not be complete
+                const x1 = widget.x;
+                const y1 = widget.y;
+                const width = widget.width;
+                const height = widget.height;
+                const x2 = x1 + width;
+                const y2 = y1 + height;
+
+                if (y1 < minY) minY = y1;
+                if (x1 < minX) minX = x1;
+                if (x2 > maxX) maxX = x2;
+                if (y2 > maxY) maxY = y2;
+
                 return {
                     widget,
-                    centerX: box.x1 + box.get_width() / 2,
-                    centerY: box.y1 + box.get_height() / 2,
-                    y1: box.y1,
-                    x1: box.x1,
-                    x2: box.x2,
-                    y2: box.y2,
+                    centerX: x1 + width / 2,
+                    centerY: y1 + height / 2,
+                    y1,
+                    x1,
+                    x2,
+                    y2,
                 };
             });
 
@@ -158,12 +172,13 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Handles key press events for navigating the grid.
-         * @param {Clutter.Actor} actor - The actor that received the event.
+         * Can be called directly or connected to a signal.
+         * @param {Clutter.Actor} _actor - The actor that received the event.
          * @param {Clutter.Event} event - The key press event.
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
-        _onKeyPress(actor, event) {
+        handleKeyPress(_actor, event) {
             const symbol = event.get_key_symbol();
             const direction = this._getDirectionFromKey(symbol);
 
@@ -341,6 +356,7 @@ export const MasonryLayout = GObject.registerClass(
             this._cleanupPendingCallbacks();
 
             const tryRender = () => {
+                if (this._isDestroyed) return;
                 this._cleanupPendingCallbacks();
 
                 if (this._isValidWidth()) {
@@ -352,7 +368,9 @@ export const MasonryLayout = GObject.registerClass(
 
             this._pendingTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                 this._pendingTimeoutId = null;
-                tryRender();
+                if (!this._isDestroyed) {
+                    tryRender();
+                }
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -369,7 +387,13 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             if (this._pendingAllocationId) {
-                this.disconnect(this._pendingAllocationId);
+                if (!this._isDestroyed) {
+                    try {
+                        this.disconnect(this._pendingAllocationId);
+                    } catch {
+                        // Ignore errors if object is already disposing
+                    }
+                }
                 this._pendingAllocationId = null;
             }
         }

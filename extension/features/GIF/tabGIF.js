@@ -296,20 +296,10 @@ export const GIFTabContent = GObject.registerClass(
             this._scrollableContainer.add_child(this._masonryView);
             this._scrollableContainer.add_child(this._infoBin);
 
+            // Make the container reactive to handle key events
             this._scrollableContainer.reactive = true;
-            this._scrollableContainer.connect('key-press-event', (_actor, event) => {
-                const symbol = event.get_key_symbol();
-                if (symbol === Clutter.KEY_Up) {
-                    const searchWidget = this._searchComponent?.getWidget();
-                    if (searchWidget && searchWidget.visible) {
-                        this._searchComponent.grabFocus();
-                    } else if (this._headerFocusables.length > 0) {
-                        this._headerFocusables[0].grab_key_focus();
-                    }
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            });
+            this._scrollableContainer.connect('key-press-event', this._onGridKeyPress.bind(this));
+
             this.add_child(this._scrollView);
         }
 
@@ -371,7 +361,6 @@ export const GIFTabContent = GObject.registerClass(
 
             this._setOnlineMode(searchWidget);
             this._addTrendingButton();
-
             this._setInitialCategory();
 
             this._loadCategories().catch((e) => {
@@ -663,6 +652,42 @@ export const GIFTabContent = GObject.registerClass(
         }
 
         /**
+         * Focus the next element up (search bar or header).
+         *
+         * @private
+         */
+        _focusNextElementUp() {
+            const searchWidget = this._searchComponent?.getWidget();
+
+            if (searchWidget && searchWidget.visible) {
+                this._searchComponent.grabFocus();
+            } else if (this._headerFocusables.length > 0) {
+                this._headerFocusables[0].grab_key_focus();
+            }
+        }
+
+        /**
+         * Handle boundary cases when MasonryLayout propagates navigation events.
+         * This only receives events that MasonryLayout didn't handle internally.
+         *
+         * @param {St.Widget} actor - The actor that received the event
+         * @param {Clutter.Event} event - The key press event
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @private
+         */
+        _onGridKeyPress(actor, event) {
+            const symbol = event.get_key_symbol();
+
+            // MasonryLayout propagates up when at the top edge
+            if (symbol === Clutter.KEY_Up) {
+                this._focusNextElementUp();
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
          * Handle keyboard navigation in the search bar.
          *
          * @param {St.Widget} actor - The actor that received the event
@@ -716,8 +741,11 @@ export const GIFTabContent = GObject.registerClass(
             this._searchComponent.clearSearch();
             this._isClearingForCategoryChange = false;
 
-            this._loadCategoryContent(category);
-            this._focusSearchOrFirstItem();
+            // Defer loading until tab is visible to prevent allocation errors
+            if (this.mapped) {
+                this._loadCategoryContent(category);
+                this._focusSearchOrFirstItem();
+            }
         }
 
         /**
@@ -796,16 +824,11 @@ export const GIFTabContent = GObject.registerClass(
         _displayRecents() {
             this._nextPos = null;
             const recents = this._recentItemsManager.getRecents();
-
-            this._renderGrid([], true);
+            this._showSpinner(false);
 
             if (recents.length > 0) {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    if (!this._isDestroyed) {
-                        this._renderGrid(recents, false);
-                    }
-                    return GLib.SOURCE_REMOVE;
-                });
+                // Render immediately to avoid empty state
+                this._renderGrid(recents, true);
             } else {
                 this._renderInfoState(_('No recent GIFs.'));
             }
@@ -1014,6 +1037,8 @@ export const GIFTabContent = GObject.registerClass(
          */
         _renderLoadingState() {
             this._showSpinner(true);
+            this._masonryView.visible = false;
+            this._infoBin.visible = false;
 
             if (this._masonryView) {
                 this._masonryView.clear();
@@ -1044,8 +1069,6 @@ export const GIFTabContent = GObject.registerClass(
          */
         _renderErrorState(errorMessage) {
             this._showSpinner(false);
-
-            // Hide the grid and show the info message container (styled as an error)
             this._masonryView.visible = false;
             this._infoBin.visible = true;
             this._infoLabel.set_style_class_name('aio-clipboard-error-label');
@@ -1171,7 +1194,8 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderErrorState(e.message);
                 });
             } else if (this._activeCategory) {
-                this._setActiveCategory(this._activeCategory, true);
+                // Set the active category to ensure content is loaded
+                this._setActiveCategory(this._activeCategory);
             }
         }
 
@@ -1204,6 +1228,7 @@ export const GIFTabContent = GObject.registerClass(
             this._searchDebouncer?.destroy();
             this._searchComponent?.destroy();
             this._recentItemsManager?.destroy();
+            this._itemFactory?.destroy();
 
             super.destroy();
         }
