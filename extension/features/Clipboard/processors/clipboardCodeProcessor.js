@@ -4,7 +4,6 @@ import { ClipboardType } from '../constants/clipboardConstants.js';
 
 // Configuration
 const PREVIEW_LINE_LIMIT = 10;
-const MIN_SCORE_THRESHOLD = 5;
 
 // Highlighting Colors
 const C_KEYWORD = '#ff7b72';
@@ -12,13 +11,67 @@ const C_STRING = '#a5d6ff';
 const C_COMMENT = '#8b949e';
 const C_NUMBER = '#79c0ff';
 
-// Regex Definitions
-const REGEX_KEYWORDS =
-    /\b(function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b/;
-const REGEX_STRUCTURAL = /[{}[\]();=<>!&|]/g; // Added 'g' flag for counting
+// Strong Code Patterns
+const CODE_PATTERNS = {
+    IMPORT_EXPORT: /^\s*(import|export)\s+.+(from\s+['"]|;)/,
+    DECLARATION: /^\s*(const|let|var)\s+\w+\s*=/,
+    FUNCTION_DEF: /^\s*(function\s+\w+\s*\(|const\s+\w+\s*=\s*\(.*\)\s*=>|=>\s*{)/,
+    DESTRUCTURING: /^\s*(const|let|var)\s*[{[].*[}\]]\s*=/,
+    METHOD_CHAIN: /\.\w+\s*\(.*\)\s*[.;]/,
+    CONTROL_FLOW: /^\s*(if|for|while|switch)\s*\(/,
+    RETURN_STATEMENT: /^\s*return\s+[^;]+;/,
+};
+
+// Prose Anti-Patterns
+const PROSE_PATTERNS = {
+    NUMBERED_LIST: /^\s*\d+\.\s+[A-Z]/,
+    QUESTION: /\?\s*$/,
+    PROPER_NOUNS: /\b[A-Z][a-z]+(\s+[A-Z][a-z]+){2,}\b/,
+    SENTENCE_START: /^\s*(Now|Okay|However|Although|But|And|Or|So|These|Those|What|Can|Do|Let me|Right now|Also)\s/,
+    NATURAL_WORDS: /\b\w{12,}\b/,
+};
+
+// Heuristics & Tokenization
+const KEYWORDS = [
+    'function',
+    'return',
+    'var',
+    'let',
+    'const',
+    'if',
+    'else',
+    'for',
+    'while',
+    'class',
+    'import',
+    'export',
+    'from',
+    'def',
+    'public',
+    'private',
+    'void',
+    'int',
+    'bool',
+    'string',
+    'include',
+    'async',
+    'await',
+    'try',
+    'catch',
+    'switch',
+    'case',
+    'break',
+    'continue',
+    'new',
+    'this',
+    'typeof',
+].join('|');
+
+// Regex Patterns
+const REGEX_KEYWORDS = new RegExp(`\\b(${KEYWORDS})\\b`);
+const REGEX_STRUCTURAL = /[{}[\]();=<>!&|]/g;
 const REGEX_INDENTATION = /^\s{2,}/;
-const REGEX_TOKENIZER =
-    /(\/\/.*)|((['"])(?:(?=(\\?))\4.)*?\3)|(\b(?:function|return|var|let|const|if|else|for|while|class|import|export|from|def|public|private|void|int|bool|string|include|async|await|try|catch|switch|case|break|continue|new|this|typeof)\b)|(\b\d+\b)/g;
+const REGEX_TOKENIZER = new RegExp(`(\\/\\/.*)|((['"])(?:(?=(\\\\?))\\4.)*?\\3)|(\\b(?:${KEYWORDS})\\b)|(\\b\\d+\\b)`, 'g');
 
 export class CodeProcessor {
     /**
@@ -38,9 +91,7 @@ export class CodeProcessor {
         const previewLines = lines.slice(0, PREVIEW_LINE_LIMIT);
         const rawPreviewText = previewLines.join('\n');
         const rawLines = previewLines.length;
-
         const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
-
         const highlightedPreview = this._highlight(rawPreviewText);
 
         return {
@@ -53,41 +104,141 @@ export class CodeProcessor {
     }
 
     /**
-     * Determines if the given text is likely to be code based on heuristics.
+     * Determines if the given text is likely to be code using multi-signal detection.
      * @param {string} text - The text to evaluate.
      * @returns {boolean} True if likely code, false otherwise.
      */
     static _isLikelyCode(text) {
-        const lines = text.split(/\r?\n/).slice(0, 15);
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        const totalLines = lines.length;
+
+        // Strong Code Pattern Detection
+        if (this._checkStrongPatterns(lines)) return true;
+
+        // Prose Anti-Pattern Detection
+        if (this._checkProsePatterns(lines)) return false;
+
+        // Heuristic Scoring
+        let score = this._calculateHeuristicScore(lines, text);
+
+        // Dynamic Threshold
+        let threshold = 5.0;
+
+        if (totalLines === 1) {
+            threshold = 2.5;
+        } else if (totalLines <= 3) {
+            threshold = 3.5;
+        }
+
+        const density = this._analyzeKeywordDensity(text);
+        if (density.isCodeLike) {
+            score += 2;
+        } else if (density.ratio < 0.03) {
+            score -= 2;
+        }
+
+        return score >= threshold;
+    }
+
+    /**
+     * Checks for strong code patterns in the text.
+     * @param {Array<string>} lines - The lines to check.
+     * @returns {boolean} True if strong code patterns are found.
+     */
+    static _checkStrongPatterns(lines) {
+        let codePatternMatches = 0;
+        const totalLines = lines.length;
+
+        for (const line of lines.slice(0, 10)) {
+            const trimmed = line.trim();
+            for (const pattern of Object.values(CODE_PATTERNS)) {
+                if (pattern.test(trimmed)) {
+                    codePatternMatches++;
+                    break;
+                }
+            }
+        }
+
+        if (totalLines <= 5 && codePatternMatches >= 1) return true;
+        if (totalLines > 5 && codePatternMatches / totalLines > 0.3) return true;
+
+        return false;
+    }
+
+    /**
+     * Checks for prose anti-patterns in the text.
+     * @param {Array<string>} lines - The lines to check.
+     * @returns {boolean} True if prose patterns are found.
+     */
+    static _checkProsePatterns(lines) {
+        let proseSignals = 0;
+        for (const line of lines.slice(0, 10)) {
+            for (const pattern of Object.values(PROSE_PATTERNS)) {
+                if (pattern.test(line)) {
+                    proseSignals++;
+                    break;
+                }
+            }
+        }
+        return proseSignals >= 3;
+    }
+
+    /**
+     * Calculates a heuristic score for the text based on code characteristics.
+     * @param {Array<string>} lines - The lines to analyze.
+     * @param {string} text - The full text content.
+     * @returns {number} The calculated score.
+     */
+    static _calculateHeuristicScore(lines, text) {
         let score = 0;
 
         if (text.startsWith('<') && text.endsWith('>')) score += 5;
 
-        for (const line of lines) {
+        const sampleLines = lines.slice(0, 15);
+
+        for (const line of sampleLines) {
             const trimmed = line.trim();
-            if (trimmed.length === 0) continue;
 
             if (REGEX_INDENTATION.test(line)) score += 0.5;
 
             const structureCount = (trimmed.match(REGEX_STRUCTURAL) || []).length;
-            if (structureCount > 0) score += structureCount * 0.2;
+            score += structureCount * 0.3;
 
-            if (REGEX_KEYWORDS.test(trimmed)) score += 2;
+            if (trimmed.endsWith(';')) score += 1.5;
 
-            if (/^[A-Z].*\.$/.test(trimmed) && trimmed.includes(' ')) score -= 1;
+            if (REGEX_KEYWORDS.test(trimmed)) {
+                const hasCapitalStart = /^[A-Z]/.test(trimmed);
+                const hasEndPunctuation = /[.!?]$/.test(trimmed);
+
+                if (hasCapitalStart && hasEndPunctuation) {
+                    score -= 0.5;
+                } else {
+                    score += 1.5;
+                }
+            }
+
+            if (/^[A-Z].*[.!?]$/.test(trimmed) && trimmed.includes(' ')) {
+                score -= 2;
+            }
         }
 
-        return score >= MIN_SCORE_THRESHOLD;
+        return score;
     }
 
     /**
-     * Escapes HTML entities in a string.
-     * @param {string} str - The string to escape.
-     * @returns {string} The escaped string.
+     * Analyzes keyword density to distinguish code from technical prose.
+     * @param {string} text - The text to analyze.
+     * @returns {Object} { ratio: number, isCodeLike: boolean }
      */
-    static _escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    static _analyzeKeywordDensity(text) {
+        const words = text.split(/\s+/);
+        const keywordMatches = words.filter((w) => REGEX_KEYWORDS.test(w)).length;
+        const ratio = keywordMatches / Math.max(words.length, 1);
+
+        return {
+            ratio,
+            isCodeLike: ratio > 0.08,
+        };
     }
 
     /**
@@ -126,5 +277,15 @@ export class CodeProcessor {
         output += this._escapeHtml(text.slice(lastIndex));
 
         return output;
+    }
+
+    /**
+     * Escapes HTML entities in a string.
+     * @param {string} str - The string to escape.
+     * @returns {string} The escaped string.
+     */
+    static _escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
     }
 }
