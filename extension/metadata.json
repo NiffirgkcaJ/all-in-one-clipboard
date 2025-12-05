@@ -1,15 +1,15 @@
 {
-  "description": "A powerful clipboard manager that combines your clipboard history, emojis, GIFs, kaomojis, and symbols into a single, searchable interface.\n\nExtension Homepage:\nhttps://github.com/NiffirgkcaJ/all-in-one-clipboard\nhttps://gitlab.com/NiffirgkcaJ/all-in-one-clipboard",
-  "name": "All-in-One Clipboard",
-  "shell-version": [
-    "46",
-    "47",
-    "48",
-    "49"
-  ],
-  "url": "https://github.com/NiffirgkcaJ/all-in-one-clipboard",
-  "uuid": "all-in-one-clipboard@NiffirgkcaJ.github.com",
-  "version": 10,
-  "settings-schema": "org.gnome.shell.extensions.all-in-one-clipboard",
-  "textdomain": "all-in-one-clipboard"
+    "description": "A powerful clipboard manager that combines your clipboard history, emojis, GIFs, kaomojis, and symbols into a single, searchable interface.\n\nExtension Homepage:\nhttps://github.com/NiffirgkcaJ/all-in-one-clipboard\nhttps://gitlab.com/NiffirgkcaJ/all-in-one-clipboard",
+    "name": "All-in-One Clipboard",
+    "shell-version": [
+        "46",
+        "47",
+        "48",
+        "49"
+    ],
+    "url": "https://github.com/NiffirgkcaJ/all-in-one-clipboard",
+    "uuid": "all-in-one-clipboard@NiffirgkcaJ.github.com",
+    "version": 11,
+    "settings-schema": "org.gnome.shell.extensions.all-in-one-clipboard",
+    "textdomain": "all-in-one-clipboard"
 }

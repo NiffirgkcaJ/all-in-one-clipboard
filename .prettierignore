@@ -1,2 +1,11 @@
+# Ignore files for ESLint & Prettier
 eslint.config.js
 .prettierrc
+.prettierignore
+
+# Ignore extension metadata file
+metadata.json
+
+# Ignore YAML configuration files
+*.yaml
+*.yml
