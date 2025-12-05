@@ -374,23 +374,32 @@ export const ClipboardTabContent = GObject.registerClass(
             let copySuccess = false;
 
             switch (itemData.type) {
+                case ClipboardType.IMAGE:
+                    copySuccess = await this._copyImageItem(itemData);
+                    break;
                 case ClipboardType.FILE:
                     copySuccess = await this._copyFileItem(itemData);
                     break;
-                case ClipboardType.URL:
-                case ClipboardType.COLOR: {
-                    const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
+                case ClipboardType.URL: {
+                    const text = itemData.url;
                     St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
                     copySuccess = true;
                     break;
                 }
                 case ClipboardType.CONTACT:
-                case ClipboardType.CODE:
-                case ClipboardType.TEXT:
                     copySuccess = await this._copyTextItem(itemData);
                     break;
-                case ClipboardType.IMAGE:
-                    copySuccess = await this._copyImageItem(itemData);
+                case ClipboardType.COLOR: {
+                    const text = itemData.color_value;
+                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                    copySuccess = true;
+                    break;
+                }
+                case ClipboardType.CODE:
+                    copySuccess = await this._copyTextItem(itemData);
+                    break;
+                case ClipboardType.TEXT:
+                    copySuccess = await this._copyTextItem(itemData);
                     break;
             }
 

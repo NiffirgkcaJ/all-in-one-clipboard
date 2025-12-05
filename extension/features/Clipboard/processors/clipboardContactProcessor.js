@@ -1,14 +1,22 @@
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
-// Email Regex that matches standard email format
+// Configuration
+const MAX_CONTACT_LENGTH = 200;
+
+// Validation Patterns
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-// Phone Regex that matches international format starting with +
 const PHONE_REGEX = /^\+(\d{1,4})[\s-]?\(?\d{1,4}\)?[\s-]?\d{1,4}[\s-]?\d{1,9}$/;
 
+/**
+ * ContactProcessor - Handles email and phone number detection
+ *
+ * Pattern: Single-phase (process) with initialization
+ * - init(): Loads country data for phone number parsing
+ * - process(): Detects and validates emails/phone numbers
+ */
 export class ContactProcessor {
     static _countryByDialCode = null;
     static _initPromise = null;
@@ -38,10 +46,10 @@ export class ContactProcessor {
                         }
                     }
                 } else {
-                    console.error('[AIO-Clipboard] Failed to lookup countries.json from GResource');
+                    console.error('[AIO-Clipboard] ContactProcessor: Failed to lookup countries.json from GResource');
                 }
             } catch (e) {
-                console.warn(`[AIO-Clipboard] Failed to load country data: ${e.message}`);
+                console.warn(`[AIO-Clipboard] ContactProcessor: Failed to load country data: ${e.message}`);
             }
         })();
 
@@ -54,12 +62,12 @@ export class ContactProcessor {
      * @returns {Promise<Object|null>} Processed contact object or null.
      */
     static async process(text) {
-        if (!text || text.length > 200) return null; // Contacts are usually short
+        if (!text || text.length > MAX_CONTACT_LENGTH) return null; // Contacts are usually short
         const cleanText = text.trim();
 
         // Check for Email
         if (EMAIL_REGEX.test(cleanText)) {
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
+            const hash = ProcessorUtils.computeHashForString(cleanText);
             return {
                 type: ClipboardType.CONTACT,
                 subtype: 'email',
@@ -77,7 +85,7 @@ export class ContactProcessor {
             if (this._initPromise) {
                 await this._initPromise;
             } else {
-                console.warn('[AIO-Clipboard] ContactProcessor.process called before init! Cannot load country data.');
+                console.warn('[AIO-Clipboard] ContactProcessor: process() called before init()! Cannot load country data.');
             }
 
             // Extract digits only to match against dial codes
@@ -100,7 +108,7 @@ export class ContactProcessor {
                 }
             }
 
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
+            const hash = ProcessorUtils.computeHashForString(cleanText);
 
             return {
                 type: ClipboardType.CONTACT,

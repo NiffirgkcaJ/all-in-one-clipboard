@@ -8,11 +8,11 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
 import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
+import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
-import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
 const MAX_RETRIES = 3;
@@ -103,7 +103,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if data loaded successfully
          */
         async loadAndPrepare() {
-            // Initialize ContactProcessor FIRST (before loading history)
+            // Initialize ContactProcessor first before loading the history
             try {
                 ContactProcessor.init();
             } catch (e) {
@@ -236,17 +236,17 @@ export const ClipboardManager = GObject.registerClass(
                 case ClipboardType.URL:
                     this._handleLinkItem(result);
                     break;
+                case ClipboardType.CONTACT:
+                    this._handleContactItem(result);
+                    break;
                 case ClipboardType.COLOR:
                     this._handleColorItem(result);
                     break;
-                case ClipboardType.CODE: // NEW
+                case ClipboardType.CODE:
                     this._handleCodeItem(result);
                     break;
                 case ClipboardType.TEXT:
                     this._handleExtractedContent(result, TextProcessor, this._textsDir);
-                    break;
-                case ClipboardType.CONTACT:
-                    this._handleContactItem(result);
                     break;
                 default:
                     console.warn(`[AIO-Clipboard] Unknown result type: ${result.type}`);
@@ -254,16 +254,21 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Handle code clipboard items
+         * Handle file clipboard items
          *
-         * @param {Object} codeResult - Extracted code content
+         * @param {Object} fileResult - Extracted file content
          * @private
          */
-        _handleCodeItem(codeResult) {
-            // Reuse TextProcessor storage logic.
-            // codeResult contains { text: 'raw code', preview: 'markup', ... }
-            // TextProcessor.save will use 'text' for the file and 'preview' for the display.
-            this._handleExtractedContent(codeResult, TextProcessor, this._textsDir);
+        _handleGenericFileItem(fileResult) {
+            const newItem = {
+                id: GLib.uuid_string_random(),
+                type: ClipboardType.FILE,
+                timestamp: Math.floor(Date.now() / 1000),
+                preview: fileResult.preview,
+                file_uri: fileResult.file_uri,
+                hash: fileResult.hash,
+            };
+            this._addItemToHistory(newItem);
         }
 
         /**
@@ -309,27 +314,6 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Handle color clipboard items
-         *
-         * @param {Object} colorResult - Extracted color content
-         * @private
-         */
-        _handleColorItem(colorResult) {
-            const newItem = {
-                id: GLib.uuid_string_random(),
-                type: ClipboardType.COLOR,
-                timestamp: Math.floor(Date.now() / 1000),
-                color_value: colorResult.color_value,
-                format_type: colorResult.format_type,
-                hash: colorResult.hash,
-                preview: colorResult.color_value,
-                gradient_filename: colorResult.gradient_filename || null,
-                subtype: colorResult.subtype || 'single',
-            };
-            this._addItemToHistory(newItem);
-        }
-
-        /**
          * Handle contact clipboard items
          *
          * @param {Object} contactResult - Extracted contact content
@@ -358,7 +342,7 @@ export const ClipboardManager = GObject.registerClass(
                     LinkProcessor.fetchMetadata(url)
                         .then(async (metadata) => {
                             if (metadata.iconUrl) {
-                                const filename = await LinkProcessor.downloadFavicon(metadata.iconUrl, this._imagesDir, newItem.id);
+                                const filename = await LinkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
                                 if (filename) {
                                     newItem.icon_filename = filename;
                                     this._saveHistory();
@@ -374,21 +358,35 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Handle file clipboard items
+         * Handle color clipboard items
          *
-         * @param {Object} fileResult - Extracted file content
+         * @param {Object} colorResult - Extracted color content
          * @private
          */
-        _handleGenericFileItem(fileResult) {
+        _handleColorItem(colorResult) {
             const newItem = {
                 id: GLib.uuid_string_random(),
-                type: ClipboardType.FILE,
+                type: ClipboardType.COLOR,
                 timestamp: Math.floor(Date.now() / 1000),
-                preview: fileResult.preview,
-                file_uri: fileResult.file_uri,
-                hash: fileResult.hash,
+                color_value: colorResult.color_value,
+                format_type: colorResult.format_type,
+                hash: colorResult.hash,
+                preview: colorResult.color_value,
+                gradient_filename: colorResult.gradient_filename || null,
+                subtype: colorResult.subtype || 'single',
             };
             this._addItemToHistory(newItem);
+        }
+
+        /**
+         * Handle code clipboard items
+         *
+         * @param {Object} codeResult - Extracted code content
+         * @private
+         */
+        _handleCodeItem(codeResult) {
+            // Reuse TextProcessor storage logic.
+            this._handleExtractedContent(codeResult, TextProcessor, this._textsDir);
         }
 
         /**
@@ -612,8 +610,10 @@ export const ClipboardManager = GObject.registerClass(
             if (!this._initialLoadSuccess) return;
             while (this._history.length > this._maxHistory) {
                 const item = this._history.pop();
+                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
+                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                 if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
-                if (item.type === ClipboardType.TEXT && item.has_full_content) this._deleteTextFile(item.id);
+                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
             }
         }
 
@@ -734,6 +734,14 @@ export const ClipboardManager = GObject.registerClass(
                 const index = list.findIndex((item) => item.id === id);
                 if (index > -1) {
                     const [item] = list.splice(index, 1);
+
+                    // If you delete the most recently copied item, clear the memory
+                    if (item.hash === this._lastContent) {
+                        this._lastContent = null;
+                    }
+
+                    if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
+                    if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                     if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
                     if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
                     wasDeleted = true;
@@ -755,6 +763,8 @@ export const ClipboardManager = GObject.registerClass(
         clearHistory() {
             if (!this._initialLoadSuccess) return;
             this._history.forEach((item) => {
+                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
+                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                 if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
                 if (item.type === ClipboardType.TEXT && item.has_full_content) this._deleteTextFile(item.id);
             });
@@ -769,6 +779,8 @@ export const ClipboardManager = GObject.registerClass(
         clearPinned() {
             if (!this._initialLoadSuccess) return;
             this._pinned.forEach((item) => {
+                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
+                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                 if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
                 if (item.type === ClipboardType.TEXT && item.has_full_content) this._deleteTextFile(item.id);
             });
@@ -808,6 +820,21 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
+         * Delete a preview file from disk
+         *
+         * @param {string} filename - Preview filename to delete
+         * @private
+         */
+        _deletePreviewFile(filename) {
+            if (!filename) return;
+            try {
+                Gio.File.new_for_path(GLib.build_filenamev([this._linkPreviewsDir, filename])).delete_async(GLib.PRIORITY_DEFAULT, null);
+            } catch {
+                /* ignore */
+            }
+        }
+
+        /**
          * Run garbage collection to remove orphaned files
          */
         runGarbageCollection() {
@@ -823,6 +850,7 @@ export const ClipboardManager = GObject.registerClass(
                             validTexts.add(`${item.id}.txt`);
                         }
                         if (item.type === ClipboardType.URL && item.icon_filename) validLinks.add(item.icon_filename);
+                        if (item.type === ClipboardType.CONTACT && item.icon_filename) validLinks.add(item.icon_filename);
                         if (item.type === ClipboardType.COLOR && item.gradient_filename) validImages.add(item.gradient_filename);
                     });
                 };

@@ -3,9 +3,19 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
+// Validation Patterns
 const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
 
+/**
+ * LinkProcessor - Handles URL detection and metadata fetching
+ *
+ * Pattern: Single-phase (process) + async helpers
+ * - process(): Detects URLs and returns basic data
+ * - fetchMetadata(): Async helper to fetch page title and favicon
+ * - downloadFavicon(): Async helper to download and save favicon
+ */
 export class LinkProcessor {
     /**
      * Extracts link data from the clipboard.
@@ -17,7 +27,7 @@ export class LinkProcessor {
         const cleanText = text.trim();
 
         if (URL_REGEX.test(cleanText)) {
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
+            const hash = ProcessorUtils.computeHashForString(cleanText);
 
             return {
                 type: ClipboardType.URL,
@@ -137,6 +147,10 @@ export class LinkProcessor {
         }
     }
 
+    /**
+     * Decode HTML entities
+     * @private
+     */
     static _decodeEntities(str) {
         return str
             .replace(/&amp;/g, '&')

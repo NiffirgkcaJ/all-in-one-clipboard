@@ -29,60 +29,102 @@ export class ClipboardItemFactory {
         // Hydrate specific fields based on type
         switch (item.type) {
             case ClipboardType.FILE:
-                config.title = item.preview || 'Unknown File';
-                config.subtitle = item.file_uri;
+                ClipboardItemFactory._configureFileItem(config, item);
                 break;
             case ClipboardType.URL:
-                config.title = item.title || item.url;
-                config.subtitle = item.url;
-                if (item.icon_filename && linkPreviewsDir) {
-                    const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
-                    config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
-                }
-                break;
-            case ClipboardType.COLOR:
-                config.title = item.color_value;
-                config.subtitle = item.format_type;
-                config.cssColor = item.color_value;
-
-                // Set subtype icon (single/gradient/palette)
-                if (style.subtypes && style.subtypes[item.subtype]) {
-                    config.icon = style.subtypes[item.subtype].icon;
-                }
-                break;
-            case ClipboardType.CODE:
-                config.text = item.preview || '';
-                config.rawLines = item.raw_lines || 0;
+                ClipboardItemFactory._configureUrlItem(config, item, linkPreviewsDir);
                 break;
             case ClipboardType.CONTACT:
-                config.title = item.preview || item.text || 'Unknown Contact';
-                config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
-
-                // Set default subtype icon from constants
-                if (style.subtypes && style.subtypes[item.subtype]) {
-                    config.icon = style.subtypes[item.subtype].icon;
-                }
-
-                // For emails: use fetched icon if available
-                if (item.subtype === 'email' && item.icon_filename && imagesDir) {
-                    const iconPath = GLib.build_filenamev([imagesDir, item.icon_filename]);
-                    config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
-                }
-
-                // For phone numbers: use new format (code)
-                if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
-                    const countryCode = item.metadata.code.toLowerCase();
-                    config.flagPath = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/${countryCode}.svg`;
-                }
+                ClipboardItemFactory._configureContactItem(config, item, style, linkPreviewsDir);
+                break;
+            case ClipboardType.COLOR:
+                ClipboardItemFactory._configureColorItem(config, item, style);
+                break;
+            case ClipboardType.CODE:
+                ClipboardItemFactory._configureCodeItem(config, item);
                 break;
             case ClipboardType.TEXT:
             default:
-                // If item.preview is missing, use item.text or empty string.
-                config.text = item.preview || item.text || '';
+                ClipboardItemFactory._configureTextItem(config, item);
                 break;
         }
 
         return config;
+    }
+
+    /**
+     * Configure File item view
+     * @private
+     */
+    static _configureFileItem(config, item) {
+        config.title = item.preview || 'Unknown File';
+        config.subtitle = item.file_uri;
+    }
+
+    /**
+     * Configure URL item view
+     * @private
+     */
+    static _configureUrlItem(config, item, linkPreviewsDir) {
+        config.title = item.title || item.url;
+        config.subtitle = item.url;
+        if (item.icon_filename && linkPreviewsDir) {
+            const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+            config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+        }
+    }
+
+    /**
+     * Configure Contact item view
+     * @private
+     */
+    static _configureContactItem(config, item, style, linkPreviewsDir) {
+        config.title = item.preview || item.text || 'Unknown Contact';
+        config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
+        if (style.subtypes && style.subtypes[item.subtype]) {
+            config.icon = style.subtypes[item.subtype].icon;
+        }
+
+        if (item.subtype === 'email' && item.icon_filename && linkPreviewsDir) {
+            const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+            config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+        }
+
+        if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
+            const countryCode = item.metadata.code.toLowerCase();
+            config.flagPath = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/${countryCode}.svg`;
+        }
+    }
+
+    /**
+     * Configure Color item view
+     * @private
+     */
+    static _configureColorItem(config, item, style) {
+        config.title = item.color_value;
+        config.subtitle = item.format_type;
+        config.cssColor = item.color_value;
+        if (style.subtypes && style.subtypes[item.subtype]) {
+            config.icon = style.subtypes[item.subtype].icon;
+        }
+    }
+
+    /**
+     * Configure Code item view
+     * @private
+     */
+    static _configureCodeItem(config, item) {
+        config.text = item.preview || '';
+        config.rawLines = item.raw_lines || 0;
+    }
+
+    /**
+     * Configure Text item view
+     * @private
+     */
+    static _configureTextItem(config, item) {
+        // If item.preview is missing, use item.text or empty string.
+        config.text = item.preview || item.text || '';
     }
 
     /**

@@ -1,10 +1,17 @@
 import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
+// Configuration
 const MAX_PREVIEW_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
+/**
+ * FileProcessor - Handles file URIs from clipboard
+ *
+ * Pattern: Single-phase (process)
+ * - process(): Analyzes file URIs, delegates image files to ImageProcessor
+ */
 export class FileProcessor {
     /**
      * Analyzes a text string to see if it is a valid file URI.
@@ -58,7 +65,7 @@ export class FileProcessor {
                 });
 
                 if (bytes && bytes.length > 0) {
-                    const hash = GLib.compute_checksum_for_data(GLib.ChecksumType.SHA256, bytes);
+                    const hash = ProcessorUtils.computeHashForData(bytes);
                     return {
                         type: ClipboardType.IMAGE,
                         data: bytes,
@@ -70,7 +77,7 @@ export class FileProcessor {
             }
 
             // Generic File
-            const uriHash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, uri, -1);
+            const uriHash = ProcessorUtils.computeHashForString(uri);
             return {
                 type: ClipboardType.FILE,
                 file_uri: uri,

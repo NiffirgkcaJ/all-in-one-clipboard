@@ -1,20 +1,22 @@
-import GLib from 'gi://GLib';
 import Cairo from 'cairo';
+import GLib from 'gi://GLib';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
-// Color format regexes
+// Configuration
+const MAX_COLOR_STRING_LENGTH = 200;
+
+// Validation Patterns
 const HEX_REGEX = /^#(?:[0-9a-fA-F]{3,4}){1,2}$/;
 const RGB_REGEX = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i;
 const HSL_REGEX = /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i;
-
-// Gradient regex (any CSS gradient function)
 const GRADIENT_REGEX = /^(linear-gradient|radial-gradient|conic-gradient|repeating-linear-gradient|repeating-radial-gradient|repeating-conic-gradient)\(/i;
 
-// Color extraction regex (matches hex, rgb, rgba, hsl, hsla, and named colors within text)
+// Detection Patterns
 const COLOR_IN_TEXT_REGEX = /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|yellow|orange|purple|pink|cyan|magenta|white|black|gray|grey)\b/gi;
 
-// Named colors map (CSS standard colors)
+// Named colors map
 const NAMED_COLORS = {
     red: '#ff0000',
     blue: '#0000ff',
@@ -31,6 +33,12 @@ const NAMED_COLORS = {
     grey: '#808080',
 };
 
+/**
+ * ColorProcessor - Handles color value detection and gradient generation
+ *
+ * Pattern: Single-phase (process)
+ * - process(): Detects colors, generates gradient images for palettes
+ */
 export class ColorProcessor {
     /**
      * Extracts color data from the clipboard text.
@@ -45,8 +53,8 @@ export class ColorProcessor {
         // Strict validation: reject multi-line text (likely code/documents)
         if (cleanText.includes('\n')) return null;
 
-        // Strict validation: reject overly long strings (max 200 chars for color values)
-        if (cleanText.length > 200) return null;
+        // Strict validation: reject overly long strings (max length for color values)
+        if (cleanText.length > MAX_COLOR_STRING_LENGTH) return null;
 
         // Check for gradient
         if (GRADIENT_REGEX.test(cleanText)) {
@@ -70,7 +78,7 @@ export class ColorProcessor {
         }
 
         if (format) {
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
+            const hash = ProcessorUtils.computeHashForString(cleanText);
             return {
                 type: ClipboardType.COLOR,
                 subtype: 'single',
@@ -91,7 +99,7 @@ export class ColorProcessor {
         const colors = this._extractColors(text);
         if (colors.length < 2) return null;
 
-        const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, text, -1);
+        const hash = ProcessorUtils.computeHashForString(text);
         const filename = this._generateGradientImage(colors, hash, imagesDir);
 
         return {
@@ -131,7 +139,7 @@ export class ColorProcessor {
 
         // Must have at least 2 colors to be a palette
         if (colors.length >= 2) {
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, text, -1);
+            const hash = ProcessorUtils.computeHashForString(text);
             const filename = this._generateGradientImage(colors, hash, imagesDir);
 
             return {
@@ -229,9 +237,6 @@ export class ColorProcessor {
 
             // Save to file
             surface.writeToPNG(filepath);
-
-            // Clean up (Cairo objects are usually GC'd but explicit disposal is good if possible,
-            // though in GJS we rely on GC for Cairo mostly)
 
             return filename;
         } catch (e) {

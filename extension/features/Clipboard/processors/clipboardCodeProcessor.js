@@ -1,9 +1,15 @@
-import GLib from 'gi://GLib';
-
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
+const MAX_TEXT_LENGTH = 50000;
 const PREVIEW_LINE_LIMIT = 10;
+
+// Code detection thresholds
+const SINGLE_LINE_THRESHOLD = 2.5;
+const FEW_LINES_THRESHOLD = 3.5;
+const DEFAULT_THRESHOLD = 5.0;
+const KEYWORD_DENSITY_THRESHOLD = 0.08;
 
 // Highlighting Colors
 const C_KEYWORD = '#ff7b72';
@@ -73,6 +79,12 @@ const REGEX_STRUCTURAL = /[{}[\]();=<>!&|]/g;
 const REGEX_INDENTATION = /^\s{2,}/;
 const REGEX_TOKENIZER = new RegExp(`(\\/\\/.*)|((['"])(?:(?=(\\\\?))\\4.)*?\\3)|(\\b(?:${KEYWORDS})\\b)|(\\b\\d+\\b)`, 'g');
 
+/**
+ * CodeProcessor - Handles code detection and syntax highlighting
+ *
+ * Pattern: Single-phase (process)
+ * - process(): Detects code using heuristics, generates syntax-highlighted preview
+ */
 export class CodeProcessor {
     /**
      * Processes clipboard text to determine if it's code and generates a highlighted preview.
@@ -80,7 +92,7 @@ export class CodeProcessor {
      * @returns {object|null} Processed code object or null if not code.
      */
     static process(text) {
-        if (!text || text.length > 50000) return null;
+        if (!text || text.length > MAX_TEXT_LENGTH) return null;
         const cleanText = text.trim();
 
         if (!this._isLikelyCode(cleanText)) {
@@ -91,7 +103,7 @@ export class CodeProcessor {
         const previewLines = lines.slice(0, PREVIEW_LINE_LIMIT);
         const rawPreviewText = previewLines.join('\n');
         const rawLines = previewLines.length;
-        const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, cleanText, -1);
+        const hash = ProcessorUtils.computeHashForString(cleanText);
         const highlightedPreview = this._highlight(rawPreviewText);
 
         return {
@@ -107,6 +119,7 @@ export class CodeProcessor {
      * Determines if the given text is likely to be code using multi-signal detection.
      * @param {string} text - The text to evaluate.
      * @returns {boolean} True if likely code, false otherwise.
+     * @private
      */
     static _isLikelyCode(text) {
         const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -122,18 +135,18 @@ export class CodeProcessor {
         let score = this._calculateHeuristicScore(lines, text);
 
         // Dynamic Threshold
-        let threshold = 5.0;
+        let threshold = DEFAULT_THRESHOLD;
 
         if (totalLines === 1) {
-            threshold = 2.5;
+            threshold = SINGLE_LINE_THRESHOLD;
         } else if (totalLines <= 3) {
-            threshold = 3.5;
+            threshold = FEW_LINES_THRESHOLD;
         }
 
         const density = this._analyzeKeywordDensity(text);
         if (density.isCodeLike) {
             score += 2;
-        } else if (density.ratio < 0.03) {
+        } else if (density.ratio < KEYWORD_DENSITY_THRESHOLD / 4) {
             score -= 2;
         }
 
@@ -144,6 +157,7 @@ export class CodeProcessor {
      * Checks for strong code patterns in the text.
      * @param {Array<string>} lines - The lines to check.
      * @returns {boolean} True if strong code patterns are found.
+     * @private
      */
     static _checkStrongPatterns(lines) {
         let codePatternMatches = 0;
@@ -169,6 +183,7 @@ export class CodeProcessor {
      * Checks for prose anti-patterns in the text.
      * @param {Array<string>} lines - The lines to check.
      * @returns {boolean} True if prose patterns are found.
+     * @private
      */
     static _checkProsePatterns(lines) {
         let proseSignals = 0;
@@ -188,6 +203,7 @@ export class CodeProcessor {
      * @param {Array<string>} lines - The lines to analyze.
      * @param {string} text - The full text content.
      * @returns {number} The calculated score.
+     * @private
      */
     static _calculateHeuristicScore(lines, text) {
         let score = 0;
@@ -229,6 +245,7 @@ export class CodeProcessor {
      * Analyzes keyword density to distinguish code from technical prose.
      * @param {string} text - The text to analyze.
      * @returns {Object} { ratio: number, isCodeLike: boolean }
+     * @private
      */
     static _analyzeKeywordDensity(text) {
         const words = text.split(/\s+/);
@@ -237,7 +254,7 @@ export class CodeProcessor {
 
         return {
             ratio,
-            isCodeLike: ratio > 0.08,
+            isCodeLike: ratio > KEYWORD_DENSITY_THRESHOLD,
         };
     }
 
@@ -245,6 +262,7 @@ export class CodeProcessor {
      * Applies syntax highlighting to code text.
      * @param {string} text - The code text to highlight.
      * @returns {string} Highlighted HTML string.
+     * @private
      */
     static _highlight(text) {
         let output = '';
@@ -283,6 +301,7 @@ export class CodeProcessor {
      * Escapes HTML entities in a string.
      * @param {string} str - The string to escape.
      * @returns {string} The escaped string.
+     * @private
      */
     static _escapeHtml(str) {
         if (!str) return '';

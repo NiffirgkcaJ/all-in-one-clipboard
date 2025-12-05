@@ -3,9 +3,18 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
+// Configuration
 const MAX_PREVIEW_LENGTH = 500;
 
+/**
+ * TextProcessor - Handles text clipboard data
+ *
+ * Pattern: Two-phase (extract + save)
+ * - extract(): Reads raw text from clipboard
+ * - save(): Persists long text to files, delegates to secondary processors (Code, Link, Contact, Color)
+ */
 export class TextProcessor {
     /**
      * Extracts text data from the clipboard.
@@ -15,7 +24,7 @@ export class TextProcessor {
         return new Promise((resolve) => {
             St.Clipboard.get_default().get_text(St.ClipboardType.CLIPBOARD, (_, text) => {
                 if (text && text.trim().length > 0) {
-                    const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, text, -1);
+                    const hash = ProcessorUtils.computeHashForString(text);
 
                     resolve({
                         type: ClipboardType.TEXT,
@@ -35,7 +44,7 @@ export class TextProcessor {
      */
     static save(extractedData, textsDir) {
         const { text, hash, type } = extractedData;
-        const id = GLib.uuid_string_random();
+        const id = ProcessorUtils.generateUUID();
 
         let has_full_content = false;
 
@@ -48,7 +57,7 @@ export class TextProcessor {
                 file.replace_contents(bytes.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
                 has_full_content = true;
             } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to save text file: ${e.message}`);
+                console.error(`[AIO-Clipboard] TextProcessor: Failed to save text file: ${e.message}`);
             }
         }
 
@@ -64,7 +73,7 @@ export class TextProcessor {
         const item = {
             id,
             type: finalType,
-            timestamp: Math.floor(Date.now() / 1000),
+            timestamp: ProcessorUtils.getCurrentTimestamp(),
             preview: preview || '',
             hash,
             has_full_content,

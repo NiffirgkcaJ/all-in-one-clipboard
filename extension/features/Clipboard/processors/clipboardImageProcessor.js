@@ -3,10 +3,18 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
-// Supported image MIME types
+// Validation Patterns
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 
+/**
+ * ImageProcessor - Handles image clipboard data
+ *
+ * Pattern: Two-phase (extract + save)
+ * - extract(): Reads raw image data from clipboard
+ * - save(): Persists image to disk and returns item metadata
+ */
 export class ImageProcessor {
     /**
      * Extracts image data from the clipboard.
@@ -23,7 +31,7 @@ export class ImageProcessor {
                     (_clipboard, bytes) => {
                         if (bytes && bytes.get_size() > 0) {
                             const data = bytes.get_data();
-                            const hash = GLib.compute_checksum_for_data(GLib.ChecksumType.SHA256, data);
+                            const hash = ProcessorUtils.computeHashForData(data);
                             resolve({
                                 type: ClipboardType.IMAGE,
                                 data,
@@ -52,7 +60,7 @@ export class ImageProcessor {
      */
     static save(extractedData, imagesDir) {
         const { data, hash, mimetype, file_uri } = extractedData;
-        const id = GLib.uuid_string_random();
+        const id = ProcessorUtils.generateUUID();
 
         const extension = mimetype.split('/')[1] || 'img';
         const filename = `${Date.now()}_${id.substring(0, 8)}.${extension}`;
@@ -63,7 +71,7 @@ export class ImageProcessor {
             const bytesToSave = GLib.Bytes.new(data);
             file.replace_contents(bytesToSave.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
         } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to save image file: ${e.message}`);
+            console.error(`[AIO-Clipboard] ImageProcessor: Failed to save image file: ${e.message}`);
             return null;
         }
 
@@ -71,7 +79,7 @@ export class ImageProcessor {
         const item = {
             id,
             type: ClipboardType.IMAGE, // Use Enum
-            timestamp: Math.floor(Date.now() / 1000),
+            timestamp: ProcessorUtils.getCurrentTimestamp(),
             image_filename: filename,
             hash,
         };
