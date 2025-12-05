@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-05 05:59+0000\n"
+"POT-Creation-Date: 2025-12-05 13:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -632,8 +632,8 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
 #: extension/features/Clipboard/tabClipboard.js:110
-#: extension/features/Clipboard/tabClipboard.js:551
-#: extension/features/Clipboard/tabClipboard.js:557
+#: extension/features/Clipboard/tabClipboard.js:560
+#: extension/features/Clipboard/tabClipboard.js:566
 msgid "Select All"
 msgstr ""
 
@@ -643,7 +643,7 @@ msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
 #: extension/features/Clipboard/tabClipboard.js:137
-#: extension/features/Clipboard/tabClipboard.js:573
+#: extension/features/Clipboard/tabClipboard.js:582
 msgid "Pin/Unpin Selected"
 msgstr ""
 
@@ -655,31 +655,31 @@ msgstr ""
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:554
+#: extension/features/Clipboard/tabClipboard.js:563
 msgid "Deselect All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:580
+#: extension/features/Clipboard/tabClipboard.js:589
 msgid "Pin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:580
+#: extension/features/Clipboard/tabClipboard.js:589
 msgid "Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:632
+#: extension/features/Clipboard/tabClipboard.js:641
 msgid "No results found."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:632
+#: extension/features/Clipboard/tabClipboard.js:641
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:646
+#: extension/features/Clipboard/tabClipboard.js:655
 msgid "Pinned"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:670
+#: extension/features/Clipboard/tabClipboard.js:679
 msgid "History"
 msgstr ""
 
