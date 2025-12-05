@@ -3,10 +3,10 @@
     <gresource prefix="/org/gnome/shell/extensions/all-in-one-clipboard">
         <!-- Data Files -->
         <file>assets/data/json/countries.json</file>
-        <file>assets/data/emojis.json</file>
-        <file>assets/data/emojisModifier.json</file>
-        <file>assets/data/kaomojis.json</file>
-        <file>assets/data/symbols.json</file>
+        <file>assets/data/json/emojis.json</file>
+        <file>assets/data/json/emojisModifier.json</file>
+        <file>assets/data/json/kaomojis.json</file>
+        <file>assets/data/json/symbols.json</file>
 
         <!-- Icon Files -->
         <file>assets/icons/clipboard-checkbox-checked-symbolic.svg</file>

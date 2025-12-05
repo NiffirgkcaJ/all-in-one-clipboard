@@ -64,7 +64,7 @@ export const EmojiTabContent = GObject.registerClass(
             this._loadAndApplyCustomSkinToneSettings();
 
             const config = {
-                jsonPath: 'assets/data/emojis.json',
+                jsonPath: 'assets/data/json/emojis.json',
                 parserClass: EmojiJsonParser,
                 recentsFilename: 'recent_emojis.json',
                 recentsMaxItemsKey: EmojiSettings.RECENTS_MAX_ITEMS_KEY,

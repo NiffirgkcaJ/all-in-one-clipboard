@@ -41,7 +41,7 @@ export const KaomojiTabContent = GObject.registerClass(
             this._viewRenderer = new KaomojiViewRenderer();
 
             const config = {
-                jsonPath: 'assets/data/kaomojis.json',
+                jsonPath: 'assets/data/json/kaomojis.json',
                 parserClass: KaomojiJsonParser,
                 recentsFilename: 'recent_kaomojis.json',
                 recentsMaxItemsKey: KaomojiSettings.RECENTS_MAX_ITEMS_KEY,

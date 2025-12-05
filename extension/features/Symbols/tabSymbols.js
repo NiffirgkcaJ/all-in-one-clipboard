@@ -41,7 +41,7 @@ export const SymbolsTabContent = GObject.registerClass(
             this._viewRenderer = new SymbolsViewRenderer();
 
             const config = {
-                jsonPath: 'assets/data/symbols.json',
+                jsonPath: 'assets/data/json/symbols.json',
                 parserClass: SymbolsJsonParser,
                 recentsFilename: 'recent_symbols.json',
                 recentsMaxItemsKey: SymbolsSettings.RECENTS_MAX_ITEMS_KEY,

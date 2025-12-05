@@ -24,7 +24,7 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            const resourcePath = `/org/gnome/shell/extensions/all-in-one-clipboard/assets/data/emojis.json`;
+            const resourcePath = `/org/gnome/shell/extensions/all-in-one-clipboard/assets/data/json/emojis.json`;
             const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
             if (!bytes) {
                 throw new Error('Failed to load emojis.json from GResource.');
