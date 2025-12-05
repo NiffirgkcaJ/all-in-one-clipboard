@@ -44,6 +44,11 @@ export class ClipboardItemFactory {
                 config.title = item.color_value;
                 config.subtitle = item.format_type;
                 config.cssColor = item.color_value;
+
+                // Set subtype icon (single/gradient/palette)
+                if (style.subtypes && style.subtypes[item.subtype]) {
+                    config.icon = style.subtypes[item.subtype].icon;
+                }
                 break;
             case ClipboardType.CODE:
                 config.text = item.preview || '';
@@ -164,6 +169,8 @@ export class ClipboardItemFactory {
                 y_align: Clutter.ActorAlign.CENTER,
                 style_class: 'clipboard-item-rich-container',
             });
+
+            // Create icon
             let icon;
             if (config.gicon) {
                 icon = new St.Icon({
@@ -184,16 +191,32 @@ export class ClipboardItemFactory {
             }
             contentWidget.add_child(icon);
 
-            if (config.cssColor) {
+            // Color swatch (for single colors or gradient images)
+            if (config.cssColor || itemData.gradient_filename) {
                 const swatchContainer = new St.Bin({
                     style_class: 'clipboard-item-color-container',
                     x_align: Clutter.ActorAlign.CENTER,
                     y_align: Clutter.ActorAlign.CENTER,
                 });
-                const swatch = new St.Bin({
-                    style_class: 'clipboard-item-color-swatch',
-                    style: `background-color: ${config.cssColor};`,
-                });
+
+                let swatch;
+                if (itemData.gradient_filename && options.imagesDir) {
+                    // Load gradient image
+                    const gradientPath = GLib.build_filenamev([options.imagesDir, itemData.gradient_filename]);
+
+                    // Use St.Bin with background-image to preserve 48x24 aspect ratio
+                    swatch = new St.Bin({
+                        style_class: 'clipboard-item-color-swatch',
+                        style: `background-image: url('file://${gradientPath}'); background-size: cover;`,
+                    });
+                } else {
+                    // CSS solid color
+                    swatch = new St.Bin({
+                        style_class: 'clipboard-item-color-swatch',
+                        style: `background-color: ${config.cssColor};`,
+                    });
+                }
+
                 swatchContainer.set_child(swatch);
                 contentWidget.add_child(swatchContainer);
             }
@@ -208,6 +231,7 @@ export class ClipboardItemFactory {
                 style_class: 'clipboard-item-title',
                 x_expand: true,
             });
+            titleLabel.get_clutter_text().set_line_wrap(false);
             titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
             textCol.add_child(titleLabel);
             const subLabel = new St.Label({
@@ -215,6 +239,7 @@ export class ClipboardItemFactory {
                 style_class: 'clipboard-item-subtitle',
                 x_expand: true,
             });
+            subLabel.get_clutter_text().set_line_wrap(false);
             subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
             textCol.add_child(subLabel);
 

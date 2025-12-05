@@ -187,7 +187,7 @@ export const ClipboardManager = GObject.registerClass(
                     }
 
                     // Color
-                    const colorResult = ColorProcessor.process(text);
+                    const colorResult = ColorProcessor.process(text, this._imagesDir);
                     if (colorResult) {
                         this._processResult(colorResult);
                         return;
@@ -323,6 +323,8 @@ export const ClipboardManager = GObject.registerClass(
                 format_type: colorResult.format_type,
                 hash: colorResult.hash,
                 preview: colorResult.color_value,
+                gradient_filename: colorResult.gradient_filename || null,
+                subtype: colorResult.subtype || 'single',
             };
             this._addItemToHistory(newItem);
         }
@@ -821,6 +823,7 @@ export const ClipboardManager = GObject.registerClass(
                             validTexts.add(`${item.id}.txt`);
                         }
                         if (item.type === ClipboardType.URL && item.icon_filename) validLinks.add(item.icon_filename);
+                        if (item.type === ClipboardType.COLOR && item.gradient_filename) validImages.add(item.gradient_filename);
                     });
                 };
                 collect(this._pinned);

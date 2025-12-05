@@ -39,9 +39,20 @@ export const ClipboardStyling = {
         },
     },
     [ClipboardType.COLOR]: {
-        icon: 'clipboard-type-color-symbolic.svg',
+        icon: 'clipboard-type-color-pipette-symbolic.svg',
         iconSize: 16,
         layout: 'rich',
+        subtypes: {
+            single: {
+                icon: 'clipboard-type-color-pipette-symbolic.svg',
+            },
+            gradient: {
+                icon: 'clipboard-type-color-gradient-symbolic.svg',
+            },
+            palette: {
+                icon: 'clipboard-type-color-palette-symbolic.svg',
+            },
+        },
     },
     [ClipboardType.CODE]: {
         icon: 'clipboard-type-code-symbolic.svg',
