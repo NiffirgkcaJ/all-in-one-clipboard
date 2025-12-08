@@ -270,6 +270,7 @@ export class ColorProcessor {
     static _isValidColor(text) {
         return HEX_REGEX.test(text) || RGB_REGEX.test(text) || HSL_REGEX.test(text);
     }
+
     /**
      * Regenerates the gradient image for a color item.
      * @param {Object} item - The clipboard item to heal.

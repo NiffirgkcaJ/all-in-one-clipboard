@@ -95,6 +95,7 @@ export class ImageProcessor {
 
         return item;
     }
+
     /**
      * Regenerates the thumbnail from the source file if it exists.
      * @param {Object} item - The clipboard item to heal.

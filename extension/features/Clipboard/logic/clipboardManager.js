@@ -658,6 +658,7 @@ export const ClipboardManager = GObject.registerClass(
         getHistoryItems() {
             return this._history;
         }
+
         /**
          * Get pinned clipboard items
          *
