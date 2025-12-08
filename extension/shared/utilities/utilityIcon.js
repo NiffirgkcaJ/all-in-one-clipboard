@@ -1,59 +1,95 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
+
 import { ResourcePaths } from '../constants/storagePaths.js';
 
 /**
- * Create a static icon from a symbolic SVG file in the GResource bundle or system icon.
- * The returned icon uses gicon and cannot have its icon changed at runtime.
+ * Create a static icon.
  *
- * @param {string} iconName - Name of the SVG file (e.g., 'utility-recents-symbolic.svg') or system icon name
- * @param {number} iconSize - Size of the icon in pixels (default: 16)
- * @param {string} styleClass - Optional CSS style class (default: 'system-status-icon')
- * @returns {St.Icon} A static themed icon widget
+ * @example
+ * const icon = createStaticIcon(
+ *     { icon: ClipboardIcons.CHECKBOX_UNCHECKED, iconSize: 16 },
+ *     { styleClass: 'my-icon-class' }
+ * );
+ *
+ * @param {Object} config - Icon config object with `icon`, `iconSize`, and optional `iconOptions`
+ * @param {Object} [options={}] - Options object
+ * @param {string} [options.styleClass='system-status-icon'] - CSS style class
+ * @returns {St.Icon} Static icon widget
  */
-export function createStaticIcon(iconName, iconSize = 16, styleClass = 'system-status-icon') {
+export function createStaticIcon(config, options = {}) {
+    const styleClass = options.styleClass || 'system-status-icon';
+
     const icon = new St.Icon({
-        icon_size: iconSize,
+        icon_size: config.iconSize || 16,
         style_class: styleClass,
     });
-
-    setIcon(icon, iconName);
-
+    _applyIconConfig(icon, config);
     return icon;
 }
 
 /**
- * Create a dynamic icon that can have its icon changed at runtime.
- * Supports both system icon names and custom SVG files.
+ * Create a dynamic icon that supports state-based switching.
  *
- * @param {string} iconName - System icon name or SVG filename
- * @param {number} iconSize - Size of the icon in pixels (default: 16)
- * @param {string} styleClass - Optional CSS style class (default: 'popup-menu-icon')
- * @returns {St.Icon} A dynamic icon widget
+ * @example
+ * const icon = createDynamicIcon(
+ *     { unchecked: ClipboardIcons.CHECKBOX_UNCHECKED, checked: ClipboardIcons.CHECKBOX_CHECKED },
+ *     { initial: 'unchecked', styleClass: 'my-icon-class' }
+ * );
+ * icon.state = 'checked';  // Switch state
+ *
+ * @param {Object} states - State map: { stateName: iconConfig, ... }
+ * @param {Object} [options={}] - Options object
+ * @param {string} [options.initial] - Initial state name (defaults to first state)
+ * @param {string} [options.styleClass='system-status-icon'] - CSS style class
+ * @returns {St.Icon} Icon widget with `state` property for switching
  */
-export function createDynamicIcon(iconName, iconSize = 16, styleClass = 'popup-menu-icon') {
+export function createDynamicIcon(states, options = {}) {
+    const styleClass = options.styleClass || 'system-status-icon';
+
+    const stateNames = Object.keys(states);
+    const initialState = options.initial || stateNames[0];
+
+    const firstConfig = states[stateNames[0]];
     const icon = new St.Icon({
-        icon_size: iconSize,
+        icon_size: firstConfig.iconSize || 16,
         style_class: styleClass,
     });
 
-    setIcon(icon, iconName);
+    let _currentState = initialState;
+    _applyIconConfig(icon, states[_currentState]);
+
+    Object.defineProperty(icon, 'state', {
+        get: () => _currentState,
+        set: (newState) => {
+            if (states[newState] && newState !== _currentState) {
+                _currentState = newState;
+                _applyIconConfig(icon, states[_currentState]);
+            }
+        },
+    });
 
     return icon;
 }
 
 /**
  * Create a button with a static icon child.
- * Convenience function for the common pattern of a button containing an icon.
  *
- * @param {string} iconName - Icon filename or system icon name
- * @param {number} iconSize - Icon size in pixels (default: 16)
- * @param {Object} buttonParams - Additional St.Button parameters to merge
+ * @example
+ * const button = createStaticIconButton(
+ *     { icon: ClipboardIcons.CHECKBOX_UNCHECKED, iconSize: 16 },
+ *     { tooltip_text: 'Toggle' }
+ * );
+ *
+ * @param {Object} config - Icon configuration object
+ * @param {Object} [buttonParams={}] - Button parameters
+ * @param {string} [buttonParams.iconStyleClass] - CSS class for the icon
+ * @param {string} [buttonParams.tooltip_text] - Tooltip text
  * @returns {St.Button} Button with icon child
  */
-export function createStaticIconButton(iconName, iconSize = 16, buttonParams = {}) {
-    const { tooltip_text, ...otherParams } = buttonParams;
-    const icon = createStaticIcon(iconName, iconSize);
+export function createStaticIconButton(config, buttonParams = {}) {
+    const { tooltip_text, iconStyleClass, ...otherParams } = buttonParams;
+    const icon = createStaticIcon(config, { styleClass: iconStyleClass });
 
     const button = new St.Button({
         style_class: 'button',
@@ -70,17 +106,25 @@ export function createStaticIconButton(iconName, iconSize = 16, buttonParams = {
 }
 
 /**
- * Create a button with a dynamic icon child.
- * The icon can be accessed via button.child to change its icon_name.
+ * Create a button with a dynamic (stateful) icon child.
  *
- * @param {string} iconName - Initial system icon name
- * @param {number} iconSize - Icon size in pixels (default: 16)
- * @param {Object} buttonParams - Additional St.Button parameters
+ * @example
+ * const button = createDynamicIconButton(
+ *     { unchecked: ClipboardIcons.X, checked: ClipboardIcons.Y },
+ *     { initial: 'unchecked', tooltip_text: 'Toggle' }
+ * );
+ * button.child.state = 'checked';
+ *
+ * @param {Object} states - State map: { stateName: iconConfig, ... }
+ * @param {Object} [buttonParams={}] - Button parameters
+ * @param {string} [buttonParams.initial] - Initial icon state
+ * @param {string} [buttonParams.iconStyleClass] - CSS class for the icon
+ * @param {string} [buttonParams.tooltip_text] - Tooltip text
  * @returns {St.Button} Button with dynamic icon child
  */
-export function createDynamicIconButton(iconName, iconSize = 16, buttonParams = {}) {
-    const { tooltip_text, ...otherParams } = buttonParams;
-    const icon = createDynamicIcon(iconName, iconSize);
+export function createDynamicIconButton(states, buttonParams = {}) {
+    const { tooltip_text, initial, iconStyleClass, ...otherParams } = buttonParams;
+    const icon = createDynamicIcon(states, { initial, styleClass: iconStyleClass });
 
     const button = new St.Button({
         style_class: 'button',
@@ -94,29 +138,59 @@ export function createDynamicIconButton(iconName, iconSize = 16, buttonParams = 
     }
 
     return button;
+}
+
+/**
+ * Apply icon configuration to an icon widget.
+ * @param {St.Icon} iconWidget - The icon widget to configure
+ * @param {Object} iconConfig - Config with `icon`, `iconSize`, and optional `iconOptions`
+ * @private
+ */
+function _applyIconConfig(iconWidget, iconConfig) {
+    const options = { ...iconConfig.iconOptions };
+    if (iconConfig.iconSize) {
+        options.iconSize = iconConfig.iconSize;
+    }
+    _setIcon(iconWidget, iconConfig.icon, options);
 }
 
 /**
  * Set the icon of an existing St.Icon widget.
  * Handles switching between system icon names and custom SVG files.
- *
- * @param {St.Icon} iconWidget - The icon widget to update
- * @param {string} iconName - System icon name or SVG filename
+ * @param {St.Icon} iconWidget - The icon widget
+ * @param {string} iconName - Icon name or filename (with extension for SVGs)
+ * @param {Object} [options={}] - Options: iconSize, color, opacity
+ * @private
  */
-export function setIcon(iconWidget, iconName, iconSize = null) {
-    if (iconSize) {
-        iconWidget.set_icon_size(iconSize);
+function _setIcon(iconWidget, iconName, options = {}) {
+    if (options.iconSize) {
+        iconWidget.set_icon_size(options.iconSize);
+    }
+
+    const styles = [];
+    if (options.color) {
+        styles.push(`color: ${options.color}`);
+    }
+
+    if (styles.length > 0) {
+        iconWidget.set_style(styles.join('; ') + ';');
+    } else {
+        iconWidget.set_style(null);
+    }
+
+    if (options.opacity !== undefined) {
+        iconWidget.set_opacity(Math.round(options.opacity * 255));
+    } else {
+        iconWidget.set_opacity(255);
     }
 
     if (iconName && iconName.includes('.')) {
         const resourceUri = `${ResourcePaths.ASSETS.ICONS}/${iconName}`;
         const file = Gio.File.new_for_uri(resourceUri);
 
-        // Explicitly clear icon_name FIRST
         iconWidget.set_icon_name(null);
         iconWidget.set_gicon(new Gio.FileIcon({ file: file }));
     } else {
-        // Explicitly clear gicon FIRST
         iconWidget.set_gicon(null);
         iconWidget.set_icon_name(iconName);
     }

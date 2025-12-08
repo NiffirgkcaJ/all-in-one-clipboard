@@ -124,13 +124,11 @@ export function eventMatchesShortcut(event, settings, settingsKey) {
     const eventSymbol = event.get_key_symbol();
     const eventState = event.get_state();
 
-    // Clutter Modifier Masks
     const MASK_CTRL = Clutter.ModifierType.CONTROL_MASK;
     const MASK_SHIFT = Clutter.ModifierType.SHIFT_MASK;
     const MASK_ALT = Clutter.ModifierType.MOD1_MASK | Clutter.ModifierType.META_MASK;
     const MASK_SUPER = Clutter.ModifierType.SUPER_MASK | Clutter.ModifierType.MOD4_MASK | Clutter.ModifierType.HYPER_MASK;
 
-    // Determine actual active modifiers from event
     const hasCtrl = (eventState & MASK_CTRL) !== 0;
     const hasShift = (eventState & MASK_SHIFT) !== 0;
     const hasAlt = (eventState & MASK_ALT) !== 0;
@@ -139,18 +137,12 @@ export function eventMatchesShortcut(event, settings, settingsKey) {
     for (const shortcutString of shortcuts) {
         const modifiers = _parseModifiers(shortcutString);
 
-        // Skip if modifiers don't match
         if (hasCtrl !== modifiers.reqCtrl) continue;
         if (hasAlt !== modifiers.reqAlt) continue;
         if (hasSuper !== modifiers.reqSuper) continue;
 
-        // Extract key name by removing all modifier tags
         const keyName = shortcutString.replace(/<[^>]+>/g, '');
-
-        // Check if the key matches
-        if (_checkKeyMatch(keyName, eventSymbol, hasShift, modifiers.reqShift)) {
-            return true;
-        }
+        if (_checkKeyMatch(keyName, eventSymbol, hasShift, modifiers.reqShift)) return true;
     }
 
     return false;
@@ -181,28 +173,19 @@ function _parseModifiers(shortcutString) {
  * @private
  */
 function _checkKeyMatch(keyName, eventSymbol, hasShift, reqShift) {
-    // Check Mapped Special Keys
     const mappedSymbol = KEY_MAP[keyName];
     if (mappedSymbol) {
-        // Tab and ISO_Left_Tab Match
+        // Tab and ISO_Left_Tab both represent the same key
         if (keyName === 'Tab' || keyName === 'ISO_Left_Tab') {
             const isEventTab = eventSymbol === Clutter.KEY_Tab || eventSymbol === Clutter.KEY_ISO_Left_Tab;
             return isEventTab && hasShift === reqShift;
         }
-        // General Key Map Match
         return mappedSymbol === eventSymbol;
     }
 
-    // Check Single Character Keys
     if (keyName.length === 1) {
         const reqChar = keyName.charCodeAt(0);
-
-        // Case-Sensitive Match
-        if (eventSymbol === reqChar) {
-            // If exact match, Shift must match requirements
-            return hasShift === reqShift;
-        }
-        // Case-Insensitive Match
+        if (eventSymbol === reqChar) return hasShift === reqShift;
         if (hasShift && reqShift) {
             const upper = keyName.toUpperCase().charCodeAt(0);
             return eventSymbol === upper;

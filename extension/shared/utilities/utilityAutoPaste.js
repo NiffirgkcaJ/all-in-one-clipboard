@@ -105,5 +105,4 @@ export function destroyAutoPaster() {
     }
 }
 
-// Export the class as well to allow access to the static method
 export { AutoPaster };

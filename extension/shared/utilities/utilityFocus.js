@@ -37,7 +37,7 @@ export const FocusUtils = {
                     const result = onBoundary('start');
                     if (result !== undefined) return result;
                 }
-                return Clutter.EVENT_STOP; // Trap
+                return Clutter.EVENT_STOP;
             }
         } else if (symbol === Clutter.KEY_Right) {
             if (currentIndex < len - 1) {
@@ -51,7 +51,7 @@ export const FocusUtils = {
                     const result = onBoundary('end');
                     if (result !== undefined) return result;
                 }
-                return Clutter.EVENT_STOP; // Trap
+                return Clutter.EVENT_STOP;
             }
         }
 
@@ -150,7 +150,7 @@ export const FocusUtils = {
                     const result = onBoundary('up');
                     if (result !== undefined) return result;
                 }
-                return Clutter.EVENT_STOP; // Trap
+                return Clutter.EVENT_STOP;
             }
         } else if (symbol === Clutter.KEY_Down) {
             if (currentIndex + itemsPerRow < len) {
@@ -160,7 +160,7 @@ export const FocusUtils = {
                     const result = onBoundary('down');
                     if (result !== undefined) return result;
                 }
-                return Clutter.EVENT_STOP; // Trap
+                return Clutter.EVENT_STOP;
             }
         }
 

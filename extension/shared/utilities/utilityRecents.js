@@ -43,7 +43,6 @@ export const RecentItemsManager = GObject.registerClass(
             this._isLoaded = false;
             this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
 
-            // Listen for changes to the max items setting and prune if necessary.
             this._settingsSignalId = this._settings.connect(`changed::${this._maxItemsSettingKey}`, () => {
                 if (!this._settings) return;
                 this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
@@ -53,7 +52,6 @@ export const RecentItemsManager = GObject.registerClass(
                 }
             });
 
-            // Asynchronously load the initial list of recents.
             this._load()
                 .then(() => {
                     this._isLoaded = true;
@@ -86,11 +84,9 @@ export const RecentItemsManager = GObject.registerClass(
             try {
                 if (!this._settings) return;
 
-                // Wrap the callback-based function in a native Promise
                 const bytes = await new Promise((resolve, reject) => {
                     file.load_contents_async(null, (source, res) => {
                         try {
-                            // load_contents_finish can throw an error which will be caught
                             const [ok, contents] = source.load_contents_finish(res);
                             resolve(ok ? contents : null);
                         } catch (e) {
@@ -115,7 +111,6 @@ export const RecentItemsManager = GObject.registerClass(
                     }
                 }
             } catch (e) {
-                // If the file doesn't exist, it's not an error; just start with an empty list.
                 if (e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
                     this._recents = [];
                 } else {
@@ -160,11 +155,8 @@ export const RecentItemsManager = GObject.registerClass(
                 console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${JSON.stringify(item)}`);
                 return;
             }
-            // Remove any existing instance of the item to prevent duplicates.
             const existingIndex = this._recents.findIndex((r) => r.value === item.value);
-            if (existingIndex > -1) {
-                this._recents.splice(existingIndex, 1);
-            }
+            if (existingIndex > -1) this._recents.splice(existingIndex, 1);
 
             this._recents.unshift({ ...item });
             this._pruneRecents();
@@ -187,9 +179,7 @@ export const RecentItemsManager = GObject.registerClass(
         _pruneRecents() {
             if (!this._settings) return;
             const max = typeof this._maxItems === 'number' && this._maxItems >= 0 ? this._maxItems : DEFAULT_MAX_RECENTS_FALLBACK;
-            if (this._recents.length > max) {
-                this._recents.length = max; // More efficient than splice
-            }
+            if (this._recents.length > max) this._recents.length = max;
         }
 
         /**

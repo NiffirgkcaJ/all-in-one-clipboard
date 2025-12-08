@@ -43,8 +43,6 @@ export const MasonryLayout = GObject.registerClass(
             this._items = [];
             this._pendingAllocationId = null;
             this._pendingTimeoutId = null;
-
-            // Properties for keyboard navigation
             this._spatialMap = [];
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
@@ -82,8 +80,6 @@ export const MasonryLayout = GObject.registerClass(
             this._columnHeights = new Array(this._columns).fill(0);
             this._items = [];
             this.height = 0;
-
-            // Clear navigation map
             this._spatialMap = [];
         }
 
@@ -111,8 +107,6 @@ export const MasonryLayout = GObject.registerClass(
 
             this._renderItems(items, columnWidth, renderSession);
             this._updateContainerHeight();
-
-            // Build the spatial map after rendering is complete
             this._buildSpatialMap();
         }
 
@@ -132,9 +126,7 @@ export const MasonryLayout = GObject.registerClass(
                 maxX = -Infinity,
                 maxY = -Infinity;
 
-            // Build the map and find the overall boundaries of the grid.
             const mapData = widgets.map((widget) => {
-                // Use synchronous coordinates since allocation may not be complete
                 const x1 = widget.x;
                 const y1 = widget.y;
                 const width = widget.width;
@@ -158,9 +150,7 @@ export const MasonryLayout = GObject.registerClass(
                 };
             });
 
-            const tolerance = 2; // Pixel tolerance for edge detection
-
-            // Determine if each item is on an edge.
+            const tolerance = 2;
             this._spatialMap = mapData.map((item) => ({
                 ...item,
                 isTopEdge: item.y1 <= minY + tolerance,
@@ -189,28 +179,20 @@ export const MasonryLayout = GObject.registerClass(
             const currentFocus = global.stage.get_key_focus();
             const currentItem = this._spatialMap.find((item) => item.widget === currentFocus);
 
-            if (!currentItem) {
-                return Clutter.EVENT_PROPAGATE; // Focus is not within this layout
-            }
+            if (!currentItem) return Clutter.EVENT_PROPAGATE;
 
-            // Check if we are already at a boundary for the desired direction.
             if (
                 (direction === 'up' && currentItem.isTopEdge) ||
                 (direction === 'left' && currentItem.isLeftEdge) ||
                 (direction === 'right' && currentItem.isRightEdge) ||
                 (direction === 'down' && currentItem.isBottomEdge)
             ) {
-                // If we are at the top boundary, stop the event and return.
                 return direction === 'up' ? Clutter.EVENT_PROPAGATE : Clutter.EVENT_STOP;
             }
 
-            // If we are not at a boundary, find the next widget within the grid.
             const nextWidget = this._findClosestInDirection(currentFocus, direction);
-            if (nextWidget) {
-                nextWidget.grab_key_focus();
-            }
+            if (nextWidget) nextWidget.grab_key_focus();
 
-            // Stop further propagation of the event.
             return Clutter.EVENT_STOP;
         }
 
@@ -248,9 +230,7 @@ export const MasonryLayout = GObject.registerClass(
 
             let bestCandidate = null;
 
-            // Different logic for horizontal vs vertical movement.
             if (direction === 'left' || direction === 'right') {
-                // For horizontal movement, first find the next column.
                 const candidatesInDirection = this._spatialMap.filter((item) => {
                     if (item.widget === currentWidget) return false;
                     return direction === 'right' ? item.centerX > currentItem.centerX : item.centerX < currentItem.centerX;
@@ -258,23 +238,18 @@ export const MasonryLayout = GObject.registerClass(
 
                 if (candidatesInDirection.length === 0) return null;
 
-                // Find the minimum horizontal distance to identify the next column.
                 let minHorizontalDistance = Infinity;
                 candidatesInDirection.forEach((item) => {
                     const distance = Math.abs(item.centerX - currentItem.centerX);
-                    if (distance < minHorizontalDistance) {
-                        minHorizontalDistance = distance;
-                    }
+                    if (distance < minHorizontalDistance) minHorizontalDistance = distance;
                 });
 
-                // Filter to include only items in that next column, with a small tolerance.
-                const tolerance = 20; // Allow for slight variations in column centering.
+                const tolerance = 20;
                 const itemsInTargetColumn = candidatesInDirection.filter((item) => {
                     const distance = Math.abs(item.centerX - currentItem.centerX);
                     return distance < minHorizontalDistance + tolerance;
                 });
 
-                // From these, select the one with the greatest vertical overlap.
                 let maxOverlap = -1;
                 for (const candidate of itemsInTargetColumn) {
                     const overlap = this._getVerticalOverlap(currentItem, candidate);
@@ -284,7 +259,7 @@ export const MasonryLayout = GObject.registerClass(
                     }
                 }
 
-                // If for some reason there's no overlap, find the one with the closest vertical center.
+                // Fallback if no overlap, by finding the closest from the vertical center
                 if (!bestCandidate) {
                     let minCenterYDistance = Infinity;
                     for (const candidate of itemsInTargetColumn) {
@@ -296,7 +271,6 @@ export const MasonryLayout = GObject.registerClass(
                     }
                 }
             } else {
-                // For vertical movement, use a weighted distance metric.
                 const candidatesInDirection = this._spatialMap.filter((item) => {
                     if (item.widget === currentWidget) return false;
                     return direction === 'up' ? item.centerY < currentItem.centerY : item.centerY > currentItem.centerY;
@@ -328,11 +302,8 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _getVerticalOverlap(itemA, itemB) {
-            // Find the top and bottom of the overlapping area
             const overlapTop = Math.max(itemA.y1, itemB.y1);
             const overlapBottom = Math.min(itemA.y2, itemB.y2);
-
-            // The overlap is the difference, but it can't be negative.
             return Math.max(0, overlapBottom - overlapTop);
         }
 
@@ -391,7 +362,7 @@ export const MasonryLayout = GObject.registerClass(
                     try {
                         this.disconnect(this._pendingAllocationId);
                     } catch {
-                        // Ignore errors if object is already disposing
+                        // Object may already be disposing
                     }
                 }
                 this._pendingAllocationId = null;

@@ -42,7 +42,6 @@ function getPositionAtWindow() {
         const monitor = getMonitorAtPosition(x, y);
         return { x, y, monitor };
     }
-    // If no window is focused (e.g., clicked on desktop), fall back to cursor.
     return getPositionAtCursor();
 }
 
@@ -52,21 +51,11 @@ function getPositionAtWindow() {
 function keepOnScreen(pos, menuWidth, menuHeight) {
     const monitor = pos.monitor;
 
-    // Adjust horizontally
-    if (pos.x + menuWidth > monitor.x + monitor.width) {
-        pos.x = monitor.x + monitor.width - menuWidth;
-    }
-    if (pos.x < monitor.x) {
-        pos.x = monitor.x;
-    }
+    if (pos.x + menuWidth > monitor.x + monitor.width) pos.x = monitor.x + monitor.width - menuWidth;
+    if (pos.x < monitor.x) pos.x = monitor.x;
 
-    // Adjust vertically
-    if (pos.y + menuHeight > monitor.y + monitor.height) {
-        pos.y = monitor.y + monitor.height - menuHeight;
-    }
-    if (pos.y < monitor.y) {
-        pos.y = monitor.y;
-    }
+    if (pos.y + menuHeight > monitor.y + monitor.height) pos.y = monitor.y + monitor.height - menuHeight;
+    if (pos.y < monitor.y) pos.y = monitor.y;
 
     return pos;
 }
@@ -84,7 +73,6 @@ export function positionMenu(menuActor, settings) {
     switch (mode) {
         case 'window':
             bestPosition = getPositionAtWindow();
-            // Center the menu horizontally over the window's anchor point
             bestPosition.x -= Math.round(menuWidth / 2);
             break;
         case 'center':

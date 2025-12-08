@@ -9,10 +9,7 @@ import GLib from 'gi://GLib';
  * @param {number} limitInMB - The cache size limit in megabytes. If 0, no limit is enforced.
  */
 export async function manageCacheSize(cacheDirPath, limitInMB) {
-    // If the limit is 0, it means unlimited. Do nothing.
-    if (limitInMB <= 0) {
-        return;
-    }
+    if (limitInMB <= 0) return;
 
     const cacheDir = Gio.File.new_for_path(cacheDirPath);
     if (!cacheDir.query_exists(null)) {
@@ -42,19 +39,12 @@ export async function manageCacheSize(cacheDirPath, limitInMB) {
         return;
     }
 
-    // If we're under the limit, we're done.
-    if (totalSize <= limitInBytes) {
-        return;
-    }
+    if (totalSize <= limitInBytes) return;
 
-    // Sort files by access time, oldest first.
     files.sort((a, b) => a.accessTime - b.accessTime);
 
-    // Delete the oldest files until the total size is under the limit.
     for (const file of files) {
-        if (totalSize <= limitInBytes) {
-            break; // We've deleted enough.
-        }
+        if (totalSize <= limitInBytes) break;
 
         try {
             const fileToDelete = Gio.File.new_for_path(file.path);
@@ -65,14 +55,13 @@ export async function manageCacheSize(cacheDirPath, limitInMB) {
                         source.delete_finish(res);
                         resolve();
                     } catch {
-                        // Don't reject, just warn and continue. The file might have been deleted by another process.
                         resolve();
                     }
                 });
             });
             totalSize -= file.size;
         } catch {
-            // Ignore errors here as well, just move on.
+            // Silently continue if deletion fails
         }
     }
 }

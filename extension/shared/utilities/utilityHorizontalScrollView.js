@@ -36,56 +36,39 @@ export const HorizontalScrollView = GObject.registerClass(
 
             const direction = event.get_scroll_direction();
 
-            // Touchpad Scrolling
             if (direction === Clutter.ScrollDirection.SMOOTH) {
                 const [dx, dy] = event.get_scroll_delta();
+                if (Math.abs(dx) > Math.abs(dy)) return super.vfunc_scroll_event(event);
 
-                // If moving horizontally, let parent handle it
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    return super.vfunc_scroll_event(event);
-                }
-
-                // If moving vertically, map to horizontal scroll
                 const TOUCHPAD_SPEED_FACTOR = 30;
                 adjustment.value += dy * TOUCHPAD_SPEED_FACTOR;
-
                 return Clutter.EVENT_STOP;
             }
 
-            // Mouse Wheel Scrolling
             let wheelDelta = 0;
             const source = event.get_scroll_source();
 
             if (source === Clutter.ScrollSource.WHEEL || source === Clutter.ScrollSource.UNKNOWN) {
-                if (direction === Clutter.ScrollDirection.UP || direction === Clutter.ScrollDirection.LEFT) {
-                    wheelDelta = -1;
-                } else if (direction === Clutter.ScrollDirection.DOWN || direction === Clutter.ScrollDirection.RIGHT) {
-                    wheelDelta = 1;
-                }
+                if (direction === Clutter.ScrollDirection.UP || direction === Clutter.ScrollDirection.LEFT) wheelDelta = -1;
+                else if (direction === Clutter.ScrollDirection.DOWN || direction === Clutter.ScrollDirection.RIGHT) wheelDelta = 1;
             }
 
-            // If we detected a vertical wheel scroll, animate it horizontally
             if (wheelDelta !== 0) {
-                const MOUSE_STEP = 100; // Pixels per wheel click
+                const MOUSE_STEP = 100;
 
-                // Get start value considering ongoing animations
+                // Account for ongoing scroll animations
                 const transition = adjustment.get_transition('value');
                 let startVal = adjustment.value;
-                if (transition && transition.is_playing() && transition.interval) {
-                    startVal = transition.interval.final;
-                }
+                if (transition && transition.is_playing() && transition.interval) startVal = transition.interval.final;
 
                 const newVal = startVal + wheelDelta * MOUSE_STEP;
-
                 adjustment.ease(newVal, {
                     duration: 200,
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 });
-
                 return Clutter.EVENT_STOP;
             }
 
-            // Default handling for other cases
             return super.vfunc_scroll_event(event);
         }
     },
@@ -102,20 +85,12 @@ export function scrollToItemCentered(scrollView, actor) {
     const adjustment = scrollView.hadjustment;
     if (!adjustment) return;
 
-    // Get coordinates relative to allocation
     const box = actor.get_allocation_box();
-
-    // Calculate Centers
     const actorCenter = box.x1 + box.get_width() / 2;
     const viewportWidth = adjustment.page_size;
-
-    // Calculate Target
     let targetValue = actorCenter - viewportWidth / 2;
-
-    // Clamp
     targetValue = Math.max(adjustment.lower, Math.min(targetValue, adjustment.upper - viewportWidth));
 
-    // Animate
     adjustment.ease(targetValue, {
         duration: 250,
         mode: Clutter.AnimationMode.EASE_OUT_QUAD,

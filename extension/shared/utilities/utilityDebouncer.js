@@ -22,26 +22,15 @@ export class Debouncer {
      * @param {...any} args - Arguments to pass to the original function.
      */
     trigger(...args) {
-        // Do not schedule new timeouts if destroyed.
-        if (this._isDestroyed) {
-            return;
-        }
+        if (this._isDestroyed) return;
 
-        // If there's an existing timeout, clear it.
-        if (this._timeoutId > 0) {
-            GLib.source_remove(this._timeoutId);
-        }
+        if (this._timeoutId > 0) GLib.source_remove(this._timeoutId);
 
-        // Set a new timeout.
         this._timeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, this._wait, () => {
-            // Do not execute the callback if destroyed.
-            if (this._isDestroyed) {
-                return GLib.SOURCE_REMOVE;
-            }
+            if (this._isDestroyed) return GLib.SOURCE_REMOVE;
 
-            // When the timeout fires, execute the original function.
             this._func.apply(this, args);
-            this._timeoutId = 0; // Clear the ID
+            this._timeoutId = 0;
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -66,6 +55,6 @@ export class Debouncer {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
         }
-        this._func = null; // Clear reference to the function
+        this._func = null;
     }
 }

@@ -26,10 +26,8 @@ export const SearchComponent = GObject.registerClass(
          */
         constructor(onSearchChangedCallback) {
             super();
-            // Use the variable name that was passed in.
             this._onSearchChangedCallback = onSearchChangedCallback;
 
-            // The main actor for this component, containing the entry and clear button.
             this.actor = new St.BoxLayout({
                 style_class: 'aio-search-bar-container',
                 vertical: false,
@@ -47,10 +45,7 @@ export const SearchComponent = GObject.registerClass(
 
             this._entry.connect('notify::text', () => this._onSearchChanged());
 
-            // Connect to the internal ClutterText's focus and activate signals
             const clutterText = this._entry.get_clutter_text();
-
-            // Also trigger a search change when the user presses Enter
             clutterText.connect('activate', () => this._onSearchChanged());
 
             clutterText.connect('key-focus-in', () => {
@@ -71,7 +66,7 @@ export const SearchComponent = GObject.registerClass(
 
             this._clearButton = new St.Button({
                 style_class: 'aio-search-clear-button button',
-                child: createStaticIcon(SearchIcons.CLEAR.icon, SearchIcons.CLEAR.iconSize),
+                child: createStaticIcon(SearchIcons.CLEAR),
                 can_focus: true,
                 y_align: Clutter.ActorAlign.CENTER,
                 visible: false, // Initially hidden
@@ -108,12 +103,10 @@ export const SearchComponent = GObject.registerClass(
          */
         _onKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
+
             if (actor === this._clearButton) {
-                if (symbol === Clutter.KEY_Right) {
-                    return Clutter.EVENT_STOP; // Trap focus at the end
-                }
+                if (symbol === Clutter.KEY_Right) return Clutter.EVENT_STOP;
                 if (symbol === Clutter.KEY_Left) {
-                    // Navigate back to entry
                     this._entry.grab_key_focus();
                     return Clutter.EVENT_STOP;
                 }
@@ -125,9 +118,7 @@ export const SearchComponent = GObject.registerClass(
 
             if (symbol === Clutter.KEY_Left) {
                 const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
-                if (isAtStart) {
-                    return Clutter.EVENT_STOP; // Trap focus at the start
-                }
+                if (isAtStart) return Clutter.EVENT_STOP;
             } else if (symbol === Clutter.KEY_Right) {
                 const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
                 if (isAtEnd) {
@@ -135,7 +126,7 @@ export const SearchComponent = GObject.registerClass(
                         this._clearButton.grab_key_focus();
                         return Clutter.EVENT_STOP;
                     }
-                    return Clutter.EVENT_STOP; // Trap focus if no clear button
+                    return Clutter.EVENT_STOP;
                 }
             }
 
@@ -170,7 +161,6 @@ export const SearchComponent = GObject.registerClass(
          * Cleans up resources and references.
          */
         destroy() {
-            // Nullify references to prevent memory leaks
             this._entry = null;
             this._clearButton = null;
             this.actor = null;

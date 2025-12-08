@@ -104,19 +104,12 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._buildUI();
 
-            // Load data and render the initial state once recents are ready.
             const initialLoadSignalId = this._recentItemsManager.connect('recents-changed', () => {
-                // Disconnect immediately so this only runs once.
                 this._recentItemsManager.disconnect(initialLoadSignalId);
-
-                // Now that recents are loaded, perform the initial render.
                 this._loadAndRenderInitialState();
 
-                // And now, connect the permanent signal handler for future updates.
                 this._recentsChangedSignalId = this._recentItemsManager.connect('recents-changed', () => {
-                    if (this._currentSearchText === '' && this._activeCategory === RECENTS_TAB_ID) {
-                        this._applyFiltersAndRenderGrid();
-                    }
+                    if (this._currentSearchText === '' && this._activeCategory === RECENTS_TAB_ID) this._applyFiltersAndRenderGrid();
                 });
             });
         }
@@ -154,7 +147,6 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _buildUI() {
-            // Header contains the back button and category tabs
             this._header = new St.BoxLayout({
                 style_class: 'internal-header',
                 vertical: false,
@@ -163,28 +155,23 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._backButton = new St.Button({
                 style_class: 'aio-clipboard-back-button button',
-                child: createStaticIcon(ViewerIcons.BACK_BUTTON.icon, ViewerIcons.BACK_BUTTON.iconSize, 'popup-menu-icon'),
+                child: createStaticIcon(ViewerIcons.BACK_BUTTON),
                 y_align: Clutter.ActorAlign.CENTER,
                 can_focus: true,
             });
             this._backButton.connect('clicked', () => this.emit('back-requested'));
             this._header.add_child(this._backButton);
 
-            // This is the bar that will hold the buttons.
             this._categoryTabBar = new St.BoxLayout({});
 
-            // Enable tab scrolling for categories if configured, otherwise center non-scrolling tabs
             if (this._config.enableTabScrolling) {
-                // Scrolling Tabs
                 const scrollView = new HorizontalScrollView({
                     style_class: 'aio-clipboard-tab-scrollview',
-                    x_expand: false, // Shrink-to-fit is essential
+                    x_expand: false,
                     overlay_scrollbars: true,
                     clip_to_allocation: true,
                 });
                 scrollView.set_child(this._categoryTabBar);
-
-                // Store reference for cleanup
                 this._categoryTabScrollView = scrollView;
 
                 const tabContainer = new St.Bin({
@@ -194,8 +181,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                 });
                 this._header.add_child(tabContainer);
             } else {
-                // Non-scrolling Tabs
-                this._categoryTabScrollView = null; // Explicitly set to null
+                this._categoryTabScrollView = null;
                 const tabContainer = new St.Bin({
                     x_expand: true,
                     x_align: Clutter.ActorAlign.CENTER,
@@ -206,20 +192,15 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this.add_child(this._header);
 
-            // Connect key press events for keyboard navigation of the header
             this._backButton.connect('key-press-event', this._onFocusRingKeyPress.bind(this));
             this._categoryTabBar.connect('key-press-event', this._onFocusRingKeyPress.bind(this));
             this._categoryTabBar.set_reactive(true);
-
-            // Listen for category cycling shortcuts on the main container
             this.connect('captured-event', this._onGlobalKeyPress.bind(this));
             this.set_reactive(true);
 
-            // Search component
             this._searchComponent = new SearchComponent((searchText) => this._onSearchTextChanged(searchText));
             this.add_child(this._searchComponent.getWidget());
 
-            // Main content area for the grid
             this._contentArea = new St.BoxLayout({
                 style_class: 'content-grid-area',
                 vertical: true,
@@ -252,18 +233,12 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @param {Clutter.Event} event
          */
         _onGlobalKeyPress(actor, event) {
-            // // Only handle key press events
-            if (event.type() !== Clutter.EventType.KEY_PRESS) {
-                return Clutter.EVENT_PROPAGATE;
-            }
+            if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
 
-            // Check Next Category Shortcuts
             if (eventMatchesShortcut(event, this._settings, 'shortcut-next-category')) {
                 this._cycleCategory(1);
                 return Clutter.EVENT_STOP;
             }
-
-            // Check Previous Category Shortcuts
             if (eventMatchesShortcut(event, this._settings, 'shortcut-prev-category')) {
                 this._cycleCategory(-1);
                 return Clutter.EVENT_STOP;
@@ -277,23 +252,18 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @param {number} direction - 1 for next, -1 for previous
          */
         _cycleCategory(direction) {
-            // Get available tabs
             const tabs = this._allDisplayableTabs;
             if (!tabs || tabs.length <= 1) return;
 
-            // Find current index
             const currentIndex = tabs.indexOf(this._activeCategory);
             if (currentIndex === -1) return;
 
-            // Calculate new index
             let newIndex = (currentIndex + direction) % tabs.length;
             if (newIndex < 0) newIndex += tabs.length;
 
-            // Activate
             const targetId = tabs[newIndex];
             this._setActiveCategory(targetId);
 
-            // Ensure the selected category button scrolls into view if tab scrolling is enabled
             if (this._config.enableTabScrolling && this._categoryButtons[targetId]) {
                 const button = this._categoryButtons[targetId];
                 GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
@@ -310,16 +280,10 @@ export const CategorizedItemViewer = GObject.registerClass(
          */
         _getHeaderFocusables() {
             const focusables = [];
+            if (this._backButton?.visible && this._backButton?.can_focus) focusables.push(this._backButton);
 
-            // Add back button if visible and focusable
-            if (this._backButton?.visible && this._backButton?.can_focus) {
-                focusables.push(this._backButton);
-            }
-
-            // Add all category tab buttons
             const categoryButtons = this._categoryTabBar.get_children();
             focusables.push(...categoryButtons.filter((btn) => btn.can_focus));
-
             return focusables;
         }
 
@@ -344,12 +308,8 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             const currentFocus = global.stage.get_key_focus();
             const currentIndex = focusables.indexOf(currentFocus);
+            if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            if (currentIndex === -1) {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            // Use FocusUtils for linear navigation with trapped boundaries
             return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
         }
 
@@ -367,20 +327,14 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             const currentFocus = global.stage.get_key_focus();
             const currentIndex = this._gridAllButtons.indexOf(currentFocus);
+            if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            if (currentIndex === -1) {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            // Use FocusUtils for grid navigation with boundary handling
             return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._config.itemsPerRow, {
                 onBoundary: (side) => {
                     if (side === 'up') {
-                        // Focus search bar when pressing Up from top row
                         this._searchComponent?.grabFocus();
                         return Clutter.EVENT_STOP;
                     }
-                    // Trap focus at other boundaries
                     return undefined;
                 },
             });
@@ -391,7 +345,6 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Focuses the search bar for immediate typing.
          */
         onSelected() {
-            // Focus the search bar when the view is shown.
             GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 this._searchComponent?.grabFocus();
                 return GLib.SOURCE_REMOVE;
@@ -424,10 +377,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._isLoading = true;
 
             try {
-                // The config.jsonPath is now expected to be the full resource path.
                 const resourcePath = this._config.jsonPath;
-
-                // Load the data synchronously. This is very fast as it's already in memory.
                 const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
 
                 if (!bytes) {
@@ -441,8 +391,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 if (!this._mainData) throw new Error('Parser returned invalid data.');
 
                 const categoryProp = this._config.categoryPropertyName;
-
-                // Get unique categories while preserving their original order of appearance.
                 const uniqueCategoriesInOrder = [];
                 const seenCategories = new Set();
                 for (const item of this._mainData) {
@@ -453,21 +401,14 @@ export const CategorizedItemViewer = GObject.registerClass(
                     }
                 }
 
-                // Sort categories alphabetically only if the config specifies it.
-                if (this._config.sortCategories) {
-                    this._categoriesFromJSON = uniqueCategoriesInOrder.sort();
-                } else {
-                    this._categoriesFromJSON = uniqueCategoriesInOrder;
-                }
+                if (this._config.sortCategories) this._categoriesFromJSON = uniqueCategoriesInOrder.sort();
+                else this._categoriesFromJSON = uniqueCategoriesInOrder;
 
                 this._allDisplayableTabs = [RECENTS_TAB_ID, ...this._categoriesFromJSON];
                 this._buildCategoryTabs();
                 this._isContentLoaded = true;
 
-                // Set the initial active category to Recents, or the first available category.
                 const targetCategory = this._allDisplayableTabs.includes(RECENTS_TAB_ID) ? RECENTS_TAB_ID : this._allDisplayableTabs[0] || null;
-
-                // This now synchronously renders the initial grid.
                 this._setActiveCategory(targetCategory);
             } catch (e) {
                 console.error(`[AIO-Clipboard] Critical error loading or parsing data in CategorizedItemViewer: ${e.message}`);
@@ -490,15 +431,9 @@ export const CategorizedItemViewer = GObject.registerClass(
             const oldSearchText = this._currentSearchText;
             this._currentSearchText = newSearchText;
 
-            // Remember the last active tab when starting a search
-            if (newSearchText.length > 0 && oldSearchText.length === 0) {
-                this._lastActiveTabBeforeSearch = this._activeCategory;
-            } else if (newSearchText.length === 0 && oldSearchText.length > 0) {
-                // Restore the last active tab when clearing a search
-                this._activeCategory = this._lastActiveTabBeforeSearch;
-            }
+            if (newSearchText.length > 0 && oldSearchText.length === 0) this._lastActiveTabBeforeSearch = this._activeCategory;
+            else if (newSearchText.length === 0 && oldSearchText.length > 0) this._activeCategory = this._lastActiveTabBeforeSearch;
 
-            // Instead of rendering immediately, trigger the debouncer.
             this._searchDebouncer.trigger();
         }
 
@@ -540,8 +475,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             for (const tabId of this._allDisplayableTabs) {
                 let button;
                 if (tabId === RECENTS_TAB_ID) {
-                    // Use the helper function to create themed icon
-                    const iconWidget = createStaticIcon(ViewerIcons.RECENTS.icon, ViewerIcons.RECENTS.iconSize, 'categorized-item-viewer-recents-icon');
+                    const iconWidget = createStaticIcon(ViewerIcons.RECENTS, { styleClass: 'categorized-item-viewer-recents-icon' });
 
                     button = new St.Button({
                         style_class: 'aio-clipboard-tab-button button',
@@ -564,7 +498,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 this._categoryButtons[tabId] = button;
             }
 
-            // Queue relayout for tab bar when scrolling is enabled to ensure proper layout
             if (this._config.enableTabScrolling) {
                 GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._categoryTabBar.queue_relayout();
@@ -595,10 +528,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._applyFiltersAndRenderGrid();
 
-            // After re-rendering, restore focus to the search bar for a smooth user experience.
-            if (this._setActiveCategoryTimeoutId) {
-                GLib.source_remove(this._setActiveCategoryTimeoutId);
-            }
+            if (this._setActiveCategoryTimeoutId) GLib.source_remove(this._setActiveCategoryTimeoutId);
             this._setActiveCategoryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 100, () => {
                 this._searchComponent?.grabFocus();
                 this._setActiveCategoryTimeoutId = 0;
@@ -613,9 +543,8 @@ export const CategorizedItemViewer = GObject.registerClass(
         _renderGrid() {
             this._contentArea.destroy_all_children();
             this._gridAllButtons = [];
-            this._renderSession = {}; // Create a new session for this render pass
+            this._renderSession = {};
 
-            // This is the scroll view we need a reference to.
             let scrollView = new St.ScrollView({
                 style_class: 'menu-scrollview',
                 overlay_scrollbars: true,
@@ -625,7 +554,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 y_expand: true,
             });
 
-            // Create a single, stable container that will be the direct child of the ScrollView.
             let scrollableContainer = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
@@ -640,7 +568,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 if (this._currentSearchText) msg = _('No items match your search.');
                 else if (this._activeCategory === RECENTS_TAB_ID) msg = _('No recent items yet.');
 
-                // Put the "empty" message inside the stable container, not the ScrollView.
                 let bin = new St.Bin({
                     child: new St.Label({ text: msg, style_class: 'info-label' }),
                     x_expand: true,
@@ -650,7 +577,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 });
                 scrollableContainer.add_child(bin);
             } else {
-                // This is the "grid view" path.
                 let grid = new St.Widget({
                     style_class: 'grid-layout',
                     layout_manager: new Clutter.GridLayout({ column_homogeneous: true }),
@@ -658,8 +584,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                     x_align: Clutter.ActorAlign.FILL,
                 });
                 scrollableContainer.add_child(grid);
-
-                // Kick off the incremental rendering process
                 this._renderGridChunk(grid, 0, this._renderSession, scrollView);
             }
             this._contentArea.add_child(scrollView);
@@ -674,12 +598,9 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _renderGridChunk(grid, startIndex, session, scrollView) {
-            // Abort if a new render has started or the component is destroyed.
-            if (session !== this._renderSession || !this.get_stage()) {
-                return;
-            }
+            if (session !== this._renderSession || !this.get_stage()) return;
 
-            const itemsPerChunk = 36; // Render in batches of 36 to avoid blocking the UI.
+            const itemsPerChunk = 36;
             const endIndex = Math.min(startIndex + itemsPerChunk, this._filteredData.length);
             const layout = grid.get_layout_manager();
 
@@ -708,7 +629,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 layout.attach(itemButton, col, row, 1, 1);
             }
 
-            // If there are more items to render, schedule the next chunk.
             if (endIndex < this._filteredData.length) {
                 GLib.idle_add(GLib.PRIORITY_LOW, () => {
                     this._renderGridChunk(grid, endIndex, session, scrollView);
@@ -754,8 +674,6 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._searchDebouncer?.destroy();
             this._recentItemsManager?.destroy();
             this._searchComponent?.destroy();
-
-            // Clean up the scrollview if it exists
             this._categoryTabScrollView?.destroy();
             this._categoryTabScrollView = null;
 
