@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-05 15:31+0000\n"
+"POT-Creation-Date: 2025-12-08 04:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,34 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension/extension.js:86
+#: extension/extension.js:87
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: extension/extension.js:549 extension/features/Emoji/tabEmoji.js:97
-#: extension/features/GIF/tabGIF.js:153
-#: extension/features/Kaomoji/tabKaomoji.js:73
-#: extension/features/Symbols/tabSymbols.js:73
+#: extension/extension.js:550 extension/features/Emoji/tabEmoji.js:98
+#: extension/features/GIF/tabGIF.js:154
+#: extension/features/Kaomoji/tabKaomoji.js:74
+#: extension/features/Symbols/tabSymbols.js:74
 msgid "Recently Used"
 msgstr ""
 
-#: extension/extension.js:571 extension/extension.js:984
+#: extension/extension.js:572 extension/extension.js:983
 msgid "Clipboard"
 msgstr ""
 
-#: extension/extension.js:571 extension/extension.js:986
+#: extension/extension.js:572 extension/extension.js:985
 msgid "GIF"
 msgstr ""
 
-#: extension/extension.js:985
+#: extension/extension.js:984
 msgid "Emoji"
 msgstr ""
 
-#: extension/extension.js:987
+#: extension/extension.js:986
 msgid "Kaomoji"
 msgstr ""
 
-#: extension/extension.js:988
+#: extension/extension.js:987
 msgid "Symbols"
 msgstr ""
 
@@ -683,68 +683,68 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:223
+#: extension/features/GIF/tabGIF.js:224
 msgid "Online search is disabled."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:402 extension/features/GIF/tabGIF.js:496
-#: extension/features/GIF/tabGIF.js:505
-#: extension/utilities/utilityCategorizedItemViewer.js:553
+#: extension/features/GIF/tabGIF.js:403 extension/features/GIF/tabGIF.js:497
+#: extension/features/GIF/tabGIF.js:506
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:553
 msgid "Recents"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:448
+#: extension/features/GIF/tabGIF.js:449
 msgid "No categories available."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:516 extension/features/GIF/tabGIF.js:522
+#: extension/features/GIF/tabGIF.js:517 extension/features/GIF/tabGIF.js:523
 msgid "Trending"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:523
+#: extension/features/GIF/tabGIF.js:524
 msgid "Trending GIFs"
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:833
+#: extension/features/GIF/tabGIF.js:834
 msgid "No recent GIFs."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:868
+#: extension/features/GIF/tabGIF.js:869
 msgid "No trending GIFs found."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:915
+#: extension/features/GIF/tabGIF.js:916
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: extension/features/GIF/tabGIF.js:1075
+#: extension/features/GIF/tabGIF.js:1076
 #, javascript-format
 msgid ""
 "Error: %s\n"
 "Please check your API key and network connection."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:83
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:83
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:475
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:475
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:639
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:639
 msgid "No items available."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:640
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:640
 msgid "No items match your search."
 msgstr ""
 
-#: extension/utilities/utilityCategorizedItemViewer.js:641
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:641
 msgid "No recent items yet."
 msgstr ""
 
-#: extension/utilities/utilitySearch.js:42
+#: extension/shared/utilities/utilitySearch.js:42
 msgid "Search..."
 msgstr ""
