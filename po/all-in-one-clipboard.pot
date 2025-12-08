@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 04:10+0000\n"
+"POT-Creation-Date: 2025-12-08 04:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,30 +21,30 @@ msgstr ""
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: extension/extension.js:550 extension/features/Emoji/tabEmoji.js:98
+#: extension/extension.js:552 extension/features/Emoji/tabEmoji.js:98
 #: extension/features/GIF/tabGIF.js:154
 #: extension/features/Kaomoji/tabKaomoji.js:74
 #: extension/features/Symbols/tabSymbols.js:74
 msgid "Recently Used"
 msgstr ""
 
-#: extension/extension.js:572 extension/extension.js:983
+#: extension/extension.js:574 extension/extension.js:989
 msgid "Clipboard"
 msgstr ""
 
-#: extension/extension.js:572 extension/extension.js:985
+#: extension/extension.js:574 extension/extension.js:991
 msgid "GIF"
 msgstr ""
 
-#: extension/extension.js:984
+#: extension/extension.js:990
 msgid "Emoji"
 msgstr ""
 
-#: extension/extension.js:986
+#: extension/extension.js:992
 msgid "Kaomoji"
 msgstr ""
 
-#: extension/extension.js:987
+#: extension/extension.js:993
 msgid "Symbols"
 msgstr ""
 
