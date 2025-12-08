@@ -30,7 +30,7 @@ const ViewerIcons = {
  * @typedef {object} ViewerConfig
  * @property {string} jsonPath - The path to the main JSON data file, relative to the extension root.
  * @property {Function} parserClass - The constructor for the class that will parse the JSON data.
- * @property {string} recentsFilename - The filename for storing recent items (e.g., 'recent_emojis.json').
+ * @property {string} recentsPath - The absolute path for storing recent items.
  * @property {string} recentsMaxItemsKey - The GSettings key for the maximum number of recent items.
  * @property {number} itemsPerRow - The number of items to display in each row of the grid.
  * @property {string} categoryPropertyName - The name of the property in the parsed data that holds the category name.
@@ -85,7 +85,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             this._parser = new this._config.parserClass(extension.uuid);
-            this._recentItemsManager = new RecentItemsManager(extension.uuid, settings, this._config.recentsFilename, this._config.recentsMaxItemsKey);
+            this._recentItemsManager = new RecentItemsManager(extension.uuid, settings, this._config.recentsPath, this._config.recentsMaxItemsKey);
 
             this._recentsChangedSignalId = 0;
             this._mainData = null;
@@ -131,7 +131,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             const requiredKeys = [
                 'jsonPath',
                 'parserClass',
-                'recentsFilename',
+                'recentsPath',
                 'recentsMaxItemsKey',
                 'itemsPerRow',
                 'categoryPropertyName',
@@ -424,8 +424,8 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._isLoading = true;
 
             try {
-                // Construct the absolute path within the GResource bundle.
-                const resourcePath = `/org/gnome/shell/extensions/all-in-one-clipboard/${this._config.jsonPath}`;
+                // The config.jsonPath is now expected to be the full resource path.
+                const resourcePath = this._config.jsonPath;
 
                 // Load the data synchronously. This is very fast as it's already in memory.
                 const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);

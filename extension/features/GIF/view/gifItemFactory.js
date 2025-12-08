@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
-import { createStaticIcon } from '../../../utilities/utilityIcon.js';
+import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
 import { GifIcons } from '../constants/gifConstants.js';
 

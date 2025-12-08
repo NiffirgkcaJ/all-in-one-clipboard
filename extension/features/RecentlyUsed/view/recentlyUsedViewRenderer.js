@@ -7,7 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { ClipboardItemFactory } from '../../Clipboard/view/clipboardItemFactory.js';
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
-import { createDynamicIcon } from '../../../utilities/utilityIcon.js';
+import { createDynamicIcon } from '../../../shared/utilities/utilityIcon.js';
 import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
 
 /**

@@ -4,7 +4,8 @@ import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
-import { createDynamicIcon } from '../../../utilities/utilityIcon.js';
+import { createDynamicIcon } from '../../../shared/utilities/utilityIcon.js';
+import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
 import { ClipboardType, ClipboardStyling, IconSizes } from '../constants/clipboardConstants.js';
 
 export class ClipboardItemFactory {
@@ -92,7 +93,7 @@ export class ClipboardItemFactory {
 
         if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
             const countryCode = item.metadata.code.toLowerCase();
-            config.flagPath = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/data/svg/${countryCode}.svg`;
+            config.flagPath = `${ResourcePaths.ASSETS.FLAGS}/${countryCode}.svg`;
         }
     }
 

@@ -3,10 +3,11 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { CategorizedItemViewer } from '../../utilities/utilityCategorizedItemViewer.js';
+import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { SymbolsJsonParser } from './parsers/symbolsJsonParser.js';
 import { SymbolsViewRenderer } from './view/symbolsViewRenderer.js';
-import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { ResourcePaths, Storage } from '../../shared/constants/storagePaths.js';
 import { SymbolsSettings, SymbolsUI } from './constants/symbolsConstants.js';
 
 /**
@@ -41,9 +42,9 @@ export const SymbolsTabContent = GObject.registerClass(
             this._viewRenderer = new SymbolsViewRenderer();
 
             const config = {
-                jsonPath: 'assets/data/json/symbols.json',
+                jsonPath: ResourcePaths.CONTENT.SYMBOLS,
                 parserClass: SymbolsJsonParser,
-                recentsFilename: 'recent_symbols.json',
+                recentsPath: Storage.getRecentSymbolsPath(extension.uuid),
                 recentsMaxItemsKey: SymbolsSettings.RECENTS_MAX_ITEMS_KEY,
                 itemsPerRow: SymbolsUI.ITEMS_PER_ROW,
                 categoryPropertyName: 'category',

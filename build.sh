@@ -27,10 +27,10 @@ update_translation_templates() {
     echo "Updating translation templates..."
 
     # Update the UI strings template (from .js files)
-    xgettext --from-code=UTF-8 -o po/all-in-one-clipboard.pot -k_ -L JavaScript extension/*.js extension/features/**/*.js extension/utilities/*.js
+    xgettext --from-code=UTF-8 -o po/all-in-one-clipboard.pot -k_ -L JavaScript extension/*.js extension/features/**/*.js extension/shared/**/*.js
 
     # Update the DATA strings template (from .json files) using our Python script
-    ./build-aux/extract-data-strings.py po/all-in-one-clipboard-content.pot extension/assets/data
+    python3 ./build-aux/extract-data-strings.py po/all-in-one-clipboard-content.pot extension/assets/data/json
 
     # Safely merge any new strings into the language files (e.g., all-in-one-clipboard@fr.po)
     echo "Merging new strings into language files..."

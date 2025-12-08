@@ -1,5 +1,7 @@
 import Gio from 'gi://Gio';
+
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
+import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
 
 let _skinnableCharSetCache = null;
 let _cachePromise = null;
@@ -24,7 +26,7 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            const resourcePath = `/org/gnome/shell/extensions/all-in-one-clipboard/assets/data/json/emojis.json`;
+            const resourcePath = ResourcePaths.CONTENT.EMOJI;
             const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
             if (!bytes) {
                 throw new Error('Failed to load emojis.json from GResource.');

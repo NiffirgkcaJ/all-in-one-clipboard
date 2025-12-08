@@ -21,26 +21,25 @@ export const RecentItemsManager = GObject.registerClass(
         /**
          * @param {string} extensionUUID - The UUID of the extension.
          * @param {Gio.Settings} settings - The GSettings object.
-         * @param {string} filename - The specific filename for this manager's recents (e.g., 'recent_emojis.json').
+         * @param {string} absolutePath - The absolute path for this manager's recents file.
          * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type (e.g., 'emoji-recents-max-items').
          */
-        constructor(extensionUUID, settings, filename, maxItemsSettingKey) {
+        constructor(extensionUUID, settings, absolutePath, maxItemsSettingKey) {
             super();
             this._uuid = extensionUUID;
             this._settings = settings;
             this._recents = [];
 
-            if (!filename || typeof filename !== 'string' || filename.trim() === '') {
-                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid filename.`);
+            if (!absolutePath || typeof absolutePath !== 'string' || absolutePath.trim() === '') {
+                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid absolutePath.`);
             }
-            this._filename = filename.trim();
+            this._cacheFilePath = absolutePath.trim();
 
             if (!maxItemsSettingKey || typeof maxItemsSettingKey !== 'string' || maxItemsSettingKey.trim() === '') {
-                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid maxItemsSettingKey for ${this._filename}.`);
+                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid maxItemsSettingKey for ${this._cacheFilePath}.`);
             }
             this._maxItemsSettingKey = maxItemsSettingKey.trim();
 
-            this._cacheFilePath = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid, this._filename]);
             this._isLoaded = false;
             this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
 
@@ -50,7 +49,7 @@ export const RecentItemsManager = GObject.registerClass(
                 this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
                 if (this._isLoaded) {
                     this._pruneRecents();
-                    this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after maxItems change failed for ${this._filename}: ${e.message}`));
+                    this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after maxItems change failed for ${this._cacheFilePath}: ${e.message}`));
                 }
             });
 
@@ -61,7 +60,7 @@ export const RecentItemsManager = GObject.registerClass(
                 })
                 .catch((e) => {
                     this._isLoaded = true;
-                    console.warn(`[AIO-Clipboard] Initial load of recents from ${this._filename} failed: ${e.message}. Recents will be empty.`);
+                    console.warn(`[AIO-Clipboard] Initial load of recents from ${this._cacheFilePath} failed: ${e.message}. Recents will be empty.`);
                     if (this._settings) {
                         this._recents = [];
                         this.emit('recents-changed');
@@ -112,7 +111,7 @@ export const RecentItemsManager = GObject.registerClass(
                         this._pruneRecents();
                     } else {
                         this._recents = [];
-                        console.warn(`[AIO-Clipboard] Recents file ${this._filename} content is not an array. Initializing as empty.`);
+                        console.warn(`[AIO-Clipboard] Recents file ${this._cacheFilePath} content is not an array. Initializing as empty.`);
                     }
                 }
             } catch (e) {
@@ -121,7 +120,7 @@ export const RecentItemsManager = GObject.registerClass(
                     this._recents = [];
                 } else {
                     this._recents = [];
-                    console.warn(`[AIO-Clipboard] Error loading recents from ${this._filename}: ${e.message}. Initializing as empty.`);
+                    console.warn(`[AIO-Clipboard] Error loading recents from ${this._cacheFilePath}: ${e.message}. Initializing as empty.`);
                 }
             } finally {
                 if (this._settings) {
@@ -146,7 +145,7 @@ export const RecentItemsManager = GObject.registerClass(
                 const bytes = new GLib.Bytes(new TextEncoder().encode(jsonString));
                 await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION | Gio.FileCreateFlags.PRIVATE, null, null);
             } catch (e) {
-                console.warn(`[AIO-Clipboard] Failed to save recents to ${this._filename}: ${e.message}`);
+                console.warn(`[AIO-Clipboard] Failed to save recents to ${this._cacheFilePath}: ${e.message}`);
             }
         }
 
@@ -158,7 +157,7 @@ export const RecentItemsManager = GObject.registerClass(
         addItem(item) {
             if (!this._settings) return;
             if (!item || typeof item.value !== 'string' || item.value.trim() === '') {
-                console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._filename}: ${JSON.stringify(item)}`);
+                console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${JSON.stringify(item)}`);
                 return;
             }
             // Remove any existing instance of the item to prevent duplicates.
@@ -169,7 +168,7 @@ export const RecentItemsManager = GObject.registerClass(
 
             this._recents.unshift({ ...item });
             this._pruneRecents();
-            this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after addItem failed for ${this._filename}: ${e.message}`));
+            this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after addItem failed for ${this._cacheFilePath}: ${e.message}`));
             this.emit('recents-changed');
         }
 
@@ -205,7 +204,6 @@ export const RecentItemsManager = GObject.registerClass(
             this._settings = null;
             this._recents = [];
             this._uuid = null;
-            this._filename = null;
             this._maxItemsSettingKey = null;
         }
     },

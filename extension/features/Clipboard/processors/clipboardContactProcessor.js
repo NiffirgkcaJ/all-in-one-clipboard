@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
+import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
 
 // Configuration
 const MAX_CONTACT_LENGTH = 200;
@@ -31,7 +32,7 @@ export class ContactProcessor {
         this._initPromise = (async () => {
             try {
                 // Use Gio.resources_lookup_data to load from GResource bundle
-                const resourcePath = '/org/gnome/shell/extensions/all-in-one-clipboard/assets/data/json/countries.json';
+                const resourcePath = ResourcePaths.CONTENT.COUNTRIES;
                 const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
 
                 if (bytes) {

@@ -7,11 +7,11 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
-import { FocusUtils } from '../../utilities/utilityFocus.js';
-import { SearchComponent } from '../../utilities/utilitySearch.js';
-import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
+import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
-import { createStaticIconButton, createDynamicIconButton, setIcon } from '../../utilities/utilityIcon.js';
+import { createStaticIconButton, createDynamicIconButton, setIcon } from '../../shared/utilities/utilityIcon.js';
 
 /**
  * Number of focusable UI elements per clipboard item row

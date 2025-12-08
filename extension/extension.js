@@ -11,11 +11,12 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
-import { createStaticIcon } from './utilities/utilityIcon.js';
-import { eventMatchesShortcut } from './utilities/utilityShortcutMatcher.js';
-import { FocusUtils } from './utilities/utilityFocus.js';
-import { positionMenu } from './utilities/utilityMenuPositioner.js';
-import { getAutoPaster, destroyAutoPaster } from './utilities/utilityAutoPaste.js';
+import { createStaticIcon } from './shared/utilities/utilityIcon.js';
+import { eventMatchesShortcut } from './shared/utilities/utilityShortcutMatcher.js';
+import { FocusUtils } from './shared/utilities/utilityFocus.js';
+import { Storage } from './shared/constants/storagePaths.js';
+import { positionMenu } from './shared/utilities/utilityMenuPositioner.js';
+import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 
@@ -823,21 +824,21 @@ export default class AllInOneClipboardExtension extends Extension {
             return;
         }
 
-        const RECENT_FILES_MAP = {
-            emoji: 'recent_emojis.json',
-            gif: 'recent_gifs.json',
-            kaomoji: 'recent_kaomojis.json',
-            symbols: 'recent_symbols.json',
+        const RECENT_PATHS_MAP = {
+            emoji: Storage.getRecentEmojiPath(this.uuid),
+            gif: Storage.getRecentGifsPath(this.uuid),
+            kaomoji: Storage.getRecentKaomojiPath(this.uuid),
+            symbols: Storage.getRecentSymbolsPath(this.uuid),
         };
 
         if (trigger === 'all') {
-            // Delete all known recent files
-            for (const filename of Object.values(RECENT_FILES_MAP)) {
-                this._clearRecentFile(filename);
+            // Clear all known recent files
+            for (const filePath of Object.values(RECENT_PATHS_MAP)) {
+                this._clearRecentFile(filePath);
             }
-        } else if (RECENT_FILES_MAP[trigger]) {
-            // Delete a specific recent file
-            this._clearRecentFile(RECENT_FILES_MAP[trigger]);
+        } else if (RECENT_PATHS_MAP[trigger]) {
+            // Clear a specific recent file
+            this._clearRecentFile(RECENT_PATHS_MAP[trigger]);
         } else if (trigger === 'clipboard-history' && this._clipboardManager) {
             this._clipboardManager.clearHistory();
         } else if (trigger === 'clipboard-pinned' && this._clipboardManager) {
@@ -853,14 +854,12 @@ export default class AllInOneClipboardExtension extends Extension {
     /**
      * Clears a specified recent items file by overwriting it with an empty array.
      * This avoids race conditions that can occur with file deletion.
-     * @param {string} filename - The name of the file to clear.
+     * @param {string} absolutePath - The absolute path of the file to clear.
      * @private
      */
-    _clearRecentFile(filename) {
+    _clearRecentFile(absolutePath) {
         try {
-            const cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this.uuid]);
-            const filePath = GLib.build_filenamev([cacheDir, filename]);
-            const file = Gio.File.new_for_path(filePath);
+            const file = Gio.File.new_for_path(absolutePath);
 
             const emptyContent = new GLib.Bytes(new TextEncoder().encode('[]'));
 
@@ -878,14 +877,14 @@ export default class AllInOneClipboardExtension extends Extension {
                     } catch (e) {
                         // Safely ignore NOT_FOUND errors, as the desired state is the same.
                         if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-                            console.warn(`[AIO-Clipboard] Could not clear recent file '${filename}': ${e.message}`);
+                            console.warn(`[AIO-Clipboard] Could not clear recent file '${absolutePath}': ${e.message}`);
                         }
                     }
                 },
             );
         } catch (e) {
             // Handles synchronous errors like invalid paths.
-            console.error(`[AIO-Clipboard] Failed to initiate clearing of recent file '${filename}': ${e.message}`);
+            console.error(`[AIO-Clipboard] Failed to initiate clearing of recent file '${absolutePath}': ${e.message}`);
         }
     }
 

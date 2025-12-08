@@ -6,19 +6,20 @@ import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardType } from '../../features/Clipboard/constants/clipboardConstants.js';
-import { createStaticIcon } from '../../utilities/utilityIcon.js';
-import { Debouncer } from '../../utilities/utilityDebouncer.js';
-import { eventMatchesShortcut } from '../../utilities/utilityShortcutMatcher.js';
-import { FocusUtils } from '../../utilities/utilityFocus.js';
+import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
+import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
+import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
+import { eventMatchesShortcut } from '../../shared/utilities/utilityShortcutMatcher.js';
+import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { GifDownloadService } from './logic/gifDownloadService.js';
 import { GifItemFactory } from './view/gifItemFactory.js';
 import { GifManager } from './logic/gifManager.js';
-import { MasonryLayout } from '../../utilities/utilityMasonryLayout.js';
-import { RecentItemsManager } from '../../utilities/utilityRecents.js';
-import { SearchComponent } from '../../utilities/utilitySearch.js';
-import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
-import { HorizontalScrollView, scrollToItemCentered } from '../../utilities/utilityHorizontalScrollView.js';
+import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
+import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
+import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
+import { Storage } from '../../shared/constants/storagePaths.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
 import { GifSettings, GifUI, GifIcons } from './constants/gifConstants.js';
 
 /**
@@ -63,9 +64,9 @@ export const GIFTabContent = GObject.registerClass(
             this._extension = extension;
             this._clipboardManager = clipboardManager;
 
-            this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._extension.uuid, 'gif-previews']);
+            this._cacheDir = Storage.getGifPreviewsDir(extension.uuid);
 
-            const cacheDirFile = Gio.File.new_for_path(this._gifCacheDir);
+            const cacheDirFile = Gio.File.new_for_path(this._cacheDir);
             if (!cacheDirFile.query_exists(null)) {
                 cacheDirFile.make_directory_with_parents(null);
             }
@@ -105,7 +106,7 @@ export const GIFTabContent = GObject.registerClass(
 
             this._buildUISkeleton();
 
-            this._itemFactory = new GifItemFactory(this._downloadService, this._gifCacheDir, this._scrollView);
+            this._itemFactory = new GifItemFactory(this._downloadService, this._cacheDir, this._scrollView);
 
             this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._updateBackButtonPreference());
             this._connectProviderChangedSignal();
@@ -375,9 +376,9 @@ export const GIFTabContent = GObject.registerClass(
          */
         _initializeRecentsManager() {
             if (!this._recentItemsManager) {
-                this._recentItemsManager = new RecentItemsManager(this._extension.uuid, this._settings, 'recent_gifs.json', GifSettings.RECENTS_MAX_ITEMS_KEY);
+                this._recentsManager = new RecentItemsManager(this._extension.uuid, this._settings, Storage.getRecentGifsPath(this._extension.uuid), GifSettings.RECENTS_MAX_ITEMS_KEY);
 
-                this._recentsSignalId = this._recentItemsManager.connect('recents-changed', () => {
+                this._recentsSignalId = this._recentsManager.connect('recents-changed', () => {
                     if (this._activeCategory?.id === 'recents') {
                         this._displayRecents();
                     }

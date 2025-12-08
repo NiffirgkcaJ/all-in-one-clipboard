@@ -1,5 +1,7 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { Storage } from '../../../shared/constants/storagePaths.js';
+
 // UI Layout Configuration
 export const RecentlyUsedUI = {
     PINNED_ITEM_HEIGHT: 48,
@@ -75,25 +77,25 @@ export const RecentlyUsedSettings = {
 export const RecentlyUsedFeatures = {
     EMOJI: {
         id: 'emoji',
-        filename: 'recent_emojis.json',
+        getPath: (uuid) => Storage.getRecentEmojiPath(uuid),
         maxItemsKey: 'emoji-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_EMOJI,
     },
     KAOMOJI: {
         id: 'kaomoji',
-        filename: 'recent_kaomojis.json',
+        getPath: (uuid) => Storage.getRecentKaomojiPath(uuid),
         maxItemsKey: 'kaomoji-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_KAOMOJI,
     },
     SYMBOLS: {
         id: 'symbols',
-        filename: 'recent_symbols.json',
+        getPath: (uuid) => Storage.getRecentSymbolsPath(uuid),
         maxItemsKey: 'symbols-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_SYMBOLS,
     },
     GIF: {
         id: 'gif',
-        filename: 'recent_gifs.json',
+        getPath: (uuid) => Storage.getRecentGifsPath(uuid),
         maxItemsKey: 'gif-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_GIF,
     },

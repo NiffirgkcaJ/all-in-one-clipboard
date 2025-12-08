@@ -1,8 +1,9 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-import { Debouncer } from '../../../utilities/utilityDebouncer.js';
-import { manageCacheSize } from '../../../utilities/utilityCacheManager.js';
+import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
+import { manageCacheSize } from '../../../shared/utilities/utilityCacheManager.js';
+import { Storage } from '../../../shared/constants/storagePaths.js';
 
 let _instance = null;
 
@@ -15,7 +16,7 @@ class GifCacheManager {
     constructor(uuid, settings) {
         this._uuid = uuid;
         this._settings = settings;
-        this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid, 'gif-previews']);
+        this._gifCacheDir = Storage.getGifPreviewsDir(this._uuid);
 
         this._debouncer = new Debouncer(() => {
             this._runCleanup();

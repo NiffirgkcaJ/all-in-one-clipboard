@@ -8,11 +8,12 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
-import { FocusUtils } from '../../utilities/utilityFocus.js';
+import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
-import { RecentItemsManager } from '../../utilities/utilityRecents.js';
+import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
-import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { Storage } from '../../shared/constants/storagePaths.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
 // ============================================================================
@@ -53,7 +54,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._httpSession = new Soup.Session();
 
-            this._gifCacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), extension.uuid, 'gif-previews']);
+            this._gifCacheDir = Storage.getGifPreviewsDir(extension.uuid);
 
             this._isDestroyed = false;
             this._extension = extension;
@@ -202,7 +203,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const features = [RecentlyUsedFeatures.EMOJI, RecentlyUsedFeatures.KAOMOJI, RecentlyUsedFeatures.SYMBOLS, RecentlyUsedFeatures.GIF];
 
             for (const feature of features) {
-                this._recentManagers[feature.id] = new RecentItemsManager(this._extension.uuid, this._settings, feature.filename, feature.maxItemsKey);
+                const absolutePath = feature.getPath(this._extension.uuid);
+                this._recentManagers[feature.id] = new RecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
             }
         }
 

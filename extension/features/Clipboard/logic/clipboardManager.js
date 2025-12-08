@@ -13,6 +13,7 @@ import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
+import { Storage } from '../../../shared/constants/storagePaths.js';
 
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
 const MAX_RETRIES = 3;
@@ -48,16 +49,14 @@ export const ClipboardManager = GObject.registerClass(
             this._settings = settings;
             this._initialLoadSuccess = false;
 
-            this._cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), this._uuid]);
-            this._dataDir = GLib.build_filenamev([GLib.get_user_data_dir(), this._uuid]);
-            this._linkPreviewsDir = GLib.build_filenamev([this._cacheDir, 'link-previews']);
-            this._imagesDir = GLib.build_filenamev([this._dataDir, 'images']);
-            this._textsDir = GLib.build_filenamev([this._dataDir, 'texts']);
+            this._linkPreviewsDir = Storage.getLinkPreviewsDir(this._uuid);
+            this._imagesDir = Storage.getImagesDir(this._uuid);
+            this._textsDir = Storage.getTextsDir(this._uuid);
 
             this.imagesDir = this._imagesDir;
 
-            this._historyFile = Gio.File.new_for_path(GLib.build_filenamev([this._cacheDir, 'history_clipboard.json']));
-            this._pinnedFile = Gio.File.new_for_path(GLib.build_filenamev([this._dataDir, 'pinned_clipboard.json']));
+            this._historyFile = Gio.File.new_for_path(Storage.getClipboardHistoryPath(this._uuid));
+            this._pinnedFile = Gio.File.new_for_path(Storage.getPinnedClipboardPath(this._uuid));
 
             this._history = [];
             this._pinned = [];
@@ -119,7 +118,7 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _ensureDirectories() {
-            [this._cacheDir, this._dataDir, this._imagesDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
+            [this._imagesDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
                 const dir = Gio.File.new_for_path(path);
                 if (!dir.query_exists(null)) {
                     dir.make_directory_with_parents(null);

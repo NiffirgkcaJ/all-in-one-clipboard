@@ -1,5 +1,6 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
+import { ResourcePaths } from '../constants/storagePaths.js';
 
 /**
  * Create a static icon from a symbolic SVG file in the GResource bundle or system icon.
@@ -108,7 +109,7 @@ export function setIcon(iconWidget, iconName, iconSize = null) {
     }
 
     if (iconName && iconName.includes('.')) {
-        const resourceUri = `resource:///org/gnome/shell/extensions/all-in-one-clipboard/assets/icons/${iconName}`;
+        const resourceUri = `${ResourcePaths.ASSETS.ICONS}/${iconName}`;
         const file = Gio.File.new_for_uri(resourceUri);
 
         // Explicitly clear icon_name FIRST

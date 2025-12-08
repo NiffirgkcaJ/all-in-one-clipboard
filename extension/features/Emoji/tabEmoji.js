@@ -5,13 +5,14 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { CategorizedItemViewer } from '../../utilities/utilityCategorizedItemViewer.js';
+import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
 import { EmojiModifier } from './logic/emojiModifier.js';
 import { EmojiViewRenderer } from './view/emojiViewRenderer.js';
 import { getSkinnableCharSet } from './logic/emojiDataCache.js';
-import { AutoPaster, getAutoPaster } from '../../utilities/utilityAutoPaste.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
+import { ResourcePaths, Storage } from '../../shared/constants/storagePaths.js';
 
 /**
  * A content widget for the "Emoji" tab.
@@ -64,9 +65,9 @@ export const EmojiTabContent = GObject.registerClass(
             this._loadAndApplyCustomSkinToneSettings();
 
             const config = {
-                jsonPath: 'assets/data/json/emojis.json',
+                jsonPath: ResourcePaths.CONTENT.EMOJI,
                 parserClass: EmojiJsonParser,
-                recentsFilename: 'recent_emojis.json',
+                recentsPath: Storage.getRecentEmojiPath(extension.uuid),
                 recentsMaxItemsKey: EmojiSettings.RECENTS_MAX_ITEMS_KEY,
                 itemsPerRow: EmojiUI.ITEMS_PER_ROW,
                 categoryPropertyName: 'category',
