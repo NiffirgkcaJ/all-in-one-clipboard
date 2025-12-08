@@ -1006,7 +1006,7 @@ export const ClipboardManager = GObject.registerClass(
         /**
          * Run garbage collection to remove orphaned files
          */
-        runGarbageCollection() {
+        async runGarbageCollection() {
             try {
                 const validImages = new Set();
                 const validTexts = new Set();
@@ -1026,21 +1026,74 @@ export const ClipboardManager = GObject.registerClass(
                 collect(this._pinned);
                 collect(this._history);
 
-                const cleanDir = (dirPath, validSet) => {
+                const cleanDir = async (dirPath, validSet) => {
                     const dir = Gio.File.new_for_path(dirPath);
-                    if (!dir.query_exists(null)) return;
-                    const enumerator = dir.enumerate_children('standard::name', Gio.FileCreateFlags.NONE, null);
-                    while (true) {
-                        const info = enumerator.next_file(null);
-                        if (!info) break;
-                        const name = info.get_name();
-                        if (!validSet.has(name)) dir.get_child(name).delete(null);
+                    try {
+                        const exists = await new Promise((resolve) => {
+                            dir.query_exists_async(null, (obj, res) => {
+                                resolve(obj.query_exists_finish(res));
+                            });
+                        });
+                        if (!exists) return;
+
+                        const enumerator = await new Promise((resolve, reject) => {
+                            dir.enumerate_children_async('standard::name', Gio.FileCreateFlags.NONE, GLib.PRIORITY_LOW, null, (obj, res) => {
+                                try {
+                                    resolve(obj.enumerate_children_finish(res));
+                                } catch (e) {
+                                    reject(e);
+                                }
+                            });
+                        });
+
+                        // Recursive helper to fetch all files first
+                        const fetchNextBatch = async () => {
+                            const fileInfos = await new Promise((resolve, reject) => {
+                                enumerator.next_files_async(10, GLib.PRIORITY_LOW, null, (obj, res) => {
+                                    try {
+                                        resolve(obj.next_files_finish(res));
+                                    } catch (e) {
+                                        reject(e);
+                                    }
+                                });
+                            });
+
+                            if (!fileInfos || fileInfos.length === 0) return [];
+
+                            const nextBatch = await fetchNextBatch();
+                            return [...fileInfos, ...nextBatch];
+                        };
+
+                        const allFiles = await fetchNextBatch();
+                        const deletionPromises = [];
+
+                        for (const info of allFiles) {
+                            const name = info.get_name();
+                            if (!validSet.has(name)) {
+                                const fileToDelete = dir.get_child(name);
+                                const promise = new Promise((resolve) => {
+                                    fileToDelete.delete_async(GLib.PRIORITY_LOW, null, (source, res) => {
+                                        try {
+                                            source.delete_finish(res);
+                                        } catch {
+                                            // Ignore errors
+                                        }
+                                        resolve();
+                                    });
+                                });
+                                deletionPromises.push(promise);
+                            }
+                        }
+
+                        if (deletionPromises.length > 0) {
+                            await Promise.all(deletionPromises);
+                        }
+                    } catch {
+                        // Ignore enumeration errors
                     }
                 };
 
-                cleanDir(this._imagesDir, validImages);
-                cleanDir(this._textsDir, validTexts);
-                cleanDir(this._linkPreviewsDir, validLinks);
+                await Promise.all([cleanDir(this._imagesDir, validImages), cleanDir(this._textsDir, validTexts), cleanDir(this._linkPreviewsDir, validLinks)]);
             } catch (e) {
                 console.error(`[AIO-Clipboard] GC Error: ${e.message}`);
             }

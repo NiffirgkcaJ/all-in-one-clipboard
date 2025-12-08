@@ -150,6 +150,18 @@ export class LinkProcessor {
         }
     }
 
+    async regenerateIcon(item, linkPreviewsDir) {
+        if (!item.url || !this._session) return null;
+
+        const { iconUrl } = await this.fetchMetadata(item.url);
+        if (iconUrl) {
+            // Use existing item ID as basename to maintain association if possible,
+            // but downloadFavicon handles extensions.
+            return await this.downloadFavicon(iconUrl, linkPreviewsDir, item.id);
+        }
+        return null;
+    }
+
     /**
      * Decode HTML entities
      * @private
@@ -171,22 +183,5 @@ export class LinkProcessor {
             this._session.abort();
             this._session = null;
         }
-    }
-    /**
-     * Regenerates the favicon for a link item.
-     * @param {Object} item - The clipboard item to heal.
-     * @param {string} linkPreviewsDir - The directory to save the icon to.
-     * @returns {Promise<string|null>} The new icon filename if successful, null otherwise.
-     */
-    async regenerateIcon(item, linkPreviewsDir) {
-        if (!item.url || !this._session) return null;
-
-        const { iconUrl } = await this.fetchMetadata(item.url);
-        if (iconUrl) {
-            // Use existing item ID as basename to maintain association if possible,
-            // but downloadFavicon handles extensions.
-            return await this.downloadFavicon(iconUrl, linkPreviewsDir, item.id);
-        }
-        return null;
     }
 }

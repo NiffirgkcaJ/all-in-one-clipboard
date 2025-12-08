@@ -77,17 +77,6 @@ class GifCacheManager {
     }
 
     /**
-     * Cleans up resources, including canceling any pending debounced cleanup.
-     */
-    destroy() {
-        if (this._debouncer) {
-            this._debouncer.destroy();
-            this._debouncer = null;
-        }
-        this._settings = null;
-    }
-
-    /**
      * Helper function to recursively delete files from a directory enumerator.
      * @private
      */
@@ -116,6 +105,17 @@ class GifCacheManager {
                 console.error(`[AIO-Clipboard] Error while deleting cache files: ${e.message}`);
             }
         });
+    }
+
+    /**
+     * Cleans up resources, including canceling any pending debounced cleanup.
+     */
+    destroy() {
+        if (this._debouncer) {
+            this._debouncer.destroy();
+            this._debouncer = null;
+        }
+        this._settings = null;
     }
 }
 

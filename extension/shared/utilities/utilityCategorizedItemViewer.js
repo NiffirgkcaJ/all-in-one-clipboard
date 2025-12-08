@@ -368,23 +368,47 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Synchronously loads data from GResource and renders the initial state of the component.
+         * Asynchronously loads data from GResource and renders the initial state of the component.
          * This is called from the constructor to ensure the widget is fully built upon creation.
          * @private
          */
-        _loadAndRenderInitialState() {
+        async _loadAndRenderInitialState() {
             if (this._isContentLoaded) return;
             this._isLoading = true;
 
             try {
-                const resourcePath = this._config.jsonPath;
-                const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
+                // Ensure the UI loop has a chance to render the loading state
+                await new Promise((resolve) => {
+                    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                        resolve();
+                        return GLib.SOURCE_REMOVE;
+                    });
+                });
 
-                if (!bytes) {
-                    throw new Error(`Loaded resource was empty at ${resourcePath}`);
-                }
+                const resourceUri = `resource://${this._config.jsonPath}`;
+                const file = Gio.File.new_for_uri(resourceUri);
 
-                const jsonString = new TextDecoder('utf-8').decode(bytes.get_data());
+                const contents = await new Promise((resolve, reject) => {
+                    file.load_contents_async(null, (obj, res) => {
+                        try {
+                            const [ok, data] = obj.load_contents_finish(res);
+                            if (!ok) reject(new Error('Failed to load resource contents'));
+                            else resolve(data);
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                });
+
+                // Yield again before heavy parsing
+                await new Promise((resolve) => {
+                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+                        resolve();
+                        return GLib.SOURCE_REMOVE;
+                    });
+                });
+
+                const jsonString = new TextDecoder('utf-8').decode(contents);
                 const rawData = JSON.parse(jsonString);
 
                 this._mainData = this._parser.parse(rawData);
