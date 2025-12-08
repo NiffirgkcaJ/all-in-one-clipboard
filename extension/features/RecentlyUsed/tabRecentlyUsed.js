@@ -843,6 +843,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._unlockOuterScroll();
 
+            if (this._restoreFocusTimeoutId) {
+                GLib.source_remove(this._restoreFocusTimeoutId);
+                this._restoreFocusTimeoutId = 0;
+            }
             this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                 this._restoreFocus();
                 this._restoreFocusTimeoutId = 0;

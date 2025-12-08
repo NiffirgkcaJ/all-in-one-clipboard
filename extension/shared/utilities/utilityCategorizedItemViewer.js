@@ -100,6 +100,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._lastActiveTabBeforeSearch = null;
             this._gridAllButtons = [];
             this._setActiveCategoryTimeoutId = 0;
+            this._yieldTimeoutId = 0;
             this._searchDebouncer = new Debouncer(() => this._applyFiltersAndRenderGrid(), 250);
 
             this._buildUI();
@@ -400,9 +401,13 @@ export const CategorizedItemViewer = GObject.registerClass(
                     });
                 });
 
-                // Yield again before heavy parsing
                 await new Promise((resolve) => {
-                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+                    if (this._yieldTimeoutId) {
+                        GLib.source_remove(this._yieldTimeoutId);
+                        this._yieldTimeoutId = 0;
+                    }
+                    this._yieldTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+                        this._yieldTimeoutId = 0;
                         resolve();
                         return GLib.SOURCE_REMOVE;
                     });
@@ -689,6 +694,10 @@ export const CategorizedItemViewer = GObject.registerClass(
             if (this._setActiveCategoryTimeoutId) {
                 GLib.source_remove(this._setActiveCategoryTimeoutId);
                 this._setActiveCategoryTimeoutId = 0;
+            }
+            if (this._yieldTimeoutId) {
+                GLib.source_remove(this._yieldTimeoutId);
+                this._yieldTimeoutId = 0;
             }
 
             if (this._recentsChangedSignalId > 0) {
