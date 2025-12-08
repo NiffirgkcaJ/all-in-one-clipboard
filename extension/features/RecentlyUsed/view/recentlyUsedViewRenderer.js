@@ -8,15 +8,19 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { ClipboardItemFactory } from '../../Clipboard/view/clipboardItemFactory.js';
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
-import { createDynamicIcon } from '../../../shared/utilities/utilityIcon.js';
+import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
+
+// ============================================================================
+// Widget Creation Functions
+// ============================================================================
 
 /**
  * Create a full-width list item button for clipboard/kaomoji content
  *
  * @param {object} itemData - Item data containing type, preview, etc.
- * @param {boolean} isPinned - Whether item is pinned (changes click behavior)
- * @param {string} feature - Feature type ('clipboard', 'kaomoji', etc.)
+ * @param {boolean} isPinned - Whether item is pinned, which affects click behavior
+ * @param {string} feature - Feature type like 'clipboard', 'kaomoji', etc.
  * @param {object} context - Context object containing necessary dependencies
  * @param {object} context.clipboardManager - Clipboard manager instance
  * @param {number} context.imagePreviewSize - Image preview size setting
@@ -99,12 +103,13 @@ export function createGridItem(itemData, feature) {
 
     if (feature === 'gif') {
         // Placeholder icon gets replaced with actual GIF after async load
-        const icon = createDynamicIcon(RecentlyUsedIcons.GIF_PLACEHOLDER.icon, RecentlyUsedIcons.GIF_PLACEHOLDER.iconSize, RecentlyUsedStyles.GIF_ICON);
+        const icon = createStaticIcon(RecentlyUsedIcons.GIF_PLACEHOLDER, { styleClass: RecentlyUsedStyles.GIF_ICON });
         button.set_child(icon);
-        button.tooltip_text = itemData.description || RecentlyUsedMessages.GIF_TOOLTIP_FALLBACK();
+        button.tooltip_text = String(itemData.description || RecentlyUsedMessages.GIF_TOOLTIP_FALLBACK());
     } else {
-        button.label = itemData.char || itemData.value || '';
-        button.tooltip_text = itemData.name || button.label;
+        const labelText = String(itemData.char || itemData.value || '');
+        button.label = labelText;
+        button.tooltip_text = String(itemData.name || labelText);
     }
 
     return button;
@@ -163,7 +168,7 @@ export function createEmptyView() {
  * @returns {St.Button} The settings button widget
  */
 export function createSettingsButton() {
-    const icon = createDynamicIcon(RecentlyUsedIcons.SETTINGS.icon, RecentlyUsedIcons.SETTINGS.iconSize, 'popup-menu-icon');
+    const icon = createStaticIcon(RecentlyUsedIcons.SETTINGS);
 
     const settingsBtn = new St.Button({
         style_class: RecentlyUsedStyles.SETTINGS_BUTTON,
@@ -233,6 +238,10 @@ export async function updateGifButtonWithPreview(button, url, renderSession, con
     }
 }
 
+// ============================================================================
+// Private Helper Functions
+// ============================================================================
+
 /**
  * Fetch image bytes from a URL
  *
@@ -287,6 +296,10 @@ async function saveBytesToFile(file, bytes) {
         });
     });
 }
+
+// ============================================================================
+// Exports
+// ============================================================================
 
 export const RecentlyUsedViewRenderer = {
     createFullWidthListItem,

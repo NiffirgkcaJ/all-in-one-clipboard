@@ -27,5 +27,8 @@ export const GifIcons = {
     ERROR_PLACEHOLDER: {
         icon: 'gif-missing-symbolic.svg',
         iconSize: 64,
+        iconOptions: {
+            opacity: 0.5,
+        },
     },
 };

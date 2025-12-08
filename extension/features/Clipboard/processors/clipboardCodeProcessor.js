@@ -2,14 +2,39 @@ import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
-const MAX_TEXT_LENGTH = 50000;
 const PREVIEW_LINE_LIMIT = 10;
 
-// Code detection thresholds
-const SINGLE_LINE_THRESHOLD = 2.5;
-const FEW_LINES_THRESHOLD = 3.5;
-const DEFAULT_THRESHOLD = 5.0;
-const KEYWORD_DENSITY_THRESHOLD = 0.08;
+// Statistical thresholds for code detection
+const STRUCTURAL_CHAR_THRESHOLD = 0.03; // 3% structural chars indicates code
+const INDENTATION_THRESHOLD = 0.3; // 30% of lines indented
+const CODE_LINE_ENDING_THRESHOLD = 0.15; // 15% lines end with ; { }
+const BRACKET_IMBALANCE_THRESHOLD = 5; // Allow up to 5 unbalanced brackets
+const NAMING_CONVENTION_THRESHOLD = 0.05; // 5% of words are camelCase/snake_case
+
+// Detection thresholds and scoring
+const MIN_TEXT_LENGTH = 5;
+const PROSE_REJECTION_THRESHOLD = 3; // Prose score to reject as text
+const LARGE_BLOCK_LINE_COUNT = 20; // Lines needed for large block bonus
+const SHORT_TEXT_LINE_COUNT = 5; // Lines count for short text threshold
+const CODE_SCORE_THRESHOLD = 2.0; // Score needed for code detection
+const CODE_SCORE_THRESHOLD_SHORT = 3.5; // Higher threshold for short texts
+
+// Scoring points
+const SCORE_STRUCTURAL_BASE = 1;
+const SCORE_STRUCTURAL_BONUS = 0.5;
+const SCORE_INDENTATION = 1;
+const SCORE_LINE_ENDING_BASE = 1;
+const SCORE_LINE_ENDING_BONUS = 0.5;
+const SCORE_BRACKET_BALANCE = 1.5;
+const SCORE_NAMING = 1;
+const SCORE_LARGE_BLOCK_BONUS = 0.5;
+const PROSE_SCORE_MULTIPLIER = 0.5;
+
+// Prose detection scoring
+const PROSE_SCORE_SENTENCE = 1;
+const PROSE_SCORE_TITLE = 1;
+const PROSE_SCORE_WORDS = 0.5;
+const PROSE_SCORE_HEADER = 2;
 
 // Highlighting Colors
 const C_KEYWORD = '#ff7b72';
@@ -17,27 +42,17 @@ const C_STRING = '#a5d6ff';
 const C_COMMENT = '#8b949e';
 const C_NUMBER = '#79c0ff';
 
-// Strong Code Patterns
-const CODE_PATTERNS = {
-    IMPORT_EXPORT: /^\s*(import|export)\s+.+(from\s+['"]|;)/,
-    DECLARATION: /^\s*(const|let|var)\s+\w+\s*=/,
-    FUNCTION_DEF: /^\s*(function\s+\w+\s*\(|const\s+\w+\s*=\s*\(.*\)\s*=>|=>\s*{)/,
-    DESTRUCTURING: /^\s*(const|let|var)\s*[{[].*[}\]]\s*=/,
-    METHOD_CHAIN: /\.\w+\s*\(.*\)\s*[.;]/,
-    CONTROL_FLOW: /^\s*(if|for|while|switch)\s*\(/,
-    RETURN_STATEMENT: /^\s*return\s+[^;]+;/,
-};
+// Structural characters that appear frequently in code
+const STRUCTURAL_CHARS = /[{}[\]();=<>!&|.,:/\\]/g;
 
-// Prose Anti-Patterns
-const PROSE_PATTERNS = {
-    NUMBERED_LIST: /^\s*\d+\.\s+[A-Z]/,
-    QUESTION: /\?\s*$/,
-    PROPER_NOUNS: /\b[A-Z][a-z]+(\s+[A-Z][a-z]+){2,}\b/,
-    SENTENCE_START: /^\s*(Now|Okay|However|Although|But|And|Or|So|These|Those|What|Can|Do|Let me|Right now|Also)\s/,
-    NATURAL_WORDS: /\b\w{12,}\b/,
-};
+// Pattern to detect camelCase or snake_case naming
+const CAMEL_CASE_REGEX = /\b[a-z]+[A-Z][a-zA-Z]*\b/g;
+const SNAKE_CASE_REGEX = /\b[a-z]+_[a-z_]+\b/g;
 
-// Heuristics & Tokenization
+// Code line ending patterns - only strong code terminators, NOT ) which appears in prose
+const CODE_LINE_ENDING = /[;{}]\s*$/;
+
+// Keywords for syntax highlighting
 const KEYWORDS = [
     'function',
     'return',
@@ -73,10 +88,7 @@ const KEYWORDS = [
     'typeof',
 ].join('|');
 
-// Regex Patterns
-const REGEX_KEYWORDS = new RegExp(`\\b(${KEYWORDS})\\b`);
-const REGEX_STRUCTURAL = /[{}[\]();=<>!&|]/g;
-const REGEX_INDENTATION = /^\s{2,}/;
+// Regex Patterns for highlighting
 const REGEX_TOKENIZER = new RegExp(`(\\/\\/.*)|((['"])(?:(?=(\\\\?))\\4.)*?\\3)|(\\b(?:${KEYWORDS})\\b)|(\\b\\d+\\b)`, 'g');
 
 /**
@@ -92,7 +104,7 @@ export class CodeProcessor {
      * @returns {object|null} Processed code object or null if not code.
      */
     static process(text) {
-        if (!text || text.length > MAX_TEXT_LENGTH) return null;
+        if (!text) return null;
         const cleanText = text.trim();
 
         if (!this._isLikelyCode(cleanText)) {
@@ -116,125 +128,118 @@ export class CodeProcessor {
     }
 
     /**
-     * Determines if the given text is likely to be code using multi-signal detection.
+     * Determines if the given text is likely to be code using statistical analysis.
      * @param {string} text - The text to evaluate.
      * @returns {boolean} True if likely code, false otherwise.
      * @private
      */
     static _isLikelyCode(text) {
-        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-        const totalLines = lines.length;
+        if (!text || text.length < MIN_TEXT_LENGTH) return false;
 
-        // Strong Code Pattern Detection
-        if (this._checkStrongPatterns(lines)) return true;
+        const lines = text.split(/\r?\n/);
+        const nonEmptyLines = lines.filter((l) => l.trim().length > 0);
 
-        // Prose Anti-Pattern Detection
-        if (this._checkProsePatterns(lines)) return false;
+        // Filter out comment lines for more accurate code metrics
+        const codeLines = nonEmptyLines.filter((l) => {
+            const trimmed = l.trim();
+            return !trimmed.startsWith('/*') && !trimmed.startsWith('*') && !trimmed.startsWith('//');
+        });
 
-        // Heuristic Scoring
-        let score = this._calculateHeuristicScore(lines, text);
+        if (nonEmptyLines.length === 0) return false;
 
-        // Dynamic Threshold
-        let threshold = DEFAULT_THRESHOLD;
+        // === EARLY CODE DETECTION ===
+        // If text contains code-specific comment syntax, it's definitely code
+        const hasCodeComments = nonEmptyLines.some((l) => {
+            const trimmed = l.trim();
+            return (
+                trimmed.startsWith('//') || // JS/C/C++/Java/etc.
+                trimmed.startsWith('/*') || // Block comments
+                trimmed.startsWith('* ') || // JSDoc continuation
+                trimmed.startsWith('*/') || // Block comment end
+                trimmed.startsWith('#!') || // Shebang
+                trimmed.startsWith('# ') || // Python/Shell comments
+                trimmed.startsWith('<!--') || // HTML/XML comments
+                trimmed.startsWith('"""') || // Python docstrings
+                trimmed.startsWith("'''")
+            ); // Python docstrings
+        });
+        if (hasCodeComments) return true;
 
-        if (totalLines === 1) {
-            threshold = SINGLE_LINE_THRESHOLD;
-        } else if (totalLines <= 3) {
-            threshold = FEW_LINES_THRESHOLD;
-        }
+        // === PROSE REJECTION (early exit for obvious prose) ===
+        // Check if text looks like natural language sentences
+        // Use codeLines to avoid triggering on JSDoc/comments which contain prose words
+        const proseScore = this._calculateProseScore(codeLines.length > 0 ? codeLines : nonEmptyLines);
+        if (proseScore >= PROSE_REJECTION_THRESHOLD) return false; // Strong prose signals = not code
 
-        const density = this._analyzeKeywordDensity(text);
-        if (density.isCodeLike) {
-            score += 2;
-        } else if (density.ratio < KEYWORD_DENSITY_THRESHOLD / 4) {
-            score -= 2;
-        }
+        // Calculate statistical metrics
+        const structuralRatio = this._calculateStructuralCharRatio(text);
+        const indentationRatio = this._calculateIndentationRatio(lines);
+        // Use filtered code lines for code ending ratio
+        const codeLineEndingRatio = codeLines.length > 0 ? this._calculateCodeLineEndingRatio(codeLines) : this._calculateCodeLineEndingRatio(nonEmptyLines);
+        const bracketBalance = this._checkBracketBalance(text);
+        const namingRatio = this._calculateNamingConventionRatio(text);
 
+        // Score based on metrics (each contributes 0-1 points)
+        let score = 0;
+
+        // Structural characters ({}[];() etc.)
+        if (structuralRatio >= STRUCTURAL_CHAR_THRESHOLD) score += SCORE_STRUCTURAL_BASE;
+        if (structuralRatio >= STRUCTURAL_CHAR_THRESHOLD * 2) score += SCORE_STRUCTURAL_BONUS;
+
+        // Indentation (code is typically indented)
+        if (indentationRatio >= INDENTATION_THRESHOLD) score += SCORE_INDENTATION;
+
+        // Lines ending with code terminators (;, {, })
+        if (codeLineEndingRatio >= CODE_LINE_ENDING_THRESHOLD) score += SCORE_LINE_ENDING_BASE;
+        if (codeLineEndingRatio >= CODE_LINE_ENDING_THRESHOLD * 2) score += SCORE_LINE_ENDING_BONUS;
+
+        // Balanced brackets (code almost always has balanced brackets)
+        if (bracketBalance) score += SCORE_BRACKET_BALANCE;
+
+        // camelCase/snake_case naming conventions
+        if (namingRatio >= NAMING_CONVENTION_THRESHOLD) score += SCORE_NAMING;
+
+        // Bonus for larger code blocks (more confidence)
+        if (nonEmptyLines.length > LARGE_BLOCK_LINE_COUNT) score += SCORE_LARGE_BLOCK_BONUS;
+
+        // Subtract prose score from total
+        score -= proseScore * PROSE_SCORE_MULTIPLIER;
+
+        // Higher threshold for short texts (more likely to be notes/titles)
+        const threshold = nonEmptyLines.length <= SHORT_TEXT_LINE_COUNT ? CODE_SCORE_THRESHOLD_SHORT : CODE_SCORE_THRESHOLD;
+
+        // Threshold: need at least threshold points to be considered code
         return score >= threshold;
     }
 
     /**
-     * Checks for strong code patterns in the text.
-     * @param {Array<string>} lines - The lines to check.
-     * @returns {boolean} True if strong code patterns are found.
+     * Calculate prose score - higher means more likely to be natural language.
      * @private
      */
-    static _checkStrongPatterns(lines) {
-        let codePatternMatches = 0;
-        const totalLines = lines.length;
-
-        for (const line of lines.slice(0, 10)) {
-            const trimmed = line.trim();
-            for (const pattern of Object.values(CODE_PATTERNS)) {
-                if (pattern.test(trimmed)) {
-                    codePatternMatches++;
-                    break;
-                }
-            }
-        }
-
-        if (totalLines <= 5 && codePatternMatches >= 1) return true;
-        if (totalLines > 5 && codePatternMatches / totalLines > 0.3) return true;
-
-        return false;
-    }
-
-    /**
-     * Checks for prose anti-patterns in the text.
-     * @param {Array<string>} lines - The lines to check.
-     * @returns {boolean} True if prose patterns are found.
-     * @private
-     */
-    static _checkProsePatterns(lines) {
-        let proseSignals = 0;
-        for (const line of lines.slice(0, 10)) {
-            for (const pattern of Object.values(PROSE_PATTERNS)) {
-                if (pattern.test(line)) {
-                    proseSignals++;
-                    break;
-                }
-            }
-        }
-        return proseSignals >= 3;
-    }
-
-    /**
-     * Calculates a heuristic score for the text based on code characteristics.
-     * @param {Array<string>} lines - The lines to analyze.
-     * @param {string} text - The full text content.
-     * @returns {number} The calculated score.
-     * @private
-     */
-    static _calculateHeuristicScore(lines, text) {
+    static _calculateProseScore(lines) {
         let score = 0;
 
-        if (text.startsWith('<') && text.endsWith('>')) score += 5;
-
-        const sampleLines = lines.slice(0, 15);
-
-        for (const line of sampleLines) {
+        for (const line of lines) {
             const trimmed = line.trim();
 
-            if (REGEX_INDENTATION.test(line)) score += 0.5;
-
-            const structureCount = (trimmed.match(REGEX_STRUCTURAL) || []).length;
-            score += structureCount * 0.3;
-
-            if (trimmed.endsWith(';')) score += 1.5;
-
-            if (REGEX_KEYWORDS.test(trimmed)) {
-                const hasCapitalStart = /^[A-Z]/.test(trimmed);
-                const hasEndPunctuation = /[.!?]$/.test(trimmed);
-
-                if (hasCapitalStart && hasEndPunctuation) {
-                    score -= 0.5;
-                } else {
-                    score += 1.5;
-                }
+            // Sentence-like: starts with capital, contains spaces, ends with period/punctuation
+            if (/^[A-Z][a-z].*\s.*[.!?]?$/.test(trimmed) && !trimmed.includes(';') && !trimmed.includes('{')) {
+                score += PROSE_SCORE_SENTENCE;
             }
 
-            if (/^[A-Z].*[.!?]$/.test(trimmed) && trimmed.includes(' ')) {
-                score -= 2;
+            // Title-like: all words capitalized
+            if (/^([A-Z][a-z]+\s*)+$/.test(trimmed)) {
+                score += PROSE_SCORE_TITLE;
+            }
+
+            // Contains common prose patterns
+            if (/\b(the|a|an|is|are|was|were|for|from|with|this|that)\b/i.test(trimmed)) {
+                score += PROSE_SCORE_WORDS;
+            }
+
+            // Section headers with symbols (•Title•, **Title**, ==Title==, etc.)
+            if (/^[•\-*=>#]+.+[•\-*=<#]+$/.test(trimmed) || /^#{1,6}\s+/.test(trimmed)) {
+                score += PROSE_SCORE_HEADER;
             }
         }
 
@@ -242,20 +247,81 @@ export class CodeProcessor {
     }
 
     /**
-     * Analyzes keyword density to distinguish code from technical prose.
-     * @param {string} text - The text to analyze.
-     * @returns {Object} { ratio: number, isCodeLike: boolean }
+     * Calculate ratio of structural characters to total characters.
      * @private
      */
-    static _analyzeKeywordDensity(text) {
-        const words = text.split(/\s+/);
-        const keywordMatches = words.filter((w) => REGEX_KEYWORDS.test(w)).length;
-        const ratio = keywordMatches / Math.max(words.length, 1);
+    static _calculateStructuralCharRatio(text) {
+        const matches = text.match(STRUCTURAL_CHARS) || [];
+        return matches.length / text.length;
+    }
 
-        return {
-            ratio,
-            isCodeLike: ratio > KEYWORD_DENSITY_THRESHOLD,
-        };
+    /**
+     * Calculate ratio of indented lines to total lines.
+     * @private
+     */
+    static _calculateIndentationRatio(lines) {
+        const indentedLines = lines.filter((l) => /^(\t|  +)/.test(l)).length;
+        return indentedLines / Math.max(lines.length, 1);
+    }
+
+    /**
+     * Calculate ratio of lines ending with code terminators.
+     * @private
+     */
+    static _calculateCodeLineEndingRatio(lines) {
+        const codeEndingLines = lines.filter((l) => CODE_LINE_ENDING.test(l.trim())).length;
+        return codeEndingLines / Math.max(lines.length, 1);
+    }
+
+    /**
+     * Check if brackets are reasonably balanced.
+     * @private
+     */
+    static _checkBracketBalance(text) {
+        let balance = { curly: 0, square: 0, paren: 0 };
+
+        for (const char of text) {
+            switch (char) {
+                case '{':
+                    balance.curly++;
+                    break;
+                case '}':
+                    balance.curly--;
+                    break;
+                case '[':
+                    balance.square++;
+                    break;
+                case ']':
+                    balance.square--;
+                    break;
+                case '(':
+                    balance.paren++;
+                    break;
+                case ')':
+                    balance.paren--;
+                    break;
+            }
+        }
+
+        const totalImbalance = Math.abs(balance.curly) + Math.abs(balance.square) + Math.abs(balance.paren);
+        const hasBrackets = text.includes('{') || text.includes('[') || text.includes('(');
+
+        // Balanced if total imbalance is small AND there are actually brackets present
+        return hasBrackets && totalImbalance <= BRACKET_IMBALANCE_THRESHOLD;
+    }
+
+    /**
+     * Calculate ratio of camelCase/snake_case words.
+     * @private
+     */
+    static _calculateNamingConventionRatio(text) {
+        const words = text.split(/\s+/).filter((w) => w.length > 2);
+        if (words.length === 0) return 0;
+
+        const camelCaseMatches = text.match(CAMEL_CASE_REGEX) || [];
+        const snakeCaseMatches = text.match(SNAKE_CASE_REGEX) || [];
+
+        return (camelCaseMatches.length + snakeCaseMatches.length) / words.length;
     }
 
     /**

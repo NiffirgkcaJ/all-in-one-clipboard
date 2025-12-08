@@ -78,7 +78,7 @@ export const GIFTabContent = GObject.registerClass(
             this._isDestroyed = false;
             this._providerChangedSignalId = 0;
             this._isClearingForCategoryChange = false;
-            this._recentItemsManager = null;
+            this._recentsManager = null;
             this._recentsSignalId = 0;
             this._isLoadingMore = false;
             this._nextPos = null;
@@ -113,9 +113,9 @@ export const GIFTabContent = GObject.registerClass(
             this._loadInitialData().catch((e) => this._renderErrorState(e.message));
         }
 
-        // ===========================
+        // ========================================================================
         // UI Construction Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Build the main UI skeleton with all components.
@@ -146,7 +146,7 @@ export const GIFTabContent = GObject.registerClass(
 
             const backButton = new St.Button({
                 style_class: 'aio-clipboard-back-button button',
-                child: createStaticIcon(GifIcons.BACK_BUTTON.icon, GifIcons.BACK_BUTTON.iconSize, 'popup-menu-icon'),
+                child: createStaticIcon(GifIcons.BACK_BUTTON),
                 y_align: Clutter.ActorAlign.CENTER,
                 can_focus: true,
             });
@@ -216,7 +216,7 @@ export const GIFTabContent = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-            const infoIcon = createStaticIcon(GifIcons.INFO.icon, GifIcons.INFO.iconSize, 'popup-menu-icon');
+            const infoIcon = createStaticIcon(GifIcons.INFO);
 
             const spacer = new St.Widget({ width: 8 });
 
@@ -325,9 +325,9 @@ export const GIFTabContent = GObject.registerClass(
             this.add_child(this._spinnerBox);
         }
 
-        // ===========================
+        // ========================================================================
         // Data Loading Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Connect to the provider changed signal to reload data when provider changes.
@@ -375,7 +375,7 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _initializeRecentsManager() {
-            if (!this._recentItemsManager) {
+            if (!this._recentsManager) {
                 this._recentsManager = new RecentItemsManager(this._extension.uuid, this._settings, Storage.getRecentGifsPath(this._extension.uuid), GifSettings.RECENTS_MAX_ITEMS_KEY);
 
                 this._recentsSignalId = this._recentsManager.connect('recents-changed', () => {
@@ -450,9 +450,9 @@ export const GIFTabContent = GObject.registerClass(
             }
         }
 
-        // ===========================
+        // ========================================================================
         // Category Button Creation
-        // ===========================
+        // ========================================================================
 
         /**
          * Helper to create, configure, and register a header tab button.
@@ -498,7 +498,7 @@ export const GIFTabContent = GObject.registerClass(
                 isSpecial: true,
             };
 
-            const iconWidget = createStaticIcon(GifIcons.RECENTS.icon, GifIcons.RECENTS.iconSize, 'gif-recents-icon');
+            const iconWidget = createStaticIcon(GifIcons.RECENTS, { styleClass: 'gif-recents-icon' });
 
             this._createHeaderButton(category, {
                 style_class: 'aio-clipboard-tab-button button',
@@ -544,9 +544,9 @@ export const GIFTabContent = GObject.registerClass(
             });
         }
 
-        // ===========================
+        // ========================================================================
         // Keyboard Navigation Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Handles key presses on the main container to cycle categories.
@@ -719,9 +719,9 @@ export const GIFTabContent = GObject.registerClass(
             return Clutter.EVENT_PROPAGATE;
         }
 
-        // ===========================
+        // ========================================================================
         // Category Management Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Set the active category and load its content.
@@ -729,7 +729,7 @@ export const GIFTabContent = GObject.registerClass(
          * @param {object} category - The category to activate
          * @param {string} category.id - Unique category identifier
          * @param {string} category.name - Display name
-         * @param {boolean} [category.isSpecial] - Whether this is a special category (recents/trending)
+         * @param {boolean} [category.isSpecial] - Whether this is a special category like recents or trending
          * @param {string} [category.searchTerm] - Search term for regular categories
          * @param {boolean} [forceRefresh=false] - Force refresh even if already active
          * @private
@@ -813,9 +813,9 @@ export const GIFTabContent = GObject.registerClass(
             }
         }
 
-        // ===========================
+        // ========================================================================
         // Content Display Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Display the recents GIFs.
@@ -824,7 +824,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         _displayRecents() {
             this._nextPos = null;
-            const recents = this._recentItemsManager.getRecents();
+            const recents = this._recentsManager.getRecents();
             this._showSpinner(false);
 
             if (recents.length > 0) {
@@ -926,9 +926,9 @@ export const GIFTabContent = GObject.registerClass(
             }
         }
 
-        // ===========================
+        // ========================================================================
         // Search and Scroll Handlers
-        // ===========================
+        // ========================================================================
 
         /**
          * Handle search text changes.
@@ -1002,9 +1002,9 @@ export const GIFTabContent = GObject.registerClass(
             this._isLoadingMore = false;
         }
 
-        // ===========================
+        // ========================================================================
         // Grid Rendering Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Render the grid with GIF items.
@@ -1027,9 +1027,9 @@ export const GIFTabContent = GObject.registerClass(
             this._masonryView.addItems(results);
         }
 
-        // ===========================
+        // ========================================================================
         // UI State Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Show the loading state with spinner.
@@ -1086,9 +1086,9 @@ export const GIFTabContent = GObject.registerClass(
             this._spinner.visible = visible;
         }
 
-        // ===========================
+        // ========================================================================
         // GIF Selection Handler
-        // ===========================
+        // ========================================================================
 
         /**
          * Handle selection of a GIF item.
@@ -1165,7 +1165,7 @@ export const GIFTabContent = GObject.registerClass(
                     ...gifObject,
                     value: gifObject.full_url,
                 };
-                this._recentItemsManager?.addItem(recentItem);
+                this._recentsManager?.addItem(recentItem);
             }
 
             if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-gif')) {
@@ -1175,9 +1175,9 @@ export const GIFTabContent = GObject.registerClass(
             this._extension._indicator.menu?.close();
         }
 
-        // ===========================
+        // ========================================================================
         // Lifecycle Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Called when the tab is selected/activated.

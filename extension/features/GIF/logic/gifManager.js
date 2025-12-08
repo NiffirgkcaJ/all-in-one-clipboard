@@ -19,7 +19,7 @@ class GifManagerError extends Error {
 }
 
 /**
- * GifManager - Handles GIF fetching from multiple providers (Tenor, Imgur)
+ * GifManager - Handles GIF fetching from multiple providers like Tenor and Imgur
  *
  * Provides a unified interface for searching, trending, and categories
  * regardless of the underlying provider.
@@ -38,9 +38,9 @@ export const GifManager = GObject.registerClass(
             this._httpSession = new Soup.Session();
         }
 
-        // ===========================
+        // ========================================================================
         // Private Helper Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Gets the user's primary locale in the format APIs expect (e.g., 'en_US').
@@ -61,9 +61,9 @@ export const GifManager = GObject.registerClass(
             return null;
         }
 
-        // ===========================
+        // ========================================================================
         // Public API Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Search for GIFs using the currently configured provider
@@ -130,9 +130,9 @@ export const GifManager = GObject.registerClass(
             }
         }
 
-        // ===========================
+        // ========================================================================
         // Category Fetching Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Fetch categories from Tenor API
@@ -191,14 +191,14 @@ export const GifManager = GObject.registerClass(
             }));
         }
 
-        // ===========================
+        // ========================================================================
         // Tenor Provider Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Fetch GIFs from Tenor API
          * @private
-         * @param {string|null} query - Search query (null for trending)
+         * @param {string|null} query - Search query or null for trending
          * @param {boolean} isTrending - Whether to fetch trending instead of search
          * @param {string|null} nextPos - Pagination position token
          * @returns {Promise<{results: Array, nextPos: string|null}>}
@@ -268,14 +268,14 @@ export const GifManager = GObject.registerClass(
                 .filter((item) => item.preview_url && item.full_url && item.width > 0);
         }
 
-        // ===========================
+        // ========================================================================
         // Imgur Provider Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Fetch GIFs from Imgur API
          * @private
-         * @param {string|null} query - Search query (null for trending)
+         * @param {string|null} query - Search query or null for trending
          * @param {boolean} isTrending - Whether to fetch trending instead of search
          * @param {number} page - Page number for pagination
          * @returns {Promise<{results: Array, nextPos: string|null}>}
@@ -343,9 +343,9 @@ export const GifManager = GObject.registerClass(
             return gifs.filter((item) => item.width > 0);
         }
 
-        // ===========================
+        // ========================================================================
         // HTTP Request Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Make an HTTP API request
@@ -393,9 +393,9 @@ export const GifManager = GObject.registerClass(
             }
         }
 
-        // ===========================
+        // ========================================================================
         // Lifecycle Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Cleans up resources when the manager is destroyed, such as aborting ongoing network requests.

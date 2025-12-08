@@ -16,8 +16,7 @@
         <file compressed="true">assets/icons/ui/clipboard-eye-conceal-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-eye-reveal-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-pin-symbolic.svg</file>
-        <file compressed="true">assets/icons/ui/clipboard-star-filled-symbolic.svg</file>
-        <file compressed="true">assets/icons/ui/clipboard-star-unfilled-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-star-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-code-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-color-gradient-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-color-palette-symbolic.svg</file>
@@ -28,6 +27,7 @@
         <file compressed="true">assets/icons/ui/clipboard-type-image-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-link-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-text-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-warning-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/emoji-activities-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/emoji-animals_nature-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/emoji-flags-symbolic.svg</file>

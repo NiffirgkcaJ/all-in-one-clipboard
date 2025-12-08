@@ -61,7 +61,7 @@ export class ColorProcessor {
             return this._processGradient(cleanText, imagesDir);
         }
 
-        // Check for palette (space or comma-separated colors, or array format)
+        // Check for palette with space or comma-separated colors or array format
         const paletteResult = this._processPalette(cleanText, imagesDir);
         if (paletteResult) {
             return paletteResult;
@@ -157,7 +157,7 @@ export class ColorProcessor {
     }
 
     /**
-     * Parse a CSS color string to RGB (0-1 range for Cairo)
+     * Parse a CSS color string to RGB values normalized to 0-1 range for Cairo
      * @private
      */
     static _parseColor(colorStr) {
@@ -269,5 +269,32 @@ export class ColorProcessor {
      */
     static _isValidColor(text) {
         return HEX_REGEX.test(text) || RGB_REGEX.test(text) || HSL_REGEX.test(text);
+    }
+    /**
+     * Regenerates the gradient image for a color item.
+     * @param {Object} item - The clipboard item to heal.
+     * @param {string} imagesDir - The directory to save the image to.
+     * @returns {boolean} True if regeneration succeeded.
+     */
+    static regenerateGradient(item, imagesDir) {
+        // Only colors with gradients need healing (palette/gradient subtypes)
+        if (!item.gradient_filename || !imagesDir) return false;
+
+        // Try to regenerate from stored colors array first
+        if (item.colors && item.colors.length >= 2) {
+            const filename = this._generateGradientImage(item.colors, item.hash, imagesDir);
+            return filename !== null;
+        }
+
+        // Try to regenerate from color_value (for gradients stored as CSS string)
+        if (item.color_value) {
+            const colors = this._extractColors(item.color_value);
+            if (colors.length >= 2) {
+                const filename = this._generateGradientImage(colors, item.hash, imagesDir);
+                return filename !== null;
+            }
+        }
+
+        return false;
     }
 }

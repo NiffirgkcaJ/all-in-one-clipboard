@@ -8,6 +8,10 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 // Validation Patterns
 const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
 
+// Configuration
+const SESSION_TIMEOUT = 5; // seconds
+const HTML_CHUNK_SIZE = 30000; // bytes to read from HTML for parsing
+
 /**
  * LinkProcessor - Handles URL detection and metadata fetching
  *
@@ -19,7 +23,7 @@ const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
 export class LinkProcessor {
     constructor() {
         this._session = new Soup.Session();
-        this._session.timeout = 5;
+        this._session.timeout = SESSION_TIMEOUT;
     }
 
     /**
@@ -59,7 +63,7 @@ export class LinkProcessor {
             const data = bytes.get_data();
             // Read more data (30KB) to increase chance of finding <link> tags in headers
             const chunk = data instanceof Uint8Array ? data : new Uint8Array(data);
-            const html = decoder.decode(chunk.slice(0, 30000));
+            const html = decoder.decode(chunk.slice(0, HTML_CHUNK_SIZE));
 
             // Extract Title
             let title = null;
@@ -167,5 +171,22 @@ export class LinkProcessor {
             this._session.abort();
             this._session = null;
         }
+    }
+    /**
+     * Regenerates the favicon for a link item.
+     * @param {Object} item - The clipboard item to heal.
+     * @param {string} linkPreviewsDir - The directory to save the icon to.
+     * @returns {Promise<string|null>} The new icon filename if successful, null otherwise.
+     */
+    async regenerateIcon(item, linkPreviewsDir) {
+        if (!item.url || !this._session) return null;
+
+        const { iconUrl } = await this.fetchMetadata(item.url);
+        if (iconUrl) {
+            // Use existing item ID as basename to maintain association if possible,
+            // but downloadFavicon handles extensions.
+            return await this.downloadFavicon(iconUrl, linkPreviewsDir, item.id);
+        }
+        return null;
     }
 }

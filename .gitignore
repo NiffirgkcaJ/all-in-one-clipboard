@@ -2,6 +2,7 @@
 *.zip
 
 # Ignore IDE/editor-specific files
+.agent/
 .idea/
 .vscode/
 *.swp

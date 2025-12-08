@@ -88,7 +88,7 @@ export class EmojiViewRenderer {
             }
         }
 
-        const iconWidget = createStaticIcon(iconFile, EmojiUI.CATEGORY_ICON_SIZE, 'emoji-category-icon');
+        const iconWidget = createStaticIcon({ icon: iconFile, iconSize: EmojiUI.CATEGORY_ICON_SIZE }, { styleClass: 'emoji-category-icon' });
 
         const button = new St.Button({
             style_class: 'emoji-category-tab-button button',

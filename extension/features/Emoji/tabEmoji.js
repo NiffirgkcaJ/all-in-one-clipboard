@@ -114,9 +114,9 @@ export const EmojiTabContent = GObject.registerClass(
             this._viewer?.setBackButtonVisible(shouldShowBackButton);
         }
 
-        // =====================================================================
+        // ========================================================================
         // Signal Handlers and Callbacks
-        // =====================================================================
+        // ========================================================================
 
         /**
          * Handles the 'item-selected' signal from the viewer.
@@ -156,9 +156,9 @@ export const EmojiTabContent = GObject.registerClass(
             this._viewer?.rerenderGrid();
         }
 
-        // =====================================================================
+        // ========================================================================
         // Emoji-Specific Logic
-        // =====================================================================
+        // ========================================================================
 
         /**
          * Asynchronously builds a Set of single-codepoint, skinnable emoji characters
@@ -236,9 +236,9 @@ export const EmojiTabContent = GObject.registerClass(
                 : itemData.char;
         }
 
-        // =====================================================================
+        // ========================================================================
         // Public Methods & Lifecycle
-        // =====================================================================
+        // ========================================================================
 
         /**
          * Called by the parent when this tab is selected.

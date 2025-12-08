@@ -54,7 +54,7 @@ export class GifItemFactory {
             track_hover: true,
         });
 
-        bin.tooltip_text = itemData.description || '';
+        bin.tooltip_text = String(itemData.description || '');
 
         bin.connect('button-press-event', () => {
             onSelected(itemData);
@@ -157,7 +157,7 @@ export class GifItemFactory {
     _handleError(bin, error) {
         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
             if (bin.get_stage()) {
-                bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER.icon, GifIcons.ERROR_PLACEHOLDER.iconSize));
+                bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER));
             }
             return GLib.SOURCE_REMOVE;
         });

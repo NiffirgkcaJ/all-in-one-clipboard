@@ -1,12 +1,11 @@
 const ZWJ = '\u200D'; // Zero Width Joiner
-const VS16 = '\uFE0F'; // Variation Selector-16 (for emoji presentation)
+const VS16 = '\uFE0F'; // Variation Selector-16 for emoji presentation
 const HANDSHAKE_CHAR = '\u{1F91D}'; // Handshake Emoji
 
 // Standard Unicode Skin Tone Modifiers
 const SKIN_TONE_MODIFIERS = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 
-// Map of precomposed multi-person emojis to their modern ZWJ sequence equivalents.
-// This allows applying dual, different skin tones to older emoji characters.
+// Map precomposed multi-person emojis to ZWJ equivalents for applying dual skin tones
 const PRECOMPOSED_TO_ZWJ_MAP = {
     '\u{1F46D}': '👩‍🤝‍👩', // Women Holding Hands
     '\u{1F46B}': '👩‍🤝‍👨', // Woman and Man Holding Hands

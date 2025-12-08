@@ -11,7 +11,7 @@ import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
-import { createStaticIconButton, createDynamicIconButton, setIcon } from '../../shared/utilities/utilityIcon.js';
+import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
 /**
  * Number of focusable UI elements per clipboard item row
@@ -75,9 +75,9 @@ export const ClipboardTabContent = GObject.registerClass(
             this._connectManagerSignals();
         }
 
-        // ===========================
+        // ========================================================================
         // UI Construction Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Build and add the search component to the UI
@@ -104,11 +104,19 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             selectionBar.spacing = 8;
 
-            // Select All button
-            this._selectAllButton = createDynamicIconButton(ClipboardIcons.CHECKBOX_UNCHECKED.icon, ClipboardIcons.CHECKBOX_UNCHECKED.iconSize, {
-                style_class: 'button clipboard-icon-button',
-                tooltip_text: _('Select All'),
-            });
+            // Select All button with ternary states: unchecked, checked, mixed
+            this._selectAllButton = createDynamicIconButton(
+                {
+                    unchecked: ClipboardIcons.CHECKBOX_UNCHECKED,
+                    checked: ClipboardIcons.CHECKBOX_CHECKED,
+                    mixed: ClipboardIcons.CHECKBOX_MIXED,
+                },
+                {
+                    initial: 'unchecked',
+                    style_class: 'button clipboard-icon-button',
+                    tooltip_text: _('Select All'),
+                },
+            );
             // Store icon reference for updates
             this._selectAllIcon = this._selectAllButton.child;
 
@@ -122,15 +130,22 @@ export const ClipboardTabContent = GObject.registerClass(
             actionButtonsBox.spacing = 4;
             selectionBar.add_child(actionButtonsBox);
 
-            // Private Mode button
-            this._privateModeButton = createDynamicIconButton(ClipboardIcons.ACTION_PRIVATE.icon, ClipboardIcons.ACTION_PRIVATE.iconSize, {
-                style_class: 'button clipboard-icon-button',
-                tooltip_text: _('Start Private Mode (Pause Recording)'),
-            });
+            // Private Mode button with binary states: inactive, active
+            this._privateModeButton = createDynamicIconButton(
+                {
+                    inactive: ClipboardIcons.ACTION_PRIVATE,
+                    active: ClipboardIcons.ACTION_PUBLIC,
+                },
+                {
+                    initial: 'inactive',
+                    style_class: 'button clipboard-icon-button',
+                    tooltip_text: _('Start Private Mode (Pause Recording)'),
+                },
+            );
             this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
             actionButtonsBox.add_child(this._privateModeButton);
 
-            this._pinSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_PIN.icon, ClipboardIcons.ACTION_PIN.iconSize, {
+            this._pinSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_PIN, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
                 reactive: false,
@@ -138,7 +153,7 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
-            this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.DELETE.icon, ClipboardIcons.DELETE.iconSize, {
+            this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.DELETE, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
                 reactive: false,
@@ -197,9 +212,9 @@ export const ClipboardTabContent = GObject.registerClass(
             });
         }
 
-        // ===========================
+        // ========================================================================
         // Keyboard Navigation Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Get all focusable header buttons
@@ -286,17 +301,17 @@ export const ClipboardTabContent = GObject.registerClass(
             return Clutter.EVENT_PROPAGATE;
         }
 
-        // ===========================
+        // ========================================================================
         // Action Handler Methods
-        // ===========================
+        // ========================================================================
 
         /**
-         * Toggle private mode (pause/resume clipboard recording)
+         * Toggle private mode to pause or resume clipboard recording
          */
         _onPrivateModeToggled() {
             this._isPrivateMode = !this._isPrivateMode;
             this._manager.setPaused(this._isPrivateMode);
-            setIcon(this._privateModeButton.child, this._isPrivateMode ? ClipboardIcons.ACTION_PUBLIC.icon : ClipboardIcons.ACTION_PRIVATE.icon);
+            this._privateModeButton.child.state = this._isPrivateMode ? 'active' : 'inactive';
             this._privateModeButton.tooltip_text = this._isPrivateMode ? _('Stop Private Mode (Resume Recording)') : _('Start Private Mode (Pause Recording)');
         }
 
@@ -311,7 +326,7 @@ export const ClipboardTabContent = GObject.registerClass(
                     this._selectedIds.add(item.id);
                     const icon = this._checkboxIconsMap.get(item.id);
                     if (icon) {
-                        setIcon(icon, ClipboardIcons.CHECKBOX_CHECKED.icon);
+                        icon.state = 'checked';
                     }
                 });
             } else {
@@ -319,7 +334,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 this._allItems.forEach((item) => {
                     const icon = this._checkboxIconsMap.get(item.id);
                     if (icon) {
-                        setIcon(icon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
+                        icon.state = 'unchecked';
                     }
                 });
             }
@@ -527,9 +542,9 @@ export const ClipboardTabContent = GObject.registerClass(
             this._manager.unpinItem(itemData.id);
         }
 
-        // ===========================
+        // ========================================================================
         // UI State Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Update the UI state based on current selection
@@ -556,13 +571,13 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectAllButton.set_reactive(canSelect);
 
             if (!canSelect || numSelected === 0) {
-                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
+                this._selectAllIcon.state = 'unchecked';
                 this._selectAllButton.tooltip_text = _('Select All');
             } else if (numSelected === totalItems) {
-                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_CHECKED.icon);
+                this._selectAllIcon.state = 'checked';
                 this._selectAllButton.tooltip_text = _('Deselect All');
             } else {
-                setIcon(this._selectAllIcon, ClipboardIcons.CHECKBOX_MIXED.icon);
+                this._selectAllIcon.state = 'mixed';
                 this._selectAllButton.tooltip_text = _('Select All');
             }
 
@@ -577,7 +592,7 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _updatePinButtonState() {
             // The icon for the action button should always be the generic 'pin' icon.
-            setIcon(this._pinSelectedButton.child, ClipboardIcons.ACTION_PIN.icon);
+            // this._pinSelectedButton.child.state = ...; // Not needed as it is static
             if (this._selectedIds.size === 0) {
                 this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
                 return;
@@ -724,11 +739,18 @@ export const ClipboardTabContent = GObject.registerClass(
 
             // Checkbox for selection
             const isChecked = this._selectedIds.has(itemData.id);
-            const itemCheckbox = createDynamicIconButton(isChecked ? ClipboardIcons.CHECKBOX_CHECKED.icon : ClipboardIcons.CHECKBOX_UNCHECKED.icon, ClipboardIcons.CHECKBOX_CHECKED.iconSize, {
-                style_class: 'button clipboard-item-checkbox',
-                y_expand: false,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
+            const itemCheckbox = createDynamicIconButton(
+                {
+                    unchecked: ClipboardIcons.CHECKBOX_UNCHECKED,
+                    checked: ClipboardIcons.CHECKBOX_CHECKED,
+                },
+                {
+                    initial: isChecked ? 'checked' : 'unchecked',
+                    style_class: 'button clipboard-item-checkbox',
+                    y_expand: false,
+                    y_align: Clutter.ActorAlign.CENTER,
+                },
+            );
             const checkboxIcon = itemCheckbox.child;
             this._checkboxIconsMap.set(itemData.id, checkboxIcon);
 
@@ -736,10 +758,10 @@ export const ClipboardTabContent = GObject.registerClass(
                 if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
                 if (this._selectedIds.has(itemData.id)) {
                     this._selectedIds.delete(itemData.id);
-                    setIcon(checkboxIcon, ClipboardIcons.CHECKBOX_UNCHECKED.icon);
+                    checkboxIcon.state = 'unchecked';
                 } else {
                     this._selectedIds.add(itemData.id);
-                    setIcon(checkboxIcon, ClipboardIcons.CHECKBOX_CHECKED.icon);
+                    checkboxIcon.state = 'checked';
                 }
                 this._updateSelectionState();
             });
@@ -754,23 +776,17 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             mainBox.add_child(contentWidget);
 
-            const rowStarButton = createDynamicIconButton(
-                '', // Empty initially, set below
-                ClipboardIcons.STAR_FILLED.iconSize,
-                {
-                    style_class: 'button clipboard-icon-button',
-                    y_align: Clutter.ActorAlign.CENTER,
-                },
-            );
+            const rowStarButton = createStaticIconButton(isPinned ? ClipboardIcons.STAR_FILLED : ClipboardIcons.STAR_UNFILLED, {
+                style_class: 'button clipboard-icon-button',
+                y_align: Clutter.ActorAlign.CENTER,
+            });
             if (isPinned) {
-                setIcon(rowStarButton.child, ClipboardIcons.STAR_FILLED.icon);
                 rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
             } else {
-                setIcon(rowStarButton.child, ClipboardIcons.STAR_UNFILLED.icon);
                 rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
             }
 
-            const deleteButton = createDynamicIconButton(ClipboardIcons.DELETE.icon, ClipboardIcons.DELETE.iconSize, {
+            const deleteButton = createStaticIconButton(ClipboardIcons.DELETE, {
                 style_class: 'button clipboard-icon-button',
                 y_align: Clutter.ActorAlign.CENTER,
             });
@@ -801,9 +817,9 @@ export const ClipboardTabContent = GObject.registerClass(
             return rowButton;
         }
 
-        // ===========================
+        // ========================================================================
         // Lifecycle Methods
-        // ===========================
+        // ========================================================================
 
         /**
          * Called when the tab is selected/activated

@@ -82,12 +82,15 @@ export const ClipboardIcons = {
     },
 
     STAR_FILLED: {
-        icon: 'clipboard-star-filled-symbolic.svg',
+        icon: 'clipboard-star-symbolic.svg',
         iconSize: 16,
     },
     STAR_UNFILLED: {
-        icon: 'clipboard-star-unfilled-symbolic.svg',
+        icon: 'clipboard-star-symbolic.svg',
         iconSize: 16,
+        iconOptions: {
+            opacity: 0.5,
+        },
     },
     DELETE: {
         icon: 'clipboard-delete-symbolic.svg',
@@ -105,6 +108,14 @@ export const ClipboardIcons = {
     ACTION_PUBLIC: {
         icon: 'clipboard-eye-conceal-symbolic.svg',
         iconSize: 16,
+    },
+
+    ERROR_WARNING: {
+        icon: 'clipboard-warning-symbolic.svg',
+        iconSize: 16,
+        iconOptions: {
+            color: '#f5793e',
+        },
     },
 };
 

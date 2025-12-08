@@ -1,5 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import Soup from 'gi://Soup';
 import St from 'gi://St';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -7,6 +8,10 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Validation Patterns
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+
+// Configuration
+const DOWNLOAD_TIMEOUT = 10; // seconds
+const HTTP_ERROR_STATUS = 300; // Status codes >= this are errors
 
 /**
  * ImageProcessor - Handles image clipboard data
@@ -89,5 +94,111 @@ export class ImageProcessor {
         }
 
         return item;
+    }
+    /**
+     * Regenerates the thumbnail from the source file if it exists.
+     * @param {Object} item - The clipboard item to heal.
+     * @param {string} imagesDir - The directory to save the image to.
+     * @returns {Promise<boolean>} True if regeneration succeeded.
+     */
+    static async regenerateThumbnail(item, imagesDir) {
+        if (!item.file_uri || !item.image_filename) return false;
+
+        try {
+            // Check if source file exists
+            const sourceFile = Gio.File.new_for_uri(item.file_uri);
+            if (!sourceFile.query_exists(null)) return false;
+
+            // Load from source
+            const [success, contents] = await new Promise((resolve) => {
+                sourceFile.load_contents_async(null, (src, res) => {
+                    try {
+                        const result = src.load_contents_finish(res);
+                        resolve(result);
+                    } catch {
+                        resolve([false, null]);
+                    }
+                });
+            });
+
+            if (!success || !contents) return false;
+
+            // Save to images directory
+            const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
+            const destFile = Gio.File.new_for_path(destPath);
+
+            await new Promise((resolve, reject) => {
+                destFile.replace_contents_async(contents, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null, (src, res) => {
+                    try {
+                        src.replace_contents_finish(res);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
+
+            return true;
+        } catch (e) {
+            console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal image: ${e.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Regenerates an image by re-downloading from a source URL.
+     * Used for images that were originally downloaded from the web (e.g., GIFs).
+     * @param {Object} item - The clipboard item to heal.
+     * @param {string} imagesDir - The directory to save the image to.
+     * @returns {Promise<boolean>} True if regeneration succeeded.
+     */
+    static async regenerateFromUrl(item, imagesDir) {
+        if (!item.source_url || !item.image_filename) return false;
+
+        try {
+            const session = new Soup.Session();
+            session.timeout = DOWNLOAD_TIMEOUT;
+
+            const message = new Soup.Message({
+                method: 'GET',
+                uri: GLib.Uri.parse(item.source_url, GLib.UriFlags.NONE),
+            });
+
+            const bytes = await new Promise((resolve, reject) => {
+                session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (sess, res) => {
+                    if (message.get_status() >= HTTP_ERROR_STATUS) {
+                        reject(new Error(`HTTP Error ${message.get_status()}`));
+                        return;
+                    }
+                    try {
+                        resolve(sess.send_and_read_finish(res));
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
+
+            if (!bytes || bytes.get_size() === 0) return false;
+
+            // Save to images directory
+            const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
+            const destFile = Gio.File.new_for_path(destPath);
+
+            await new Promise((resolve, reject) => {
+                destFile.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null, (src, res) => {
+                    try {
+                        src.replace_contents_finish(res);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
+
+            return true;
+        } catch (e) {
+            console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal from URL: ${e.message}`);
+            return false;
+        }
     }
 }

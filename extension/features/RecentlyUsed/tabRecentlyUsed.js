@@ -66,12 +66,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._recentManagers = {};
             this._signalIds = [];
             this._sections = {};
-
-            // 2D grid for keyboard navigation
             this._focusGrid = [];
             this._renderSession = null;
-
-            // Scroll lock mechanism prevents auto-scroll when nested scroll views have focus
             this._outerScrollLocked = false;
             this._lockedScrollValue = 0;
             this._scrollLockHandler = null;
@@ -501,7 +497,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * Create a full-width list item button for clipboard/kaomoji content
          *
          * @param {object} itemData - Item data containing type, preview, etc.
-         * @param {boolean} isPinned - Whether item is pinned (changes click behavior)
+         * @param {boolean} isPinned - Whether item is pinned, which affects click behavior
          * @param {string} feature - Feature type ('clipboard', 'kaomoji', etc.)
          * @returns {St.Button} The created button widget
          * @private
@@ -754,7 +750,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            // Find current focus position in grid
             let rowIndex = -1,
                 colIndex = -1;
             for (let r = 0; r < this._focusGrid.length; r++) {
@@ -886,7 +881,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         }
 
         /**
-         * Try to focus the first content item (not Show All button, not settings)
+         * Try to focus the first content item, skipping Show All buttons and settings
          * @param {Set} showAllButtons - Set of Show All buttons to skip
          * @returns {boolean} True if successfully focused an item
          * @private

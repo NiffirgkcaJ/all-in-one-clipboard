@@ -4,9 +4,9 @@ import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
-import { createDynamicIcon } from '../../../shared/utilities/utilityIcon.js';
+import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
-import { ClipboardType, ClipboardStyling, IconSizes } from '../constants/clipboardConstants.js';
+import { ClipboardType, ClipboardStyling, ClipboardIcons, IconSizes } from '../constants/clipboardConstants.js';
 
 export class ClipboardItemFactory {
     /**
@@ -48,6 +48,31 @@ export class ClipboardItemFactory {
             default:
                 ClipboardItemFactory._configureTextItem(config, item);
                 break;
+        }
+
+        // Handle corrupted state
+        if (item.is_corrupted) {
+            // Override icon to show warning with color
+            config.icon = ClipboardIcons.ERROR_WARNING.icon;
+            config.iconOptions = ClipboardIcons.ERROR_WARNING.iconOptions;
+
+            // For image items without source, show in rich layout with warning
+            if (config.layoutMode === 'image') {
+                config.layoutMode = 'rich';
+                config.title = 'Image (Data Lost)';
+            }
+            // For code items, keep code layout but update title info
+            else if (config.layoutMode === 'code') {
+                // Keep code layout, just add warning in config
+                config.title = 'Code (Full Content Lost)';
+            }
+            // For text items, switch to rich for visibility
+            else if (config.layoutMode === 'text') {
+                config.layoutMode = 'rich';
+                config.title = config.text ? config.text.substring(0, 50) + '...' : 'Text (Full Content Lost)';
+            }
+
+            config.subtitle = 'Cannot be recovered';
         }
 
         return config;
@@ -171,7 +196,7 @@ export class ClipboardItemFactory {
             });
 
             // Icon
-            const icon = createDynamicIcon(config.icon, config.iconSize, 'clipboard-item-icon');
+            const icon = createStaticIcon(config, { styleClass: 'clipboard-item-icon' });
             contentWidget.add_child(icon);
 
             // Code Body
@@ -230,11 +255,11 @@ export class ClipboardItemFactory {
                     gicon: new Gio.FileIcon({ file: file }),
                 });
             } else {
-                icon = createDynamicIcon(config.icon, config.iconSize, 'clipboard-item-icon');
+                icon = createStaticIcon(config, { styleClass: 'clipboard-item-icon' });
             }
             contentWidget.add_child(icon);
 
-            // Color swatch (for single colors or gradient images)
+            // Color swatch for single colors or gradient images
             if (config.cssColor || itemData.gradient_filename) {
                 const swatchContainer = new St.Bin({
                     style_class: 'clipboard-item-color-container',

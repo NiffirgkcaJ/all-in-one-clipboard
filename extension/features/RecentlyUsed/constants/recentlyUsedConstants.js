@@ -8,7 +8,6 @@ export const RecentlyUsedUI = {
     MAX_PINNED_DISPLAY_COUNT: 5,
     GRID_COLUMN_SPACING: 4,
     SECTION_SPACING: 8,
-    // Section display order
     SECTION_ORDER: ['pinned', 'emoji', 'gif', 'kaomoji', 'symbols', 'clipboard'],
 };
 
@@ -58,7 +57,8 @@ export const RecentlyUsedSections = {
         maxDisplay: 5,
     },
 };
-// GSettings Keys for Feature Toggles
+
+// GSettings Keys
 export const RecentlyUsedSettings = {
     ENABLE_EMOJI_TAB: 'enable-emoji-tab',
     ENABLE_GIF_TAB: 'enable-gif-tab',
@@ -73,7 +73,7 @@ export const RecentlyUsedSettings = {
     CLIPBOARD_IMAGE_PREVIEW_SIZE: 'clipboard-image-preview-size',
 };
 
-// Feature Configuration for Recent Managers
+// Feature Configuration
 export const RecentlyUsedFeatures = {
     EMOJI: {
         id: 'emoji',
@@ -118,7 +118,7 @@ export const RecentlyUsedStyles = {
     GIF_ICON: 'recently-used-gif-icon',
 };
 
-// Icon Names
+// Icon Definitions
 export const RecentlyUsedIcons = {
     SETTINGS: {
         icon: 'recently-used-settings-symbolic.svg',

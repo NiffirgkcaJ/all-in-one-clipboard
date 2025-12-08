@@ -74,6 +74,10 @@ export const ClipboardManager = GObject.registerClass(
             this._linkProcessor = new LinkProcessor();
         }
 
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
         /**
          * Set up clipboard change monitoring
          * @private
@@ -112,6 +116,13 @@ export const ClipboardManager = GObject.registerClass(
             }
 
             this._initialLoadSuccess = await this.loadData();
+
+            if (this._initialLoadSuccess) {
+                this._verifyAndHealData().catch((e) => {
+                    console.error(`[AIO-Clipboard] Healing failed: ${e.message}`);
+                });
+            }
+
             return this._initialLoadSuccess;
         }
 
@@ -127,6 +138,10 @@ export const ClipboardManager = GObject.registerClass(
                 }
             });
         }
+
+        // ========================================================================
+        // Content Processing
+        // ========================================================================
 
         /**
          * Handle clipboard change events
@@ -253,6 +268,10 @@ export const ClipboardManager = GObject.registerClass(
                     console.warn(`[AIO-Clipboard] Unknown result type: ${result.type}`);
             }
         }
+
+        // ========================================================================
+        // Content Type Handlers
+        // ========================================================================
 
         /**
          * Handle file clipboard items
@@ -441,6 +460,10 @@ export const ClipboardManager = GObject.registerClass(
             return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
         }
 
+        // ========================================================================
+        // History Management
+        // ========================================================================
+
         /**
          * Add a new item to clipboard history
          *
@@ -483,7 +506,7 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Promote a pinned item (optionally unpinning it based on settings)
+         * Promote a pinned item, optionally unpinning it based on settings
          *
          * @param {number} index - Index of pinned item to promote
          * @private
@@ -497,6 +520,10 @@ export const ClipboardManager = GObject.registerClass(
                 this.emit('pinned-list-changed');
             }
         }
+
+        // ========================================================================
+        // Persistence
+        // ========================================================================
 
         /**
          * Load clipboard history and pinned items from disk
@@ -619,6 +646,10 @@ export const ClipboardManager = GObject.registerClass(
             }
         }
 
+        // ========================================================================
+        // Public API
+        // ========================================================================
+
         /**
          * Get clipboard history items
          *
@@ -645,7 +676,7 @@ export const ClipboardManager = GObject.registerClass(
         async getContent(id) {
             const item = [...this._history, ...this._pinned].find((i) => i.id === id);
 
-            // Support both TEXT and CODE types (CODE items are stored like TEXT items)
+            // Support both TEXT and CODE types since CODE items are stored like TEXT items
             if (!item || (item.type !== ClipboardType.TEXT && item.type !== ClipboardType.CODE)) {
                 return null;
             }
@@ -707,7 +738,7 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Promote an item to the top of its list (history or pinned)
+         * Promote an item to the top of its list, either history or pinned
          *
          * @param {string} id - Item ID to promote
          */
@@ -792,6 +823,22 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
+         * Helper to delete a file from disk
+         *
+         * @param {string} dirPath - Directory path where the file is located
+         * @param {string} filename - Filename to delete
+         * @private
+         */
+        _deleteFile(dirPath, filename) {
+            if (!filename) return;
+            try {
+                Gio.File.new_for_path(GLib.build_filenamev([dirPath, filename])).delete_async(GLib.PRIORITY_DEFAULT, null);
+            } catch {
+                /* ignore */
+            }
+        }
+
+        /**
          * Delete an image file from disk
          *
          * @param {string} filename - Image filename to delete
@@ -799,11 +846,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _deleteImageFile(filename) {
             if (!filename) return;
-            try {
-                Gio.File.new_for_path(GLib.build_filenamev([this._imagesDir, filename])).delete_async(GLib.PRIORITY_DEFAULT, null);
-            } catch {
-                /* ignore */
-            }
+            this._deleteFile(this._imagesDir, filename);
         }
 
         /**
@@ -834,6 +877,130 @@ export const ClipboardManager = GObject.registerClass(
             } catch {
                 /* ignore */
             }
+        }
+
+        /**
+         * Verify integrity of clipboard items and attempt self-healing
+         * @private
+         */
+        async _verifyAndHealData() {
+            let changed = false;
+
+            const processItem = async (item) => {
+                let missingFile = false;
+                let healed = false;
+                let needsCheck = false; // Only check items that SHOULD have external files
+
+                // IMAGE: Check thumbnail file
+                if (item.type === ClipboardType.IMAGE && item.image_filename) {
+                    needsCheck = true;
+                    missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
+                    if (missingFile) {
+                        // Try healing from local file first
+                        if (item.file_uri) {
+                            // Check if file_uri points to an external file, not the cache
+                            const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
+                            if (item.file_uri !== cacheUri) {
+                                healed = await ImageProcessor.regenerateThumbnail(item, this._imagesDir);
+                            }
+                        }
+                        // If still missing and has source URL, try downloading
+                        if (!healed && item.source_url) {
+                            healed = await ImageProcessor.regenerateFromUrl(item, this._imagesDir);
+                        }
+                    }
+                }
+                // COLOR: Only check gradient/palette subtypes since single colors have no file
+                else if (item.type === ClipboardType.COLOR && item.gradient_filename) {
+                    needsCheck = true;
+                    missingFile = !this._checkFileExists(this._imagesDir, item.gradient_filename);
+                    if (missingFile) {
+                        healed = ColorProcessor.regenerateGradient(item, this._imagesDir);
+                    }
+                }
+                // URL: Check favicon which is optional decoration, not critical data
+                else if (item.type === ClipboardType.URL && item.icon_filename) {
+                    needsCheck = true;
+                    missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
+                    if (missingFile) {
+                        healed = await this._healIconFile(item, this._linkPreviewsDir);
+                    }
+                }
+                // CONTACT (email): Check favicon
+                else if (item.type === ClipboardType.CONTACT && item.subtype === 'email' && item.icon_filename) {
+                    needsCheck = true;
+                    missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
+                    if (missingFile) {
+                        healed = await this._healIconFile(item, this._linkPreviewsDir);
+                    }
+                }
+                // TEXT/CODE: Check full content file
+                else if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) {
+                    needsCheck = true;
+                    missingFile = !this._checkFileExists(this._textsDir, `${item.id}.txt`);
+                    // Cannot be healed - original content is lost
+                }
+
+                // If not checking anything, this item is fine
+                if (!needsCheck) return false;
+
+                if (healed) missingFile = false;
+
+                // Update corrupted state only for items we actually checked
+                const wasCorrupted = item.is_corrupted || false;
+                if (missingFile !== wasCorrupted) {
+                    item.is_corrupted = missingFile;
+                    return true; // Item state changed
+                }
+
+                return healed; // Return true if metadata changed
+            };
+
+            // Process both lists concurrently
+            const allItems = [...this._history, ...this._pinned];
+
+            // We process in chunks to avoid overwhelming the loop
+            const CHUNK_SIZE = 5;
+            for (let i = 0; i < allItems.length; i += CHUNK_SIZE) {
+                const chunk = allItems.slice(i, i + CHUNK_SIZE);
+                // eslint-disable-next-line no-await-in-loop
+                const results = await Promise.all(chunk.map(processItem));
+                if (results.some((r) => r)) changed = true;
+            }
+
+            if (changed) {
+                this._saveAll();
+                this.emit('history-changed');
+                this.emit('pinned-list-changed');
+            }
+        }
+
+        /**
+         * Check if a file exists in the given directory
+         * @private
+         */
+        _checkFileExists(dirPath, filename) {
+            if (!filename) return true; // No file expected, so "exists" (not missing)
+            const file = Gio.File.new_for_path(GLib.build_filenamev([dirPath, filename]));
+            return file.query_exists(null);
+        }
+
+        /**
+         * Attempt to heal a missing icon file for URL or Contact items
+         * @param {Object} item - The item to heal
+         * @param {string} directory - The directory to save the icon to
+         * @returns {Promise<boolean>} True if healed by updating or clearing filename
+         * @private
+         */
+        async _healIconFile(item, directory) {
+            const newFilename = await this._linkProcessor.regenerateIcon(item, directory);
+            if (newFilename) {
+                item.icon_filename = newFilename;
+                return true;
+            }
+            // Clear the stale reference if can't recover
+            item.icon_filename = null;
+            return true; // Not a corruption, just cleared stale reference
         }
 
         /**

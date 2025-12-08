@@ -149,6 +149,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             this._updateTabsVisibility();
         }
 
+        // ========================================================================
+        // Menu Construction
+        // ========================================================================
+
         /**
          * Constructs the main menu layout with a tab bar and content area.
          * @private
@@ -262,7 +266,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
 
                 const iconFile = tabConfig.icon;
                 const iconSize = tabConfig.iconSize;
-                const iconWidget = createStaticIcon(iconFile, iconSize);
+                const iconWidget = createStaticIcon({ icon: iconFile, iconSize: iconSize });
 
                 const button = new St.Button({
                     style_class: 'aio-clipboard-tab-button button',
@@ -286,6 +290,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 this._updateTabButtonSelection();
             }
         }
+
+        // ========================================================================
+        // Tab Bar Management
+        // ========================================================================
 
         /**
          * Sets the visibility of the main tab bar.
@@ -451,6 +459,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 this._currentTabNavigateSignalId = 0;
             }
         }
+
+        // ========================================================================
+        // Tab Selection and Loading
+        // ========================================================================
 
         /**
          * Selects and loads the specified tab, updating the UI accordingly.
@@ -618,6 +630,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             });
         }
 
+        // ========================================================================
+        // Keyboard Navigation
+        // ========================================================================
+
         /**
          * Handles left/right arrow key navigation within the main tab bar.
          * Prevents focus from moving out of the tab bar when at the edges.
@@ -700,6 +716,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             this._selectTab(targetTab);
         }
 
+        // ========================================================================
+        // Menu Operations
+        // ========================================================================
+
         /**
          * Opens the menu, respecting the positioning settings for a hidden icon.
          * The 'open-state-changed' signal handler will manage which tab to display.
@@ -749,6 +769,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             this._isOpeningViaShortcut = true;
             this.openMenu();
         }
+
+        // ========================================================================
+        // Lifecycle
+        // ========================================================================
 
         /**
          * Cleans up resources when the indicator is destroyed.
@@ -825,7 +849,7 @@ export default class AllInOneClipboardExtension extends Extension {
     _onClearRecentsTrigger() {
         const trigger = this._settings.get_string('clear-recents-trigger');
 
-        // Ignore if the trigger is empty (which happens when we reset it)
+        // Ignore if the trigger is empty, which happens when we reset it
         if (trigger === '') {
             return;
         }
