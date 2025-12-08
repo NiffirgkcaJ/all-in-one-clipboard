@@ -1201,7 +1201,7 @@ export const GIFTabContent = GObject.registerClass(
         }
 
         /**
-         * Clean up resources when the widget is destroyed.
+         * Clean up all resources.
          */
         destroy() {
             this._isDestroyed = true;
@@ -1211,24 +1211,38 @@ export const GIFTabContent = GObject.registerClass(
                 this._httpSession = null;
             }
 
-            // Disconnect GIF-specific signals safely
-            if (this._settings && this._providerChangedSignalId > 0) {
+            if (this._downloadService) {
+                this._downloadService.destroy();
+                this._downloadService = null;
+            }
+
+            if (this._searchDebouncer) {
+                this._searchDebouncer.destroy();
+                this._searchDebouncer = null;
+            }
+
+            // Clean up signals
+            if (this._providerChangedSignalId) {
                 this._settings.disconnect(this._providerChangedSignalId);
-            }
-            if (this._recentItemsManager && this._recentsSignalId > 0) {
-                this._recentItemsManager.disconnect(this._recentsSignalId);
+                this._providerChangedSignalId = 0;
             }
 
-            // Disconnect the shared 'always-show-main-tab' signal
             if (this._alwaysShowTabsSignalId) {
-                this._settings?.disconnect(this._alwaysShowTabsSignalId);
+                this._settings.disconnect(this._alwaysShowTabsSignalId);
+                this._alwaysShowTabsSignalId = 0;
             }
-            this._alwaysShowTabsSignalId = 0;
 
-            // Clean up child components
-            this._searchDebouncer?.destroy();
+            if (this._recentsSignalId && this._recentsManager) {
+                this._recentsManager.disconnect(this._recentsSignalId);
+                this._recentsSignalId = 0;
+            }
+
+            if (this._recentsManager) {
+                this._recentsManager.destroy();
+                this._recentsManager = null;
+            }
+
             this._searchComponent?.destroy();
-            this._recentItemsManager?.destroy();
             this._itemFactory?.destroy();
 
             super.destroy();

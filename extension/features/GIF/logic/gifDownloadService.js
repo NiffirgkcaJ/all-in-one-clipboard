@@ -76,4 +76,14 @@ export class GifDownloadService {
         await this.saveBytesToFile(file, bytes);
         return bytes;
     }
+
+    /**
+     * Cancel any pending requests
+     */
+    destroy() {
+        if (this._httpSession) {
+            this._httpSession.abort();
+            this._httpSession = null;
+        }
+    }
 }

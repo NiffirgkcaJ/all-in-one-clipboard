@@ -836,10 +836,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * Called when tab becomes active - show tab bar and render content
          */
         onTabSelected() {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            this._tabVisCheckIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 if (!this._isDestroyed) {
                     this.emit('set-main-tab-bar-visibility', true);
                 }
+                this._tabVisCheckIdleId = 0;
                 return GLib.SOURCE_REMOVE;
             });
 
@@ -847,8 +848,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._unlockOuterScroll();
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+            this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
                 this._restoreFocus();
+                this._restoreFocusTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -968,6 +970,15 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._signalIds.forEach(({ obj, id }) => {
                 obj.disconnect(id);
             });
+
+            if (this._tabVisCheckIdleId) {
+                GLib.source_remove(this._tabVisCheckIdleId);
+                this._tabVisCheckIdleId = 0;
+            }
+            if (this._restoreFocusTimeoutId) {
+                GLib.source_remove(this._restoreFocusTimeoutId);
+                this._restoreFocusTimeoutId = 0;
+            }
 
             Object.values(this._recentManagers).forEach((m) => m?.destroy());
 

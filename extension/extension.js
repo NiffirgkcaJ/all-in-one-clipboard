@@ -225,10 +225,12 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                         }
                     }
 
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                    // If the menu is open, select the target tab.
+                    this._menuOpenIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                         if (this.menu.isOpen && targetTab) {
                             this._selectTab(targetTab);
                         }
+                        this._menuOpenIdleId = 0;
                         // If no tabs are visible, it will just open empty.
                         return GLib.SOURCE_REMOVE;
                     });
@@ -761,6 +763,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             if (this._loadingIndicatorTimeoutId) {
                 GLib.source_remove(this._loadingIndicatorTimeoutId);
                 this._loadingIndicatorTimeoutId = 0;
+            }
+            if (this._menuOpenIdleId) {
+                GLib.source_remove(this._menuOpenIdleId);
+                this._menuOpenIdleId = 0;
             }
             if (this._currentTabActor) {
                 this._disconnectTabSignals(this._currentTabActor);

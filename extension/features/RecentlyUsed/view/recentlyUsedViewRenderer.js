@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
+import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -242,7 +243,6 @@ export async function updateGifButtonWithPreview(button, url, renderSession, con
  * @private
  */
 async function fetchImageBytes(url, httpSession, isDestroyed) {
-    const Soup = (await import('gi://Soup')).default;
     const message = new Soup.Message({
         method: 'GET',
         uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),

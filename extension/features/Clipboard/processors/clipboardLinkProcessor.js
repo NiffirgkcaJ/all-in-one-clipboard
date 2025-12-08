@@ -17,6 +17,11 @@ const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
  * - downloadFavicon(): Async helper to download and save favicon
  */
 export class LinkProcessor {
+    constructor() {
+        this._session = new Soup.Session();
+        this._session.timeout = 5;
+    }
+
     /**
      * Extracts link data from the clipboard.
      * @param {string} text - The text to process.
@@ -43,13 +48,10 @@ export class LinkProcessor {
      * Fetches title and favicon URL.
      * @returns {Promise<Object>} { title: string|null, iconUrl: string|null }
      */
-    static async fetchMetadata(url) {
-        const session = new Soup.Session();
-        session.timeout = 5;
-
+    async fetchMetadata(url) {
         try {
             const message = Soup.Message.new('GET', url);
-            const bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return { title: null, iconUrl: null };
 
@@ -106,15 +108,12 @@ export class LinkProcessor {
      * Downloads the icon to the cache directory.
      * @returns {Promise<string|null>} The saved filename, or null.
      */
-    static async downloadFavicon(iconUrl, destinationDir, fileBasename) {
+    async downloadFavicon(iconUrl, destinationDir, fileBasename) {
         if (!iconUrl) return null;
-
-        const session = new Soup.Session();
-        session.timeout = 5;
 
         try {
             const message = Soup.Message.new('GET', iconUrl);
-            const bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return null;
 
@@ -151,12 +150,22 @@ export class LinkProcessor {
      * Decode HTML entities
      * @private
      */
-    static _decodeEntities(str) {
+    _decodeEntities(str) {
         return str
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>')
             .replace(/&#39;/g, "'")
             .replace(/&quot;/g, '"');
+    }
+
+    /**
+     * Cleanup resources
+     */
+    destroy() {
+        if (this._session) {
+            this._session.abort();
+            this._session = null;
+        }
     }
 }

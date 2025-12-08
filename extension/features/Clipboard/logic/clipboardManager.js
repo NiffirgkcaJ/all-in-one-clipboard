@@ -70,6 +70,8 @@ export const ClipboardManager = GObject.registerClass(
             this._ensureDirectories();
             this._setupClipboardMonitoring();
             this._setupSettingsMonitoring();
+
+            this._linkProcessor = new LinkProcessor();
         }
 
         /**
@@ -289,7 +291,7 @@ export const ClipboardManager = GObject.registerClass(
 
             this._addItemToHistory(newItem);
 
-            LinkProcessor.fetchMetadata(newItem.url).then(async (metadata) => {
+            this._linkProcessor.fetchMetadata(newItem.url).then(async (metadata) => {
                 let updated = false;
                 const item = this._history.find((i) => i.id === newItem.id);
                 if (!item) return;
@@ -299,7 +301,7 @@ export const ClipboardManager = GObject.registerClass(
                     updated = true;
                 }
                 if (metadata.iconUrl) {
-                    const filename = await LinkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
+                    const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
                     if (filename) {
                         item.icon_filename = filename;
                         updated = true;
@@ -338,10 +340,11 @@ export const ClipboardManager = GObject.registerClass(
                     const domain = parts[1];
                     const url = `https://${domain}`;
 
-                    LinkProcessor.fetchMetadata(url)
+                    this._linkProcessor
+                        .fetchMetadata(url)
                         .then(async (metadata) => {
                             if (metadata.iconUrl) {
-                                const filename = await LinkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
+                                const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
                                 if (filename) {
                                     newItem.icon_filename = filename;
                                     this._saveHistory();
@@ -886,12 +889,28 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Clean up resources and disconnect signals
+         * Cleanup resources
          */
         destroy() {
-            if (this._processClipboardTimeoutId) GLib.source_remove(this._processClipboardTimeoutId);
-            if (this._selectionOwnerChangedId) this._selection.disconnect(this._selectionOwnerChangedId);
-            if (this._settingsChangedId) this._settings.disconnect(this._settingsChangedId);
+            if (this._processClipboardTimeoutId) {
+                GLib.source_remove(this._processClipboardTimeoutId);
+                this._processClipboardTimeoutId = 0;
+            }
+
+            if (this._selectionOwnerChangedId) {
+                this._selection.disconnect(this._selectionOwnerChangedId);
+                this._selectionOwnerChangedId = 0;
+            }
+
+            if (this._settingsChangedId) {
+                this._settings.disconnect(this._settingsChangedId);
+                this._settingsChangedId = 0;
+            }
+
+            if (this._linkProcessor) {
+                this._linkProcessor.destroy();
+                this._linkProcessor = null;
+            }
         }
     },
 );
