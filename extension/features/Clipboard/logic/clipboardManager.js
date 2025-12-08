@@ -880,6 +880,75 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
+         * Verify and heal image items
+         * @param {Object} item - Clipboard item
+         * @returns {Promise<boolean>} True if healed
+         * @private
+         */
+        async _verifyAndHealImage(item) {
+            if (item.type !== ClipboardType.IMAGE || !item.image_filename) return false;
+
+            const missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
+            if (!missingFile) return false;
+
+            // Try healing from local file first
+            if (item.file_uri) {
+                const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
+                if (item.file_uri !== cacheUri) {
+                    return ImageProcessor.regenerateThumbnail(item, this._imagesDir);
+                }
+            }
+            // If still missing and has source URL, try downloading
+            if (item.source_url) {
+                return ImageProcessor.regenerateFromUrl(item, this._imagesDir);
+            }
+            return false;
+        }
+
+        /**
+         * Verify and heal URL items
+         * @param {Object} item - Clipboard item
+         * @returns {Promise<boolean>} True if healed
+         * @private
+         */
+        async _verifyAndHealUrl(item) {
+            if (item.type !== ClipboardType.URL || !item.icon_filename) return false;
+
+            const missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
+            if (missingFile) {
+                return this._healIconFile(item, this._linkPreviewsDir);
+            }
+            return false;
+        }
+
+        /**
+         * Verify and heal Contact items
+         * @param {Object} item - Clipboard item
+         * @returns {Promise<boolean>} True if healed
+         * @private
+         */
+        async _verifyAndHealContact(item) {
+            if (item.type !== ClipboardType.CONTACT || item.subtype !== 'email' || !item.icon_filename) return false;
+
+            const missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
+            if (missingFile) {
+                return this._healIconFile(item, this._linkPreviewsDir);
+            }
+            return false;
+        }
+
+        /**
+         * Verify verification for Text/Code items (check for data loss)
+         * @param {Object} item - Clipboard item
+         * @returns {boolean} True if missing file detected (corruption)
+         * @private
+         */
+        _verifyTextIntegrity(item) {
+            if ((item.type !== ClipboardType.TEXT && item.type !== ClipboardType.CODE) || !item.has_full_content) return false;
+            return !this._checkFileExists(this._textsDir, `${item.id}.txt`);
+        }
+
+        /**
          * Verify integrity of clipboard items and attempt self-healing
          * @private
          */
@@ -887,73 +956,48 @@ export const ClipboardManager = GObject.registerClass(
             let changed = false;
 
             const processItem = async (item) => {
-                let missingFile = false;
                 let healed = false;
-                let needsCheck = false; // Only check items that SHOULD have external files
+                let isCorrupted = false;
 
-                // IMAGE: Check thumbnail file
-                if (item.type === ClipboardType.IMAGE && item.image_filename) {
-                    needsCheck = true;
-                    missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
-                    if (missingFile) {
-                        // Try healing from local file first
-                        if (item.file_uri) {
-                            // Check if file_uri points to an external file, not the cache
-                            const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
-                            if (item.file_uri !== cacheUri) {
-                                healed = await ImageProcessor.regenerateThumbnail(item, this._imagesDir);
-                            }
+                switch (item.type) {
+                    case ClipboardType.IMAGE:
+                        healed = await this._verifyAndHealImage(item);
+                        // If we tried to heal but failed, check if the file is still missing to set corruption state
+                        if (!healed && item.image_filename) {
+                            isCorrupted = !this._checkFileExists(this._imagesDir, item.image_filename);
                         }
-                        // If still missing and has source URL, try downloading
-                        if (!healed && item.source_url) {
-                            healed = await ImageProcessor.regenerateFromUrl(item, this._imagesDir);
+                        break;
+                    case ClipboardType.URL:
+                        healed = await this._verifyAndHealUrl(item);
+                        // URLs aren't "corrupted" if icon missing, just missing decoration
+                        break;
+                    case ClipboardType.CONTACT:
+                        healed = await this._verifyAndHealContact(item);
+                        break;
+                    case ClipboardType.COLOR:
+                        healed = this._verifyAndHealColor(item);
+                        if (!healed && item.gradient_filename) {
+                            isCorrupted = !this._checkFileExists(this._imagesDir, item.gradient_filename);
                         }
-                    }
-                }
-                // COLOR: Only check gradient/palette subtypes since single colors have no file
-                else if (item.type === ClipboardType.COLOR && item.gradient_filename) {
-                    needsCheck = true;
-                    missingFile = !this._checkFileExists(this._imagesDir, item.gradient_filename);
-                    if (missingFile) {
-                        healed = ColorProcessor.regenerateGradient(item, this._imagesDir);
-                    }
-                }
-                // URL: Check favicon which is optional decoration, not critical data
-                else if (item.type === ClipboardType.URL && item.icon_filename) {
-                    needsCheck = true;
-                    missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
-                    if (missingFile) {
-                        healed = await this._healIconFile(item, this._linkPreviewsDir);
-                    }
-                }
-                // CONTACT (email): Check favicon
-                else if (item.type === ClipboardType.CONTACT && item.subtype === 'email' && item.icon_filename) {
-                    needsCheck = true;
-                    missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
-                    if (missingFile) {
-                        healed = await this._healIconFile(item, this._linkPreviewsDir);
-                    }
-                }
-                // TEXT/CODE: Check full content file
-                else if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) {
-                    needsCheck = true;
-                    missingFile = !this._checkFileExists(this._textsDir, `${item.id}.txt`);
-                    // Cannot be healed - original content is lost
+                        break;
+                    case ClipboardType.CODE:
+                    case ClipboardType.TEXT:
+                        if (this._verifyTextIntegrity(item)) {
+                            isCorrupted = true;
+                        }
+                        break;
                 }
 
-                // If not checking anything, this item is fine
-                if (!needsCheck) return false;
+                if (healed) return true;
 
-                if (healed) missingFile = false;
-
-                // Update corrupted state only for items we actually checked
+                // Update corrupted state
                 const wasCorrupted = item.is_corrupted || false;
-                if (missingFile !== wasCorrupted) {
-                    item.is_corrupted = missingFile;
-                    return true; // Item state changed
+                if (isCorrupted !== wasCorrupted) {
+                    item.is_corrupted = isCorrupted;
+                    return true;
                 }
 
-                return healed; // Return true if metadata changed
+                return false;
             };
 
             // Process both lists concurrently
