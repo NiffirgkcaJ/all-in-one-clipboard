@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 04:39+0000\n"
+"POT-Creation-Date: 2025-12-08 11:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -689,7 +689,7 @@ msgstr ""
 
 #: extension/features/GIF/tabGIF.js:403 extension/features/GIF/tabGIF.js:497
 #: extension/features/GIF/tabGIF.js:506
-#: extension/shared/utilities/utilityCategorizedItemViewer.js:553
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:487
 msgid "Recents"
 msgstr ""
 
@@ -729,22 +729,22 @@ msgstr ""
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: extension/shared/utilities/utilityCategorizedItemViewer.js:475
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:416
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: extension/shared/utilities/utilityCategorizedItemViewer.js:639
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:567
 msgid "No items available."
 msgstr ""
 
-#: extension/shared/utilities/utilityCategorizedItemViewer.js:640
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:568
 msgid "No items match your search."
 msgstr ""
 
-#: extension/shared/utilities/utilityCategorizedItemViewer.js:641
+#: extension/shared/utilities/utilityCategorizedItemViewer.js:569
 msgid "No recent items yet."
 msgstr ""
 
-#: extension/shared/utilities/utilitySearch.js:42
+#: extension/shared/utilities/utilitySearch.js:40
 msgid "Search..."
 msgstr ""
