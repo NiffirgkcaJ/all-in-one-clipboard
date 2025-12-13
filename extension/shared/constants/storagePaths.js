@@ -1,61 +1,88 @@
 import GLib from 'gi://GLib';
 
-// Internal constants
-const RESOURCE_BASE_PATH = '/org/gnome/shell/extensions/all-in-one-clipboard';
-const RESOURCE_SCHEME = 'resource://';
+import { IOFile as IOFileImport, IOResource as IOResourceImport } from '../utilities/utilityIO.js';
 
-/**
- * Helper to get user data directory
- */
+// -------------------------------------------------------------
+// Helpers
+// -------------------------------------------------------------
 function getUserDataDir(uuid) {
     return GLib.build_filenamev([GLib.get_user_data_dir(), uuid]);
 }
 
-/**
- * Helper to get user cache directory
- */
 function getUserCacheDir(uuid) {
     return GLib.build_filenamev([GLib.get_user_cache_dir(), uuid]);
 }
 
-/**
- * Encapsulated storage paths.
- * Consumers request a specific path by purpose, not by constructing it manually.
- */
-export const Storage = {
-    // -------------------------------------------------------------------------
-    // File Paths
-    // -------------------------------------------------------------------------
-    getClipboardHistoryPath: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'history_clipboard.json']),
-    getPinnedClipboardPath: (uuid) => GLib.build_filenamev([getUserDataDir(uuid), 'pinned_clipboard.json']),
+function getResourceDataDir() {
+    return 'assets/data';
+}
 
-    getRecentEmojiPath: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'recent_emojis.json']),
-    getRecentKaomojiPath: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'recent_kaomojis.json']),
-    getRecentSymbolsPath: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'recent_symbols.json']),
-    getRecentGifsPath: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'recent_gifs.json']),
+function getResourceIconsDir() {
+    return 'assets/icons';
+}
 
-    // -------------------------------------------------------------------------
-    // Directory Paths
-    // -------------------------------------------------------------------------
-    getImagesDir: (uuid) => GLib.build_filenamev([getUserDataDir(uuid), 'images']),
-    getTextsDir: (uuid) => GLib.build_filenamev([getUserDataDir(uuid), 'texts']),
-    getLinkPreviewsDir: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'link-previews']),
-    getGifPreviewsDir: (uuid) => GLib.build_filenamev([getUserCacheDir(uuid), 'gif-previews']),
-};
+function buildFileUri(absolutePath) {
+    return `file://${absolutePath}`;
+}
 
-/**
- * For direct GResource lookups and URI construction
- */
-export const ResourcePaths = {
-    CONTENT: {
-        EMOJI: `${RESOURCE_BASE_PATH}/assets/data/json/emojis.json`,
-        KAOMOJI: `${RESOURCE_BASE_PATH}/assets/data/json/kaomojis.json`,
-        SYMBOLS: `${RESOURCE_BASE_PATH}/assets/data/json/symbols.json`,
-        COUNTRIES: `${RESOURCE_BASE_PATH}/assets/data/json/countries.json`,
-    },
-    // Base paths for constructing dynamic paths
-    ASSETS: {
-        ICONS: `${RESOURCE_SCHEME}${RESOURCE_BASE_PATH}/assets/icons/ui`,
-        FLAGS: `${RESOURCE_SCHEME}${RESOURCE_BASE_PATH}/assets/icons/flags`,
-    },
-};
+function buildResourceUri(relativePath) {
+    return `resource:///org/gnome/shell/extensions/all-in-one-clipboard/${relativePath}`;
+}
+
+// -------------------------------------------------------------
+// Exports — Operations
+// -------------------------------------------------------------
+export const IOFile = IOFileImport;
+export const IOResource = IOResourceImport;
+
+// -------------------------------------------------------------
+// Exports — Paths
+// -------------------------------------------------------------
+export let FilePath = null;
+export let FileItem = null;
+export let ResourcePath = null;
+export let ResourceItem = null;
+
+// -------------------------------------------------------------
+// Initialization
+// -------------------------------------------------------------
+export function initStorage(uuid) {
+    // File base paths
+    FilePath = {
+        DATA: getUserDataDir(uuid),
+        CACHE: getUserCacheDir(uuid),
+    };
+    FilePath.IMAGES = `${FilePath.DATA}/images`;
+    FilePath.TEXTS = `${FilePath.DATA}/texts`;
+    FilePath.LINK_PREVIEWS = `${FilePath.CACHE}/link-previews`;
+    FilePath.GIF_PREVIEWS = `${FilePath.CACHE}/gif-previews`;
+    FilePath.uri = buildFileUri;
+
+    // File items
+    FileItem = {
+        CLIPBOARD_HISTORY: `${FilePath.CACHE}/history_clipboard.json`,
+        CLIPBOARD_PINNED: `${FilePath.DATA}/pinned_clipboard.json`,
+        RECENT_EMOJI: `${FilePath.CACHE}/recent_emojis.json`,
+        RECENT_KAOMOJI: `${FilePath.CACHE}/recent_kaomojis.json`,
+        RECENT_SYMBOLS: `${FilePath.CACHE}/recent_symbols.json`,
+        RECENT_GIFS: `${FilePath.CACHE}/recent_gifs.json`,
+    };
+
+    // Resource base paths
+    ResourcePath = {
+        DATA: getResourceDataDir(),
+        ICONS: getResourceIconsDir(),
+    };
+    ResourcePath.JSON = buildResourceUri(`${ResourcePath.DATA}/json`);
+    ResourcePath.UI = buildResourceUri(`${ResourcePath.ICONS}/ui`);
+    ResourcePath.FLAGS = buildResourceUri(`${ResourcePath.ICONS}/flags`);
+    ResourcePath.uri = buildResourceUri;
+
+    // Resource items
+    ResourceItem = {
+        EMOJI: `${ResourcePath.JSON}/emojis.json`,
+        KAOMOJI: `${ResourcePath.JSON}/kaomojis.json`,
+        SYMBOLS: `${ResourcePath.JSON}/symbols.json`,
+        COUNTRIES: `${ResourcePath.JSON}/countries.json`,
+    };
+}

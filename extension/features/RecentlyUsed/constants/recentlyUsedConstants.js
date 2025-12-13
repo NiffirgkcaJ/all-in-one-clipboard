@@ -1,6 +1,6 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { Storage } from '../../../shared/constants/storagePaths.js';
+import { FileItem } from '../../../shared/constants/storagePaths.js';
 
 // UI Layout Configuration
 export const RecentlyUsedUI = {
@@ -77,25 +77,25 @@ export const RecentlyUsedSettings = {
 export const RecentlyUsedFeatures = {
     EMOJI: {
         id: 'emoji',
-        getPath: (uuid) => Storage.getRecentEmojiPath(uuid),
+        getPath: () => FileItem.RECENT_EMOJI,
         maxItemsKey: 'emoji-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_EMOJI,
     },
     KAOMOJI: {
         id: 'kaomoji',
-        getPath: (uuid) => Storage.getRecentKaomojiPath(uuid),
+        getPath: () => FileItem.RECENT_KAOMOJI,
         maxItemsKey: 'kaomoji-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_KAOMOJI,
     },
     SYMBOLS: {
         id: 'symbols',
-        getPath: (uuid) => Storage.getRecentSymbolsPath(uuid),
+        getPath: () => FileItem.RECENT_SYMBOLS,
         maxItemsKey: 'symbols-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_SYMBOLS,
     },
     GIF: {
         id: 'gif',
-        getPath: (uuid) => Storage.getRecentGifsPath(uuid),
+        getPath: () => FileItem.RECENT_GIFS,
         maxItemsKey: 'gif-recents-max-items',
         autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_GIF,
     },

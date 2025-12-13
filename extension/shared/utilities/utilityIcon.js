@@ -1,7 +1,7 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 
-import { ResourcePaths } from '../constants/storagePaths.js';
+import { ResourcePath } from '../constants/storagePaths.js';
 
 /**
  * Create a static icon.
@@ -185,7 +185,7 @@ function _setIcon(iconWidget, iconName, options = {}) {
     }
 
     if (iconName && iconName.includes('.')) {
-        const resourceUri = `${ResourcePaths.ASSETS.ICONS}/${iconName}`;
+        const resourceUri = `${ResourcePath.UI}/${iconName}`;
         const file = Gio.File.new_for_uri(resourceUri);
 
         iconWidget.set_icon_name(null);

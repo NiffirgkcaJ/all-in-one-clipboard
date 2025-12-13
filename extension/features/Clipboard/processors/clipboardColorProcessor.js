@@ -1,6 +1,8 @@
 import Cairo from 'cairo';
 import GLib from 'gi://GLib';
 
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
@@ -210,7 +212,7 @@ export class ColorProcessor {
         const filepath = GLib.build_filenamev([imagesDir, filename]);
 
         // Check if file already exists
-        if (GLib.file_test(filepath, GLib.FileTest.EXISTS)) {
+        if (IOFile.existsSync(filepath)) {
             return filename;
         }
 

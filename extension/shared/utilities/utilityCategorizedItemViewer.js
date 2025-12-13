@@ -1,5 +1,4 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
@@ -10,7 +9,9 @@ import { createStaticIcon } from './utilityIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
+import { ServiceJson } from '../services/serviceJson.js';
 import { RecentItemsManager } from './utilityRecents.js';
+import { IOResource } from './utilityIO.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 
@@ -386,20 +387,8 @@ export const CategorizedItemViewer = GObject.registerClass(
                     });
                 });
 
-                const resourceUri = `resource://${this._config.jsonPath}`;
-                const file = Gio.File.new_for_uri(resourceUri);
-
-                const contents = await new Promise((resolve, reject) => {
-                    file.load_contents_async(null, (obj, res) => {
-                        try {
-                            const [ok, data] = obj.load_contents_finish(res);
-                            if (!ok) reject(new Error('Failed to load resource contents'));
-                            else resolve(data);
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
+                const contents = await IOResource.read(this._config.jsonPath);
+                if (!contents) throw new Error('Failed to load resource contents');
 
                 await new Promise((resolve) => {
                     if (this._yieldTimeoutId) {
@@ -413,8 +402,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     });
                 });
 
-                const jsonString = new TextDecoder('utf-8').decode(contents);
-                const rawData = JSON.parse(jsonString);
+                const rawData = ServiceJson.parse(contents);
 
                 this._mainData = this._parser.parse(rawData);
                 if (!this._mainData) throw new Error('Parser returned invalid data.');

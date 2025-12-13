@@ -4,11 +4,12 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
+
 import { KaomojiJsonParser } from './parsers/kaomojiJsonParser.js';
 import { KaomojiViewRenderer } from './view/kaomojiViewRenderer.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { KaomojiSettings, KaomojiUI } from './constants/kaomojiConstants.js';
-import { ResourcePaths, Storage } from '../../shared/constants/storagePaths.js';
 
 /**
  * A content widget for the "Kaomoji" tab.
@@ -42,9 +43,9 @@ export const KaomojiTabContent = GObject.registerClass(
             this._viewRenderer = new KaomojiViewRenderer();
 
             const config = {
-                jsonPath: ResourcePaths.CONTENT.KAOMOJI,
+                jsonPath: ResourceItem.KAOMOJI,
                 parserClass: KaomojiJsonParser,
-                recentsPath: Storage.getRecentKaomojiPath(extension.uuid),
+                recentsPath: FileItem.RECENT_KAOMOJI,
                 recentsMaxItemsKey: KaomojiSettings.RECENTS_MAX_ITEMS_KEY,
                 itemsPerRow: KaomojiUI.ITEMS_PER_ROW,
                 categoryPropertyName: 'greaterCategory',

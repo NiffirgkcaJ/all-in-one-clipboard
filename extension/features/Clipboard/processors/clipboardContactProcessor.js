@@ -1,8 +1,10 @@
 import Gio from 'gi://Gio';
 
+import { ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
+
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
-import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
 
 // Configuration
 const MAX_CONTACT_LENGTH = 200;
@@ -32,12 +34,11 @@ export class ContactProcessor {
         this._initPromise = (async () => {
             try {
                 // Use Gio.resources_lookup_data to load from GResource bundle
-                const resourcePath = ResourcePaths.CONTENT.COUNTRIES;
+                const resourcePath = ResourceItem.COUNTRIES;
                 const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
 
                 if (bytes) {
-                    const jsonString = new TextDecoder('utf-8').decode(bytes.get_data());
-                    const countriesArray = JSON.parse(jsonString);
+                    const countriesArray = ServiceJson.parse(bytes.get_data());
 
                     // Build a lookup map: dial_code -> country info
                     this._countryByDialCode = new Map();

@@ -10,13 +10,16 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { createStaticIcon } from './shared/utilities/utilityIcon.js';
 import { eventMatchesShortcut } from './shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from './shared/utilities/utilityFocus.js';
-import { Storage } from './shared/constants/storagePaths.js';
+import { IOFile } from './shared/utilities/utilityIO.js';
 import { positionMenu } from './shared/utilities/utilityMenuPositioner.js';
+import { ServiceJson } from './shared/services/serviceJson.js';
 import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
+import { initStorage, FileItem, FilePath } from './shared/constants/storagePaths.js';
+
+import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 
@@ -471,7 +474,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
          */
         async _selectTab(tabName) {
             // Prevent concurrent tab selections
-            if (this._isSelectingTab) {
+            if (!IOFile.mkdir(FilePath.DATA)) {
                 return;
             }
             this._isSelectingTab = true;
@@ -855,10 +858,10 @@ export default class AllInOneClipboardExtension extends Extension {
         }
 
         const RECENT_PATHS_MAP = {
-            emoji: Storage.getRecentEmojiPath(this.uuid),
-            gif: Storage.getRecentGifsPath(this.uuid),
-            kaomoji: Storage.getRecentKaomojiPath(this.uuid),
-            symbols: Storage.getRecentSymbolsPath(this.uuid),
+            emoji: FileItem.RECENT_EMOJI,
+            gif: FileItem.RECENT_GIFS,
+            kaomoji: FileItem.RECENT_KAOMOJI,
+            symbols: FileItem.RECENT_SYMBOLS,
         };
 
         if (trigger === 'all') {
@@ -887,35 +890,8 @@ export default class AllInOneClipboardExtension extends Extension {
      * @param {string} absolutePath - The absolute path of the file to clear.
      * @private
      */
-    _clearRecentFile(absolutePath) {
-        try {
-            const file = Gio.File.new_for_path(absolutePath);
-
-            const emptyContent = new GLib.Bytes(new TextEncoder().encode('[]'));
-
-            // Asynchronously replace the file's contents. This is a fire-and-forget operation.
-            file.replace_contents_bytes_async(
-                emptyContent,
-                null, // etag
-                false, // make_backup
-                Gio.FileCreateFlags.REPLACE_DESTINATION | Gio.FileCreateFlags.PRIVATE,
-                null, // cancellable
-                (source, res) => {
-                    try {
-                        // Finalize the async operation.
-                        source.replace_contents_finish(res);
-                    } catch (e) {
-                        // Safely ignore NOT_FOUND errors, as the desired state is the same.
-                        if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-                            console.warn(`[AIO-Clipboard] Could not clear recent file '${absolutePath}': ${e.message}`);
-                        }
-                    }
-                },
-            );
-        } catch (e) {
-            // Handles synchronous errors like invalid paths.
-            console.error(`[AIO-Clipboard] Failed to initiate clearing of recent file '${absolutePath}': ${e.message}`);
-        }
+    async _clearRecentFile(absolutePath) {
+        await IOFile.write(absolutePath, ServiceJson.stringify([]));
     }
 
     /**
@@ -939,6 +915,9 @@ export default class AllInOneClipboardExtension extends Extension {
 
         // Load settings
         this._settings = this.getSettings();
+
+        // Initialize storage paths
+        initStorage(this.uuid);
 
         // Initialize singleton managers
         getGifCacheManager(this.uuid, this._settings).runCleanupImmediately();

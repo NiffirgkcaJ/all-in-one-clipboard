@@ -1,18 +1,20 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
+import { IOFile } from '../../shared/utilities/utilityIO.js';
+import { ServiceJson } from '../../shared/services/serviceJson.js';
+import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
+
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
 import { EmojiModifier } from './logic/emojiModifier.js';
+import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
 import { EmojiViewRenderer } from './view/emojiViewRenderer.js';
 import { getSkinnableCharSet } from './logic/emojiDataCache.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
-import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
-import { ResourcePaths, Storage } from '../../shared/constants/storagePaths.js';
 
 /**
  * A content widget for the "Emoji" tab.
@@ -65,9 +67,9 @@ export const EmojiTabContent = GObject.registerClass(
             this._loadAndApplyCustomSkinToneSettings();
 
             const config = {
-                jsonPath: ResourcePaths.CONTENT.EMOJI,
+                jsonPath: ResourceItem.EMOJI,
                 parserClass: EmojiJsonParser,
-                recentsPath: Storage.getRecentEmojiPath(extension.uuid),
+                recentsPath: FileItem.RECENT_EMOJI,
                 recentsMaxItemsKey: EmojiSettings.RECENTS_MAX_ITEMS_KEY,
                 itemsPerRow: EmojiUI.ITEMS_PER_ROW,
                 categoryPropertyName: 'category',
@@ -173,40 +175,27 @@ export const EmojiTabContent = GObject.registerClass(
 
             try {
                 const filePath = GLib.build_filenamev([extensionPath, 'data', 'emojis.json']);
-                const file = Gio.File.new_for_path(filePath);
+                const contents = await IOFile.read(filePath);
 
-                // Wrap the callback-based function in a native Promise
-                const bytes = await new Promise((resolve, reject) => {
-                    file.load_contents_async(null, (source, res) => {
-                        try {
-                            const [ok, contents] = source.load_contents_finish(res);
-                            if (ok) {
-                                resolve(contents);
-                            } else {
-                                reject(new Error(`Failed to load skinnable character set from ${filePath}`));
-                            }
-                        } catch (e) {
-                            reject(e);
+                if (contents) {
+                    const rawData = ServiceJson.parse(contents);
+
+                    const parser = new EmojiJsonParser();
+                    const emojiData = parser.parse(rawData);
+
+                    const skinnableChars = new Set();
+                    for (const item of emojiData) {
+                        // We only care about single characters that support skin tones.
+                        if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
+                            // Strip the variation selector to get the true base character.
+                            const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
+                            skinnableChars.add(baseChar);
                         }
-                    });
-                });
-
-                const jsonString = new TextDecoder('utf-8').decode(bytes);
-                const rawData = JSON.parse(jsonString);
-
-                const parser = new EmojiJsonParser();
-                const emojiData = parser.parse(rawData);
-
-                const skinnableChars = new Set();
-                for (const item of emojiData) {
-                    // We only care about single characters that support skin tones.
-                    if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
-                        // Strip the variation selector to get the true base character.
-                        const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
-                        skinnableChars.add(baseChar);
                     }
+                    this._skinToneableBaseChars = skinnableChars;
+                } else {
+                    throw new Error(`Failed to load skinnable character set from ${filePath}`);
                 }
-                this._skinToneableBaseChars = skinnableChars;
             } catch (e) {
                 console.error(`[AIO-Clipboard] Failed to build skinnable character set in EmojiTabContent: ${e.message}`);
                 this._skinToneableBaseChars = new Set(); // Ensure it's a valid Set on failure

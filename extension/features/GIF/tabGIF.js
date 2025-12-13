@@ -1,25 +1,25 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
 import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
 import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../shared/utilities/utilityShortcutMatcher.js';
+import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
-import { GifDownloadService } from './logic/gifDownloadService.js';
-import { GifItemFactory } from './view/gifItemFactory.js';
-import { GifManager } from './logic/gifManager.js';
 import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
 import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
-import { Storage } from '../../shared/constants/storagePaths.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { FilePath, FileItem } from '../../shared/constants/storagePaths.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
+
+import { GifDownloadService } from './logic/gifDownloadService.js';
+import { GifItemFactory } from './view/gifItemFactory.js';
+import { GifManager } from './logic/gifManager.js';
 import { GifSettings, GifUI, GifIcons } from './constants/gifConstants.js';
 
 /**
@@ -64,12 +64,9 @@ export const GIFTabContent = GObject.registerClass(
             this._extension = extension;
             this._clipboardManager = clipboardManager;
 
-            this._cacheDir = Storage.getGifPreviewsDir(extension.uuid);
+            this._cacheDir = FilePath.GIF_PREVIEWS;
 
-            const cacheDirFile = Gio.File.new_for_path(this._cacheDir);
-            if (!cacheDirFile.query_exists(null)) {
-                cacheDirFile.make_directory_with_parents(null);
-            }
+            IOFile.mkdir(this._cacheDir);
 
             this._settings = settings;
             this._gifManager = new GifManager(settings, extension.uuid);
@@ -376,7 +373,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         _initializeRecentsManager() {
             if (!this._recentsManager) {
-                this._recentsManager = new RecentItemsManager(this._extension.uuid, this._settings, Storage.getRecentGifsPath(this._extension.uuid), GifSettings.RECENTS_MAX_ITEMS_KEY);
+                this._recentsManager = new RecentItemsManager(this._extension.uuid, this._settings, FileItem.RECENT_GIFS, GifSettings.RECENTS_MAX_ITEMS_KEY);
 
                 this._recentsSignalId = this._recentsManager.connect('recents-changed', () => {
                     if (this._activeCategory?.id === 'recents') {
@@ -1091,11 +1088,9 @@ export const GIFTabContent = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Handle selection of a GIF item.
+         * Handle GIF selection: copy to clipboard and optionally add to recents.
          *
-         * Copies the GIF URL to clipboard, adds to recents, and optionally triggers paste.
-         *
-         * @param {object} gifObject - The selected GIF data
+         * @param {Object} gifObject - The selected GIF data
          * @param {string} gifObject.full_url - The full GIF URL
          * @param {string} [gifObject.preview_url] - The preview image URL
          * @param {number} [gifObject.width] - The GIF width
@@ -1108,57 +1103,7 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
-            const pasteBehavior = this._settings.get_int('gif-paste-behavior'); // 0=Link, 1=Image
-            let clipboardSetSuccess = false;
-
-            if (pasteBehavior === 1 && this._clipboardManager) {
-                try {
-                    const existingItem = this._clipboardManager.getItemBySourceUrl(gifObject.full_url);
-
-                    if (existingItem && existingItem.file_uri) {
-                        // Reuse existing item
-                        this._clipboardManager.addExternalItem(existingItem);
-
-                        const clipboard = St.Clipboard.get_default();
-                        const uriList = existingItem.file_uri + '\r\n';
-                        const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', uriBytes);
-                        clipboardSetSuccess = true;
-                    } else {
-                        const filename = `${GLib.uuid_string_random()}.gif`;
-                        const path = GLib.build_filenamev([this._clipboardManager.imagesDir, filename]);
-
-                        const bytes = await this._downloadService.downloadAndSave(gifObject.full_url, path);
-
-                        const item = {
-                            id: GLib.uuid_string_random(),
-                            type: ClipboardType.IMAGE,
-                            timestamp: Math.floor(Date.now() / 1000),
-                            image_filename: filename,
-                            file_uri: `file://${path}`,
-                            source_url: gifObject.full_url, // Save URL for future deduplication
-                            hash: GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, bytes),
-                            width: gifObject.width,
-                            height: gifObject.height,
-                        };
-
-                        this._clipboardManager.addExternalItem(item);
-
-                        const clipboard = St.Clipboard.get_default();
-                        const uriList = item.file_uri + '\r\n';
-                        const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', uriBytes);
-                        clipboardSetSuccess = true;
-                    }
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to paste GIF image: ${e.message}`);
-                }
-            }
-
-            // Fallback to Link Mode if Image Mode failed or is disabled
-            if (!clipboardSetSuccess) {
-                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, gifObject.full_url);
-            }
+            await this._downloadService.copyToClipboard(gifObject, this._settings, this._clipboardManager);
 
             if (gifObject.preview_url && gifObject.width && gifObject.height) {
                 const recentItem = {

@@ -1,6 +1,8 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
+
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { ServiceImage } from '../../../shared/services/serviceImage.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -296,23 +298,13 @@ export class LinkProcessor {
             if (message.status_code !== 200 || !bytes || bytes.get_size() === 0) return null;
 
             const contentType = message.get_response_headers().get_one('Content-Type') || '';
-            let ext = this._getExtensionFromContentType(contentType, iconUrl);
+            const ext = this._getExtensionFromContentType(contentType, iconUrl);
 
             const filename = `${fileBasename}.${ext}`;
-            const file = Gio.File.new_for_path(GLib.build_filenamev([destinationDir, filename]));
+            const filePath = GLib.build_filenamev([destinationDir, filename]);
 
-            await new Promise((resolve, reject) => {
-                file.replace_async(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, GLib.PRIORITY_DEFAULT, null, (src, res) => {
-                    try {
-                        const stream = src.replace_finish(res);
-                        stream.write_bytes(bytes, null);
-                        stream.close(null);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
+            const success = await IOFile.write(filePath, ServiceImage.encode(bytes.get_data()));
+            if (!success) return null;
 
             return filename;
         } catch {

@@ -1,4 +1,6 @@
-import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -37,56 +39,48 @@ export class FileProcessor {
 
         const uri = lines[0].startsWith('file://') ? lines[0] : `file://${lines[0]}`;
 
-        try {
-            const file = Gio.File.new_for_uri(uri);
-
-            // Safely query metadata without reading file content
-            const info = file.query_info('standard::name,standard::content-type,standard::type,standard::size', Gio.FileQueryInfoFlags.NONE, null);
-
-            if (info.get_file_type() !== Gio.FileType.REGULAR) {
+        let path = null;
+        if (cleanText.startsWith('file://')) {
+            try {
+                [path] = GLib.filename_from_uri(uri);
+            } catch {
                 return null;
             }
+        } else {
+            path = cleanText;
+        }
 
-            const mime = info.get_content_type();
-            const size = info.get_size();
-            const filename = info.get_name();
+        if (!path) return null;
 
-            // Image File
-            if (mime && mime.startsWith('image/') && size <= MAX_PREVIEW_SIZE_BYTES) {
-                const bytes = await new Promise((resolve) => {
-                    file.load_contents_async(null, (source, res) => {
-                        try {
-                            const [ok, content] = source.load_contents_finish(res);
-                            resolve(ok ? content : null);
-                        } catch {
-                            resolve(null);
-                        }
-                    });
-                });
-
-                if (bytes && bytes.length > 0) {
-                    const hash = ProcessorUtils.computeHashForData(bytes);
-                    return {
-                        type: ClipboardType.IMAGE,
-                        data: bytes,
-                        hash,
-                        mimetype: mime,
-                        file_uri: uri,
-                    };
-                }
-            }
-
-            // Generic File
-            const uriHash = ProcessorUtils.computeHashForString(uri);
-            return {
-                type: ClipboardType.FILE,
-                file_uri: uri,
-                preview: filename, // Store filename as the preview text
-                hash: uriHash,
-            };
-        } catch {
-            // Permission errors, invalid URIs, etc.
+        const info = await IOFile.getInfo(path);
+        if (!info || !info.type.is('REGULAR')) {
             return null;
         }
+
+        const { mime, size, name: filename } = info;
+
+        // Image File
+        if (mime && mime.startsWith('image/') && size <= MAX_PREVIEW_SIZE_BYTES) {
+            const bytes = await IOFile.read(path);
+            if (bytes && bytes.length > 0) {
+                const hash = ProcessorUtils.computeHashForData(bytes);
+                return {
+                    type: ClipboardType.IMAGE,
+                    data: bytes,
+                    hash,
+                    mimetype: mime,
+                    file_uri: uri,
+                };
+            }
+        }
+
+        // Generic File
+        const uriHash = ProcessorUtils.computeHashForString(uri);
+        return {
+            type: ClipboardType.FILE,
+            file_uri: uri,
+            preview: filename, // Store filename as the preview text
+            hash: uriHash,
+        };
     }
 }

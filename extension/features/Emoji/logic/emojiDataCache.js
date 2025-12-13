@@ -1,7 +1,9 @@
 import Gio from 'gi://Gio';
 
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { ResourceItem } from '../../../shared/constants/storagePaths.js';
+
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
-import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
 
 let _skinnableCharSetCache = null;
 let _cachePromise = null;
@@ -26,14 +28,13 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            const resourcePath = ResourcePaths.CONTENT.EMOJI;
+            const resourcePath = ResourceItem.EMOJI;
             const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
             if (!bytes) {
                 throw new Error('Failed to load emojis.json from GResource.');
             }
 
-            const jsonString = new TextDecoder('utf-8').decode(bytes.get_data());
-            const rawData = JSON.parse(jsonString);
+            const rawData = ServiceJson.parse(bytes.get_data());
 
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);

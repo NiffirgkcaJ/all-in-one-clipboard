@@ -1,6 +1,7 @@
-import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+
+import { IOFile } from './utilityIO.js';
+import { ServiceJson } from '../services/serviceJson.js';
 
 const DEFAULT_MAX_RECENTS_FALLBACK = 45;
 
@@ -67,56 +68,26 @@ export const RecentItemsManager = GObject.registerClass(
         }
 
         /**
-         * Gets the Gio.File object for the cache file.
-         * @returns {Gio.File} The cache file.
-         * @private
-         */
-        _getCacheFile() {
-            return Gio.File.new_for_path(this._cacheFilePath);
-        }
-
-        /**
          * Asynchronously loads and parses the recents list from the cache file.
          * @private
          */
         async _load() {
-            const file = this._getCacheFile();
             try {
                 if (!this._settings) return;
-
-                const bytes = await new Promise((resolve, reject) => {
-                    file.load_contents_async(null, (source, res) => {
-                        try {
-                            const [ok, contents] = source.load_contents_finish(res);
-                            resolve(ok ? contents : null);
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
-
-                if (!bytes) {
-                    this._recents = [];
+                const recents = ServiceJson.parse(await IOFile.read(this._cacheFilePath));
+                if (Array.isArray(recents)) {
+                    this._recents = recents;
+                    this._pruneRecents();
                 } else {
-                    const decoder = new TextDecoder('utf-8');
-                    const jsonString = decoder.decode(bytes);
-                    const loadedRecents = jsonString.trim() ? JSON.parse(jsonString) : [];
-
-                    if (Array.isArray(loadedRecents)) {
-                        this._recents = loadedRecents;
-                        this._pruneRecents();
-                    } else {
-                        this._recents = [];
+                    this._recents = [];
+                    if (recents !== null) {
+                        // null means file not found/empty which is expected
                         console.warn(`[AIO-Clipboard] Recents file ${this._cacheFilePath} content is not an array. Initializing as empty.`);
                     }
                 }
             } catch (e) {
-                if (e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-                    this._recents = [];
-                } else {
-                    this._recents = [];
-                    console.warn(`[AIO-Clipboard] Error loading recents from ${this._cacheFilePath}: ${e.message}. Initializing as empty.`);
-                }
+                this._recents = [];
+                console.warn(`[AIO-Clipboard] Error loading recents from ${this._cacheFilePath}: ${e.message}. Initializing as empty.`);
             } finally {
                 if (this._settings) {
                     this.emit('recents-changed');
@@ -130,18 +101,7 @@ export const RecentItemsManager = GObject.registerClass(
          */
         async _save() {
             if (!this._settings) return;
-            const file = this._getCacheFile();
-            const parentDir = file.get_parent();
-            try {
-                if (!parentDir.query_exists(null)) {
-                    parentDir.make_directory_with_parents(null);
-                }
-                const jsonString = JSON.stringify(this._recents, null, 2);
-                const bytes = new GLib.Bytes(new TextEncoder().encode(jsonString));
-                await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION | Gio.FileCreateFlags.PRIVATE, null, null);
-            } catch (e) {
-                console.warn(`[AIO-Clipboard] Failed to save recents to ${this._cacheFilePath}: ${e.message}`);
-            }
+            await IOFile.write(this._cacheFilePath, ServiceJson.stringify(this._recents));
         }
 
         /**

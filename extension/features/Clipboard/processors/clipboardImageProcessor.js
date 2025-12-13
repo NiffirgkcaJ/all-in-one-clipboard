@@ -1,7 +1,8 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Soup from 'gi://Soup';
 import St from 'gi://St';
+
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { ServiceImage } from '../../../shared/services/serviceImage.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -11,7 +12,6 @@ const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'i
 
 // Configuration
 const DOWNLOAD_TIMEOUT = 10; // seconds
-const HTTP_ERROR_STATUS = 300; // Status codes >= this are errors
 
 /**
  * ImageProcessor - Handles image clipboard data
@@ -61,29 +61,26 @@ export class ImageProcessor {
      * Saves the image item to disk.
      * @param {Object} extractedData - The data returned from extract().
      * @param {string} imagesDir - The directory path to store image files.
-     * @returns {Object|null} The final item object to be added to history, or null on failure.
+     * @returns {Promise<Object|null>} The final item object to be added to history, or null on failure.
      */
-    static save(extractedData, imagesDir) {
+    static async save(extractedData, imagesDir) {
         const { data, hash, mimetype, file_uri } = extractedData;
         const id = ProcessorUtils.generateUUID();
 
-        const extension = mimetype.split('/')[1] || 'img';
+        const extension = ServiceImage.getExtension(mimetype);
         const filename = `${Date.now()}_${id.substring(0, 8)}.${extension}`;
+        const filePath = GLib.build_filenamev([imagesDir, filename]);
 
-        try {
-            const file = Gio.File.new_for_path(GLib.build_filenamev([imagesDir, filename]));
-
-            const bytesToSave = GLib.Bytes.new(data);
-            file.replace_contents(bytesToSave.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
-        } catch (e) {
-            console.error(`[AIO-Clipboard] ImageProcessor: Failed to save image file: ${e.message}`);
+        const success = await IOFile.write(filePath, ServiceImage.encode(data));
+        if (!success) {
+            console.error('[AIO-Clipboard] ImageProcessor: Failed to save image file');
             return null;
         }
 
         // Construct the item object
         const item = {
             id,
-            type: ClipboardType.IMAGE, // Use Enum
+            type: ClipboardType.IMAGE,
             timestamp: ProcessorUtils.getCurrentTimestamp(),
             image_filename: filename,
             hash,
@@ -106,40 +103,15 @@ export class ImageProcessor {
         if (!item.file_uri || !item.image_filename) return false;
 
         try {
-            // Check if source file exists
-            const sourceFile = Gio.File.new_for_uri(item.file_uri);
-            if (!sourceFile.query_exists(null)) return false;
-
-            // Load from source
-            const [success, contents] = await new Promise((resolve) => {
-                sourceFile.load_contents_async(null, (src, res) => {
-                    try {
-                        const result = src.load_contents_finish(res);
-                        resolve(result);
-                    } catch {
-                        resolve([false, null]);
-                    }
-                });
-            });
-
-            if (!success || !contents) return false;
+            // Read from source file URI
+            const bytes = await IOFile.read(item.file_uri.replace('file://', ''));
+            if (!bytes) return false;
 
             // Save to images directory
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const destFile = Gio.File.new_for_path(destPath);
+            const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
 
-            await new Promise((resolve, reject) => {
-                destFile.replace_contents_async(contents, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null, (src, res) => {
-                    try {
-                        src.replace_contents_finish(res);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-
-            return true;
+            return success;
         } catch (e) {
             console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal image: ${e.message}`);
             return false;
@@ -157,46 +129,14 @@ export class ImageProcessor {
         if (!item.source_url || !item.image_filename) return false;
 
         try {
-            const session = new Soup.Session();
-            session.timeout = DOWNLOAD_TIMEOUT;
-
-            const message = new Soup.Message({
-                method: 'GET',
-                uri: GLib.Uri.parse(item.source_url, GLib.UriFlags.NONE),
-            });
-
-            const bytes = await new Promise((resolve, reject) => {
-                session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (sess, res) => {
-                    if (message.get_status() >= HTTP_ERROR_STATUS) {
-                        reject(new Error(`HTTP Error ${message.get_status()}`));
-                        return;
-                    }
-                    try {
-                        resolve(sess.send_and_read_finish(res));
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-
-            if (!bytes || bytes.get_size() === 0) return false;
+            const bytes = await ServiceImage.download(item.source_url, DOWNLOAD_TIMEOUT);
+            if (!bytes || bytes.length === 0) return false;
 
             // Save to images directory
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const destFile = Gio.File.new_for_path(destPath);
+            const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
 
-            await new Promise((resolve, reject) => {
-                destFile.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null, (src, res) => {
-                    try {
-                        src.replace_contents_finish(res);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-
-            return true;
+            return success;
         } catch (e) {
             console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal from URL: ${e.message}`);
             return false;

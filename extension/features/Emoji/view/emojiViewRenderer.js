@@ -3,6 +3,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+
 import { EmojiModifier } from '../logic/emojiModifier.js';
 import { EmojiCategoryIcons, EmojiUI } from '../constants/emojiConstants.js';
 

@@ -1,5 +1,4 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
@@ -7,13 +6,17 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
+import { IOFile } from '../../shared/utilities/utilityIO.js';
+import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
-import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
+import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
-import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
-import { Storage } from '../../shared/constants/storagePaths.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+
+import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
+import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
+import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
+import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
 // ============================================================================
@@ -53,8 +56,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             });
 
             this._httpSession = new Soup.Session();
+            this._gifDownloadService = new GifDownloadService(this._httpSession);
 
-            this._gifCacheDir = Storage.getGifPreviewsDir(extension.uuid);
+            this._gifCacheDir = FilePath.GIF_PREVIEWS;
 
             this._isDestroyed = false;
             this._extension = extension;
@@ -471,7 +475,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
                 if (id === 'gif' && item.preview_url) {
                     const context = {
-                        httpSession: this._httpSession,
+                        gifDownloadService: this._gifDownloadService,
                         gifCacheDir: this._gifCacheDir,
                         isDestroyed: () => this._isDestroyed,
                         currentRenderSession: () => this._renderSession,
@@ -579,8 +583,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             if (feature === 'clipboard') {
                 copySuccess = await this._copyClipboardItemToSystem(itemData);
+            } else if (feature === 'gif') {
+                copySuccess = await this._gifDownloadService.copyToClipboard(itemData, this._settings, this._clipboardManager);
             } else {
-                const contentToCopy = itemData.full_url || itemData.char || itemData.value || '';
+                const contentToCopy = itemData.char || itemData.value || '';
                 if (contentToCopy) {
                     St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, contentToCopy);
                     copySuccess = true;
@@ -643,31 +649,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                         copySuccess = true;
                     } else {
                         const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
-                        const file = Gio.File.new_for_path(imagePath);
-
-                        let mimetype = 'image/png';
-                        const lowerCaseFilename = itemData.image_filename.toLowerCase();
-
-                        if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) {
-                            mimetype = 'image/jpeg';
-                        } else if (lowerCaseFilename.endsWith('.gif')) {
-                            mimetype = 'image/gif';
-                        } else if (lowerCaseFilename.endsWith('.webp')) {
-                            mimetype = 'image/webp';
-                        }
-
-                        const bytes = await new Promise((resolve, reject) => {
-                            file.load_contents_async(null, (source, res) => {
-                                try {
-                                    const [ok, contents] = source.load_contents_finish(res);
-                                    resolve(ok ? contents : null);
-                                } catch (e) {
-                                    reject(e);
-                                }
-                            });
-                        });
+                        const bytes = ServiceImage.decode(await IOFile.read(imagePath));
 
                         if (bytes) {
+                            const mimetype = ServiceImage.getMimeType(itemData.image_filename);
                             St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
                             copySuccess = true;
                         }
@@ -964,6 +949,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             if (this._httpSession) {
                 this._httpSession.abort();
                 this._httpSession = null;
+            }
+
+            if (this._gifDownloadService) {
+                this._gifDownloadService = null;
             }
 
             this._signalIds.forEach(({ obj, id }) => {

@@ -1,6 +1,8 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
+
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { ServiceText } from '../../../shared/services/serviceText.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -42,22 +44,21 @@ export class TextProcessor {
     /**
      * Saves text items. Required by ClipboardManager.
      */
-    static save(extractedData, textsDir) {
-        const { text, hash, type } = extractedData;
+    static async save(item, textsDir) {
+        const { text, hash, type } = item;
         const id = ProcessorUtils.generateUUID();
 
         let has_full_content = false;
 
         // Save long text to file
         if (text && text.length > MAX_PREVIEW_LENGTH) {
-            try {
-                const filename = `${id}.txt`;
-                const file = Gio.File.new_for_path(GLib.build_filenamev([textsDir, filename]));
-                const bytes = new GLib.Bytes(new TextEncoder().encode(text));
-                file.replace_contents(bytes.get_data(), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+            const filename = `${id}.txt`;
+            const destPath = GLib.build_filenamev([textsDir, filename]);
+            const success = await IOFile.write(destPath, ServiceText.toBytes(text));
+            if (success) {
                 has_full_content = true;
-            } catch (e) {
-                console.error(`[AIO-Clipboard] TextProcessor: Failed to save text file: ${e.message}`);
+            } else {
+                console.error(`[AIO-Clipboard] TextProcessor: Failed to save text file`);
             }
         }
 
@@ -65,12 +66,12 @@ export class TextProcessor {
         const finalType = type || ClipboardType.TEXT;
 
         // Use existing preview or create one
-        let preview = extractedData.preview;
+        let preview = item.preview;
         if (!preview && text) {
             preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
         }
 
-        const item = {
+        const finalItem = {
             id,
             type: finalType,
             timestamp: ProcessorUtils.getCurrentTimestamp(),
@@ -79,16 +80,6 @@ export class TextProcessor {
             has_full_content,
         };
 
-        // For short content (not saved to file), store the text directly in the item
-        if (!has_full_content && text) {
-            item.text = text;
-        }
-
-        // Pass through raw_lines for code items
-        if (extractedData.raw_lines) {
-            item.raw_lines = extractedData.raw_lines;
-        }
-
-        return item;
+        return finalItem;
     }
 }

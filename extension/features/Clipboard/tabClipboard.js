@@ -1,17 +1,19 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
+import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
+import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
-import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
+
+import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
+import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
 
 /**
  * Number of focusable UI elements per clipboard item row
@@ -494,27 +496,10 @@ export const ClipboardTabContent = GObject.registerClass(
 
                 // Otherwise, paste the image bytes
                 const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-                const file = Gio.File.new_for_path(imagePath);
-
-                // Determine MIME type from filename
-                let mimetype = 'image/png';
-                const lower = itemData.image_filename.toLowerCase();
-                if (lower.endsWith('jpg') || lower.endsWith('jpeg')) mimetype = 'image/jpeg';
-                else if (lower.endsWith('gif')) mimetype = 'image/gif';
-                else if (lower.endsWith('webp')) mimetype = 'image/webp';
-
-                const bytes = await new Promise((resolve, reject) => {
-                    file.load_contents_async(null, (source, res) => {
-                        try {
-                            const [ok, contents] = source.load_contents_finish(res);
-                            resolve(ok ? contents : null);
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
+                const bytes = ServiceImage.decode(await IOFile.read(imagePath));
 
                 if (bytes) {
+                    const mimetype = ServiceImage.getMimeType(itemData.image_filename);
                     St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
                     return true;
                 }

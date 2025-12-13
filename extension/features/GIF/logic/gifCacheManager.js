@@ -1,9 +1,6 @@
-import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
-
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
-import { manageCacheSize } from '../../../shared/utilities/utilityCacheManager.js';
-import { Storage } from '../../../shared/constants/storagePaths.js';
+import { FilePath } from '../../../shared/constants/storagePaths.js';
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
 
 let _instance = null;
 
@@ -16,7 +13,7 @@ class GifCacheManager {
     constructor(uuid, settings) {
         this._uuid = uuid;
         this._settings = settings;
-        this._gifCacheDir = Storage.getGifPreviewsDir(this._uuid);
+        this._gifCacheDir = FilePath.GIF_PREVIEWS;
 
         this._debouncer = new Debouncer(() => {
             this._runCleanup();
@@ -46,7 +43,7 @@ class GifCacheManager {
     _runCleanup() {
         try {
             const cacheLimit = this._settings.get_int('gif-cache-limit-mb');
-            manageCacheSize(this._gifCacheDir, cacheLimit).catch((e) => console.warn(`[AIO-Clipboard] GIF cache management failed: ${e.message}`));
+            IOFile.prune(this._gifCacheDir, cacheLimit).catch((e) => console.warn(`[AIO-Clipboard] GIF cache management failed: ${e.message}`));
         } catch (e) {
             console.warn(`[AIO-Clipboard] Could not initiate GIF cache management: ${e.message}`);
         }
@@ -56,55 +53,8 @@ class GifCacheManager {
      * Clears the entire GIF cache by deleting all files within the directory.
      * Used by the "Clear Cache" button in preferences.
      */
-    clearCache() {
-        try {
-            const dir = Gio.File.new_for_path(this._gifCacheDir);
-            if (!dir.query_exists(null)) {
-                return;
-            }
-
-            dir.enumerate_children_async('standard::name', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null, (source, res) => {
-                try {
-                    const enumerator = source.enumerate_children_finish(res);
-                    this._deleteFilesInEnumerator(enumerator, dir);
-                } catch {
-                    /* ignore */
-                }
-            });
-        } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to access cache directory for clearing: ${e.message}`);
-        }
-    }
-
-    /**
-     * Helper function to recursively delete files from a directory enumerator.
-     * @private
-     */
-    _deleteFilesInEnumerator(enumerator, parentDir) {
-        enumerator.next_files_async(100, GLib.PRIORITY_DEFAULT, null, (source, res) => {
-            try {
-                const files = source.next_files_finish(res);
-                if (files.length === 0) {
-                    enumerator.close_async(GLib.PRIORITY_DEFAULT, null, null);
-                    return;
-                }
-
-                for (const fileInfo of files) {
-                    const child = parentDir.get_child(fileInfo.get_name());
-                    child.delete_async(GLib.PRIORITY_DEFAULT, null, (sourceDelete, resDelete) => {
-                        try {
-                            sourceDelete.delete_finish(resDelete);
-                        } catch {
-                            /* ignore */
-                        }
-                    });
-                }
-
-                this._deleteFilesInEnumerator(enumerator, parentDir);
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Error while deleting cache files: ${e.message}`);
-            }
-        });
+    async clearCache() {
+        await IOFile.empty(this._gifCacheDir);
     }
 
     /**

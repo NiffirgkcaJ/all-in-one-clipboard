@@ -1,9 +1,13 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { ServiceText } from '../../../shared/services/serviceText.js';
+import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
@@ -13,7 +17,6 @@ import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
-import { Storage } from '../../../shared/constants/storagePaths.js';
 
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
 const MAX_RETRIES = 3;
@@ -49,14 +52,15 @@ export const ClipboardManager = GObject.registerClass(
             this._settings = settings;
             this._initialLoadSuccess = false;
 
-            this._linkPreviewsDir = Storage.getLinkPreviewsDir(this._uuid);
-            this._imagesDir = Storage.getImagesDir(this._uuid);
-            this._textsDir = Storage.getTextsDir(this._uuid);
+            this._linkPreviewsDir = FilePath.LINK_PREVIEWS;
+            this._imagesDir = FilePath.IMAGES;
+            this._textsDir = FilePath.TEXTS;
 
             this.imagesDir = this._imagesDir;
 
-            this._historyFile = Gio.File.new_for_path(Storage.getClipboardHistoryPath(this._uuid));
-            this._pinnedFile = Gio.File.new_for_path(Storage.getPinnedClipboardPath(this._uuid));
+            // File paths for history and pinned items
+            this._historyFilePath = FileItem.CLIPBOARD_HISTORY;
+            this._pinnedFilePath = FileItem.CLIPBOARD_PINNED;
 
             this._history = [];
             this._pinned = [];
@@ -132,10 +136,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _ensureDirectories() {
             [this._imagesDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
-                const dir = Gio.File.new_for_path(path);
-                if (!dir.query_exists(null)) {
-                    dir.make_directory_with_parents(null);
-                }
+                IOFile.mkdir(path);
             });
         }
 
@@ -418,7 +419,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {string} storageDir - Directory to store content
          * @private
          */
-        _handleExtractedContent(extraction, ProcessorClass, storageDir) {
+        async _handleExtractedContent(extraction, ProcessorClass, storageDir) {
             const hash = extraction.hash;
 
             const historyIndex = this._history.findIndex((item) => item.hash === hash);
@@ -433,7 +434,7 @@ export const ClipboardManager = GObject.registerClass(
                 return;
             }
 
-            const newItem = ProcessorClass.save(extraction, storageDir);
+            const newItem = await ProcessorClass.save(extraction, storageDir);
             if (newItem) {
                 this._history.unshift(newItem);
                 this._pruneHistory();
@@ -531,44 +532,8 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if load was successful
          */
         async loadData() {
-            const loadFile = async (file) => {
-                try {
-                    const bytes = await new Promise((resolve, reject) => {
-                        file.load_contents_async(null, (source, res) => {
-                            try {
-                                const [ok, contents] = source.load_contents_finish(res);
-                                resolve(ok ? contents : null);
-                            } catch (e) {
-                                if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
-                                    resolve(null);
-                                } else {
-                                    reject(e);
-                                }
-                            }
-                        });
-                    });
-                    return bytes;
-                } catch (e) {
-                    console.warn(`[AIO-Clipboard] Could not load file ${file.get_path()}: ${e.message}`);
-                    return null;
-                }
-            };
-
-            try {
-                const historyBytes = await loadFile(this._historyFile);
-                this._history = historyBytes ? JSON.parse(new TextDecoder().decode(historyBytes)) : [];
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to parse history_clipboard.json: ${e.message}`);
-                this._history = [];
-            }
-
-            try {
-                const pinnedBytes = await loadFile(this._pinnedFile);
-                this._pinned = pinnedBytes ? JSON.parse(new TextDecoder().decode(pinnedBytes)) : [];
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to parse pinned_clipboard.json: ${e.message}`);
-                this._pinned = [];
-            }
+            this._history = ServiceJson.parse(await IOFile.read(this._historyFilePath)) || [];
+            this._pinned = ServiceJson.parse(await IOFile.read(this._pinnedFilePath)) || [];
 
             this.emit('history-changed');
             this.emit('pinned-list-changed');
@@ -581,9 +546,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _saveHistory() {
             if (!this._initialLoadSuccess) return;
-            const json = JSON.stringify(this._history, null, 2);
-            const bytes = new GLib.Bytes(new TextEncoder().encode(json));
-            this._saveFile(this._historyFile, bytes);
+            IOFile.write(this._historyFilePath, ServiceJson.stringify(this._history));
         }
 
         /**
@@ -592,9 +555,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _savePinned() {
             if (!this._initialLoadSuccess) return;
-            const json = JSON.stringify(this._pinned, null, 2);
-            const bytes = new GLib.Bytes(new TextEncoder().encode(json));
-            this._saveFile(this._pinnedFile, bytes);
+            IOFile.write(this._pinnedFilePath, ServiceJson.stringify(this._pinned));
         }
 
         /**
@@ -604,31 +565,6 @@ export const ClipboardManager = GObject.registerClass(
         _saveAll() {
             this._saveHistory();
             this._savePinned();
-        }
-
-        /**
-         * Save a file asynchronously
-         *
-         * @param {Gio.File} file - File to save
-         * @param {GLib.Bytes} bytes - Content to write
-         * @private
-         */
-        _saveFile(file, bytes) {
-            file.replace_async(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, GLib.PRIORITY_DEFAULT, null, (source, res) => {
-                try {
-                    const stream = source.replace_finish(res);
-                    stream.write_bytes_async(bytes, GLib.PRIORITY_DEFAULT, null, (w_source, w_res) => {
-                        try {
-                            w_source.write_bytes_finish(w_res);
-                            stream.close(null);
-                        } catch (e) {
-                            console.error(`[AIO-Clipboard] Error writing bytes: ${e.message}`);
-                        }
-                    });
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Error replacing file content: ${e.message}`);
-                }
-            });
         }
 
         /**
@@ -685,19 +621,9 @@ export const ClipboardManager = GObject.registerClass(
             // For long content saved to file
             if (item.has_full_content) {
                 try {
-                    const file = Gio.File.new_for_path(GLib.build_filenamev([this._textsDir, `${item.id}.txt`]));
-                    const bytes = await new Promise((resolve, reject) => {
-                        file.load_contents_async(null, (s, r) => {
-                            try {
-                                const [ok, c] = s.load_contents_finish(r);
-                                resolve(ok ? c : null);
-                            } catch (e) {
-                                if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) resolve(null);
-                                else reject(e);
-                            }
-                        });
-                    });
-                    return bytes ? new TextDecoder().decode(bytes) : null;
+                    const fullPath = GLib.build_filenamev([this._textsDir, `${item.id}.txt`]);
+                    const bytes = await IOFile.read(fullPath);
+                    return bytes ? ServiceText.fromBytes(bytes) : null;
                 } catch {
                     return null;
                 }
@@ -832,11 +758,8 @@ export const ClipboardManager = GObject.registerClass(
          */
         _deleteFile(dirPath, filename) {
             if (!filename) return;
-            try {
-                Gio.File.new_for_path(GLib.build_filenamev([dirPath, filename])).delete_async(GLib.PRIORITY_DEFAULT, null);
-            } catch {
-                /* ignore */
-            }
+            const fullPath = GLib.build_filenamev([dirPath, filename]);
+            IOFile.delete(fullPath).catch(() => {});
         }
 
         /**
@@ -858,11 +781,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _deleteTextFile(id) {
             if (!id) return;
-            try {
-                Gio.File.new_for_path(GLib.build_filenamev([this._textsDir, `${id}.txt`])).delete_async(GLib.PRIORITY_DEFAULT, null);
-            } catch {
-                /* ignore */
-            }
+            this._deleteFile(this._textsDir, `${id}.txt`);
         }
 
         /**
@@ -873,11 +792,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _deletePreviewFile(filename) {
             if (!filename) return;
-            try {
-                Gio.File.new_for_path(GLib.build_filenamev([this._linkPreviewsDir, filename])).delete_async(GLib.PRIORITY_DEFAULT, null);
-            } catch {
-                /* ignore */
-            }
+            this._deleteFile(this._linkPreviewsDir, filename);
         }
 
         /**
@@ -1025,9 +940,8 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _checkFileExists(dirPath, filename) {
-            if (!filename) return true; // No file expected, so "exists" (not missing)
-            const file = Gio.File.new_for_path(GLib.build_filenamev([dirPath, filename]));
-            return file.query_exists(null);
+            if (!filename) return true;
+            return IOFile.existsSync(GLib.build_filenamev([dirPath, filename]));
         }
 
         /**
@@ -1072,70 +986,16 @@ export const ClipboardManager = GObject.registerClass(
                 collect(this._history);
 
                 const cleanDir = async (dirPath, validSet) => {
-                    const dir = Gio.File.new_for_path(dirPath);
-                    try {
-                        const exists = await new Promise((resolve) => {
-                            dir.query_exists_async(null, (obj, res) => {
-                                resolve(obj.query_exists_finish(res));
-                            });
-                        });
-                        if (!exists) return;
+                    const files = await IOFile.list(dirPath);
+                    if (!files) return;
 
-                        const enumerator = await new Promise((resolve, reject) => {
-                            dir.enumerate_children_async('standard::name', Gio.FileCreateFlags.NONE, GLib.PRIORITY_LOW, null, (obj, res) => {
-                                try {
-                                    resolve(obj.enumerate_children_finish(res));
-                                } catch (e) {
-                                    reject(e);
-                                }
-                            });
-                        });
-
-                        // Recursive helper to fetch all files first
-                        const fetchNextBatch = async () => {
-                            const fileInfos = await new Promise((resolve, reject) => {
-                                enumerator.next_files_async(10, GLib.PRIORITY_LOW, null, (obj, res) => {
-                                    try {
-                                        resolve(obj.next_files_finish(res));
-                                    } catch (e) {
-                                        reject(e);
-                                    }
-                                });
-                            });
-
-                            if (!fileInfos || fileInfos.length === 0) return [];
-
-                            const nextBatch = await fetchNextBatch();
-                            return [...fileInfos, ...nextBatch];
-                        };
-
-                        const allFiles = await fetchNextBatch();
-                        const deletionPromises = [];
-
-                        for (const info of allFiles) {
-                            const name = info.get_name();
-                            if (!validSet.has(name)) {
-                                const fileToDelete = dir.get_child(name);
-                                const promise = new Promise((resolve) => {
-                                    fileToDelete.delete_async(GLib.PRIORITY_LOW, null, (source, res) => {
-                                        try {
-                                            source.delete_finish(res);
-                                        } catch {
-                                            // Ignore errors
-                                        }
-                                        resolve();
-                                    });
-                                });
-                                deletionPromises.push(promise);
-                            }
+                    const deletePromises = [];
+                    for (const file of files) {
+                        if (!validSet.has(file.name)) {
+                            deletePromises.push(IOFile.delete(file.path));
                         }
-
-                        if (deletionPromises.length > 0) {
-                            await Promise.all(deletionPromises);
-                        }
-                    } catch {
-                        // Ignore enumeration errors
                     }
+                    await Promise.all(deletePromises);
                 };
 
                 await Promise.all([cleanDir(this._imagesDir, validImages), cleanDir(this._textsDir, validTexts), cleanDir(this._linkPreviewsDir, validLinks)]);

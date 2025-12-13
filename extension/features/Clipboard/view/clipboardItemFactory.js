@@ -5,7 +5,8 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
-import { ResourcePaths } from '../../../shared/constants/storagePaths.js';
+import { ResourcePath } from '../../../shared/constants/storagePaths.js';
+
 import { ClipboardType, ClipboardStyling, ClipboardIcons, IconSizes } from '../constants/clipboardConstants.js';
 
 export class ClipboardItemFactory {
@@ -118,7 +119,7 @@ export class ClipboardItemFactory {
 
         if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
             const countryCode = item.metadata.code.toLowerCase();
-            config.flagPath = `${ResourcePaths.ASSETS.FLAGS}/${countryCode}.svg`;
+            config.flagPath = `${ResourcePath.FLAGS}/${countryCode}.svg`;
         }
     }
 

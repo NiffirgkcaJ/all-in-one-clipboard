@@ -1,10 +1,11 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
+
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
 import { GifIcons } from '../constants/gifConstants.js';
 
@@ -109,10 +110,10 @@ export class GifItemFactory {
         try {
             const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, url, -1);
             const filename = `${hash}.gif`;
-            const file = Gio.File.new_for_path(GLib.build_filenamev([this._cacheDir, filename]));
+            const filePath = GLib.build_filenamev([this._cacheDir, filename]);
 
-            if (!file.query_exists(null)) {
-                await this._downloadService.downloadAndSave(url, file.get_path());
+            if (!IOFile.existsSync(filePath)) {
+                await this._downloadService.downloadAndSave(url, filePath);
 
                 getGifCacheManager().triggerDebouncedCleanup();
             }
@@ -123,7 +124,7 @@ export class GifItemFactory {
 
             const imageActor = new St.Bin({
                 style: `
-                    background-image: url("file://${file.get_path()}");
+                    background-image: url("file://${filePath}");
                     background-size: cover;
                     background-repeat: no-repeat;
                 `,
