@@ -1,12 +1,9 @@
 import Clutter from 'gi://Clutter';
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
-import { IOFile } from '../../shared/utilities/utilityIO.js';
-import { ServiceJson } from '../../shared/services/serviceJson.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
@@ -161,46 +158,6 @@ export const EmojiTabContent = GObject.registerClass(
         // ========================================================================
         // Emoji-Specific Logic
         // ========================================================================
-
-        /**
-         * Asynchronously builds a Set of single-codepoint, skinnable emoji characters
-         * by parsing the main emoji data file. This Set is a critical dependency
-         * for the `EmojiModifier` logic.
-         * @param {string} extensionPath - The path to the extension's root directory.
-         * @private
-         */
-        async _buildSkinnableCharSet(extensionPath) {
-            const ZWJ_CHAR = '\u200D';
-            const VS16_CHAR = '\uFE0F';
-
-            try {
-                const filePath = GLib.build_filenamev([extensionPath, 'data', 'emojis.json']);
-                const contents = await IOFile.read(filePath);
-
-                if (contents) {
-                    const rawData = ServiceJson.parse(contents);
-
-                    const parser = new EmojiJsonParser();
-                    const emojiData = parser.parse(rawData);
-
-                    const skinnableChars = new Set();
-                    for (const item of emojiData) {
-                        // We only care about single characters that support skin tones.
-                        if (item.skinToneSupport && !item.char.includes(ZWJ_CHAR)) {
-                            // Strip the variation selector to get the true base character.
-                            const baseChar = item.char.endsWith(VS16_CHAR) ? item.char.slice(0, -1) : item.char;
-                            skinnableChars.add(baseChar);
-                        }
-                    }
-                    this._skinToneableBaseChars = skinnableChars;
-                } else {
-                    throw new Error(`Failed to load skinnable character set from ${filePath}`);
-                }
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to build skinnable character set in EmojiTabContent: ${e.message}`);
-                this._skinToneableBaseChars = new Set(); // Ensure it's a valid Set on failure
-            }
-        }
 
         /**
          * Reads skin tone preferences from GSettings and updates the internal state.

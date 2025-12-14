@@ -1,5 +1,4 @@
-import Gio from 'gi://Gio';
-
+import { IOResource } from '../../../shared/utilities/utilityIO.js';
 import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
 
@@ -28,13 +27,13 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            const resourcePath = ResourceItem.EMOJI;
-            const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
+            // Use IOResource.read() which handles resource:// URIs correctly
+            const bytes = await IOResource.read(ResourceItem.EMOJI);
             if (!bytes) {
                 throw new Error('Failed to load emojis.json from GResource.');
             }
 
-            const rawData = ServiceJson.parse(bytes.get_data());
+            const rawData = ServiceJson.parse(bytes);
 
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);
