@@ -3,6 +3,29 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import { Debouncer } from './utilityDebouncer.js';
+
+const MasonryDefaults = {
+    COLUMNS: 4,
+    SPACING: 2,
+};
+
+const MasonryLayout_ = {
+    PADDING: 8,
+    MIN_VALID_WIDTH: 32,
+};
+
+const MasonryTiming = {
+    RELAYOUT_DEBOUNCE_MS: 100,
+    RENDER_TIMEOUT_MS: 100,
+};
+
+const MasonryNavigation = {
+    EDGE_TOLERANCE: 2,
+    COLUMN_TOLERANCE: 20,
+    HORIZONTAL_WEIGHT: 5,
+};
+
 /**
  * MasonryLayout - A self-navigating, Pinterest-style masonry layout widget.
  *
@@ -30,24 +53,29 @@ export const MasonryLayout = GObject.registerClass(
          */
         constructor(params) {
             super({
-                layout_manager: new Clutter.BinLayout(),
+                // No layout_manager - we handle allocation manually in vfunc_allocate
                 x_expand: true,
             });
 
-            const { columns = 4, spacing = 2, renderItemFn } = params;
+            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn } = params;
 
             this._columns = columns;
             this._spacing = spacing;
             this._renderItemFn = renderItemFn;
             this._columnHeights = new Array(this._columns).fill(0);
             this._items = [];
+            this._lastLayoutWidth = -1;
+            this._lockedColumnWidth = -1;
+            this._pendingRelayout = false;
             this._pendingAllocationId = null;
             this._pendingTimeoutId = null;
             this._spatialMap = [];
+            this._isDestroyed = false;
+
+            this._relayoutDebouncer = new Debouncer(() => this._relayout(), MasonryTiming.RELAYOUT_DEBOUNCE_MS);
+
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
-
-            this._isDestroyed = false;
             this.connect('destroy', () => {
                 this._isDestroyed = true;
                 this._cleanupPendingCallbacks();
@@ -56,18 +84,46 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Handle allocation changes - triggers re-layout when width changes.
+         * Also manually allocates each child since we use absolute positioning.
          *
          * @param {Clutter.ActorBox} box - The allocation box
          */
         vfunc_allocate(box) {
-            super.vfunc_allocate(box);
-
+            this.set_allocation(box);
             const newWidth = box.get_width();
-            if (this.width !== newWidth) {
-                this.width = newWidth;
 
+            // Skip relayout during batch rendering to prevent jitter
+            if (this._lastLayoutWidth !== newWidth && this._lastLayoutWidth > 0) {
                 if (this._items.length > 0) {
-                    this._relayout();
+                    if (this._lockedColumnWidth > 0) {
+                        this._pendingRelayout = true;
+                    } else {
+                        this._lastLayoutWidth = newWidth;
+                        this._relayout();
+                        return;
+                    }
+                }
+            }
+            this._lastLayoutWidth = newWidth;
+
+            for (const child of this.get_children()) {
+                const layout = child._masonryData;
+                if (layout) {
+                    const childBox = new Clutter.ActorBox();
+                    childBox.x1 = layout.x;
+                    childBox.y1 = layout.y;
+                    childBox.x2 = layout.x + layout.width;
+                    childBox.y2 = layout.y + layout.height;
+                    child.allocate(childBox);
+                } else {
+                    const [_minW, natW] = child.get_preferred_width(-1);
+                    const [_minH, natH] = child.get_preferred_height(natW);
+                    const childBox = new Clutter.ActorBox();
+                    childBox.x1 = 0;
+                    childBox.y1 = 0;
+                    childBox.x2 = natW;
+                    childBox.y2 = natH;
+                    child.allocate(childBox);
                 }
             }
         }
@@ -76,11 +132,18 @@ export const MasonryLayout = GObject.registerClass(
          * Clear all items from the layout.
          */
         clear() {
-            this.destroy_all_children();
-            this._columnHeights = new Array(this._columns).fill(0);
+            this._cleanupPendingCallbacks();
+            this._relayoutDebouncer.cancel();
+
+            // Clear references before destroying children to prevent stale access
             this._items = [];
-            this.height = 0;
             this._spatialMap = [];
+            this._columnHeights = new Array(this._columns).fill(0);
+            this._lockedColumnWidth = -1;
+            this._pendingRelayout = false;
+
+            this.destroy_all_children();
+            this.height = 0;
         }
 
         /**
@@ -100,14 +163,39 @@ export const MasonryLayout = GObject.registerClass(
                 return;
             }
 
-            const columnWidth = this._calculateColumnWidth(effectiveWidth);
+            let columnWidth;
+            if (this._lockedColumnWidth > 0) {
+                columnWidth = this._lockedColumnWidth;
+            } else {
+                columnWidth = this._calculateColumnWidth(effectiveWidth);
+                this._lockedColumnWidth = columnWidth;
+            }
+
             if (!this._isValidColumnWidth(columnWidth)) {
                 return;
             }
 
-            this._renderItems(items, columnWidth, renderSession);
-            this._updateContainerHeight();
-            this._buildSpatialMap();
+            // Defer to idle cycle for proper Clutter allocation
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (this._isDestroyed) return GLib.SOURCE_REMOVE;
+
+                this._renderItems(items, columnWidth, renderSession);
+                this._updateContainerHeight();
+                this._buildSpatialMap();
+
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        /**
+         * Signal that a batch sequence is complete. Unlocks column width and processes pending relayout.
+         */
+        finishBatch() {
+            this._lockedColumnWidth = -1;
+            if (this._pendingRelayout) {
+                this._pendingRelayout = false;
+                this._relayoutDebouncer.trigger();
+            }
         }
 
         /**
@@ -150,7 +238,7 @@ export const MasonryLayout = GObject.registerClass(
                 };
             });
 
-            const tolerance = 2;
+            const tolerance = MasonryNavigation.EDGE_TOLERANCE;
             this._spatialMap = mapData.map((item) => ({
                 ...item,
                 isTopEdge: item.y1 <= minY + tolerance,
@@ -244,7 +332,7 @@ export const MasonryLayout = GObject.registerClass(
                     if (distance < minHorizontalDistance) minHorizontalDistance = distance;
                 });
 
-                const tolerance = 20;
+                const tolerance = MasonryNavigation.COLUMN_TOLERANCE;
                 const itemsInTargetColumn = candidatesInDirection.filter((item) => {
                     const distance = Math.abs(item.centerX - currentItem.centerX);
                     return distance < minHorizontalDistance + tolerance;
@@ -259,7 +347,6 @@ export const MasonryLayout = GObject.registerClass(
                     }
                 }
 
-                // Fallback if no overlap, by finding the closest from the vertical center
                 if (!bestCandidate) {
                     let minCenterYDistance = Infinity;
                     for (const candidate of itemsInTargetColumn) {
@@ -282,7 +369,7 @@ export const MasonryLayout = GObject.registerClass(
                 for (const candidate of candidatesInDirection) {
                     const dX = Math.abs(candidate.centerX - currentItem.centerX);
                     const dY = Math.abs(candidate.centerY - currentItem.centerY);
-                    const weightedDistance = Math.sqrt(Math.pow(dX * 5, 2) + Math.pow(dY, 2));
+                    const weightedDistance = Math.sqrt(Math.pow(dX * MasonryNavigation.HORIZONTAL_WEIGHT, 2) + Math.pow(dY, 2));
 
                     if (weightedDistance < minWeightedDistance) {
                         minWeightedDistance = weightedDistance;
@@ -313,7 +400,7 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _isValidWidth() {
-            return this.width && this.width > 32;
+            return this.width && this.width > MasonryLayout_.MIN_VALID_WIDTH;
         }
 
         /**
@@ -331,13 +418,19 @@ export const MasonryLayout = GObject.registerClass(
                 this._cleanupPendingCallbacks();
 
                 if (this._isValidWidth()) {
-                    this.addItems(items, renderSession);
+                    // Defer to idle cycle for proper Clutter allocation
+                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        if (!this._isDestroyed && this._isValidWidth()) {
+                            this.addItems(items, renderSession);
+                        }
+                        return GLib.SOURCE_REMOVE;
+                    });
                 }
             };
 
             this._pendingAllocationId = this.connect('notify::width', tryRender);
 
-            this._pendingTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+            this._pendingTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MasonryTiming.RENDER_TIMEOUT_MS, () => {
                 this._pendingTimeoutId = null;
                 if (!this._isDestroyed) {
                     tryRender();
@@ -376,9 +469,7 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _calculateEffectiveWidth() {
-            const paddingLeft = 8;
-            const paddingRight = 8;
-            return this.width - paddingLeft - paddingRight;
+            return this.width - MasonryLayout_.PADDING * 2;
         }
 
         /**
@@ -432,7 +523,7 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _renderItems(items, columnWidth, renderSession) {
-            const paddingLeft = 8;
+            const paddingLeft = MasonryLayout_.PADDING;
 
             for (const itemData of items) {
                 this._items.push(itemData);
@@ -516,10 +607,16 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _positionItem(itemWidget, columnIndex, columnWidth, itemHeight, paddingLeft) {
-            itemWidget.width = columnWidth;
-            itemWidget.height = itemHeight;
-            itemWidget.x = paddingLeft + columnIndex * (columnWidth + this._spacing);
-            itemWidget.y = this._columnHeights[columnIndex];
+            const x = paddingLeft + columnIndex * (columnWidth + this._spacing);
+            const y = this._columnHeights[columnIndex];
+
+            // Store position data for vfunc_allocate
+            itemWidget._masonryData = {
+                x: x,
+                y: y,
+                width: columnWidth,
+                height: itemHeight,
+            };
 
             this.add_child(itemWidget);
         }
@@ -564,6 +661,7 @@ export const MasonryLayout = GObject.registerClass(
          */
         destroy() {
             this._cleanupPendingCallbacks();
+            this._relayoutDebouncer?.destroy();
             super.destroy();
         }
     },
