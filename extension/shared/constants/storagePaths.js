@@ -70,12 +70,12 @@ export function initStorage(uuid) {
 
     // Resource base paths
     ResourcePath = {
-        DATA: getResourceDataDir(),
-        ICONS: getResourceIconsDir(),
+        DATA: buildResourceUri(getResourceDataDir()),
+        ICONS: buildResourceUri(getResourceIconsDir()),
     };
-    ResourcePath.JSON = buildResourceUri(`${ResourcePath.DATA}/json`);
-    ResourcePath.UI = buildResourceUri(`${ResourcePath.ICONS}/ui`);
-    ResourcePath.FLAGS = buildResourceUri(`${ResourcePath.ICONS}/flags`);
+    ResourcePath.JSON = `${ResourcePath.DATA}/json`;
+    ResourcePath.UI = `${ResourcePath.ICONS}/ui`;
+    ResourcePath.FLAGS = `${ResourcePath.ICONS}/flags`;
     ResourcePath.uri = buildResourceUri;
 
     // Resource items
