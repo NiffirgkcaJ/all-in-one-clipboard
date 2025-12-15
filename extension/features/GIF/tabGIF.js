@@ -271,6 +271,7 @@ export const GIFTabContent = GObject.registerClass(
             this._masonryView = new MasonryLayout({
                 columns: GifUI.ITEMS_PER_ROW,
                 spacing: 2,
+                scrollView: this._scrollView,
                 renderItemFn: (itemData) => {
                     const bin = this._itemFactory.createItem(itemData, this._onGifSelected.bind(this));
                     if (bin) {

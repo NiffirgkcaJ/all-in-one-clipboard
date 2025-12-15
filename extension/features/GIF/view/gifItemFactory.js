@@ -1,7 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
-import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
@@ -69,15 +68,6 @@ export class GifItemFactory {
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
-        });
-
-        bin.connect('key-focus-in', () => {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (this._scrollView) {
-                    ensureActorVisibleInScrollView(this._scrollView, bin);
-                }
-                return GLib.SOURCE_REMOVE;
-            });
         });
 
         this._loadPreviewImage(bin, itemData.preview_url, this._renderSession).catch(() => {

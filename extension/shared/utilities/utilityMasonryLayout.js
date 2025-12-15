@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { Debouncer } from './utilityDebouncer.js';
 
@@ -50,6 +51,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {number} [params.spacing=2] - Spacing between items in pixels
          * @param {Function} params.renderItemFn - Function to render each item.
          *   Signature: (itemData, renderSession) => St.Widget
+         * @param {St.ScrollView} [params.scrollView] - Optional scroll view for auto-scroll on focus
          */
         constructor(params) {
             super({
@@ -57,11 +59,12 @@ export const MasonryLayout = GObject.registerClass(
                 x_expand: true,
             });
 
-            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn } = params;
+            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn, scrollView } = params;
 
             this._columns = columns;
             this._spacing = spacing;
             this._renderItemFn = renderItemFn;
+            this._scrollView = scrollView || null;
             this._columnHeights = new Array(this._columns).fill(0);
             this._items = [];
             this._lastLayoutWidth = -1;
@@ -200,6 +203,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Builds a cache of item positions for fast keyboard navigation.
+         * Uses _masonryData since widget allocation may not have completed yet.
          * @private
          */
         _buildSpatialMap() {
@@ -214,29 +218,32 @@ export const MasonryLayout = GObject.registerClass(
                 maxX = -Infinity,
                 maxY = -Infinity;
 
-            const mapData = widgets.map((widget) => {
-                const x1 = widget.x;
-                const y1 = widget.y;
-                const width = widget.width;
-                const height = widget.height;
-                const x2 = x1 + width;
-                const y2 = y1 + height;
+            const mapData = widgets
+                .filter((widget) => widget._masonryData)
+                .map((widget) => {
+                    const data = widget._masonryData;
+                    const x1 = data.x;
+                    const y1 = data.y;
+                    const width = data.width;
+                    const height = data.height;
+                    const x2 = x1 + width;
+                    const y2 = y1 + height;
 
-                if (y1 < minY) minY = y1;
-                if (x1 < minX) minX = x1;
-                if (x2 > maxX) maxX = x2;
-                if (y2 > maxY) maxY = y2;
+                    if (y1 < minY) minY = y1;
+                    if (x1 < minX) minX = x1;
+                    if (x2 > maxX) maxX = x2;
+                    if (y2 > maxY) maxY = y2;
 
-                return {
-                    widget,
-                    centerX: x1 + width / 2,
-                    centerY: y1 + height / 2,
-                    y1,
-                    x1,
-                    x2,
-                    y2,
-                };
-            });
+                    return {
+                        widget,
+                        centerX: x1 + width / 2,
+                        centerY: y1 + height / 2,
+                        y1,
+                        x1,
+                        x2,
+                        y2,
+                    };
+                });
 
             const tolerance = MasonryNavigation.EDGE_TOLERANCE;
             this._spatialMap = mapData.map((item) => ({
@@ -279,7 +286,14 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             const nextWidget = this._findClosestInDirection(currentFocus, direction);
-            if (nextWidget) nextWidget.grab_key_focus();
+            if (nextWidget) {
+                nextWidget.grab_key_focus();
+
+                // Auto-scroll focused widget into view if scrollView is configured
+                if (this._scrollView) {
+                    ensureActorVisibleInScrollView(this._scrollView, nextWidget);
+                }
+            }
 
             return Clutter.EVENT_STOP;
         }
