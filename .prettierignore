@@ -2,6 +2,7 @@
 eslint.config.js
 .prettierrc
 .prettierignore
+.stylelintrc.json
 
 # Ignore extension metadata file
 metadata.json

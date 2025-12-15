@@ -74,6 +74,7 @@
         "shebang-command": "^2.0.0",
         "shebang-regex": "^3.0.0",
         "strip-json-comments": "^3.1.1",
+        "stylelint": "^16.26.1",
         "supports-color": "^7.2.0",
         "synckit": "^0.11.11",
         "type-check": "^0.4.0",
