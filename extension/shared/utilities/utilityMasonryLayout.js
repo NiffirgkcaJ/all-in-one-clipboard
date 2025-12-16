@@ -73,6 +73,7 @@ export const MasonryLayout = GObject.registerClass(
             this._pendingAllocationId = null;
             this._pendingTimeoutId = null;
             this._spatialMap = [];
+            this._pendingItems = [];
             this._isDestroyed = false;
 
             this._relayoutDebouncer = new Debouncer(() => this._relayout(), MasonryTiming.RELAYOUT_DEBOUNCE_MS);
@@ -140,6 +141,7 @@ export const MasonryLayout = GObject.registerClass(
 
             // Clear references before destroying children to prevent stale access
             this._items = [];
+            this._pendingItems = [];
             this._spatialMap = [];
             this._columnHeights = new Array(this._columns).fill(0);
             this._lockedColumnWidth = -1;
@@ -198,6 +200,80 @@ export const MasonryLayout = GObject.registerClass(
             if (this._pendingRelayout) {
                 this._pendingRelayout = false;
                 this._relayoutDebouncer.trigger();
+            }
+        }
+
+        /**
+         * Focus the first item in the masonry layout.
+         * Used for cross-masonry navigation.
+         * @param {number} [targetCenterX] - Optional X position to find item in same column.
+         */
+        focusFirst(targetCenterX) {
+            const children = this.get_children().filter((w) => w._masonryData);
+            if (children.length === 0) return;
+
+            let target = children[0];
+
+            if (targetCenterX !== undefined) {
+                const topRowItems = children.filter((w) => w._masonryData.y === 0);
+                let bestMatch = null;
+                let minDistance = Infinity;
+
+                for (const item of topRowItems) {
+                    const data = item._masonryData;
+                    const itemCenterX = data.x + data.width / 2;
+                    const distance = Math.abs(itemCenterX - targetCenterX);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestMatch = item;
+                    }
+                }
+                if (bestMatch) target = bestMatch;
+            }
+
+            target.grab_key_focus();
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, target);
+            }
+        }
+
+        /**
+         * Focus the last item in the masonry layout (bottom of column).
+         * Used for cross-masonry navigation.
+         * @param {number} [targetCenterX] - Optional X position to find item in same column.
+         */
+        focusLast(targetCenterX) {
+            const children = this.get_children().filter((w) => w._masonryData);
+            if (children.length === 0) return;
+
+            let target = children[children.length - 1];
+
+            if (targetCenterX !== undefined) {
+                let bestMatch = null;
+                let bestY = -Infinity;
+                let minXDistance = Infinity;
+
+                for (const item of children) {
+                    const data = item._masonryData;
+                    const itemCenterX = data.x + data.width / 2;
+                    const xDistance = Math.abs(itemCenterX - targetCenterX);
+
+                    const hasColumnOverlap = data.x < targetCenterX && data.x + data.width > targetCenterX;
+                    if (!hasColumnOverlap && xDistance > data.width / 2) continue;
+
+                    const itemBottomY = data.y + data.height;
+                    if (itemBottomY > bestY || (itemBottomY === bestY && xDistance < minXDistance)) {
+                        bestY = itemBottomY;
+                        minXDistance = xDistance;
+                        bestMatch = item;
+                    }
+                }
+                if (bestMatch) target = bestMatch;
+            }
+
+            target.grab_key_focus();
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, target);
             }
         }
 
@@ -276,23 +352,19 @@ export const MasonryLayout = GObject.registerClass(
 
             if (!currentItem) return Clutter.EVENT_PROPAGATE;
 
-            if (
-                (direction === 'up' && currentItem.isTopEdge) ||
-                (direction === 'left' && currentItem.isLeftEdge) ||
-                (direction === 'right' && currentItem.isRightEdge) ||
-                (direction === 'down' && currentItem.isBottomEdge)
-            ) {
-                return direction === 'up' ? Clutter.EVENT_PROPAGATE : Clutter.EVENT_STOP;
+            const nextWidget = this._findClosestInDirection(currentFocus, direction);
+
+            if (!nextWidget) {
+                if (direction === 'up' || direction === 'down') {
+                    return Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_STOP;
             }
 
-            const nextWidget = this._findClosestInDirection(currentFocus, direction);
-            if (nextWidget) {
-                nextWidget.grab_key_focus();
+            nextWidget.grab_key_focus();
 
-                // Auto-scroll focused widget into view if scrollView is configured
-                if (this._scrollView) {
-                    ensureActorVisibleInScrollView(this._scrollView, nextWidget);
-                }
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, nextWidget);
             }
 
             return Clutter.EVENT_STOP;
@@ -374,19 +446,20 @@ export const MasonryLayout = GObject.registerClass(
             } else {
                 const candidatesInDirection = this._spatialMap.filter((item) => {
                     if (item.widget === currentWidget) return false;
-                    return direction === 'up' ? item.centerY < currentItem.centerY : item.centerY > currentItem.centerY;
+                    const inDirection = direction === 'up' ? item.centerY < currentItem.centerY : item.centerY > currentItem.centerY;
+                    if (!inDirection) return false;
+
+                    const hasColumnOverlap = item.x1 < currentItem.x2 && item.x2 > currentItem.x1;
+                    return hasColumnOverlap;
                 });
 
                 if (candidatesInDirection.length === 0) return null;
 
-                let minWeightedDistance = Infinity;
+                let minVerticalDistance = Infinity;
                 for (const candidate of candidatesInDirection) {
-                    const dX = Math.abs(candidate.centerX - currentItem.centerX);
                     const dY = Math.abs(candidate.centerY - currentItem.centerY);
-                    const weightedDistance = Math.sqrt(Math.pow(dX * MasonryNavigation.HORIZONTAL_WEIGHT, 2) + Math.pow(dY, 2));
-
-                    if (weightedDistance < minWeightedDistance) {
-                        minWeightedDistance = weightedDistance;
+                    if (dY < minVerticalDistance) {
+                        minVerticalDistance = dY;
                         bestCandidate = candidate;
                     }
                 }
@@ -425,17 +498,24 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _deferRender(items, renderSession) {
-            this._cleanupPendingCallbacks();
+            // Accumulate items instead of replacing
+            this._pendingItems.push(...items);
+
+            // Only setup callbacks if not already waiting
+            if (this._pendingAllocationId || this._pendingTimeoutId) {
+                return;
+            }
 
             const tryRender = () => {
                 if (this._isDestroyed) return;
                 this._cleanupPendingCallbacks();
 
                 if (this._isValidWidth()) {
-                    // Defer to idle cycle for proper Clutter allocation
                     GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        if (!this._isDestroyed && this._isValidWidth()) {
-                            this.addItems(items, renderSession);
+                        if (!this._isDestroyed && this._isValidWidth() && this._pendingItems.length > 0) {
+                            const itemsToRender = this._pendingItems;
+                            this._pendingItems = [];
+                            this.addItems(itemsToRender, renderSession);
                         }
                         return GLib.SOURCE_REMOVE;
                     });
