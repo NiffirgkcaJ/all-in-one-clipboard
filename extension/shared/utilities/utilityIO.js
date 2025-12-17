@@ -398,7 +398,12 @@ export const IOFile = {
         }
     },
 
-    /** @private */
+    /**
+     * Recursively deletes a file or directory.
+     * @param {Gio.File} fileOrDir - File or directory to delete
+     * @param {boolean} deleteSelf - Whether to delete the file or directory itself
+     * @returns {Promise<void>}
+     */
     async _deleteRecursively(fileOrDir, deleteSelf = true) {
         try {
             const info = await new Promise((resolve) => {

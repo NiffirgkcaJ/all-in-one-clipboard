@@ -145,7 +145,11 @@ export class GifDownloadService {
         return success;
     }
 
-    /** @private */
+    /**
+     * Set the clipboard to a URI list
+     *
+     * @param {string} fileUri - The file URI to set
+     */
     _setClipboardUri(fileUri) {
         const uriList = fileUri + '\r\n';
         const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
