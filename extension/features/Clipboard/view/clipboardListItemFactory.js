@@ -8,7 +8,7 @@ import { createStaticIcon, createStaticIconButton, createDynamicIconButton } fro
 
 import { ClipboardItemConfig } from './clipboardItemConfig.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
-import { ClipboardIcons, IconSizes } from '../constants/clipboardConstants.js';
+import { ClipboardIcons, ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
 
 /**
  * Factory for creating list view clipboard items.
@@ -101,6 +101,11 @@ export class ClipboardListItemFactory {
             imagePreviewSize: options.imagePreviewSize,
         });
         mainBox.add_child(contentWidget);
+
+        // Set dynamic min-height for image items to respect imagePreviewSize setting
+        if (itemData.type === ClipboardType.IMAGE) {
+            rowButton.set_style(`min-height: ${options.imagePreviewSize}px;`);
+        }
 
         // Pin/Star button
         const rowStarButton = createStaticIconButton(isPinned ? ClipboardIcons.STAR_FILLED : ClipboardIcons.STAR_UNFILLED, {

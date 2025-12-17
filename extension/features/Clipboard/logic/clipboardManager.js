@@ -424,7 +424,9 @@ export const ClipboardManager = GObject.registerClass(
 
             const historyIndex = this._history.findIndex((item) => item.hash === hash);
             if (historyIndex > -1) {
-                this._promoteExistingItem(historyIndex, this._history);
+                if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
+                    this._promoteExistingItem(historyIndex, this._history);
+                }
                 return;
             }
 
@@ -476,7 +478,9 @@ export const ClipboardManager = GObject.registerClass(
 
             const historyIndex = this._history.findIndex((item) => item.hash === hash);
             if (historyIndex > -1) {
-                this._promoteExistingItem(historyIndex, this._history);
+                if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
+                    this._promoteExistingItem(historyIndex, this._history);
+                }
                 return;
             }
 
@@ -871,9 +875,25 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Verify verification for Text/Code items (check for data loss)
+         * Verify and heal Color items
          * @param {Object} item - Clipboard item
-         * @returns {boolean} True if missing file detected (corruption)
+         * @returns {boolean} True if healed
+         * @private
+         */
+        _verifyAndHealColor(item) {
+            if (item.type !== ClipboardType.COLOR || !item.gradient_filename) return false;
+
+            const missingFile = !this._checkFileExists(this._imagesDir, item.gradient_filename);
+            if (missingFile) {
+                return ColorProcessor.regenerateGradient(item, this._imagesDir);
+            }
+            return false;
+        }
+
+        /**
+         * Verify integrity of Text/Code items
+         * @param {Object} item - Clipboard item
+         * @returns {boolean} True if missing file detected
          * @private
          */
         _verifyTextIntegrity(item) {
