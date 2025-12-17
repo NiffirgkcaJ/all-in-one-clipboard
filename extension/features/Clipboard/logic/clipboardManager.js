@@ -953,17 +953,19 @@ export const ClipboardManager = GObject.registerClass(
                 return false;
             };
 
-            // Process both lists concurrently
             const allItems = [...this._history, ...this._pinned];
 
-            // We process in chunks to avoid overwhelming the loop
-            const CHUNK_SIZE = 5;
-            for (let i = 0; i < allItems.length; i += CHUNK_SIZE) {
-                const chunk = allItems.slice(i, i + CHUNK_SIZE);
-                // eslint-disable-next-line no-await-in-loop
+            const processChunks = async (items, chunkSize) => {
+                if (items.length === 0) return false;
+                const chunk = items.slice(0, chunkSize);
+                const rest = items.slice(chunkSize);
                 const results = await Promise.all(chunk.map(processItem));
-                if (results.some((r) => r)) changed = true;
-            }
+                const chunkChanged = results.some((r) => r);
+                const restChanged = await processChunks(rest, chunkSize);
+                return chunkChanged || restChanged;
+            };
+
+            if (await processChunks(allItems, 5)) changed = true;
 
             if (changed) {
                 this._saveAll();

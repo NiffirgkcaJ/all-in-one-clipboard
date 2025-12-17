@@ -27,35 +27,26 @@ export class ImageProcessor {
      * @returns {Promise<Object|null>} An object containing data, hash, and mimetype, or null if no image found.
      */
     static async extract() {
-        for (const mimetype of IMAGE_MIMETYPES) {
-            // eslint-disable-next-line no-await-in-loop
-            const result = await new Promise((resolve) => {
-                St.Clipboard.get_default().get_content(
-                    St.ClipboardType.CLIPBOARD,
-                    mimetype,
-
-                    (_clipboard, bytes) => {
-                        if (bytes && bytes.get_size() > 0) {
-                            const data = bytes.get_data();
-                            const hash = ProcessorUtils.computeHashForData(data);
-                            resolve({
-                                type: ClipboardType.IMAGE,
-                                data,
-                                hash,
-                                mimetype,
-                            });
-                        } else {
-                            resolve(null);
-                        }
-                    },
-                );
+        const tryMimetype = (mimetype) =>
+            new Promise((resolve) => {
+                St.Clipboard.get_default().get_content(St.ClipboardType.CLIPBOARD, mimetype, (_clipboard, bytes) => {
+                    if (bytes && bytes.get_size() > 0) {
+                        const data = bytes.get_data();
+                        const hash = ProcessorUtils.computeHashForData(data);
+                        resolve({
+                            type: ClipboardType.IMAGE,
+                            data,
+                            hash,
+                            mimetype,
+                        });
+                    } else {
+                        resolve(null);
+                    }
+                });
             });
 
-            if (result) {
-                return result;
-            }
-        }
-        return null;
+        const results = await Promise.all(IMAGE_MIMETYPES.map(tryMimetype));
+        return results.find((r) => r !== null) || null;
     }
 
     /**
