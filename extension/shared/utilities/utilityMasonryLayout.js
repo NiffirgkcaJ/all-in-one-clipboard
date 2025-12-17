@@ -54,10 +54,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {St.ScrollView} [params.scrollView] - Optional scroll view for auto-scroll on focus
          */
         constructor(params) {
-            super({
-                // No layout_manager - we handle allocation manually in vfunc_allocate
-                x_expand: true,
-            });
+            super({ x_expand: true });
 
             const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn, scrollView } = params;
 
@@ -75,7 +72,6 @@ export const MasonryLayout = GObject.registerClass(
             this._spatialMap = [];
             this._pendingItems = [];
             this._isDestroyed = false;
-
             this._relayoutDebouncer = new Debouncer(() => this._relayout(), MasonryTiming.RELAYOUT_DEBOUNCE_MS);
 
             this.reactive = true;
@@ -87,16 +83,13 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Handle allocation changes - triggers re-layout when width changes.
-         * Also manually allocates each child since we use absolute positioning.
-         *
+         * Handle allocation changes and manually allocate each child.
          * @param {Clutter.ActorBox} box - The allocation box
          */
         vfunc_allocate(box) {
             this.set_allocation(box);
             const newWidth = box.get_width();
 
-            // Skip relayout during batch rendering to prevent jitter
             if (this._lastLayoutWidth !== newWidth && this._lastLayoutWidth > 0) {
                 if (this._items.length > 0) {
                     if (this._lockedColumnWidth > 0) {
@@ -138,8 +131,8 @@ export const MasonryLayout = GObject.registerClass(
         clear() {
             this._cleanupPendingCallbacks();
             this._relayoutDebouncer.cancel();
+            this._renderGeneration = (this._renderGeneration || 0) + 1;
 
-            // Clear references before destroying children to prevent stale access
             this._items = [];
             this._pendingItems = [];
             this._spatialMap = [];
@@ -180,16 +173,9 @@ export const MasonryLayout = GObject.registerClass(
                 return;
             }
 
-            // Defer to idle cycle for proper Clutter allocation
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (this._isDestroyed) return GLib.SOURCE_REMOVE;
-
-                this._renderItems(items, columnWidth, renderSession);
-                this._updateContainerHeight();
-                this._buildSpatialMap();
-
-                return GLib.SOURCE_REMOVE;
-            });
+            this._renderItems(items, columnWidth, renderSession);
+            this._updateContainerHeight();
+            this._buildSpatialMap();
         }
 
         /**
@@ -204,9 +190,24 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Focus the first item in the masonry layout.
-         * Used for cross-masonry navigation.
-         * @param {number} [targetCenterX] - Optional X position to find item in same column.
+         * Get the number of items that have been rendered.
+         * @returns {number} The number of rendered items
+         */
+        getItemCount() {
+            return this._items.length;
+        }
+
+        /**
+         * Check if there are pending items waiting to be rendered.
+         * @returns {boolean} True if there are pending deferred items
+         */
+        hasPendingItems() {
+            return this._pendingItems.length > 0;
+        }
+
+        /**
+         * Focus the first item in the masonry layout, optionally aligning to a column.
+         * @param {number} [targetCenterX] - X position to find item in same column
          */
         focusFirst(targetCenterX) {
             const children = this.get_children().filter((w) => w._masonryData);
@@ -238,9 +239,8 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Focus the last item in the masonry layout (bottom of column).
-         * Used for cross-masonry navigation.
-         * @param {number} [targetCenterX] - Optional X position to find item in same column.
+         * Focus the last item in the masonry layout, optionally aligning to a column.
+         * @param {number} [targetCenterX] - X position to find item in same column
          */
         focusLast(targetCenterX) {
             const children = this.get_children().filter((w) => w._masonryData);
@@ -278,8 +278,7 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Builds a cache of item positions for fast keyboard navigation.
-         * Uses _masonryData since widget allocation may not have completed yet.
+         * Builds a cache of item positions for keyboard navigation.
          * @private
          */
         _buildSpatialMap() {
@@ -332,11 +331,10 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Handles key press events for navigating the grid.
-         * Can be called directly or connected to a signal.
-         * @param {Clutter.Actor} _actor - The actor that received the event.
-         * @param {Clutter.Event} event - The key press event.
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * Handles key press events for grid navigation.
+         * @param {Clutter.Actor} _actor - The actor that received the event
+         * @param {Clutter.Event} event - The key press event
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
          * @private
          */
         handleKeyPress(_actor, event) {
@@ -491,6 +489,14 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Public method to check if width is valid for rendering.
+         * @returns {boolean} True if width is valid
+         */
+        hasValidWidth() {
+            return this._isValidWidth();
+        }
+
+        /**
          * Defer rendering until a valid width is available.
          *
          * @param {Array<object>} items - Items to render
@@ -498,27 +504,24 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _deferRender(items, renderSession) {
-            // Accumulate items instead of replacing
             this._pendingItems.push(...items);
 
-            // Only setup callbacks if not already waiting
             if (this._pendingAllocationId || this._pendingTimeoutId) {
                 return;
             }
 
+            this._renderGeneration = (this._renderGeneration || 0) + 1;
+            const myGeneration = this._renderGeneration;
+
             const tryRender = () => {
                 if (this._isDestroyed) return;
                 this._cleanupPendingCallbacks();
+                if (myGeneration !== this._renderGeneration) return;
 
-                if (this._isValidWidth()) {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        if (!this._isDestroyed && this._isValidWidth() && this._pendingItems.length > 0) {
-                            const itemsToRender = this._pendingItems;
-                            this._pendingItems = [];
-                            this.addItems(itemsToRender, renderSession);
-                        }
-                        return GLib.SOURCE_REMOVE;
-                    });
+                if (this._isValidWidth() && this._pendingItems.length > 0) {
+                    const itemsToRender = this._pendingItems;
+                    this._pendingItems = [];
+                    this.addItems(itemsToRender, renderSession);
                 }
             };
 
@@ -535,7 +538,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Clean up pending allocation and timeout callbacks.
-         *
          * @private
          */
         _cleanupPendingCallbacks() {
@@ -557,9 +559,7 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Calculate the effective width accounting for padding.
-         *
-         * @returns {number} The effective width
+         * @returns {number} The effective width accounting for padding
          * @private
          */
         _calculateEffectiveWidth() {
@@ -567,8 +567,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Check if the effective width is valid.
-         *
          * @param {number} effectiveWidth - The effective width to validate
          * @returns {boolean} True if valid
          * @private
@@ -582,8 +580,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Calculate the width of each column.
-         *
          * @param {number} effectiveWidth - The effective width of the container
          * @returns {number} The column width
          * @private
@@ -594,8 +590,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Check if the column width is valid.
-         *
          * @param {number} columnWidth - The column width to validate
          * @returns {boolean} True if valid
          * @private
@@ -610,7 +604,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Render all items into the masonry layout.
-         *
          * @param {Array<object>} items - Items to render
          * @param {number} columnWidth - Width of each column
          * @param {object} renderSession - Render session object
@@ -621,20 +614,13 @@ export const MasonryLayout = GObject.registerClass(
 
             for (const itemData of items) {
                 this._items.push(itemData);
-
-                if (!this._hasValidDimensions(itemData)) {
-                    continue;
-                }
+                if (!this._hasValidDimensions(itemData)) continue;
 
                 const itemHeight = this._calculateItemHeight(itemData, columnWidth);
-                if (!this._isValidItemHeight(itemHeight)) {
-                    continue;
-                }
+                if (!this._isValidItemHeight(itemHeight)) continue;
 
                 const itemWidget = this._renderItemFn(itemData, renderSession);
-                if (!itemWidget) {
-                    continue;
-                }
+                if (!itemWidget) continue;
 
                 const shortestColumnIndex = this._findShortestColumn();
                 this._positionItem(itemWidget, shortestColumnIndex, columnWidth, itemHeight, paddingLeft);
@@ -644,7 +630,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if item data has valid dimensions.
-         *
          * @param {object} itemData - The item data
          * @returns {boolean} True if dimensions are valid
          * @private
@@ -655,7 +640,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Calculate item height based on aspect ratio.
-         *
          * @param {object} itemData - The item data with width and height
          * @param {number} columnWidth - The width of the column
          * @returns {number} The calculated item height
@@ -668,21 +652,16 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if the calculated item height is valid.
-         *
          * @param {number} itemHeight - The item height to validate
          * @returns {boolean} True if valid
          * @private
          */
         _isValidItemHeight(itemHeight) {
-            if (!isFinite(itemHeight) || itemHeight <= 0) {
-                return false;
-            }
-            return true;
+            return isFinite(itemHeight) && itemHeight > 0;
         }
 
         /**
          * Find the index of the shortest column.
-         *
          * @returns {number} The column index
          * @private
          */
@@ -692,7 +671,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Position an item widget in the layout.
-         *
          * @param {St.Widget} itemWidget - The widget to position
          * @param {number} columnIndex - The column index
          * @param {number} columnWidth - The width of the column
@@ -717,7 +695,6 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Update the height of a column after adding an item.
-         *
          * @param {number} columnIndex - The column index
          * @param {number} itemHeight - The height of the added item
          * @private
@@ -727,21 +704,18 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Update the overall container height to match the tallest column.
-         *
+         * Update the container height to match the tallest column.
          * @private
          */
         _updateContainerHeight() {
             const maxHeight = Math.max(...this._columnHeights);
-
             if (isFinite(maxHeight) && maxHeight > 0) {
                 this.height = maxHeight;
             }
         }
 
         /**
-         * Re-layout all existing items (called when width changes).
-         *
+         * Re-layout all existing items when width changes.
          * @private
          */
         _relayout() {
