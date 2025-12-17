@@ -6,7 +6,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
-import { ClipboardItemFactory } from '../../Clipboard/view/clipboardItemFactory.js';
+import { ClipboardItemFactory } from '../../Clipboard/view/clipboardListItemFactory.js';
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
 import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
 
@@ -61,7 +61,7 @@ export function createFullWidthListItem(itemData, isPinned, feature, context) {
         );
     } else if (isClipboardItem) {
         const config = ClipboardItemFactory.getItemViewConfig(itemData, context.clipboardManager._imagesDir, context.clipboardManager._linkPreviewsDir);
-        const contentWidget = ClipboardItemFactory.createContentWidget(config, itemData, {
+        const contentWidget = ClipboardItemFactory.createListContent(config, itemData, {
             imagesDir: context.clipboardManager._imagesDir,
             imagePreviewSize: context.imagePreviewSize,
         });
