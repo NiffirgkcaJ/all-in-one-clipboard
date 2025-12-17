@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 01:42+0000\n"
+"POT-Creation-Date: 2025-12-17 07:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -256,431 +256,445 @@ msgstr ""
 msgid "Previous Category"
 msgstr ""
 
-#: extension/prefs.js:510 extension/prefs.js:512 extension/prefs.js:513
-#: extension/prefs.js:844
+#: extension/prefs.js:497
+msgid "Clipboard Item Actions"
+msgstr ""
+
+#: extension/prefs.js:498
+msgid "Shortcuts for items in the grid/list view."
+msgstr ""
+
+#: extension/prefs.js:503
+msgid "Select Item"
+msgstr ""
+
+#: extension/prefs.js:504
+msgid "Pin Item"
+msgstr ""
+
+#: extension/prefs.js:505
+msgid "Delete Item"
+msgstr ""
+
+#: extension/prefs.js:545 extension/prefs.js:547 extension/prefs.js:548
+#: extension/prefs.js:879
 msgid "Disabled"
 msgstr ""
 
-#: extension/prefs.js:520
+#: extension/prefs.js:555
 msgid "Set Shortcut"
 msgstr ""
 
-#: extension/prefs.js:527
+#: extension/prefs.js:562
 msgid ""
 "Press a key combination\n"
 "Backspace to Clear, Escape to Cancel"
 msgstr ""
 
-#: extension/prefs.js:601
+#: extension/prefs.js:636
 msgid "Recent Items Limits"
 msgstr ""
 
-#: extension/prefs.js:602
+#: extension/prefs.js:637
 msgid "Maximum number of items to keep in \"Recents\" for each feature."
 msgstr ""
 
-#: extension/prefs.js:607
+#: extension/prefs.js:642
 msgid "Maximum Recent Emojis"
 msgstr ""
 
-#: extension/prefs.js:608
+#: extension/prefs.js:643
 msgid "Maximum Recent Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:609
+#: extension/prefs.js:644
 msgid "Maximum Recent Symbols"
 msgstr ""
 
-#: extension/prefs.js:610
+#: extension/prefs.js:645
 msgid "Maximum Recent GIFs"
 msgstr ""
 
-#: extension/prefs.js:621
+#: extension/prefs.js:656
 #, javascript-format
 msgid "Range: %d-%d. Default: %d."
 msgstr ""
 
-#: extension/prefs.js:640
+#: extension/prefs.js:675
 msgid "Auto-Paste Settings"
 msgstr ""
 
-#: extension/prefs.js:646
+#: extension/prefs.js:681
 msgid "Enable Auto-Paste"
 msgstr ""
 
-#: extension/prefs.js:647
+#: extension/prefs.js:682
 msgid ""
 "Automatically paste selected items instead of just copying to clipboard."
 msgstr ""
 
-#: extension/prefs.js:662
+#: extension/prefs.js:697
 msgid "Auto-Paste Emojis"
 msgstr ""
 
-#: extension/prefs.js:663
+#: extension/prefs.js:698
 msgid "Auto-Paste GIFs"
 msgstr ""
 
-#: extension/prefs.js:664
+#: extension/prefs.js:699
 msgid "Auto-Paste Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:665
+#: extension/prefs.js:700
 msgid "Auto-Paste Symbols"
 msgstr ""
 
-#: extension/prefs.js:666
+#: extension/prefs.js:701
 msgid "Auto-Paste from Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:688
+#: extension/prefs.js:723
 msgid "Clipboard Settings"
 msgstr ""
 
-#: extension/prefs.js:699
+#: extension/prefs.js:734
 msgid "Maximum Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:700
+#: extension/prefs.js:735
 #, javascript-format
 msgid "Number of items to keep in history (%d-%d). Default: %d."
 msgstr ""
 
-#: extension/prefs.js:712
+#: extension/prefs.js:747
 msgid "Move Item to Top on Copy"
 msgstr ""
 
-#: extension/prefs.js:713
+#: extension/prefs.js:748
 msgid "When copying an item from history, make it the most recent."
 msgstr ""
 
-#: extension/prefs.js:720
+#: extension/prefs.js:755
 msgid "Unpin Item on Paste"
 msgstr ""
 
-#: extension/prefs.js:721
+#: extension/prefs.js:756
 msgid "Automatically unpin an item when it is pasted."
 msgstr ""
 
-#: extension/prefs.js:732
+#: extension/prefs.js:767
 msgid "Image Preview Size"
 msgstr ""
 
-#: extension/prefs.js:733
+#: extension/prefs.js:768
 #, javascript-format
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr ""
 
-#: extension/prefs.js:752
+#: extension/prefs.js:787
 msgid "Emoji Settings"
 msgstr ""
 
-#: extension/prefs.js:753
+#: extension/prefs.js:788
 msgid "Configure emoji appearance and behavior."
 msgstr ""
 
-#: extension/prefs.js:758
+#: extension/prefs.js:793
 msgid "Enable Custom Skin Tones"
 msgstr ""
 
-#: extension/prefs.js:759
+#: extension/prefs.js:794
 msgid "If off, skinnable emojis are neutral. If on, use the settings below."
 msgstr ""
 
-#: extension/prefs.js:766
+#: extension/prefs.js:801
 msgid "Light"
 msgstr ""
 
-#: extension/prefs.js:767
+#: extension/prefs.js:802
 msgid "Medium-Light"
 msgstr ""
 
-#: extension/prefs.js:768
+#: extension/prefs.js:803
 msgid "Medium"
 msgstr ""
 
-#: extension/prefs.js:769
+#: extension/prefs.js:804
 msgid "Medium-Dark"
 msgstr ""
 
-#: extension/prefs.js:770
+#: extension/prefs.js:805
 msgid "Dark"
 msgstr ""
 
-#: extension/prefs.js:776
+#: extension/prefs.js:811
 msgid "Primary Tone / Single Emoji"
 msgstr ""
 
-#: extension/prefs.js:777
+#: extension/prefs.js:812
 msgid "For single emojis and the first person in pairs."
 msgstr ""
 
-#: extension/prefs.js:783
+#: extension/prefs.js:818
 msgid "Secondary Tone"
 msgstr ""
 
-#: extension/prefs.js:784
+#: extension/prefs.js:819
 msgid "For the second person in pairs."
 msgstr ""
 
-#: extension/prefs.js:834
+#: extension/prefs.js:869
 msgid "GIF Settings"
 msgstr ""
 
-#: extension/prefs.js:835
+#: extension/prefs.js:870
 msgid ""
 "To search for GIFs, you must select a provider and provide your own API key."
 msgstr ""
 
-#: extension/prefs.js:841
+#: extension/prefs.js:876
 msgid "GIF Provider"
 msgstr ""
 
-#: extension/prefs.js:842
+#: extension/prefs.js:877
 msgid "Select the service to use for fetching GIFs."
 msgstr ""
 
-#: extension/prefs.js:844
+#: extension/prefs.js:879
 msgid "Tenor"
 msgstr ""
 
-#: extension/prefs.js:844
+#: extension/prefs.js:879
 msgid "Imgur"
 msgstr ""
 
-#: extension/prefs.js:871
+#: extension/prefs.js:906
 msgid "Tenor API Key"
 msgstr ""
 
-#: extension/prefs.js:878
+#: extension/prefs.js:913
 msgid "Imgur Client ID"
 msgstr ""
 
-#: extension/prefs.js:893
+#: extension/prefs.js:928
 msgid "Paste Behavior"
 msgstr ""
 
-#: extension/prefs.js:894
+#: extension/prefs.js:929
 msgid "Choose how GIFs are pasted."
 msgstr ""
 
-#: extension/prefs.js:895
+#: extension/prefs.js:930
 msgid "Paste Link"
 msgstr ""
 
-#: extension/prefs.js:895
+#: extension/prefs.js:930
 msgid "Paste Image"
 msgstr ""
 
-#: extension/prefs.js:905
+#: extension/prefs.js:940
 msgid "Limit GIF Preview Cache Size"
 msgstr ""
 
-#: extension/prefs.js:906
+#: extension/prefs.js:941
 msgid "Turn off for an unlimited cache size."
 msgstr ""
 
-#: extension/prefs.js:920
+#: extension/prefs.js:955
 msgid "Cache Size Limit (MB)"
 msgstr ""
 
-#: extension/prefs.js:921
+#: extension/prefs.js:956
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr ""
 
-#: extension/prefs.js:1014
+#: extension/prefs.js:1049
 msgid "Data Management"
 msgstr ""
 
-#: extension/prefs.js:1015
+#: extension/prefs.js:1050
 msgid ""
 "Manage stored data and configure automatic cleanup. Manual actions cannot be "
 "undone."
 msgstr ""
 
-#: extension/prefs.js:1021
+#: extension/prefs.js:1056
 msgid "Clear Data at Login"
 msgstr ""
 
-#: extension/prefs.js:1022
+#: extension/prefs.js:1057
 msgid "Automatically clear selected data at every login"
 msgstr ""
 
-#: extension/prefs.js:1037
+#: extension/prefs.js:1072
 msgid "Clear Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:1038
+#: extension/prefs.js:1073
 msgid "Clear Recent Emojis"
 msgstr ""
 
-#: extension/prefs.js:1039
+#: extension/prefs.js:1074
 msgid "Clear Recent GIFs"
 msgstr ""
 
-#: extension/prefs.js:1040
+#: extension/prefs.js:1075
 msgid "Clear Recent Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:1041
+#: extension/prefs.js:1076
 msgid "Clear Recent Symbols"
 msgstr ""
 
-#: extension/prefs.js:1055 extension/prefs.js:1067
+#: extension/prefs.js:1090 extension/prefs.js:1102
 msgid "Clear"
 msgstr ""
 
-#: extension/prefs.js:1061
+#: extension/prefs.js:1096
 msgid "Are you sure?"
 msgstr ""
 
-#: extension/prefs.js:1062
+#: extension/prefs.js:1097
 msgid "The selected data will be permanently deleted."
 msgstr ""
 
-#: extension/prefs.js:1066
+#: extension/prefs.js:1101
 msgid "Cancel"
 msgstr ""
 
-#: extension/prefs.js:1083
+#: extension/prefs.js:1118
 msgid "Recent Item History"
 msgstr ""
 
-#: extension/prefs.js:1084
+#: extension/prefs.js:1119
 msgid "Clear lists of recently used emojis, GIFs, etc."
 msgstr ""
 
-#: extension/prefs.js:1091
+#: extension/prefs.js:1126
 msgid "Recent Emojis"
 msgstr ""
 
-#: extension/prefs.js:1092
+#: extension/prefs.js:1127
 msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
-#: extension/prefs.js:1096
+#: extension/prefs.js:1131
 msgid "Recent GIFs"
 msgstr ""
 
-#: extension/prefs.js:1097
+#: extension/prefs.js:1132
 msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
-#: extension/prefs.js:1101
+#: extension/prefs.js:1136
 msgid "Recent Kaomojis"
 msgstr ""
 
-#: extension/prefs.js:1102
+#: extension/prefs.js:1137
 msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
-#: extension/prefs.js:1106
+#: extension/prefs.js:1141
 msgid "Recent Symbols"
 msgstr ""
 
-#: extension/prefs.js:1107
+#: extension/prefs.js:1142
 msgid "Permanently clears the list of recent symbols."
 msgstr ""
 
-#: extension/prefs.js:1116
+#: extension/prefs.js:1151
 msgid "All Recent Items"
 msgstr ""
 
-#: extension/prefs.js:1117
+#: extension/prefs.js:1152
 msgid "Permanently clears all of the above lists at once."
 msgstr ""
 
-#: extension/prefs.js:1124
+#: extension/prefs.js:1159
 msgid "Clipboard Data"
 msgstr ""
 
-#: extension/prefs.js:1125
+#: extension/prefs.js:1160
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr ""
 
-#: extension/prefs.js:1130
+#: extension/prefs.js:1165
 msgid "Clipboard History"
 msgstr ""
 
-#: extension/prefs.js:1131
+#: extension/prefs.js:1166
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr ""
 
-#: extension/prefs.js:1137
+#: extension/prefs.js:1172
 msgid "Pinned Items"
 msgstr ""
 
-#: extension/prefs.js:1138
+#: extension/prefs.js:1173
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr ""
 
-#: extension/prefs.js:1145
+#: extension/prefs.js:1180
 msgid "Performance Caches"
 msgstr ""
 
-#: extension/prefs.js:1146
+#: extension/prefs.js:1181
 msgid "Clear temporary data used to improve loading speed."
 msgstr ""
 
-#: extension/prefs.js:1151
+#: extension/prefs.js:1186
 msgid "GIF Preview Cache"
 msgstr ""
 
-#: extension/prefs.js:1152
+#: extension/prefs.js:1187
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:119
-#: extension/features/Clipboard/tabClipboard.js:560
-#: extension/features/Clipboard/tabClipboard.js:566
+#: extension/features/Clipboard/tabClipboard.js:114
+#: extension/features/Clipboard/tabClipboard.js:592
+#: extension/features/Clipboard/tabClipboard.js:598
 msgid "Select All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:144
-#: extension/features/Clipboard/tabClipboard.js:317
-msgid "Start Private Mode (Pause Recording)"
+#: extension/features/Clipboard/tabClipboard.js:139
+#: extension/features/Clipboard/tabClipboard.js:249
+msgid "Switch to Grid View"
+msgstr ""
+
+#: extension/features/Clipboard/tabClipboard.js:139
+#: extension/features/Clipboard/tabClipboard.js:249
+msgid "Switch to List View"
 msgstr ""
 
 #: extension/features/Clipboard/tabClipboard.js:154
-#: extension/features/Clipboard/tabClipboard.js:582
+#: extension/features/Clipboard/tabClipboard.js:365
+msgid "Start Private Mode (Pause Recording)"
+msgstr ""
+
+#: extension/features/Clipboard/tabClipboard.js:164
+#: extension/features/Clipboard/tabClipboard.js:613
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:162
+#: extension/features/Clipboard/tabClipboard.js:172
 msgid "Delete Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:317
+#: extension/features/Clipboard/tabClipboard.js:365
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:563
+#: extension/features/Clipboard/tabClipboard.js:595
 msgid "Deselect All"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:589
+#: extension/features/Clipboard/tabClipboard.js:620
 msgid "Pin Selected"
 msgstr ""
 
-#: extension/features/Clipboard/tabClipboard.js:589
+#: extension/features/Clipboard/tabClipboard.js:620
 msgid "Unpin Selected"
-msgstr ""
-
-#: extension/features/Clipboard/tabClipboard.js:641
-msgid "No results found."
-msgstr ""
-
-#: extension/features/Clipboard/tabClipboard.js:641
-msgid "Clipboard history is empty."
-msgstr ""
-
-#: extension/features/Clipboard/tabClipboard.js:655
-msgid "Pinned"
-msgstr ""
-
-#: extension/features/Clipboard/tabClipboard.js:679
-msgid "History"
 msgstr ""
 
 #: extension/features/GIF/tabGIF.js:221
