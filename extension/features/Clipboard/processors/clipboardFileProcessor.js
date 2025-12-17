@@ -33,7 +33,6 @@ export class FileProcessor {
             return null;
         }
 
-        // Extract single URI from potential multi-line input
         const lines = cleanText.split(/[\r\n]+/).filter((l) => l.trim() !== '');
         if (lines.length !== 1) return null;
 

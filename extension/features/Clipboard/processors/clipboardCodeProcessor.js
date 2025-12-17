@@ -49,7 +49,7 @@ const STRUCTURAL_CHARS = /[{}[\]();=<>!&|.,:/\\]/g;
 const CAMEL_CASE_REGEX = /\b[a-z]+[A-Z][a-zA-Z]*\b/g;
 const SNAKE_CASE_REGEX = /\b[a-z]+_[a-z_]+\b/g;
 
-// Code line ending patterns - only strong code terminators, NOT ) which appears in prose
+// Code line ending patterns excluding ")" which appears in prose
 const CODE_LINE_ENDING = /[;{}]\s*$/;
 
 // Keywords for syntax highlighting
@@ -105,22 +105,44 @@ export class CodeProcessor {
      */
     static process(text) {
         if (!text) return null;
-        const cleanText = text.trim();
 
-        if (!this._isLikelyCode(cleanText)) {
+        // Limit analysis to 5KB for performance
+        const ANALYSIS_LIMIT = 5000;
+        const textSample = text.length > ANALYSIS_LIMIT ? text.substring(0, ANALYSIS_LIMIT) : text;
+
+        if (!this._isLikelyCode(textSample)) {
             return null;
         }
 
-        const lines = cleanText.split(/\r?\n/);
-        const previewLines = lines.slice(0, PREVIEW_LINE_LIMIT);
+        // Limit preview for performance
+        let previewLines = [];
+        let cursor = 0;
+        for (let i = 0; i < PREVIEW_LINE_LIMIT; i++) {
+            const nextLineEnd = text.indexOf('\n', cursor);
+            if (nextLineEnd === -1) {
+                previewLines.push(text.substring(cursor));
+                break;
+            }
+            previewLines.push(text.substring(cursor, nextLineEnd));
+            cursor = nextLineEnd + 1;
+            if (cursor >= text.length) break;
+        }
+
         const rawPreviewText = previewLines.join('\n');
-        const rawLines = previewLines.length;
-        const hash = ProcessorUtils.computeHashForString(cleanText);
+
+        // Count total lines efficiently without splitting
+        let rawLines = 1;
+        let pos = -1;
+        while ((pos = text.indexOf('\n', pos + 1)) !== -1) {
+            rawLines++;
+        }
+
+        const hash = ProcessorUtils.computeHashForString(text);
         const highlightedPreview = this._highlight(rawPreviewText);
 
         return {
             type: ClipboardType.CODE,
-            text: cleanText,
+            text: text,
             preview: highlightedPreview,
             raw_lines: rawLines,
             hash: hash,
@@ -147,8 +169,7 @@ export class CodeProcessor {
 
         if (nonEmptyLines.length === 0) return false;
 
-        // === EARLY CODE DETECTION ===
-        // If text contains code-specific comment syntax, it's definitely code
+        // Early code detection via code-specific comment syntax
         const hasCodeComments = nonEmptyLines.some((l) => {
             const trimmed = l.trim();
             return (
@@ -165,9 +186,7 @@ export class CodeProcessor {
         });
         if (hasCodeComments) return true;
 
-        // === PROSE REJECTION (early exit for obvious prose) ===
-        // Check if text looks like natural language sentences
-        // Use codeLines to avoid triggering on JSDoc/comments which contain prose words
+        // Reject obvious prose early with natural language detection
         const proseScore = this._calculateProseScore(codeLines.length > 0 ? codeLines : nonEmptyLines);
         if (proseScore >= PROSE_REJECTION_THRESHOLD) return false; // Strong prose signals = not code
 
@@ -179,36 +198,36 @@ export class CodeProcessor {
         const bracketBalance = this._checkBracketBalance(text);
         const namingRatio = this._calculateNamingConventionRatio(text);
 
-        // Score based on metrics (each contributes 0-1 points)
+        // Score based on metrics where each contributes 0-1 points
         let score = 0;
 
-        // Structural characters ({}[];() etc.)
+        // Structural characters like {}, [], ;, (), etc.
         if (structuralRatio >= STRUCTURAL_CHAR_THRESHOLD) score += SCORE_STRUCTURAL_BASE;
         if (structuralRatio >= STRUCTURAL_CHAR_THRESHOLD * 2) score += SCORE_STRUCTURAL_BONUS;
 
-        // Indentation (code is typically indented)
+        // Indentation since code is typically indented
         if (indentationRatio >= INDENTATION_THRESHOLD) score += SCORE_INDENTATION;
 
-        // Lines ending with code terminators (;, {, })
+        // Lines ending with code terminators like semicolon and braces
         if (codeLineEndingRatio >= CODE_LINE_ENDING_THRESHOLD) score += SCORE_LINE_ENDING_BASE;
         if (codeLineEndingRatio >= CODE_LINE_ENDING_THRESHOLD * 2) score += SCORE_LINE_ENDING_BONUS;
 
-        // Balanced brackets (code almost always has balanced brackets)
+        // Balanced brackets since code almost always has balanced brackets
         if (bracketBalance) score += SCORE_BRACKET_BALANCE;
 
         // camelCase/snake_case naming conventions
         if (namingRatio >= NAMING_CONVENTION_THRESHOLD) score += SCORE_NAMING;
 
-        // Bonus for larger code blocks (more confidence)
+        // Bonus for larger code blocks with more confidence
         if (nonEmptyLines.length > LARGE_BLOCK_LINE_COUNT) score += SCORE_LARGE_BLOCK_BONUS;
 
         // Subtract prose score from total
         score -= proseScore * PROSE_SCORE_MULTIPLIER;
 
-        // Higher threshold for short texts (more likely to be notes/titles)
+        // Higher threshold for short texts which are more likely notes/titles
         const threshold = nonEmptyLines.length <= SHORT_TEXT_LINE_COUNT ? CODE_SCORE_THRESHOLD_SHORT : CODE_SCORE_THRESHOLD;
 
-        // Threshold: need at least threshold points to be considered code
+        // Need at least threshold points to be considered code
         return score >= threshold;
     }
 
@@ -222,12 +241,12 @@ export class CodeProcessor {
         for (const line of lines) {
             const trimmed = line.trim();
 
-            // Sentence-like: starts with capital, contains spaces, ends with period/punctuation
+            // Sentence-like patterns starting with capital, containing spaces, ending with punctuation
             if (/^[A-Z][a-z].*\s.*[.!?]?$/.test(trimmed) && !trimmed.includes(';') && !trimmed.includes('{')) {
                 score += PROSE_SCORE_SENTENCE;
             }
 
-            // Title-like: all words capitalized
+            // Title-like patterns where all words are capitalized
             if (/^([A-Z][a-z]+\s*)+$/.test(trimmed)) {
                 score += PROSE_SCORE_TITLE;
             }
@@ -237,7 +256,7 @@ export class CodeProcessor {
                 score += PROSE_SCORE_WORDS;
             }
 
-            // Section headers with symbols (•Title•, **Title**, ==Title==, etc.)
+            // Section headers with symbols like bullets, asterisks, equals signs
             if (/^[•\-*=>#]+.+[•\-*=<#]+$/.test(trimmed) || /^#{1,6}\s+/.test(trimmed)) {
                 score += PROSE_SCORE_HEADER;
             }

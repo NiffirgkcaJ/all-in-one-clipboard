@@ -32,6 +32,10 @@ export class LinkProcessor {
      */
     static process(text) {
         if (!text) return null;
+
+        // URLs are usually short, so we can safely limit the length
+        if (text.length > 2048) return null;
+
         const cleanText = text.trim();
 
         if (URL_REGEX.test(cleanText)) {

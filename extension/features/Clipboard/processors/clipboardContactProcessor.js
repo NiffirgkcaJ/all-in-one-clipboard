@@ -1,5 +1,4 @@
-import Gio from 'gi://Gio';
-
+import { IOResource } from '../../../shared/utilities/utilityIO.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
 import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
@@ -33,14 +32,11 @@ export class ContactProcessor {
 
         this._initPromise = (async () => {
             try {
-                // Use Gio.resources_lookup_data to load from GResource bundle
-                const resourcePath = ResourceItem.COUNTRIES;
-                const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
+                const bytes = await IOResource.read(ResourceItem.COUNTRIES);
 
                 if (bytes) {
-                    const countriesArray = ServiceJson.parse(bytes.get_data());
+                    const countriesArray = ServiceJson.parse(bytes);
 
-                    // Build a lookup map: dial_code -> country info
                     this._countryByDialCode = new Map();
                     for (const country of countriesArray) {
                         if (country.dial_code) {
@@ -48,7 +44,7 @@ export class ContactProcessor {
                         }
                     }
                 } else {
-                    console.error('[AIO-Clipboard] ContactProcessor: Failed to lookup countries.json from GResource');
+                    console.error('[AIO-Clipboard] ContactProcessor: Failed to load countries.json from GResource');
                 }
             } catch (e) {
                 console.warn(`[AIO-Clipboard] ContactProcessor: Failed to load country data: ${e.message}`);
@@ -67,7 +63,7 @@ export class ContactProcessor {
         if (!text || text.length > MAX_CONTACT_LENGTH) return null; // Contacts are usually short
         const cleanText = text.trim();
 
-        // Check for Email
+        // Email
         if (EMAIL_REGEX.test(cleanText)) {
             const hash = ProcessorUtils.computeHashForString(cleanText);
             return {
@@ -80,17 +76,15 @@ export class ContactProcessor {
             };
         }
 
-        // Check for Phone
+        // Phone
         const phoneMatch = cleanText.match(PHONE_REGEX);
         if (phoneMatch) {
-            // Ensure data is loaded
             if (this._initPromise) {
                 await this._initPromise;
             } else {
                 console.warn('[AIO-Clipboard] ContactProcessor: process() called before init()! Cannot load country data.');
             }
 
-            // Extract digits only to match against dial codes
             const dialCodeMatch = cleanText.match(/^(\+\d+)/);
 
             let countryCode = null;

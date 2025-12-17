@@ -1,3 +1,4 @@
+import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 
@@ -77,7 +78,18 @@ export class ImageProcessor {
             return null;
         }
 
-        // Construct the item object
+        let imageWidth = null;
+        let imageHeight = null;
+        try {
+            const [format, width, height] = GdkPixbuf.Pixbuf.get_file_info(filePath);
+            if (format) {
+                imageWidth = width;
+                imageHeight = height;
+            }
+        } catch {
+            // Dimensions couldn't be read, continue without them
+        }
+
         const item = {
             id,
             type: ClipboardType.IMAGE,
@@ -85,6 +97,11 @@ export class ImageProcessor {
             image_filename: filename,
             hash,
         };
+
+        if (imageWidth && imageHeight) {
+            item.image_width = imageWidth;
+            item.image_height = imageHeight;
+        }
 
         if (file_uri) {
             item.file_uri = file_uri;
@@ -103,11 +120,9 @@ export class ImageProcessor {
         if (!item.file_uri || !item.image_filename) return false;
 
         try {
-            // Read from source file URI
             const bytes = await IOFile.read(item.file_uri.replace('file://', ''));
             if (!bytes) return false;
 
-            // Save to images directory
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
             const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
 
@@ -132,7 +147,6 @@ export class ImageProcessor {
             const bytes = await ServiceImage.download(item.source_url, DOWNLOAD_TIMEOUT);
             if (!bytes || bytes.length === 0) return false;
 
-            // Save to images directory
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
             const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
 

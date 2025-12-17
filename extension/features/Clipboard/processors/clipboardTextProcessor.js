@@ -43,15 +43,17 @@ export class TextProcessor {
 
     /**
      * Saves text items. Required by ClipboardManager.
+     * @param {Object} item - The item to save
+     * @param {string} textsDir - Directory for text files
+     * @param {boolean} forceFileSave - If true, always save to file regardless of length
      */
-    static async save(item, textsDir) {
+    static async save(item, textsDir, forceFileSave = false) {
         const { text, hash, type } = item;
         const id = ProcessorUtils.generateUUID();
 
         let has_full_content = false;
 
-        // Save long text to file
-        if (text && text.length > MAX_PREVIEW_LENGTH) {
+        if (text && (forceFileSave || text.length > MAX_PREVIEW_LENGTH)) {
             const filename = `${id}.txt`;
             const destPath = GLib.build_filenamev([textsDir, filename]);
             const success = await IOFile.write(destPath, ServiceText.toBytes(text));
@@ -62,24 +64,21 @@ export class TextProcessor {
             }
         }
 
-        // Use provided type or default to text
         const finalType = type || ClipboardType.TEXT;
 
-        // Use existing preview or create one
         let preview = item.preview;
         if (!preview && text) {
             preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
         }
 
-        const finalItem = {
+        return {
             id,
             type: finalType,
             timestamp: ProcessorUtils.getCurrentTimestamp(),
             preview: preview || '',
             hash,
             has_full_content,
+            raw_lines: item.raw_lines || 0,
         };
-
-        return finalItem;
     }
 }

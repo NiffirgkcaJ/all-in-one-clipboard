@@ -2,7 +2,6 @@ import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { IOFile } from '../../shared/utilities/utilityIO.js';
@@ -12,14 +11,9 @@ import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
-import { ClipboardItemFactory } from './view/clipboardItemFactory.js';
+import { ClipboardListView } from './view/clipboardListView.js';
+import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
-
-/**
- * Number of focusable UI elements per clipboard item row
- * Visual Order: Checkbox, Row Button (spans middle), Pin Button, Delete Button
- */
-const NUM_FOCUSABLE_ITEMS_PER_ROW = 4;
 
 /**
  * ClipboardTabContent
@@ -52,16 +46,17 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._settingSignalId = this._settings.connect('changed::clipboard-image-preview-size', () => {
                 this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
+                if (this._currentView) {
+                    this._currentView.setImagePreviewSize(this._imagePreviewSize);
+                }
                 this._redraw();
             });
 
             this._selectedIds = new Set();
             this._currentSearchText = '';
-            this._allItems = [];
             this._isPrivateMode = false;
-            this._gridAllButtons = [];
-            this._currentlyFocusedRow = null;
-            this._checkboxIconsMap = new Map();
+            this._currentView = null;
+            this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
 
             this._mainBox = new St.BoxLayout({
                 vertical: true,
@@ -106,7 +101,7 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             selectionBar.spacing = 8;
 
-            // Select All button with ternary states: unchecked, checked, mixed
+            // Select All button with unchecked/checked/mixed states
             this._selectAllButton = createDynamicIconButton(
                 {
                     unchecked: ClipboardIcons.CHECKBOX_UNCHECKED,
@@ -132,7 +127,22 @@ export const ClipboardTabContent = GObject.registerClass(
             actionButtonsBox.spacing = 4;
             selectionBar.add_child(actionButtonsBox);
 
-            // Private Mode button with binary states: inactive, active
+            // Layout toggle button
+            this._layoutToggleButton = createDynamicIconButton(
+                {
+                    list: ClipboardIcons.LAYOUT_LIST || 'view-list-symbolic',
+                    grid: ClipboardIcons.LAYOUT_GRID || 'view-grid-symbolic',
+                },
+                {
+                    initial: this._layoutMode,
+                    style_class: 'button clipboard-icon-button',
+                    tooltip_text: this._layoutMode === 'list' ? _('Switch to Grid View') : _('Switch to List View'),
+                },
+            );
+            this._layoutToggleButton.connect('clicked', () => this._onLayoutToggle());
+            actionButtonsBox.add_child(this._layoutToggleButton);
+
+            // Private Mode button with inactive/active states
             this._privateModeButton = createDynamicIconButton(
                 {
                     inactive: ClipboardIcons.ACTION_PRIVATE,
@@ -165,6 +175,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
             actionButtonsBox.add_child(this._pinSelectedButton);
             actionButtonsBox.add_child(this._deleteSelectedButton);
+
             this._mainBox.add_child(selectionBar);
         }
 
@@ -180,11 +191,69 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             this._mainBox.add_child(this._scrollView);
 
-            this._itemBox = new St.BoxLayout({
-                vertical: true,
-                style_class: 'clipboard-item-box',
+            // Create the appropriate view based on layout mode
+            this._createView(this._layoutMode);
+        }
+
+        /**
+         * Create or switch to a specific view type
+         * @param {string} mode - 'list' or 'grid'
+         * @private
+         */
+        _createView(mode) {
+            // Disconnect and destroy existing view
+            if (this._currentView) {
+                if (this._navigateUpSignalId) {
+                    this._currentView.disconnect(this._navigateUpSignalId);
+                    this._navigateUpSignalId = null;
+                }
+                // Remove from scroll view BEFORE destroying to prevent leftover references
+                this._scrollView.set_child(null);
+                this._currentView.destroy();
+                this._currentView = null;
+            }
+
+            const viewOptions = {
+                manager: this._manager,
+                imagePreviewSize: this._imagePreviewSize,
+                onItemCopy: this._onItemCopyToClipboard.bind(this),
+                onSelectionChanged: this._updateSelectionState.bind(this),
+                selectedIds: this._selectedIds,
+                scrollView: this._scrollView,
+                settings: this._settings,
+            };
+
+            if (mode === 'grid') {
+                this._currentView = new ClipboardGridView(viewOptions);
+            } else {
+                this._currentView = new ClipboardListView(viewOptions);
+            }
+
+            this._navigateUpSignalId = this._currentView.connect('navigate-up', () => {
+                this._searchComponent?.grabFocus();
             });
-            this._scrollView.set_child(this._itemBox);
+
+            this._scrollView.set_child(this._currentView);
+        }
+
+        /**
+         * Handle layout toggle button click
+         * @private
+         */
+        _onLayoutToggle() {
+            this._layoutMode = this._layoutMode === 'list' ? 'grid' : 'list';
+            this._settings.set_string('clipboard-layout-mode', this._layoutMode);
+
+            // Update button state and tooltip
+            this._layoutToggleButton.child.state = this._layoutMode;
+            this._layoutToggleButton.tooltip_text = this._layoutMode === 'list' ? _('Switch to Grid View') : _('Switch to List View');
+
+            // Recreate view and redraw
+            this._createView(this._layoutMode);
+            this._redraw();
+
+            // Restore focus to search field to keep keyboard navigation working
+            this._searchComponent?.grabFocus();
         }
 
         /**
@@ -195,10 +264,6 @@ export const ClipboardTabContent = GObject.registerClass(
             const selectionBar = this._mainBox.get_child_at_index(1);
             selectionBar.set_reactive(true);
             selectionBar.connect('key-press-event', this._onHeaderKeyPress.bind(this));
-
-            // Grid navigation
-            this._itemBox.set_reactive(true);
-            this._itemBox.connect('key-press-event', this._onGridKeyPress.bind(this));
         }
 
         /**
@@ -206,11 +271,29 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _connectManagerSignals() {
             this._historyChangedId = this._manager.connect('history-changed', () => {
-                this._redraw();
+                this._scheduleRedraw();
             });
 
             this._pinnedChangedId = this._manager.connect('pinned-list-changed', () => {
-                this._redraw();
+                this._scheduleRedraw();
+            });
+        }
+
+        /**
+         * Schedule a redraw, debouncing multiple rapid calls into one
+         * @private
+         */
+        _scheduleRedraw() {
+            if (this._redrawScheduled) {
+                return;
+            }
+            this._redrawScheduled = true;
+            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._redrawScheduled = false;
+                if (!this._isDestroyed) {
+                    this._redraw();
+                }
+                return GLib.SOURCE_REMOVE;
             });
         }
 
@@ -224,7 +307,9 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {St.Button[]} Array of focusable header buttons
          */
         _getHeaderButtons() {
-            return [this._selectAllButton, this._privateModeButton, this._pinSelectedButton, this._deleteSelectedButton].filter((button) => button.can_focus && button.visible);
+            return [this._selectAllButton, this._layoutToggleButton, this._privateModeButton, this._pinSelectedButton, this._deleteSelectedButton].filter(
+                (button) => button.can_focus && button.visible,
+            );
         }
 
         /**
@@ -255,49 +340,12 @@ export const ClipboardTabContent = GObject.registerClass(
             if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
                 return FocusUtils.handleLinearNavigation(event, headerButtons, currentIndex);
             }
-            if (symbol === Clutter.KEY_Down && this._gridAllButtons.length > 1) {
-                this._gridAllButtons[1].grab_key_focus();
-                return Clutter.EVENT_STOP;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        /**
-         * Handle keyboard navigation in the grid of clipboard items
-         *
-         * @param {St.Widget} actor - The actor that received the event
-         * @param {Clutter.Event} event - The key press event
-         * @returns {boolean} EVENT_STOP if handled, EVENT_PROPAGATE otherwise
-         */
-        _onGridKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-            const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
-            if (!isArrowKey || this._gridAllButtons.length === 0) return Clutter.EVENT_PROPAGATE;
-
-            const currentFocus = global.stage.get_key_focus();
-            const currentIndex = this._gridAllButtons.indexOf(currentFocus);
-
-            if (currentIndex === -1) {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
-                return FocusUtils.handleRowNavigation(event, this._gridAllButtons, currentIndex, NUM_FOCUSABLE_ITEMS_PER_ROW);
-            }
-
-            if (symbol === Clutter.KEY_Up || symbol === Clutter.KEY_Down) {
-                return FocusUtils.handleColumnNavigation(event, this._gridAllButtons, currentIndex, NUM_FOCUSABLE_ITEMS_PER_ROW, (side) => {
-                    if (side === 'up') {
-                        // Navigate to header if at top row
-                        const headerButtons = this._getHeaderButtons();
-                        if (headerButtons.length > 0) {
-                            headerButtons[0].grab_key_focus();
-                        }
-                        return Clutter.EVENT_STOP;
-                    }
-                    return undefined;
-                });
+            if (symbol === Clutter.KEY_Down) {
+                const viewFocusables = this._currentView?.getFocusables() || [];
+                if (viewFocusables.length > 1) {
+                    viewFocusables[1].grab_key_focus();
+                    return Clutter.EVENT_STOP;
+                }
             }
 
             return Clutter.EVENT_PROPAGATE;
@@ -321,20 +369,22 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle Select All / Deselect All button click
          */
         _onSelectAllClicked() {
-            const shouldSelectAll = this._selectedIds.size < this._allItems.length;
+            const allItems = this._currentView?.getAllItems() || [];
+            const checkboxIconsMap = this._currentView?.getCheckboxIconsMap() || new Map();
+            const shouldSelectAll = this._selectedIds.size < allItems.length;
 
             if (shouldSelectAll) {
-                this._allItems.forEach((item) => {
+                allItems.forEach((item) => {
                     this._selectedIds.add(item.id);
-                    const icon = this._checkboxIconsMap.get(item.id);
+                    const icon = checkboxIconsMap.get(item.id);
                     if (icon) {
                         icon.state = 'checked';
                     }
                 });
             } else {
                 this._selectedIds.clear();
-                this._allItems.forEach((item) => {
-                    const icon = this._checkboxIconsMap.get(item.id);
+                allItems.forEach((item) => {
+                    const icon = checkboxIconsMap.get(item.id);
                     if (icon) {
                         icon.state = 'unchecked';
                     }
@@ -462,8 +512,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 content = await this._manager.getContent(itemData.id);
             }
 
-            // For CODE type, never use preview as it contains HTML markup
-            // For TEXT type, use preview as fallback only if text is not available
+            // CODE preview has HTML markup so use text only, TEXT can fall back to preview
             if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
                 content = itemData.preview;
             } else if (!content && itemData.type === ClipboardType.CODE) {
@@ -509,24 +558,6 @@ export const ClipboardTabContent = GObject.registerClass(
             return false;
         }
 
-        /**
-         * Handles the click event for a row's pin button when the item is unpinned.
-         * @param {object} itemData - The data for the specific item to pin.
-         * @private
-         */
-        _onPinItemClicked(itemData) {
-            this._manager.pinItem(itemData.id);
-        }
-
-        /**
-         * Handles the click event for a row's star button when the item is pinned.
-         * @param {object} itemData - The data for the specific item to unpin.
-         * @private
-         */
-        _onUnpinItemClicked(itemData) {
-            this._manager.unpinItem(itemData.id);
-        }
-
         // ========================================================================
         // UI State Methods
         // ========================================================================
@@ -535,8 +566,9 @@ export const ClipboardTabContent = GObject.registerClass(
          * Update the UI state based on current selection
          */
         _updateSelectionState() {
+            const allItems = this._currentView?.getAllItems() || [];
             const numSelected = this._selectedIds.size;
-            const totalItems = this._allItems.length;
+            const totalItems = allItems.length;
             const canSelect = totalItems > 0;
             const hasSelection = numSelected > 0;
 
@@ -558,7 +590,7 @@ export const ClipboardTabContent = GObject.registerClass(
             if (!canSelect || numSelected === 0) {
                 this._selectAllIcon.state = 'unchecked';
                 this._selectAllButton.tooltip_text = _('Select All');
-            } else if (numSelected === totalItems) {
+            } else if (numSelected === allItems.length) {
                 this._selectAllIcon.state = 'checked';
                 this._selectAllButton.tooltip_text = _('Deselect All');
             } else {
@@ -576,8 +608,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * - If all selected items are already pinned, the action is to "Unpin".
          */
         _updatePinButtonState() {
-            // The icon for the action button should always be the generic 'pin' icon.
-            // this._pinSelectedButton.child.state = ...; // Not needed as it is static
+            // Pin icon is static, no state update needed
             if (this._selectedIds.size === 0) {
                 this._pinSelectedButton.tooltip_text = _('Pin/Unpin Selected');
                 return;
@@ -591,30 +622,16 @@ export const ClipboardTabContent = GObject.registerClass(
 
         /**
          * Redraw the entire clipboard list
-         * Preserves focus on the same item if it still exists after redraw
          */
         _redraw() {
-            // Track which item and button type had focus before redraw
-            const currentFocus = global.stage.get_key_focus();
-            let focusedItemId = null;
-            let focusedButtonType = null; // 'checkbox', 'row', 'pin', 'delete'
-
-            if (this._gridAllButtons.includes(currentFocus)) {
-                const buttonIndex = this._gridAllButtons.indexOf(currentFocus);
-                const itemIndex = Math.floor(buttonIndex / NUM_FOCUSABLE_ITEMS_PER_ROW);
-                const buttonPosition = buttonIndex % NUM_FOCUSABLE_ITEMS_PER_ROW;
-
-                if (itemIndex < this._allItems.length) {
-                    focusedItemId = this._allItems[itemIndex].id;
-                    focusedButtonType = buttonPosition;
-                }
+            // Check if grid view focus is on a card before render destroys them
+            const isGridView = this._layoutMode === 'grid';
+            let hadGridFocus = false;
+            if (isGridView && this._currentView) {
+                const currentFocus = global.stage.get_key_focus();
+                const focusables = this._currentView.getFocusables?.() || [];
+                hadGridFocus = focusables.includes(currentFocus);
             }
-
-            // Clear existing items
-            this._itemBox.destroy_all_children();
-            this._gridAllButtons = [];
-            this._currentlyFocusedRow = null;
-            this._checkboxIconsMap.clear();
 
             // Get items from manager
             let pinnedItems = this._manager.getPinnedItems();
@@ -631,175 +648,16 @@ export const ClipboardTabContent = GObject.registerClass(
                 historyItems = historyItems.filter(filterFn);
             }
 
-            this._allItems = [...pinnedItems, ...historyItems];
+            // Delegate rendering to the list view
+            this._currentView.render(pinnedItems, historyItems, isSearching);
+
+            // Update selection state based on new items
             this._updateSelectionState();
 
-            // Show empty state if no items
-            if (this._allItems.length === 0) {
-                this._itemBox.add_child(
-                    new St.Label({
-                        text: isSearching ? _('No results found.') : _('Clipboard history is empty.'),
-                        x_align: Clutter.ActorAlign.CENTER,
-                        y_align: Clutter.ActorAlign.CENTER,
-                        x_expand: true,
-                        y_expand: true,
-                    }),
-                );
-                return;
+            // If grid view had card focus, fall back to search field
+            if (hadGridFocus) {
+                this._searchComponent?.grabFocus();
             }
-
-            // Add pinned items section
-            if (pinnedItems.length > 0) {
-                this._itemBox.add_child(
-                    new St.Label({
-                        text: _('Pinned'),
-                        style_class: 'clipboard-section-header',
-                    }),
-                );
-
-                pinnedItems.forEach((item) => {
-                    this._itemBox.add_child(this._createItemWidget(item, true));
-                });
-            }
-
-            // Add separator between sections
-            if (pinnedItems.length > 0 && historyItems.length > 0) {
-                this._itemBox.add_child(
-                    new St.Widget({
-                        style_class: 'clipboard-separator',
-                        x_expand: true,
-                    }),
-                );
-            }
-
-            // Add history items section
-            if (historyItems.length > 0) {
-                this._itemBox.add_child(
-                    new St.Label({
-                        text: _('History'),
-                        style_class: 'clipboard-section-header',
-                    }),
-                );
-
-                historyItems.forEach((item) => {
-                    this._itemBox.add_child(this._createItemWidget(item, false));
-                });
-            }
-
-            // Restore focus to the same item if it still exists
-            if (focusedItemId) {
-                const newItemIndex = this._allItems.findIndex((item) => item.id === focusedItemId);
-
-                if (newItemIndex !== -1) {
-                    const targetButtonIndex = newItemIndex * NUM_FOCUSABLE_ITEMS_PER_ROW + (focusedButtonType || 1);
-                    if (targetButtonIndex < this._gridAllButtons.length) this._gridAllButtons[targetButtonIndex].grab_key_focus();
-                }
-            } else if (currentFocus && !currentFocus.get_parent() && this._gridAllButtons.length > 1) {
-                this._gridAllButtons[1].grab_key_focus();
-            }
-        }
-
-        /**
-         * Create a UI widget for a clipboard item.
-         *
-         * @param {Object} itemData - The clipboard item data.
-         * @param {boolean} isPinned - Whether the item is pinned.
-         * @returns {St.Button} The row button widget.
-         */
-        _createItemWidget(itemData, isPinned) {
-            // Main row button
-            const rowButton = new St.Button({
-                style_class: 'button clipboard-item-button',
-                can_focus: true,
-            });
-            rowButton.connect('clicked', () => this._onItemCopyToClipboard(itemData));
-
-            const mainBox = new St.BoxLayout({
-                vertical: false,
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'clipboard-row-content',
-            });
-            rowButton.set_child(mainBox);
-
-            // Checkbox for selection
-            const isChecked = this._selectedIds.has(itemData.id);
-            const itemCheckbox = createDynamicIconButton(
-                {
-                    unchecked: ClipboardIcons.CHECKBOX_UNCHECKED,
-                    checked: ClipboardIcons.CHECKBOX_CHECKED,
-                },
-                {
-                    initial: isChecked ? 'checked' : 'unchecked',
-                    style_class: 'button clipboard-item-checkbox',
-                    y_expand: false,
-                    y_align: Clutter.ActorAlign.CENTER,
-                },
-            );
-            const checkboxIcon = itemCheckbox.child;
-            this._checkboxIconsMap.set(itemData.id, checkboxIcon);
-
-            itemCheckbox.connect('clicked', () => {
-                if (rowButton.has_key_focus()) rowButton.remove_style_pseudo_class('focus');
-                if (this._selectedIds.has(itemData.id)) {
-                    this._selectedIds.delete(itemData.id);
-                    checkboxIcon.state = 'unchecked';
-                } else {
-                    this._selectedIds.add(itemData.id);
-                    checkboxIcon.state = 'checked';
-                }
-                this._updateSelectionState();
-            });
-
-            mainBox.add_child(itemCheckbox);
-
-            // Content widget based on item type
-            const config = ClipboardItemFactory.getItemViewConfig(itemData, this._manager._imagesDir, this._manager._linkPreviewsDir);
-            const contentWidget = ClipboardItemFactory.createContentWidget(config, itemData, {
-                imagesDir: this._manager._imagesDir,
-                imagePreviewSize: this._imagePreviewSize,
-            });
-            mainBox.add_child(contentWidget);
-
-            const rowStarButton = createStaticIconButton(isPinned ? ClipboardIcons.STAR_FILLED : ClipboardIcons.STAR_UNFILLED, {
-                style_class: 'button clipboard-icon-button',
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            if (isPinned) {
-                rowStarButton.connect('clicked', () => this._onUnpinItemClicked(itemData));
-            } else {
-                rowStarButton.connect('clicked', () => this._onPinItemClicked(itemData));
-            }
-
-            const deleteButton = createStaticIconButton(ClipboardIcons.DELETE, {
-                style_class: 'button clipboard-icon-button',
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            deleteButton.connect('clicked', () => this._manager.deleteItem(itemData.id));
-
-            const buttonsBox = new St.BoxLayout({
-                x_align: Clutter.ActorAlign.END,
-                style_class: 'clipboard-action-buttons',
-            });
-            buttonsBox.add_child(rowStarButton);
-            buttonsBox.add_child(deleteButton);
-            mainBox.add_child(buttonsBox);
-
-            // Register focus
-            const rowItems = [itemCheckbox, rowButton, rowStarButton, deleteButton];
-            this._gridAllButtons.push(...rowItems);
-
-            // Setup focus styling for all buttons in the row
-            for (const item of rowItems) {
-                item.connect('key-focus-in', () => {
-                    if (this._currentlyFocusedRow) this._currentlyFocusedRow.remove_style_class_name('focused');
-                    rowButton.add_style_class_name('focused');
-                    this._currentlyFocusedRow = rowButton;
-                    ensureActorVisibleInScrollView(this._scrollView, rowButton);
-                });
-                item.connect('key-focus-out', () => rowButton.remove_style_class_name('focused'));
-            }
-            return rowButton;
         }
 
         // ========================================================================
@@ -845,6 +703,8 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             this._searchComponent?.destroy();
+            this._currentView?.destroy();
+            this._currentView = null;
             this._manager = null;
             super.destroy();
         }

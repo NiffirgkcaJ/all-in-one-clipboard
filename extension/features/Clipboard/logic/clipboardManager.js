@@ -407,19 +407,19 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _handleCodeItem(codeResult) {
-            // Reuse TextProcessor storage logic.
-            this._handleExtractedContent(codeResult, TextProcessor, this._textsDir);
+            this._handleExtractedContent(codeResult, TextProcessor, this._textsDir, true);
         }
 
         /**
-         * Handle extracted content (text, code, images) using processor class
+         * Handle extracted content using processor class
          *
          * @param {Object} extraction - Extracted content
          * @param {Object} ProcessorClass - Processor class with save method
          * @param {string} storageDir - Directory to store content
+         * @param {boolean} forceFileSave - If true, always save to file
          * @private
          */
-        async _handleExtractedContent(extraction, ProcessorClass, storageDir) {
+        async _handleExtractedContent(extraction, ProcessorClass, storageDir, forceFileSave = false) {
             const hash = extraction.hash;
 
             const historyIndex = this._history.findIndex((item) => item.hash === hash);
@@ -434,7 +434,7 @@ export const ClipboardManager = GObject.registerClass(
                 return;
             }
 
-            const newItem = await ProcessorClass.save(extraction, storageDir);
+            const newItem = await ProcessorClass.save(extraction, storageDir, forceFileSave);
             if (newItem) {
                 this._history.unshift(newItem);
                 this._pruneHistory();
@@ -572,14 +572,31 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _pruneHistory() {
-            if (!this._initialLoadSuccess) return;
+            if (!this._initialLoadSuccess || this._history.length <= this._maxHistory) return;
+
+            // Identify items to remove
+            const itemsToRemove = [];
             while (this._history.length > this._maxHistory) {
-                const item = this._history.pop();
-                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
-                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
-                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
+                itemsToRemove.push(this._history.pop());
             }
+
+            // Process deletions in idle time to avoid flooding IO/locking UI
+            const batchSize = 5;
+            const processBatch = () => {
+                if (itemsToRemove.length === 0) return GLib.SOURCE_REMOVE;
+
+                const batch = itemsToRemove.splice(0, batchSize);
+                for (const item of batch) {
+                    if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
+                    if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
+                    if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
+                    if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
+                }
+
+                return itemsToRemove.length > 0 ? GLib.SOURCE_CONTINUE : GLib.SOURCE_REMOVE;
+            };
+
+            GLib.idle_add(GLib.PRIORITY_LOW, processBatch);
         }
 
         // ========================================================================

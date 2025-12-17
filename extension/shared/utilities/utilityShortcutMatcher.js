@@ -10,6 +10,7 @@ const KEY_MAP = {
     Tab: Clutter.KEY_Tab,
     ISO_Left_Tab: Clutter.KEY_ISO_Left_Tab,
     space: Clutter.KEY_space,
+    Space: Clutter.KEY_space, // GTK often returns 'Space'
     BackSpace: Clutter.KEY_BackSpace,
     Return: Clutter.KEY_Return,
     Enter: Clutter.KEY_KP_Enter, // Common alias
@@ -108,6 +109,21 @@ const KEY_MAP = {
     KP_Begin: Clutter.KEY_KP_Begin, // Often the '5' key with NumLock off
     KP_Next: Clutter.KEY_KP_Next, // Often aliases to Page Down
 };
+
+/**
+ * Resolve a key name to its Clutter key symbol.
+ * @param {string} keyName - The name of the key.
+ * @returns {number|null} The Clutter key symbol or null if not found.
+ */
+export function resolveKeySymbol(keyName) {
+    if (KEY_MAP[keyName]) {
+        return KEY_MAP[keyName];
+    }
+    if (keyName.length === 1) {
+        return keyName.toLowerCase().charCodeAt(0);
+    }
+    return null;
+}
 
 /**
  * Checks if a Clutter event matches any of the keyboard shortcuts defined in GSettings.

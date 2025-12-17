@@ -278,7 +278,7 @@
     max-height: 30px;
     padding: 0 4px;
     margin: 2px;
-    font-size: 1.0em;
+    font-size: 1em;
     background: transparent;
     transition: background-color 0.1s ease-out;
     text-align: center;
@@ -320,7 +320,7 @@
     max-height: 40px;
     padding: 0;
     margin: 2px;
-    font-size: 1.0em;
+    font-size: 1em;
     background: transparent;
     transition: background-color 0.1s ease-out;
     text-align: center;
@@ -333,62 +333,11 @@
 }
 
 /* --- Clipboard Tab Specific UI --- */
-.aio-clipboard-container .clipboard-item-button {
-    min-height: 48px;
-    height: 48px;
-    padding: 4px 8px;
-    margin: 2px;
-    background-color: transparent;
-    font-weight: normal;
-}
-
-.aio-clipboard-container .clipboard-icon-button,
-.aio-clipboard-container .clipboard-item-checkbox {
-    border-radius: 4px;
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-}
-
-.aio-clipboard-container .clipboard-icon-button {
-    min-width: 30px;
-    max-width: 30px;
-    min-height: 30px;
-    max-height: 30px;
-}
-
-.aio-clipboard-container .clipboard-item-checkbox {
-    min-width: 28px;
-    max-width: 28px;
-    min-height: 28px;
-    max-height: 28px;
-}
-
-.aio-clipboard-container .clipboard-item-text-label {
-    margin-left: 8px;
-    margin-right: 8px;
-}
-
-.aio-clipboard-container .clipboard-action-buttons {
-    padding: 0;
-}
-
-.aio-clipboard-container .clipboard-item-button:hover,
-.aio-clipboard-container .clipboard-item-button:focus,
-.aio-clipboard-container .clipboard-item-button.focused {
+/* Shared UI Components */
+.aio-clipboard-container .clipboard-separator {
+    height: 1px;
     background-color: rgba(128, 128, 128, 0.3);
-}
-
-.aio-clipboard-container .clipboard-icon-button.button:hover,
-.aio-clipboard-container .clipboard-icon-button.button:focus,
-.aio-clipboard-container .clipboard-item-checkbox.button:hover,
-.aio-clipboard-container .clipboard-item-checkbox.button:focus {
-    background-color: rgba(128, 128, 128, 0.3);
-}
-
-.aio-clipboard-container .clipboard-selection-bar {
-    padding: 4px 10px;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    margin: 4px 8px;
 }
 
 .aio-clipboard-container .clipboard-section-header {
@@ -397,46 +346,114 @@
     margin: 8px 8px 4px 8px;
 }
 
-.aio-clipboard-container .clipboard-separator {
-    height: 1px;
-    background-color: rgba(128, 128, 128, 0.3);
-    margin: 4px 8px;
+.aio-clipboard-container .clipboard-selection-bar {
+    padding: 4px 10px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
 }
 
-.aio-clipboard-container .clipboard-item-rich-container {
+.aio-clipboard-container .clipboard-icon-button {
+    min-width: 30px;
+    max-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    border-radius: 4px;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+}
+
+.aio-clipboard-container .clipboard-icon-button:hover,
+.aio-clipboard-container .clipboard-icon-button:focus {
+    background-color: rgba(128, 128, 128, 0.3);
+}
+
+/* List View */
+.aio-clipboard-container .clipboard-list-item {
+    height: 48px;
+    min-height: 48px;
+    padding: 4px 8px;
+    margin: 2px;
+    background-color: transparent;
+    font-weight: normal;
+}
+
+.aio-clipboard-container .clipboard-list-item:hover,
+.aio-clipboard-container .clipboard-list-item:focus {
+    background-color: rgba(128, 128, 128, 0.3);
+}
+
+.aio-clipboard-container .clipboard-list-controls {
+    padding: 0;
+}
+
+.aio-clipboard-container .clipboard-list-checkbox,
+.aio-clipboard-container .clipboard-list-control-button {
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
+    background-color: transparent;
+}
+
+.aio-clipboard-container .clipboard-list-checkbox {
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+}
+
+.aio-clipboard-container .clipboard-list-control-button {
+    min-width: 30px;
+    max-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
+}
+
+.aio-clipboard-container .clipboard-list-checkbox:hover,
+.aio-clipboard-container .clipboard-list-checkbox:focus,
+.aio-clipboard-container .clipboard-list-control-button:hover,
+.aio-clipboard-container .clipboard-list-control-button:focus {
+    background-color: rgba(128, 128, 128, 0.3);
+}
+
+.aio-clipboard-container .clipboard-list-text-label {
     margin-left: 8px;
     margin-right: 8px;
 }
 
-.aio-clipboard-container .clipboard-item-icon {
-    margin-right: 8px; /* Space between Icon and Title/Subtitle */
-}
-
-.aio-clipboard-container .clipboard-item-title {
-    font-weight: bold;
+.aio-clipboard-container .clipboard-list-title {
+    margin-bottom: 2px;
     font-size: 0.95em;
-    margin-bottom: 2px; /* Space between Title and Subtitle */
+    font-weight: bold;
 }
 
-.aio-clipboard-container .clipboard-item-subtitle {
-    font-weight: normal;
+.aio-clipboard-container .clipboard-list-subtitle {
     font-size: 0.8em;
+    font-weight: normal;
     color: rgba(180, 180, 180, 0.8);
 }
 
-.aio-clipboard-container .clipboard-item-button:hover .clipboard-item-subtitle,
-.aio-clipboard-container .clipboard-item-button:focus .clipboard-item-subtitle {
+.aio-clipboard-container .clipboard-list-item:hover .clipboard-list-subtitle,
+.aio-clipboard-container .clipboard-list-item:focus .clipboard-list-subtitle {
     color: inherit;
 }
 
-.aio-clipboard-container .clipboard-item-color-container {
-    border: 5px solid rgba(128, 128, 128, 0.4);
-    border-radius: 8px;
+.aio-clipboard-container .clipboard-list-rich-container {
+    margin-left: 8px;
     margin-right: 8px;
-    padding: 0;
 }
 
-.aio-clipboard-container .clipboard-item-color-swatch {
+.aio-clipboard-container .clipboard-list-rich-icon {
+    margin-right: 8px;
+}
+
+.aio-clipboard-container .clipboard-list-color-container {
+    padding: 0;
+    margin-right: 8px;
+    border: 5px solid rgba(128, 128, 128, 0.4);
+    border-radius: 8px;
+}
+
+.aio-clipboard-container .clipboard-list-color-swatch {
     min-width: 48px;
     max-width: 48px;
     min-height: 24px;
@@ -444,22 +461,135 @@
     border-radius: 3px;
 }
 
-.aio-clipboard-container .clipboard-item-code-container {
+.aio-clipboard-container .clipboard-list-code-container {
     padding: 0;
     margin-left: 8px;
     margin-right: 8px;
 }
 
-.aio-clipboard-container .clipboard-item-code-numbers {
-    color: rgba(128, 128, 128, 0.6);
-    text-align: center;
+.aio-clipboard-container .clipboard-list-code-numbers {
+    min-width: 13px;
     margin-right: 8px;
     font-family: monospace;
-    font-size: 0.80em;
-    min-width: 13px;
+    font-size: 0.8em;
+    text-align: center;
+    color: rgba(128, 128, 128, 0.6);
 }
 
-.aio-clipboard-container .clipboard-item-code-content {
+.aio-clipboard-container .clipboard-list-code-content {
     font-family: monospace;
-    font-size: 0.80em;
+    font-size: 0.8em;
+}
+
+/* Grid View */
+.aio-clipboard-container .clipboard-grid-container {
+    padding: 4px;
+}
+
+.aio-clipboard-container .clipboard-grid-card {
+    padding: 2px;
+    margin: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: transparent;
+    font-weight: normal;
+}
+
+.aio-clipboard-container .clipboard-grid-card:hover,
+.aio-clipboard-container .clipboard-grid-card:focus {
+    background-color: rgba(128, 128, 128, 0.3);
+}
+
+.aio-clipboard-container .clipboard-grid-card-content {
+    padding: 8px;
+}
+
+.aio-clipboard-container .clipboard-grid-type-badge {
+    padding: 6px;
+    border-radius: 6px 6px 0 0;
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(0, 0, 0, 0.5);
+    background-gradient-end: transparent;
+}
+
+.aio-clipboard-container .clipboard-grid-type-icon {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.aio-clipboard-container .clipboard-grid-controls {
+    padding: 6px 8px;
+    border-radius: 0 0 6px 6px;
+    background-gradient-direction: vertical;
+    background-gradient-start: transparent;
+    background-gradient-end: rgba(0, 0, 0, 0.6);
+}
+
+.aio-clipboard-container .clipboard-grid-checkbox,
+.aio-clipboard-container .clipboard-grid-control-button {
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    padding: 0;
+    margin: 0 2px;
+    border-radius: 4px;
+    background-color: transparent;
+}
+
+.aio-clipboard-container .clipboard-grid-checkbox:hover,
+.aio-clipboard-container .clipboard-grid-checkbox:focus,
+.aio-clipboard-container .clipboard-grid-control-button:hover,
+.aio-clipboard-container .clipboard-grid-control-button:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.aio-clipboard-container .clipboard-grid-text-label {
+    font-size: 11px;
+}
+
+.aio-clipboard-container .clipboard-grid-title {
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.aio-clipboard-container .clipboard-grid-subtitle {
+    font-size: 10px;
+}
+
+.aio-clipboard-container .clipboard-grid-rich-labels {
+    margin-top: 4px;
+}
+
+.aio-clipboard-container .clipboard-grid-image-content {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.aio-clipboard-container .clipboard-grid-color-container {
+    border-radius: 6px;
+}
+
+.aio-clipboard-container .clipboard-grid-color-card {
+    padding: 6px 8px;
+    border-radius: 0 0 6px 6px;
+    background-gradient-direction: vertical;
+    background-gradient-start: transparent;
+    background-gradient-end: rgba(0, 0, 0, 0.6);
+}
+
+.aio-clipboard-container .clipboard-grid-color-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.aio-clipboard-container .clipboard-grid-code-line-count {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.aio-clipboard-container .clipboard-grid-code-content {
+    font-family: monospace;
+    font-size: 10px;
 }

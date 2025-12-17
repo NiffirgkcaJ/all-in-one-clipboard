@@ -10,6 +10,16 @@ export class ProcessorUtils {
      * @returns {string} SHA256 hash
      */
     static computeHashForString(text) {
+        if (!text) return '';
+
+        // For massive strings over 1MB, sample to avoid freezing UI
+        if (text.length > 1024 * 1024) {
+            const head = text.substring(0, 4096);
+            const tail = text.substring(text.length - 4096);
+            const sample = `${head}:${text.length}:${tail}`;
+            return GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, sample, -1);
+        }
+
         return GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, text, -1);
     }
 

@@ -41,7 +41,7 @@ export const ClipboardStyling = {
     [ClipboardType.COLOR]: {
         icon: 'clipboard-type-color-pipette-symbolic.svg',
         iconSize: 16,
-        layout: 'rich',
+        layout: 'color',
         subtypes: {
             single: {
                 icon: 'clipboard-type-color-pipette-symbolic.svg',
@@ -117,9 +117,20 @@ export const ClipboardIcons = {
             color: '#f5793e',
         },
     },
+
+    LAYOUT_LIST: {
+        icon: 'clipboard-view-list-symbolic.svg',
+        iconSize: 16,
+    },
+    LAYOUT_GRID: {
+        icon: 'clipboard-view-grid-symbolic.svg',
+        iconSize: 16,
+    },
 };
 
 // Icon Size Configuration
 export const IconSizes = {
-    RICH_LAYOUT: 16,
+    LIST_RICH_ICON: 16,
+    GRID_RICH_ICON: 48,
+    BADGE_TYPE_ICON: 14,
 };

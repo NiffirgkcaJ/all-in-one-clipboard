@@ -52,24 +52,22 @@ export class ColorProcessor {
         if (!text) return null;
         const cleanText = text.trim();
 
-        // Strict validation: reject multi-line text (likely code/documents)
         if (cleanText.includes('\n')) return null;
 
-        // Strict validation: reject overly long strings (max length for color values)
         if (cleanText.length > MAX_COLOR_STRING_LENGTH) return null;
 
-        // Check for gradient
+        // Gradient
         if (GRADIENT_REGEX.test(cleanText)) {
             return this._processGradient(cleanText, imagesDir);
         }
 
-        // Check for palette with space or comma-separated colors or array format
+        // Palette
         const paletteResult = this._processPalette(cleanText, imagesDir);
         if (paletteResult) {
             return paletteResult;
         }
 
-        // Check for single color
+        // Single color
         let format = null;
         if (HEX_REGEX.test(cleanText)) {
             format = 'HEX';
@@ -122,7 +120,7 @@ export class ColorProcessor {
     static _processPalette(text, imagesDir) {
         let colors = [];
 
-        // Try array format: ["#ff0000", "#00ff00"]
+        // Try array format like ["#ff0000", "#00ff00", "#0000ff"]
         if (text.startsWith('[') && text.endsWith(']')) {
             try {
                 const parsed = JSON.parse(text);
@@ -174,7 +172,7 @@ export class ColorProcessor {
         if (colorStr.startsWith('#')) {
             let hex = colorStr.substring(1);
 
-            // Convert 3-digit to 6-digit
+            // Convert 3-digit to 6-digit hex
             if (hex.length === 3) {
                 hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
             }
@@ -211,19 +209,18 @@ export class ColorProcessor {
         const filename = `gradient_${hash}.png`;
         const filepath = GLib.build_filenamev([imagesDir, filename]);
 
-        // Check if file already exists
         if (IOFile.existsSync(filepath)) {
             return filename;
         }
 
         try {
-            // Create surface (48x24)
+            // Create 48x24 surface
             const width = 48;
             const height = 24;
             const surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, width, height);
             const cr = new Cairo.Context(surface);
 
-            // Create linear gradient (left to right)
+            // Create left-to-right linear gradient
             const pattern = new Cairo.LinearGradient(0, 0, width, 0);
 
             // Add color stops
@@ -280,16 +277,13 @@ export class ColorProcessor {
      * @returns {boolean} True if regeneration succeeded.
      */
     static regenerateGradient(item, imagesDir) {
-        // Only colors with gradients need healing (palette/gradient subtypes)
         if (!item.gradient_filename || !imagesDir) return false;
 
-        // Try to regenerate from stored colors array first
         if (item.colors && item.colors.length >= 2) {
             const filename = this._generateGradientImage(item.colors, item.hash, imagesDir);
             return filename !== null;
         }
 
-        // Try to regenerate from color_value (for gradients stored as CSS string)
         if (item.color_value) {
             const colors = this._extractColors(item.color_value);
             if (colors.length >= 2) {

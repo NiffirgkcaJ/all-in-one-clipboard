@@ -491,6 +491,24 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             const row = this._createShortcutRow(settings, shortcut.key, shortcut.title);
             categoryExpander.add_row(row);
         });
+
+        // Clipboard Item Shortcuts
+        const itemActionExpander = new Adw.ExpanderRow({
+            title: _('Clipboard Item Actions'),
+            subtitle: _('Shortcuts for items in the grid/list view.'),
+        });
+        group.add(itemActionExpander);
+
+        const itemActionShortcuts = [
+            { key: 'clipboard-key-toggle-select', title: _('Select Item'), isSingle: true },
+            { key: 'clipboard-key-toggle-pin', title: _('Pin Item'), isSingle: true },
+            { key: 'clipboard-key-delete', title: _('Delete Item'), isSingle: true },
+        ];
+
+        itemActionShortcuts.forEach((shortcut) => {
+            const row = this._createShortcutRow(settings, shortcut.key, shortcut.title, shortcut.isSingle);
+            itemActionExpander.add_row(row);
+        });
     }
 
     /**
@@ -499,15 +517,32 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
      * @param {Gio.Settings} settings - The Gio.Settings instance.
      * @param {string} key - The GSettings key for the shortcut.
      * @param {string} title - The title to display for the shortcut.
+     * @param {boolean} [isSingleString=false] - Whether the key stores a single string (default: array of strings).
      * @returns {Adw.ActionRow} The created action row.
      */
-    _createShortcutRow(settings, key, title) {
+    _createShortcutRow(settings, key, title, isSingleString = false) {
         const row = new Adw.ActionRow({
             title: title,
             activatable: true,
         });
 
-        const currentShortcut = settings.get_strv(key)[0] || _('Disabled');
+        const getShortcutValue = () => {
+            if (isSingleString) {
+                return settings.get_string(key);
+            }
+            const values = settings.get_strv(key);
+            return values[0] || '';
+        };
+
+        const setShortcutValue = (shortcut) => {
+            if (isSingleString) {
+                settings.set_string(key, shortcut);
+            } else {
+                settings.set_strv(key, shortcut ? [shortcut] : []);
+            }
+        };
+
+        const currentShortcut = getShortcutValue() || _('Disabled');
         const shortcutLabel = new Gtk.ShortcutLabel({
             disabled_text: _('Disabled'),
             accelerator: currentShortcut === _('Disabled') ? '' : currentShortcut,
@@ -546,7 +581,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
                 // Clear
                 if (keyval === Gdk.KEY_BackSpace) {
-                    settings.set_strv(key, []);
+                    setShortcutValue('');
                     shortcutLabel.set_accelerator('');
                     dialog.close();
                     return Gdk.EVENT_STOP;
@@ -576,7 +611,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 const shortcut = Gtk.accelerator_name(finalKeyval, mask);
 
                 if (shortcut) {
-                    settings.set_strv(key, [shortcut]);
+                    setShortcutValue(shortcut);
                     shortcutLabel.set_accelerator(shortcut);
                     dialog.close();
                 }

@@ -115,6 +115,21 @@
             <summary>Switch to previous category</summary>
             <description>Shortcut to cycle to the previous category within a tab.</description>
         </key>
+        <key name="clipboard-key-toggle-select" type="s">
+            <default>'space'</default>
+            <summary>Toggle item selection</summary>
+            <description>Key to toggle the selection checkbox on a focused clipboard item.</description>
+        </key>
+        <key name="clipboard-key-toggle-pin" type="s">
+            <default>'s'</default>
+            <summary>Toggle item pin/star</summary>
+            <description>Key to toggle the pin/star on a focused clipboard item.</description>
+        </key>
+        <key name="clipboard-key-delete" type="s">
+            <default>'Delete'</default>
+            <summary>Delete item</summary>
+            <description>Key to delete a focused clipboard item.</description>
+        </key>
 
         <!-- Recent Items Limits -->
         <key name="emoji-recents-max-items" type="i">
@@ -196,6 +211,11 @@
             <range min="48" max="300"/>
             <summary>Clipboard image preview size</summary>
             <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
+        </key>
+        <key name="clipboard-layout-mode" type="s">
+            <default>'list'</default>
+            <summary>Clipboard Layout Mode</summary>
+            <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
         </key>
 
         <!-- Emoji Settings -->
