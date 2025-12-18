@@ -11,9 +11,6 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 // Validation Patterns
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 
-// Configuration
-const DOWNLOAD_TIMEOUT = 10; // seconds
-
 /**
  * ImageProcessor - Handles image clipboard data
  *
@@ -127,19 +124,20 @@ export class ImageProcessor {
     /**
      * Regenerates an image by re-downloading from a source URL.
      * Used for images that were originally downloaded from the web (e.g., GIFs).
+     * @param {Soup.Session} httpSession - The HTTP session to use for the request
      * @param {Object} item - The clipboard item to heal.
      * @param {string} imagesDir - The directory to save the image to.
      * @returns {Promise<boolean>} True if regeneration succeeded.
      */
-    static async regenerateFromUrl(item, imagesDir) {
-        if (!item.source_url || !item.image_filename) return false;
+    static async regenerateFromUrl(httpSession, item, imagesDir) {
+        if (!httpSession || !item.source_url || !item.image_filename) return false;
 
         try {
-            const bytes = await ServiceImage.download(item.source_url, DOWNLOAD_TIMEOUT);
-            if (!bytes || bytes.length === 0) return false;
+            const result = await ServiceImage.download(httpSession, item.source_url);
+            if (!result?.bytes || result.bytes.length === 0) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
+            const success = await IOFile.write(destPath, ServiceImage.encode(result.bytes));
 
             return success;
         } catch (e) {

@@ -2,6 +2,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
+import Soup from 'gi://Soup';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
@@ -76,6 +77,7 @@ export const ClipboardManager = GObject.registerClass(
             this._setupSettingsMonitoring();
 
             this._linkProcessor = new LinkProcessor();
+            this._httpSession = new Soup.Session();
         }
 
         // ========================================================================
@@ -837,7 +839,7 @@ export const ClipboardManager = GObject.registerClass(
             }
             // If still missing and has source URL, try downloading
             if (item.source_url) {
-                return ImageProcessor.regenerateFromUrl(item, this._imagesDir);
+                return ImageProcessor.regenerateFromUrl(this._httpSession, item, this._imagesDir);
             }
             return false;
         }
@@ -1074,6 +1076,11 @@ export const ClipboardManager = GObject.registerClass(
             if (this._linkProcessor) {
                 this._linkProcessor.destroy();
                 this._linkProcessor = null;
+            }
+
+            if (this._httpSession) {
+                this._httpSession.abort();
+                this._httpSession = null;
             }
         }
     },

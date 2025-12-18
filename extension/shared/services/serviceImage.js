@@ -46,31 +46,30 @@ export const ServiceImage = {
 
     /**
      * Downloads image bytes from a URL.
+     * @param {Soup.Session} httpSession - The HTTP session to use
      * @param {string} url - Image URL
-     * @param {number} [timeoutSec=10] - Request timeout in seconds
-     * @returns {Promise<Uint8Array|null>} Image bytes or null on error
+     * @returns {Promise<{bytes: Uint8Array, contentType: string}|null>} Result object or null on error
      */
-    async download(url, timeoutSec = 10) {
-        if (!url) return null;
+    async download(httpSession, url) {
+        if (!httpSession || !url) return null;
 
         try {
-            const session = new Soup.Session();
-            session.timeout = timeoutSec;
-
             const message = new Soup.Message({
                 method: 'GET',
                 uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
             });
 
             return await new Promise((resolve, reject) => {
-                session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (sess, res) => {
+                httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (sess, res) => {
                     if (message.get_status() >= 300) {
                         reject(new Error(`HTTP Error ${message.get_status()}`));
                         return;
                     }
                     try {
-                        const bytes = sess.send_and_read_finish(res);
-                        resolve(bytes?.get_data() || null);
+                        const gbytes = sess.send_and_read_finish(res);
+                        const bytes = gbytes?.get_data() || null;
+                        const contentType = message.get_response_headers().get_one('Content-Type') || '';
+                        resolve({ bytes, contentType });
                     } catch (e) {
                         reject(e);
                     }

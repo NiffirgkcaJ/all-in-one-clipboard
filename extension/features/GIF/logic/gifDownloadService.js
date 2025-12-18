@@ -28,26 +28,8 @@ export class GifDownloadService {
      * @returns {Promise<Uint8Array>} The image bytes
      */
     async fetchImageBytes(url) {
-        const message = new Soup.Message({
-            method: 'GET',
-            uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
-        });
-
-        return new Promise((resolve, reject) => {
-            this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
-                if (message.get_status() >= 300) {
-                    reject(new Error(`HTTP Error ${message.get_status()}`));
-                    return;
-                }
-
-                try {
-                    const bytes = session.send_and_read_finish(res);
-                    resolve(bytes?.get_data() || null);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        });
+        const result = await ServiceImage.download(this._httpSession, url);
+        return result?.bytes || null;
     }
 
     /**

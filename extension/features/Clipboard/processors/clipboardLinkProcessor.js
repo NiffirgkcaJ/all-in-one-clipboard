@@ -21,8 +21,8 @@ export class LinkProcessor {
      * Initializes the LinkProcessor with a Soup session.
      */
     constructor() {
-        this._session = new Soup.Session();
-        this._session.timeout = SESSION_TIMEOUT;
+        this._httpSession = new Soup.Session();
+        this._httpSession.timeout = SESSION_TIMEOUT;
     }
 
     /**
@@ -59,7 +59,7 @@ export class LinkProcessor {
     async fetchMetadata(url) {
         try {
             const message = Soup.Message.new('GET', url);
-            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return { title: null, iconUrl: null };
 
@@ -189,7 +189,7 @@ export class LinkProcessor {
             if (!manifestUrl) return null;
 
             const message = Soup.Message.new('GET', manifestUrl);
-            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return null;
 
@@ -230,7 +230,7 @@ export class LinkProcessor {
             const faviconUrl = `${originMatch[1]}/favicon.ico`;
             const message = Soup.Message.new('HEAD', faviconUrl);
 
-            await this._session.send_async(message, GLib.PRIORITY_DEFAULT, null);
+            await this._httpSession.send_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code === 200) {
                 return faviconUrl;
@@ -296,18 +296,14 @@ export class LinkProcessor {
         if (!iconUrl) return null;
 
         try {
-            const message = Soup.Message.new('GET', iconUrl);
-            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const result = await ServiceImage.download(this._httpSession, iconUrl);
+            if (!result?.bytes || result.bytes.length === 0) return null;
 
-            if (message.status_code !== 200 || !bytes || bytes.get_size() === 0) return null;
-
-            const contentType = message.get_response_headers().get_one('Content-Type') || '';
-            const ext = this._getExtensionFromContentType(contentType, iconUrl);
-
+            const ext = this._getExtensionFromContentType(result.contentType, iconUrl);
             const filename = `${fileBasename}.${ext}`;
             const filePath = GLib.build_filenamev([destinationDir, filename]);
 
-            const success = await IOFile.write(filePath, ServiceImage.encode(bytes.get_data()));
+            const success = await IOFile.write(filePath, ServiceImage.encode(result.bytes));
             if (!success) return null;
 
             return filename;
@@ -349,7 +345,7 @@ export class LinkProcessor {
      * @returns {Promise<string|null>} The new filename or null.
      */
     async regenerateIcon(item, linkPreviewsDir) {
-        if (!item.url || !this._session) return null;
+        if (!item.url || !this._httpSession) return null;
 
         const { iconUrl } = await this.fetchMetadata(item.url);
         if (iconUrl) {
@@ -382,9 +378,9 @@ export class LinkProcessor {
      * Cleanup resources
      */
     destroy() {
-        if (this._session) {
-            this._session.abort();
-            this._session = null;
+        if (this._httpSession) {
+            this._httpSession.abort();
+            this._httpSession = null;
         }
     }
 }
