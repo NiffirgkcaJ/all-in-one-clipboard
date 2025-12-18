@@ -9,7 +9,7 @@
     ],
     "url": "https://github.com/NiffirgkcaJ/all-in-one-clipboard",
     "uuid": "all-in-one-clipboard@NiffirgkcaJ.github.com",
-    "version": 14,
+    "version": 15,
     "settings-schema": "org.gnome.shell.extensions.all-in-one-clipboard",
     "textdomain": "all-in-one-clipboard"
 }
