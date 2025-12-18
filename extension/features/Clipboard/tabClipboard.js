@@ -641,7 +641,20 @@ export const ClipboardTabContent = GObject.registerClass(
             // Apply search filter if active
             if (isSearching) {
                 const filterFn = (item) => {
-                    const searchTarget = item.type === ClipboardType.TEXT || item.type === ClipboardType.FILE || item.type === ClipboardType.COLOR ? item.preview : item.title || item.url;
+                    let searchTarget;
+                    switch (item.type) {
+                        case ClipboardType.IMAGE:
+                            searchTarget = item.source_url || item.image_filename;
+                            break;
+                        case ClipboardType.URL:
+                            searchTarget = item.title || item.url;
+                            break;
+                        case ClipboardType.COLOR:
+                            searchTarget = item.color_value;
+                            break;
+                        default:
+                            searchTarget = item.preview;
+                    }
                     return searchTarget && searchTarget.toLowerCase().includes(this._currentSearchText);
                 };
                 pinnedItems = pinnedItems.filter(filterFn);
