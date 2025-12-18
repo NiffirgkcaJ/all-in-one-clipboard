@@ -90,8 +90,8 @@ export class ImageProcessor {
         };
 
         if (imageWidth && imageHeight) {
-            item.image_width = imageWidth;
-            item.image_height = imageHeight;
+            item.width = imageWidth;
+            item.height = imageHeight;
         }
 
         if (file_uri) {

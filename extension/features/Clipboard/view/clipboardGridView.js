@@ -340,10 +340,10 @@ export const ClipboardGridView = GObject.registerClass(
 
                 if (item.type === 'image' && item.image_filename) {
                     // Check stored dimensions from item data for new images
-                    if (item.image_width && item.image_height) {
-                        width = item.image_width;
+                    if (item.width && item.height) {
+                        width = item.width;
                         const minHeight = width * (9 / 16);
-                        height = Math.max(item.image_height, minHeight);
+                        height = Math.max(item.height, minHeight);
                     } else {
                         // Legacy items try cache or trigger async load
                         const dims = this._getImageDimensions(item.image_filename);
