@@ -15,8 +15,8 @@ if [[ "$TARGET" != "review" && "$TARGET" != "package" && "$TARGET" != "update-te
 fi
 
 # Read the UUID directly from the metadata.json inside the extension directory
-if ! EXTENSION_UUID=$(jq -r '.uuid' extension/metadata.json); then
-    echo "Error: Could not parse UUID from extension/metadata.json." >&2
+if ! EXTENSION_UUID=$(jq -r '.uuid' gnome-extensions/extension/metadata.json); then
+    echo "Error: Could not parse UUID from gnome-extensions/extension/metadata.json." >&2
     echo "Please ensure 'jq' is installed and the file is correct." >&2
     exit 1
 fi
@@ -27,20 +27,20 @@ update_translation_templates() {
     echo "Updating translation templates..."
 
     # Update the UI strings template (from .js files)
-    xgettext --from-code=UTF-8 -o po/all-in-one-clipboard.pot -k_ -L JavaScript extension/*.js extension/features/**/*.js extension/shared/**/*.js
+    xgettext --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
 
     # Update the DATA strings template (from .json files) using our Python script
-    python3 ./build-aux/extract-data-strings.py po/all-in-one-clipboard-content.pot extension/assets/data/json
+    python3 ./gnome-extensions/build-aux/extract-data-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data/json
 
     # Safely merge any new strings into the language files (e.g., all-in-one-clipboard@fr.po)
     echo "Merging new strings into language files..."
-    for po_file in po/*.po; do
+    for po_file in gnome-extensions/translation/*.po; do
         if [ -f "$po_file" ]; then
             # Figure out which template to use based on the filename
             if [[ "$po_file" == *"all-in-one-clipboard-content"* ]]; then
-                msgmerge --update "$po_file" po/all-in-one-clipboard-content.pot
+                msgmerge --update "$po_file" gnome-extensions/translation/all-in-one-clipboard-content.pot
             else
-                msgmerge --update "$po_file" po/all-in-one-clipboard.pot
+                msgmerge --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
             fi
         fi
     done
@@ -80,7 +80,7 @@ fi
 # 2. Create a fresh build directory and copy files
 echo "Copying all extension files..."
 mkdir -p "$BUILD_DIR"
-cp -r extension/* "$BUILD_DIR/"
+cp -r gnome-extensions/extension/* "$BUILD_DIR/"
 
 # 3. Compile assets required for both 'package' and 'review' builds (GResource and Translations)
 echo "Compiling GResource bundle..."
@@ -92,7 +92,7 @@ fi
 
 echo "Compiling translation files..."
 mkdir -p "$BUILD_DIR/locale"
-for po_file in po/*.po; do
+for po_file in gnome-extensions/translation/*.po; do
     if [ -f "$po_file" ]; then
         lang_code=$(basename "$po_file" .po | cut -d'@' -f2)
         if [[ "$lang_code" == $(basename "$po_file" .po) ]]; then continue; fi

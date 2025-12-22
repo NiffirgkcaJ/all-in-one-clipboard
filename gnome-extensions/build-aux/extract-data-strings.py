@@ -9,7 +9,7 @@ Usage:
     python extract-data-strings.py <output_file.pot> <input_dir>
 
 Example:
-    python extract-data-strings.py po/data-content.pot extension/assets/data/json
+    python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data/json
 """
 
 import json
@@ -176,7 +176,7 @@ def generate_pot_file(output_path, strings, source_files):
 def main():
     if len(sys.argv) != 3:
         print("Usage: python extract-data-strings.py <output_file.pot> <input_dir>")
-        print("Example: python extract-data-strings.py po/data-content.pot extension/assets/data/json")
+        print("Example: python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data/json")
         sys.exit(1)
 
     output_file = Path(sys.argv[1])

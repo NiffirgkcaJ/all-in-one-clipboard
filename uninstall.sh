@@ -4,7 +4,7 @@ set -e
 # --- Configuration ---
 # Read the UUID directly from metadata.json
 # The '-r' flag removes the quotes from the output string.
-EXTENSION_UUID=$(jq -r '.uuid' extension/metadata.json)
+EXTENSION_UUID=$(jq -r '.uuid' gnome-extensions/extension/metadata.json)
 
 # Check if jq succeeded and EXTENSION_UUID is set
 if [ -z "$EXTENSION_UUID" ]; then

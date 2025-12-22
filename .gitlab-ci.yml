@@ -30,7 +30,7 @@ create_release:
     ./build.sh package
 
     # Define Asset Name
-    export ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip
+    export ASSET_NAME=$(jq -r '.uuid' gnome-extensions/extension/metadata.json).zip
 
     # Define the Package Registry URL
     export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/all-in-one-clipboard/${RELEASE_VERSION}/${ASSET_NAME}"

@@ -30,7 +30,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Chore: Update translation templates"
-          file_pattern: "po/"
+          file_pattern: "gnome-extensions/translation/"
           commit_user_name: "GitHub Action Bot"
           commit_user_email: "actions@github.com"
 
@@ -54,7 +54,7 @@ jobs:
           COMMIT_VERSION=$(echo "$COMMIT_MSG" | sed -n 's/^Version \([0-9.]*\).*/\1/p')
 
           # Extract version from metadata.json
-          METADATA_VERSION=$(jq -r '.version' extension/metadata.json)
+          METADATA_VERSION=$(jq -r '.version' gnome-extensions/extension/metadata.json)
 
           echo "Version in commit message: $COMMIT_VERSION"
           echo "Version in metadata.json: $METADATA_VERSION"
@@ -99,7 +99,7 @@ jobs:
         run: ./build.sh package
 
       - name: Determine Asset Filename
-        run: echo "ASSET_NAME=$(jq -r '.uuid' extension/metadata.json).zip" >> $GITHUB_ENV
+        run: echo "ASSET_NAME=$(jq -r '.uuid' gnome-extensions/extension/metadata.json).zip" >> $GITHUB_ENV
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -134,8 +134,8 @@ jobs:
 
       - name: Rename Artifact for Upload Action
         run: |
-          ORIGINAL_ZIP="$(jq -r '.uuid' extension/metadata.json)-review.zip"
-          RENAMED_ZIP="$(jq -r '.uuid' extension/metadata.json).shell-extension.zip"
+          ORIGINAL_ZIP="$(jq -r '.uuid' gnome-extensions/extension/metadata.json)-review.zip"
+          RENAMED_ZIP="$(jq -r '.uuid' gnome-extensions/extension/metadata.json).shell-extension.zip"
           mv "$ORIGINAL_ZIP" "$RENAMED_ZIP"
 
       - name: Upload to GNOME Extensions

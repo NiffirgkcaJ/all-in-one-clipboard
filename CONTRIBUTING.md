@@ -42,10 +42,10 @@ Let's say you want to add a translation for your language (e.g., German, `de_DE`
 4.  **Create the Language Files:** Run the following two commands from the root of the project directory. These will create the two `.po` files you need to edit.
     ```bash
     # Create the UI translation file
-    msginit --input=po/all-in-one-clipboard.pot --locale=<your_locale_code> --output-file=po/all-in-one-clipboard@<your_locale_code>.po
+    msginit --input=gnome-extensions/translation/all-in-one-clipboard.pot --locale=<your_locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard@<your_locale_code>.po
 
     # Create the Data Content translation file
-    msginit --input=po/all-in-one-clipboard-content.pot --locale=<your_locale_code> --output-file=po/all-in-one-clipboard-content@<your_locale_code>.po
+    msginit --input=gnome-extensions/translation/all-in-one-clipboard-content.pot --locale=<your_locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard-content@<your_locale_code>.po
     ```
     *(Remember to replace `<your_locale_code>` with your actual locale code!)*
 
@@ -74,7 +74,7 @@ Let's say you want to add a translation for your language (e.g., German, `de_DE`
 If you are improving an existing translation, the process is even simpler:
 1.  Make sure you have the latest code from the repository.
 2.  Run `./build.sh update-templates` to ensure your local translation files are updated with any new strings.
-3.  Open the existing `.po` files (e.g., `po/all-in-one-clipboard@de_DE.po`).
+3.  Open the existing `.po` files (e.g., `gnome-extensions/translation/all-in-one-clipboard@de_DE.po`).
 4.  Find any untranslated entries (where `msgstr` is empty) or fix any existing translations.
 5.  Save the files, test them, and submit a Pull Request.
 

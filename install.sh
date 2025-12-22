@@ -4,7 +4,7 @@ set -e
 # --- Configuration ---
 # Read the UUID directly from metadata.json
 # The '-r' flag removes the quotes from the output string.
-EXTENSION_UUID=$(jq -r '.uuid' extension/metadata.json)
+EXTENSION_UUID=$(jq -r '.uuid' gnome-extensions/extension/metadata.json)
 
 # Check if jq succeeded and EXTENSION_UUID is set
 if [ -z "$EXTENSION_UUID" ]; then
@@ -24,7 +24,7 @@ mkdir -p "$INSTALL_DIR"
 
 # 2. Copy all necessary source files and directories from the 'extension' folder
 echo "Copying source files..."
-cp -r extension/* "$INSTALL_DIR/"
+cp -r gnome-extensions/extension/* "$INSTALL_DIR/"
 
 # 3. Compile the GSettings schema in the installation directory
 echo "Compiling GSettings schema..."
@@ -47,10 +47,10 @@ rm -f "$INSTALL_DIR/all-in-one-clipboard.gresource.xml"
 
 # 5. Compile translations
 echo "Compiling translation files..."
-# Check if the 'po' directory exists
-if [ -d "po" ]; then
-    # Loop through every .po file in the po directory
-    for po_file in po/*.po; do
+# Check if the 'translation' directory exists
+if [ -d "gnome-extensions/translation" ]; then
+    # Loop through every .po file in the translation directory
+    for po_file in gnome-extensions/translation/*.po; do
         if [ -f "$po_file" ]; then
             # Get the language code
             lang_code=$(basename "$po_file" .po | cut -d'@' -f2)
@@ -69,7 +69,7 @@ if [ -d "po" ]; then
         fi
     done
 else
-    echo "Info: 'po' directory not found. Skipping translation compilation."
+    echo "Info: 'gnome-extensions/translation' directory not found. Skipping translation compilation."
 fi
 
 # 6. Final success message

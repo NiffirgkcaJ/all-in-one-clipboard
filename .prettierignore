@@ -7,6 +7,9 @@ eslint.config.js
 # Ignore extension metadata file
 metadata.json
 
+# Ignore Markdown files
+*.md
+
 # Ignore YAML configuration files
 *.yaml
 *.yml

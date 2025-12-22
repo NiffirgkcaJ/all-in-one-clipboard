@@ -7,7 +7,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
     {
-        ignores: ["eslint.config.js", ".prettierrc", ".prettierignore", ".stylelintrc.json", "metadata.json", "*.yaml", "*.yml"],
+        ignores: ["eslint.config.js", ".prettierrc", ".prettierignore", ".stylelintrc.json", "metadata.json", ".md", "*.yaml", "*.yml"],
     },
     js.configs.recommended,
     eslintConfigPrettier,
