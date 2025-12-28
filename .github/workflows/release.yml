@@ -178,7 +178,7 @@ jobs:
 
           # Add GitLab remote
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-          git remote add gitlab "git@gitlab.com:NiffirgkcaJ/all-in-one-clipboard.git"
+          git remote add gitlab "git@gitlab.com:NiffirgkcaJ/${{ github.event.repository.name }}.git"
 
           # Push to GitLab
           echo "Pushing to GitLab..."
