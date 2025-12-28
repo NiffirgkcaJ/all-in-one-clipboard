@@ -33,7 +33,7 @@ create_release:
     export ASSET_NAME=$(jq -r '.uuid' gnome-extensions/extension/metadata.json).zip
 
     # Define the Package Registry URL
-    export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/all-in-one-clipboard/${RELEASE_VERSION}/${ASSET_NAME}"
+    export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${RELEASE_VERSION}/${ASSET_NAME}"
 
     # Upload the ZIP file to GitLab Package Registry
     echo "Uploading ${ASSET_NAME}..."
