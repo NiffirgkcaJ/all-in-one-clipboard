@@ -1,7 +1,7 @@
 import GLib from 'gi://GLib';
-import St from 'gi://St';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { ServiceText } from '../../../shared/services/serviceText.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -23,22 +23,17 @@ export class TextProcessor {
      * @returns {Promise<Object|null>} An object containing text, hash, and bytes, or null if no text found.
      */
     static async extract() {
-        return new Promise((resolve) => {
-            St.Clipboard.get_default().get_text(St.ClipboardType.CLIPBOARD, (_, text) => {
-                if (text && text.trim().length > 0) {
-                    const hash = ProcessorUtils.computeHashForString(text);
+        const text = await clipboardGetText();
+        if (!text) return null;
 
-                    resolve({
-                        type: ClipboardType.TEXT,
-                        text: text,
-                        preview: text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
-                        hash: hash,
-                    });
-                } else {
-                    resolve(null);
-                }
-            });
-        });
+        const hash = ProcessorUtils.computeHashForString(text);
+
+        return {
+            type: ClipboardType.TEXT,
+            text: text,
+            preview: text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
+            hash: hash,
+        };
     }
 
     /**
