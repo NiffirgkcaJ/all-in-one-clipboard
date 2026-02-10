@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
+import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
@@ -136,7 +137,7 @@ export const EmojiTabContent = GObject.registerClass(
                 charToCopy = this._getModifiedChar({ ...data, char: originalChar });
             }
 
-            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, charToCopy);
+            clipboardSetText(charToCopy);
 
             if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-emoji')) {
                 await getAutoPaster().trigger();

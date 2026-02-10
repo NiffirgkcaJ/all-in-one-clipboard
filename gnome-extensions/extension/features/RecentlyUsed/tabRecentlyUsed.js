@@ -12,6 +12,7 @@ import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { clipboardSetText, clipboardSetContent } from '../../shared/utilities/utilityClipboard.js';
 
 import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
@@ -588,7 +589,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             } else {
                 const contentToCopy = itemData.char || itemData.value || '';
                 if (contentToCopy) {
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, contentToCopy);
+                    clipboardSetText(contentToCopy);
                     copySuccess = true;
                 }
             }
@@ -622,30 +623,28 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     fullContent = await this._clipboardManager.getContent(itemData.id);
                 }
                 if (fullContent) {
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, fullContent);
+                    clipboardSetText(fullContent);
                     copySuccess = true;
                 }
             } else if (itemData.type === ClipboardType.FILE) {
                 try {
-                    const clipboard = St.Clipboard.get_default();
                     const uriList = itemData.file_uri + '\r\n';
                     const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                    clipboardSetContent('text/uri-list', bytes);
                     copySuccess = true;
                 } catch (e) {
                     console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
                 }
             } else if (itemData.type === ClipboardType.URL || itemData.type === ClipboardType.COLOR) {
                 const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
-                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                clipboardSetText(text);
                 copySuccess = true;
             } else if (itemData.type === ClipboardType.IMAGE) {
                 try {
                     if (itemData.file_uri) {
-                        const clipboard = St.Clipboard.get_default();
                         const uriList = itemData.file_uri + '\r\n';
                         const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                        clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                        clipboardSetContent('text/uri-list', bytes);
                         copySuccess = true;
                     } else {
                         const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
@@ -653,7 +652,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
                         if (bytes) {
                             const mimetype = ServiceImage.getMimeType(itemData.image_filename);
-                            St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
+                            clipboardSetContent(mimetype, bytes);
                             copySuccess = true;
                         }
                     }

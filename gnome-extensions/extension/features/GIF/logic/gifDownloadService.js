@@ -1,9 +1,9 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
-import St from 'gi://St';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
+import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
 
@@ -120,7 +120,7 @@ export class GifDownloadService {
 
         // Fallback to Link Mode
         if (!success) {
-            St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, gifObject.full_url);
+            clipboardSetText(gifObject.full_url);
             success = true;
         }
 
@@ -135,7 +135,7 @@ export class GifDownloadService {
     _setClipboardUri(fileUri) {
         const uriList = fileUri + '\r\n';
         const uriBytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-        St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', uriBytes);
+        clipboardSetContent('text/uri-list', uriBytes);
     }
 
     /**

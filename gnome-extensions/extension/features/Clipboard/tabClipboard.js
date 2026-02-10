@@ -9,6 +9,7 @@ import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { clipboardSetText, clipboardSetContent } from '../../shared/utilities/utilityClipboard.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
 import { ClipboardListView } from './view/clipboardListView.js';
@@ -449,7 +450,7 @@ export const ClipboardTabContent = GObject.registerClass(
                     break;
                 case ClipboardType.URL: {
                     const text = itemData.url;
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                    clipboardSetText(text);
                     copySuccess = true;
                     break;
                 }
@@ -458,7 +459,7 @@ export const ClipboardTabContent = GObject.registerClass(
                     break;
                 case ClipboardType.COLOR: {
                     const text = itemData.color_value;
-                    St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
+                    clipboardSetText(text);
                     copySuccess = true;
                     break;
                 }
@@ -489,10 +490,9 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         async _copyFileItem(itemData) {
             try {
-                const clipboard = St.Clipboard.get_default();
                 const uriList = itemData.file_uri + '\r\n';
                 const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                clipboardSetContent('text/uri-list', bytes);
                 return true;
             } catch (e) {
                 console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
@@ -520,7 +520,7 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             if (content) {
-                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, content);
+                clipboardSetText(content);
                 return true;
             }
             return false;
@@ -536,10 +536,9 @@ export const ClipboardTabContent = GObject.registerClass(
             try {
                 // If this image was originally copied from a file, paste it as a file URI
                 if (itemData.file_uri) {
-                    const clipboard = St.Clipboard.get_default();
                     const uriList = itemData.file_uri + '\r\n';
                     const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                    clipboard.set_content(St.ClipboardType.CLIPBOARD, 'text/uri-list', bytes);
+                    clipboardSetContent('text/uri-list', bytes);
                     return true;
                 }
 
@@ -549,7 +548,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
                 if (bytes) {
                     const mimetype = ServiceImage.getMimeType(itemData.image_filename);
-                    St.Clipboard.get_default().set_content(St.ClipboardType.CLIPBOARD, mimetype, bytes);
+                    clipboardSetContent(mimetype, bytes);
                     return true;
                 }
             } catch (e) {
