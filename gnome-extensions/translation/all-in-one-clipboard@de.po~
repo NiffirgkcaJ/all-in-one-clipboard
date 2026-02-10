@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-28 05:11+0000\n"
+"POT-Creation-Date: 2026-02-10 17:28+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -22,10 +22,10 @@ msgid "All-in-One Clipboard"
 msgstr "All-in-One Zwischenablage"
 
 #: gnome-extensions/extension/extension.js:567
-#: gnome-extensions/extension/features/Emoji/tabEmoji.js:97
+#: gnome-extensions/extension/features/Emoji/tabEmoji.js:98
 #: gnome-extensions/extension/features/GIF/tabGIF.js:151
-#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:75
-#: gnome-extensions/extension/features/Symbols/tabSymbols.js:75
+#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:76
+#: gnome-extensions/extension/features/Symbols/tabSymbols.js:76
 msgid "Recently Used"
 msgstr "Zuletzt genutzt"
 
@@ -165,7 +165,8 @@ msgstr "Standardreiter"
 
 #: gnome-extensions/extension/prefs.js:230
 msgid "The tab that opens when you first open the menu."
-msgstr "Der Reiter, der geöffnet wird, wenn Sie das Menü zum ersten Mal öffnen."
+msgstr ""
+"Der Reiter, der geöffnet wird, wenn Sie das Menü zum ersten Mal öffnen."
 
 #: gnome-extensions/extension/prefs.js:330
 msgid "Tab Order"
@@ -194,8 +195,8 @@ msgstr "Tastenkombinationen"
 #: gnome-extensions/extension/prefs.js:436
 msgid "Click on a shortcut to change it. Press Backspace to clear."
 msgstr ""
-"Auf eine Tastenkombination klicken, um sie zu ändern. Rücktaste drücken zum"
-"Löschen."
+"Auf eine Tastenkombination klicken, um sie zu ändern. Rücktaste drücken "
+"zumLöschen."
 
 #: gnome-extensions/extension/prefs.js:442
 msgid "Global Shortcuts"
@@ -342,8 +343,8 @@ msgstr "Automatisches Einfügen aktivieren"
 msgid ""
 "Automatically paste selected items instead of just copying to clipboard."
 msgstr ""
-"Ausgewählte Elemente automatisch einfügen, statt sie nur in die Zwischenablage"
-"zu kopieren."
+"Ausgewählte Elemente automatisch einfügen, statt sie nur in die "
+"Zwischenablagezu kopieren."
 
 #: gnome-extensions/extension/prefs.js:697
 msgid "Auto-Paste Emojis"
@@ -419,8 +420,8 @@ msgstr "Benutzerdefinierte Hauttöne aktivieren"
 #: gnome-extensions/extension/prefs.js:794
 msgid "If off, skinnable emojis are neutral. If on, use the settings below."
 msgstr ""
-"Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutze"
-"untenstehende Einstellungen."
+"Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutzeuntenstehende "
+"Einstellungen."
 
 #: gnome-extensions/extension/prefs.js:801
 msgid "Light"
@@ -466,8 +467,8 @@ msgstr "GIF-Einstellungen"
 msgid ""
 "To search for GIFs, you must select a provider and provide your own API key."
 msgstr ""
-"Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren eigenen"
-"API-Schlüssel angeben."
+"Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren "
+"eigenenAPI-Schlüssel angeben."
 
 #: gnome-extensions/extension/prefs.js:876
 msgid "GIF Provider"
@@ -535,8 +536,9 @@ msgid ""
 "Manage stored data and configure automatic cleanup. Manual actions cannot be "
 "undone."
 msgstr ""
-"Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatische"
-"Reinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
+"Verwalten Sie gespeicherte Daten und konfigurieren Sie die "
+"automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht "
+"werden."
 
 #: gnome-extensions/extension/prefs.js:1056
 msgid "Clear Data at Login"
@@ -638,8 +640,8 @@ msgstr "Zwischenablagedaten"
 #: gnome-extensions/extension/prefs.js:1160
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr ""
-"Ihren gespeicherten Zwischenablageverlauf und angehefteten Elemente"
-"unwiderruflich löschen."
+"Ihren gespeicherten Zwischenablageverlauf und angehefteten "
+"Elementeunwiderruflich löschen."
 
 #: gnome-extensions/extension/prefs.js:1165
 msgid "Clipboard History"
@@ -648,8 +650,8 @@ msgstr "Zwischenablageverlauf"
 #: gnome-extensions/extension/prefs.js:1166
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr ""
-"Löscht alle gespeicherten nicht angehefteten Zwischenablageelemente"
-"unwiderruflich."
+"Löscht alle gespeicherten nicht angehefteten "
+"Zwischenablageelementeunwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1172
 msgid "Pinned Items"
@@ -658,7 +660,8 @@ msgstr "Angeheftete Elemente"
 #: gnome-extensions/extension/prefs.js:1173
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr ""
-"Löscht alle gespeicherten angehefteten Zwischenablageelemente undwiderruflich."
+"Löscht alle gespeicherten angehefteten Zwischenablageelemente "
+"undwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1180
 msgid "Performance Caches"
@@ -667,8 +670,8 @@ msgstr "Performance-Zwischenspeicher"
 #: gnome-extensions/extension/prefs.js:1181
 msgid "Clear temporary data used to improve loading speed."
 msgstr ""
-"Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit genutzt"
-"werden."
+"Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit "
+"genutztwerden."
 
 #: gnome-extensions/extension/prefs.js:1186
 msgid "GIF Preview Cache"
@@ -678,49 +681,49 @@ msgstr "GIF-Vorschau-Zwischenspeicher"
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:114
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:592
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:598
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:115
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:591
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:597
 msgid "Select All"
 msgstr "Alle auswählen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:139
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:249
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:140
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:250
 msgid "Switch to Grid View"
 msgstr "Zu Rasteransicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:139
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:249
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:140
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:250
 msgid "Switch to List View"
 msgstr "Zu Listenansicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:154
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:365
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:155
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:366
 msgid "Start Private Mode (Pause Recording)"
 msgstr "Privater Modus starten (Aufnahme pausieren)"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:164
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:613
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:165
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:612
 msgid "Pin/Unpin Selected"
 msgstr "Ausgewählte an-/abheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:172
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:173
 msgid "Delete Selected"
 msgstr "Ausgewählte löschen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:365
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:366
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:595
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:594
 msgid "Deselect All"
 msgstr "Alle abwählen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:620
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:619
 msgid "Pin Selected"
 msgstr "Ausgewählte anheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:620
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:619
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
