@@ -4,12 +4,9 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
-import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
-import { clipboardSetText, clipboardSetContent } from '../../shared/utilities/utilityClipboard.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
 import { ClipboardListView } from './view/clipboardListView.js';
@@ -439,37 +436,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @param {Object} itemData - The clipboard item data
          */
         async _onItemCopyToClipboard(itemData) {
-            let copySuccess = false;
-
-            switch (itemData.type) {
-                case ClipboardType.IMAGE:
-                    copySuccess = await this._copyImageItem(itemData);
-                    break;
-                case ClipboardType.FILE:
-                    copySuccess = await this._copyFileItem(itemData);
-                    break;
-                case ClipboardType.URL: {
-                    const text = itemData.url;
-                    clipboardSetText(text);
-                    copySuccess = true;
-                    break;
-                }
-                case ClipboardType.CONTACT:
-                    copySuccess = await this._copyTextItem(itemData);
-                    break;
-                case ClipboardType.COLOR: {
-                    const text = itemData.color_value;
-                    clipboardSetText(text);
-                    copySuccess = true;
-                    break;
-                }
-                case ClipboardType.CODE:
-                    copySuccess = await this._copyTextItem(itemData);
-                    break;
-                case ClipboardType.TEXT:
-                    copySuccess = await this._copyTextItem(itemData);
-                    break;
-            }
+            const copySuccess = await this._manager.copyToSystemClipboard(itemData);
 
             if (copySuccess) {
                 if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-clipboard')) {
@@ -480,81 +447,6 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             this._extension._indicator.menu.close();
-        }
-
-        /**
-         * Copy a file item to the clipboard
-         * @param {Object} itemData - The file item data
-         * @returns {Promise<boolean>} True if successful
-         * @private
-         */
-        async _copyFileItem(itemData) {
-            try {
-                const uriList = itemData.file_uri + '\r\n';
-                const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                clipboardSetContent('text/uri-list', bytes);
-                return true;
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
-                return false;
-            }
-        }
-
-        /**
-         * Copy a text or code item to the clipboard
-         * @param {Object} itemData - The text/code item data
-         * @returns {Promise<boolean>} True if successful
-         * @private
-         */
-        async _copyTextItem(itemData) {
-            let content = itemData.text;
-            if (!content) {
-                content = await this._manager.getContent(itemData.id);
-            }
-
-            // CODE preview has HTML markup so use text only, TEXT can fall back to preview
-            if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
-                content = itemData.preview;
-            } else if (!content && itemData.type === ClipboardType.CODE) {
-                // CODE type missing content, refusing to use preview
-            }
-
-            if (content) {
-                clipboardSetText(content);
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Copy an image item to the clipboard
-         * @param {Object} itemData - The image item data
-         * @returns {Promise<boolean>} True if successful
-         * @private
-         */
-        async _copyImageItem(itemData) {
-            try {
-                // If this image was originally copied from a file, paste it as a file URI
-                if (itemData.file_uri) {
-                    const uriList = itemData.file_uri + '\r\n';
-                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                    clipboardSetContent('text/uri-list', bytes);
-                    return true;
-                }
-
-                // Otherwise, paste the image bytes
-                const imagePath = GLib.build_filenamev([this._manager._imagesDir, itemData.image_filename]);
-                const bytes = ServiceImage.decode(await IOFile.read(imagePath));
-
-                if (bytes) {
-                    const mimetype = ServiceImage.getMimeType(itemData.image_filename);
-                    clipboardSetContent(mimetype, bytes);
-                    return true;
-                }
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to copy image: ${e.message}`);
-            }
-            return false;
         }
 
         // ========================================================================

@@ -7,7 +7,9 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { ServiceImage } from '../../../shared/services/serviceImage.js';
 import { ServiceText } from '../../../shared/services/serviceText.js';
+import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -654,6 +656,70 @@ export const ClipboardManager = GObject.registerClass(
 
             // For short content, return the text field if available
             return item.text || null;
+        }
+
+        /**
+         * Copy a clipboard item to the system clipboard.
+         * Handles all item types: IMAGE, FILE, URL, CONTACT, COLOR, CODE, TEXT.
+         *
+         * @param {Object} itemData - The clipboard item data
+         * @returns {Promise<boolean>} True if copy was successful
+         */
+        async copyToSystemClipboard(itemData) {
+            try {
+                switch (itemData.type) {
+                    case ClipboardType.IMAGE: {
+                        if (itemData.file_uri) {
+                            const uriList = itemData.file_uri + '\r\n';
+                            const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                            clipboardSetContent('text/uri-list', bytes);
+                            return true;
+                        }
+                        const imagePath = GLib.build_filenamev([this._imagesDir, itemData.image_filename]);
+                        const bytes = ServiceImage.decode(await IOFile.read(imagePath));
+                        if (!bytes) return false;
+                        const mimetype = ServiceImage.getMimeType(itemData.image_filename);
+                        clipboardSetContent(mimetype, bytes);
+                        return true;
+                    }
+                    case ClipboardType.FILE: {
+                        const uriList = itemData.file_uri + '\r\n';
+                        const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                        clipboardSetContent('text/uri-list', bytes);
+                        return true;
+                    }
+                    case ClipboardType.URL:
+                        clipboardSetText(itemData.url);
+                        return true;
+                    case ClipboardType.CONTACT: {
+                        let content = itemData.text;
+                        if (!content) content = await this.getContent(itemData.id);
+                        if (!content) return false;
+                        clipboardSetText(content);
+                        return true;
+                    }
+                    case ClipboardType.COLOR:
+                        clipboardSetText(itemData.color_value);
+                        return true;
+                    case ClipboardType.CODE:
+                    case ClipboardType.TEXT: {
+                        let content = itemData.text;
+                        if (!content) content = await this.getContent(itemData.id);
+                        // CODE preview has HTML markup so use text only, TEXT can fall back to preview
+                        if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
+                            content = itemData.preview;
+                        }
+                        if (!content) return false;
+                        clipboardSetText(content);
+                        return true;
+                    }
+                    default:
+                        return false;
+                }
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Failed to copy item to system clipboard: ${e.message}`);
+                return false;
+            }
         }
 
         /**

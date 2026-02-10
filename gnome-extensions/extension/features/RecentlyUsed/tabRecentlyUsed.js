@@ -6,15 +6,12 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { IOFile } from '../../shared/utilities/utilityIO.js';
+import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
-import { ServiceImage } from '../../shared/services/serviceImage.js';
 import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
-import { clipboardSetText, clipboardSetContent } from '../../shared/utilities/utilityClipboard.js';
 
-import { ClipboardType } from '../Clipboard/constants/clipboardConstants.js';
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
@@ -583,7 +580,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             let copySuccess = false;
 
             if (feature === 'clipboard') {
-                copySuccess = await this._copyClipboardItemToSystem(itemData);
+                copySuccess = await this._clipboardManager.copyToSystemClipboard(itemData);
             } else if (feature === 'gif') {
                 copySuccess = await this._gifDownloadService.copyToClipboard(itemData, this._settings, this._clipboardManager);
             } else {
@@ -605,64 +602,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             }
 
             this._extension._indicator.menu.close();
-        }
-
-        /**
-         * Copy a clipboard item to the system clipboard
-         *
-         * @param {Object} itemData - The clipboard item data
-         * @returns {Promise<boolean>} True if successful
-         * @private
-         */
-        async _copyClipboardItemToSystem(itemData) {
-            let copySuccess = false;
-
-            if (itemData.type === ClipboardType.TEXT || itemData.type === ClipboardType.CODE) {
-                let fullContent = itemData.text;
-                if (!fullContent) {
-                    fullContent = await this._clipboardManager.getContent(itemData.id);
-                }
-                if (fullContent) {
-                    clipboardSetText(fullContent);
-                    copySuccess = true;
-                }
-            } else if (itemData.type === ClipboardType.FILE) {
-                try {
-                    const uriList = itemData.file_uri + '\r\n';
-                    const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                    clipboardSetContent('text/uri-list', bytes);
-                    copySuccess = true;
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to copy file URI: ${e.message}`);
-                }
-            } else if (itemData.type === ClipboardType.URL || itemData.type === ClipboardType.COLOR) {
-                const text = itemData.type === ClipboardType.URL ? itemData.url : itemData.color_value;
-                clipboardSetText(text);
-                copySuccess = true;
-            } else if (itemData.type === ClipboardType.IMAGE) {
-                try {
-                    if (itemData.file_uri) {
-                        const uriList = itemData.file_uri + '\r\n';
-                        const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
-                        clipboardSetContent('text/uri-list', bytes);
-                        copySuccess = true;
-                    } else {
-                        const imagePath = GLib.build_filenamev([this._clipboardManager._imagesDir, itemData.image_filename]);
-                        const bytes = ServiceImage.decode(await IOFile.read(imagePath));
-
-                        if (bytes) {
-                            const mimetype = ServiceImage.getMimeType(itemData.image_filename);
-                            clipboardSetContent(mimetype, bytes);
-                            copySuccess = true;
-                        }
-                    }
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to copy recent image to clipboard: ${e.message}`);
-                    copySuccess = false;
-                }
-            }
-
-            return copySuccess;
         }
 
         /**
