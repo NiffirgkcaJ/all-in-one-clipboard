@@ -5,6 +5,7 @@ import Shell from 'gi://Shell';
 import Soup from 'gi://Soup';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { ExclusionUtils } from '../../../shared/utilities/utilityExclusions.js';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
@@ -154,6 +155,16 @@ export const ClipboardManager = GObject.registerClass(
          */
         _onClipboardChanged() {
             if (this._isPaused) return;
+
+            // Exclude applications
+            const global = Shell.Global.get();
+            const focusWindow = global.display.focus_window;
+            if (focusWindow) {
+                const exclusionList = this._settings.get_strv('exclusion-list');
+                if (ExclusionUtils.isWindowExcluded(focusWindow, exclusionList)) {
+                    return;
+                }
+            }
 
             if (this._processClipboardTimeoutId) {
                 GLib.source_remove(this._processClipboardTimeoutId);

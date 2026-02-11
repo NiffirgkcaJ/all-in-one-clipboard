@@ -263,7 +263,14 @@
             <description>The maximum size for the GIF preview cache in megabytes. Set to 0 for unlimited cache size.</description>
         </key>
 
-        <!-- Automatic Data Management -->
+        <!-- Excluded Applications -->
+        <key name="exclusion-list" type="as">
+            <default>[]</default>
+            <summary>List of excluded applications</summary>
+            <description>A list of applications or window classes (wm_class) that should be ignored by the clipboard manager.</description>
+        </key>
+
+        <!-- Data Management -->
         <key name="clear-data-at-login" type="b">
             <default>false</default>
             <summary>Enable Clearing Data at Login</summary>
@@ -294,8 +301,6 @@
             <summary>Clear Recent Symbols at Login</summary>
             <description>When the master switch is enabled, this will clear the recent symbols list at login.</description>
         </key>
-
-        <!-- Data Management -->
         <key name="clear-recents-trigger" type="s">
             <default>''</default>
             <summary>Trigger to clear recent items data</summary>
