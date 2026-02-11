@@ -1,4 +1,5 @@
 import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
@@ -58,6 +59,12 @@ export const ClipboardListView = GObject.registerClass(
             this._checkboxIconsMap = new Map();
             this._allItems = [];
 
+            // Pagination state for history section
+            this._batchSize = 15;
+            this._isLoadingMore = false;
+            this._pendingHistoryItems = [];
+            this._isDestroyed = false;
+
             // Pinned section
             this._pinnedHeader = new St.Label({
                 text: _('Pinned'),
@@ -109,6 +116,12 @@ export const ClipboardListView = GObject.registerClass(
             this._emptyLabel.hide();
 
             this.connect('key-press-event', this._onKeyPress.bind(this));
+
+            // Setup scroll listener for history pagination
+            if (this._scrollView) {
+                const vadjustment = this._scrollView.vadjustment;
+                this._scrollId = vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
+            }
         }
 
         // ========================================================================
@@ -162,16 +175,76 @@ export const ClipboardListView = GObject.registerClass(
                 this._separator.show();
             }
 
-            // History section
+            // History section with lazy batch loading
+            this._pendingHistoryItems = historyItems;
             if (historyItems.length > 0) {
                 this._historyHeader.show();
                 this._historyContainer.show();
-                historyItems.forEach((item) => {
+
+                const firstBatch = historyItems.slice(0, this._batchSize);
+                firstBatch.forEach((item) => {
                     this._historyContainer.add_child(this._createItemWidget(item, false));
                 });
             }
 
             this._restoreFocusState(focusInfo);
+        }
+
+        // ========================================================================
+        // Rendering
+        // ========================================================================
+
+        /**
+         * Handle scroll events to trigger loading more history items.
+         * @param {St.Adjustment} vadjustment
+         * @private
+         */
+        _onScroll(vadjustment) {
+            const historyItems = this._pendingHistoryItems || [];
+            const actualRenderedCount = this._historyContainer.get_n_children();
+            if (this._isLoadingMore || actualRenderedCount >= historyItems.length) {
+                return;
+            }
+
+            // Load more when within 500px of bottom
+            const threshold = vadjustment.upper - vadjustment.page_size - 500;
+            if (vadjustment.value >= threshold) {
+                // Defer to idle to ensure scroll handling happens in clean allocation state
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    if (!this._isDestroyed) {
+                        this._loadNextHistoryBatch();
+                    }
+                    return GLib.SOURCE_REMOVE;
+                });
+            }
+        }
+
+        /**
+         * Load the next batch of history items.
+         * @private
+         */
+        _loadNextHistoryBatch() {
+            const historyItems = this._pendingHistoryItems || [];
+            const actualRenderedCount = this._historyContainer.get_n_children();
+
+            if (this._isLoadingMore || actualRenderedCount >= historyItems.length) {
+                return;
+            }
+
+            this._isLoadingMore = true;
+
+            try {
+                const batch = historyItems.slice(actualRenderedCount, actualRenderedCount + this._batchSize);
+                if (batch.length === 0) {
+                    return;
+                }
+
+                batch.forEach((item) => {
+                    this._historyContainer.add_child(this._createItemWidget(item, false));
+                });
+            } finally {
+                this._isLoadingMore = false;
+            }
         }
 
         /**
@@ -182,6 +255,8 @@ export const ClipboardListView = GObject.registerClass(
             this._currentlyFocusedRow = null;
             this._checkboxIconsMap.clear();
             this._allItems = [];
+            this._pendingHistoryItems = [];
+            this._isLoadingMore = false;
 
             this._pinnedContainer.destroy_all_children();
             this._historyContainer.destroy_all_children();
@@ -376,15 +451,23 @@ export const ClipboardListView = GObject.registerClass(
 
         destroy() {
             // Clear all references before destruction
+            this._isDestroyed = true;
             this._focusableItems = [];
             this._currentlyFocusedRow = null;
             this._checkboxIconsMap.clear();
             this._allItems = [];
+            this._pendingHistoryItems = null;
             this._manager = null;
             this._onItemCopy = null;
             this._onSelectionChanged = null;
             this._selectedIds = null;
+
+            if (this._scrollView && this._scrollId) {
+                this._scrollView.vadjustment.disconnect(this._scrollId);
+                this._scrollId = null;
+            }
             this._scrollView = null;
+
             this._pinnedHeader = null;
             this._pinnedContainer = null;
             this._separator = null;

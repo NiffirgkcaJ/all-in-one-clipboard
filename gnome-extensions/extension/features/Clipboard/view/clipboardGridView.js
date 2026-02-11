@@ -126,7 +126,7 @@ export const ClipboardGridView = GObject.registerClass(
             // Setup scroll listener for history pagination
             if (this._scrollView) {
                 const vadjustment = this._scrollView.vadjustment;
-                vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
+                this._scrollId = vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
             }
         }
 
@@ -163,6 +163,8 @@ export const ClipboardGridView = GObject.registerClass(
             this._historyHeader.hide();
             this._emptyLabel.hide();
             this._allItems = [];
+            this._pendingHistoryItems = [];
+            this._isLoadingMore = false;
             this._checkboxIconsMap.clear();
         }
 
@@ -648,80 +650,6 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         // ========================================================================
-        // Focus State Management
-        // ========================================================================
-
-        /**
-         * Capture the current focus state before re-rendering.
-         *
-         * @returns {Object|null} Focus info with item ID and index, or null if not focused
-         * @private
-         */
-        _captureFocusState() {
-            const currentFocus = global.stage.get_key_focus();
-            if (!currentFocus) return null;
-
-            // Check if focus is on a card in pinned masonry
-            const pinnedChildren = this._pinnedMasonry?.get_children() || [];
-            for (let i = 0; i < pinnedChildren.length; i++) {
-                const card = pinnedChildren[i];
-                if (card === currentFocus && card._masonryData?.id) {
-                    return { itemId: card._masonryData.id, section: 'pinned', sectionIndex: i };
-                }
-            }
-
-            // Check if focus is on a card in history masonry
-            const historyChildren = this._historyMasonry?.get_children() || [];
-            for (let i = 0; i < historyChildren.length; i++) {
-                const card = historyChildren[i];
-                if (card === currentFocus && card._masonryData?.id) {
-                    return { itemId: card._masonryData.id, section: 'history', sectionIndex: i };
-                }
-            }
-
-            return null;
-        }
-
-        /**
-         * Restore focus state after re-rendering.
-         * Falls back to adjacent item in the same section if original was deleted.
-         *
-         * @param {Object|null} focusInfo - Previously captured focus info
-         * @private
-         */
-        _restoreFocusState(focusInfo) {
-            if (!focusInfo) return;
-
-            // Search for the card with the same item ID
-            const findAndFocus = (masonry) => {
-                const children = masonry?.get_children() || [];
-                for (const card of children) {
-                    if (card._masonryData?.id === focusInfo.itemId && card.can_focus) {
-                        card.grab_key_focus();
-                        return true;
-                    }
-                }
-                return false;
-            };
-
-            // Try to find exact item first
-            if (findAndFocus(this._pinnedMasonry) || findAndFocus(this._historyMasonry)) {
-                return;
-            }
-
-            // Item deleted, fallback to adjacent item in same section
-            const masonry = focusInfo.section === 'pinned' ? this._pinnedMasonry : this._historyMasonry;
-            const children = masonry?.get_children() || [];
-            if (children.length > 0) {
-                const targetIndex = Math.min(focusInfo.sectionIndex, children.length - 1);
-                const targetCard = children[targetIndex];
-                if (targetCard?.can_focus) {
-                    targetCard.grab_key_focus();
-                }
-            }
-        }
-
-        // ========================================================================
         // Lifecycle
         // ========================================================================
 
@@ -752,6 +680,11 @@ export const ClipboardGridView = GObject.registerClass(
             this._onItemCopy = null;
             this._onSelectionChanged = null;
             this._selectedIds = null;
+
+            if (this._scrollView && this._scrollId) {
+                this._scrollView.vadjustment.disconnect(this._scrollId);
+                this._scrollId = null;
+            }
             this._scrollView = null;
             super.destroy();
         }
