@@ -9,7 +9,7 @@ import { ClipboardType, ClipboardStyling, ClipboardIcons } from '../constants/cl
  * Shared configuration utilities for clipboard items.
  * Maps raw item data to view configurations used by both list and grid factories.
  */
-export class ClipboardItemConfig {
+export class ClipboardBaseItemConfig {
     /**
      * Maps an item's data to a standardized view configuration.
      *
@@ -29,23 +29,23 @@ export class ClipboardItemConfig {
 
         switch (item.type) {
             case ClipboardType.FILE:
-                ClipboardItemConfig._configureFileItem(config, item);
+                ClipboardBaseItemConfig._configureFileItem(config, item);
                 break;
             case ClipboardType.URL:
-                ClipboardItemConfig._configureUrlItem(config, item, linkPreviewsDir);
+                ClipboardBaseItemConfig._configureUrlItem(config, item, linkPreviewsDir);
                 break;
             case ClipboardType.CONTACT:
-                ClipboardItemConfig._configureContactItem(config, item, style, linkPreviewsDir);
+                ClipboardBaseItemConfig._configureContactItem(config, item, style, linkPreviewsDir);
                 break;
             case ClipboardType.COLOR:
-                ClipboardItemConfig._configureColorItem(config, item, style);
+                ClipboardBaseItemConfig._configureColorItem(config, item, style);
                 break;
             case ClipboardType.CODE:
-                ClipboardItemConfig._configureCodeItem(config, item);
+                ClipboardBaseItemConfig._configureCodeItem(config, item);
                 break;
             case ClipboardType.TEXT:
             default:
-                ClipboardItemConfig._configureTextItem(config, item);
+                ClipboardBaseItemConfig._configureTextItem(config, item);
                 break;
         }
 

@@ -340,8 +340,8 @@ export const ClipboardTabContent = GObject.registerClass(
             }
             if (symbol === Clutter.KEY_Down) {
                 const viewFocusables = this._currentView?.getFocusables() || [];
-                if (viewFocusables.length > 1) {
-                    viewFocusables[1].grab_key_focus();
+                if (viewFocusables.length > 0) {
+                    viewFocusables[0].grab_key_focus();
                     return Clutter.EVENT_STOP;
                 }
             }

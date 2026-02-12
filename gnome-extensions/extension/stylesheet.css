@@ -368,6 +368,10 @@
 }
 
 /* List View */
+.aio-clipboard-container .clipboard-list-view {
+    padding: 0;
+}
+
 .aio-clipboard-container .clipboard-list-item {
     height: 48px;
     min-height: 48px;
@@ -482,7 +486,7 @@
 }
 
 /* Grid View */
-.aio-clipboard-container .clipboard-grid-container {
+.aio-clipboard-container .clipboard-grid-view {
     padding: 4px;
 }
 
