@@ -228,7 +228,7 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             this._navigateUpSignalId = this._currentView.connect('navigate-up', () => {
-                this._searchComponent?.grabFocus();
+                this._selectAllButton.grab_key_focus();
             });
 
             this._scrollView.set_child(this._currentView);
@@ -319,7 +319,7 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _onHeaderKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
-            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right && symbol !== Clutter.KEY_Down) {
+            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right && symbol !== Clutter.KEY_Down && symbol !== Clutter.KEY_Up) {
                 return Clutter.EVENT_PROPAGATE;
             }
 
@@ -344,6 +344,10 @@ export const ClipboardTabContent = GObject.registerClass(
                     viewFocusables[0].grab_key_focus();
                     return Clutter.EVENT_STOP;
                 }
+            }
+            if (symbol === Clutter.KEY_Up) {
+                this._searchComponent?.grabFocus();
+                return Clutter.EVENT_STOP;
             }
 
             return Clutter.EVENT_PROPAGATE;

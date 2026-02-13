@@ -112,7 +112,8 @@ export const ClipboardListView = GObject.registerClass(
                 if (result === Clutter.EVENT_STOP) return result;
 
                 if (symbol === Clutter.KEY_Down && historyHasItems) {
-                    this._historyContainer.focusFirst();
+                    const finder = this._createFocusFinder(currentFocus);
+                    this._historyContainer.focusFirst(finder);
                     return Clutter.EVENT_STOP;
                 }
                 if (symbol === Clutter.KEY_Up) {
@@ -128,7 +129,8 @@ export const ClipboardListView = GObject.registerClass(
 
                 if (symbol === Clutter.KEY_Up) {
                     if (pinnedHasItems) {
-                        this._pinnedContainer.focusLast();
+                        const finder = this._createFocusFinder(currentFocus);
+                        this._pinnedContainer.focusLast(finder);
                     } else {
                         this.emit('navigate-up');
                     }
@@ -138,6 +140,38 @@ export const ClipboardListView = GObject.registerClass(
             }
 
             return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Create a finder function that locates the equivalent widget in a target item.
+         * Usage:
+         *   const finder = this._createFocusFinder(currentFocus);
+         *   otherContainer.focusFirst(finder);
+         *
+         * @param {Clutter.Actor} currentFocus - The currently focused actor
+         * @returns {Function|undefined} A function (itemWidget) => childWidget, or undefined
+         * @private
+         */
+        _createFocusFinder(currentFocus) {
+            let itemWidget = currentFocus;
+            while (itemWidget && !itemWidget._itemId) {
+                itemWidget = itemWidget.get_parent();
+            }
+
+            if (!itemWidget) return undefined;
+
+            // Determine which type of widget is focused
+            const isCheckbox = currentFocus === itemWidget._itemCheckbox;
+            const isPin = currentFocus === itemWidget._pinButton;
+            const isDelete = currentFocus === itemWidget._deleteButton;
+
+            // Return a function that finds the same type in the target item
+            return (targetItemWidget) => {
+                if (isCheckbox) return targetItemWidget._itemCheckbox;
+                if (isPin) return targetItemWidget._pinButton;
+                if (isDelete) return targetItemWidget._deleteButton;
+                return targetItemWidget; // Fallback to item itself
+            };
         }
 
         // ========================================================================

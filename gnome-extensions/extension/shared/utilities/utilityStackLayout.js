@@ -107,14 +107,25 @@ export const StackLayout = GObject.registerClass(
         /**
          * Focus a specific item widget with robust handling.
          * @param {St.Widget} widget The widget to focus
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
          */
-        focusItem(widget) {
+        focusItem(widget, targetFinder) {
             if (!widget) return;
 
             GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
                 if (this._isDestroyed) return GLib.SOURCE_REMOVE;
 
-                widget.grab_key_focus();
+                let target = widget;
+                if (typeof targetFinder === 'function') {
+                    const found = targetFinder(widget);
+                    if (found) target = found;
+                }
+
+                if (target && target.visible && target.mapped) {
+                    target.grab_key_focus();
+                } else {
+                    widget.grab_key_focus();
+                }
 
                 if (this._scrollView) {
                     ensureActorVisibleInScrollView(this._scrollView, widget);
@@ -233,13 +244,14 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus the first item in the list.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
          * @returns {boolean} True if an item was focused
          */
-        focusFirst() {
+        focusFirst(targetFinder) {
             const children = this.get_children();
             if (children.length > 0) {
                 const first = children[0];
-                this.focusItem(first);
+                this.focusItem(first, targetFinder);
                 return true;
             }
             return false;
@@ -247,13 +259,14 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus the last item in the list.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
          * @returns {boolean} True if an item was focused
          */
-        focusLast() {
+        focusLast(targetFinder) {
             const children = this.get_children();
             if (children.length > 0) {
                 const last = children[children.length - 1];
-                this.focusItem(last);
+                this.focusItem(last, targetFinder);
                 return true;
             }
             return false;

@@ -182,6 +182,9 @@ export class ClipboardGridItemFactory {
             });
         });
 
+        itemWidget._itemCheckbox = itemCheckbox;
+        itemWidget._pinButton = pinButton;
+        itemWidget._deleteButton = deleteButton;
         itemWidget._itemId = itemData.id;
 
         return itemWidget;

@@ -141,7 +141,36 @@ export const ClipboardBaseView = GObject.registerClass(
                 this._showHistoryContainer(false);
             }
 
+            this._rebuildCheckboxMap();
             this._restoreFocusState(focusState);
+        }
+
+        /**
+         * Rebuild the checkbox map from existing widgets.
+         * Crucial for maintaining state sync when widgets are reused by the layout.
+         * @private
+         */
+        _rebuildCheckboxMap() {
+            const registerCheckboxes = (container) => {
+                if (!container) return;
+                const children = container.get_children();
+                for (const child of children) {
+                    if (child._itemId && child._itemCheckbox) {
+                        // Ensure we have the latest state from the widget
+                        this._checkboxIconsMap.set(child._itemId, child._itemCheckbox.child);
+
+                        // Ensure visual state matches
+                        if (this._selectedIds.has(child._itemId)) {
+                            child._itemCheckbox.child.state = 'checked';
+                        } else {
+                            child._itemCheckbox.child.state = 'unchecked';
+                        }
+                    }
+                }
+            };
+
+            registerCheckboxes(this._pinnedContainer);
+            registerCheckboxes(this._historyContainer);
         }
 
         /**
