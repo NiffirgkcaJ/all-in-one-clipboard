@@ -552,7 +552,6 @@ msgid "Clear Data at Login"
 msgstr "Daten beim Anmelden löschen"
 
 #: gnome-extensions/extension/prefs.js:1157
-#, fuzzy
 msgid "Automatically clear selected data at every login."
 msgstr "Ausgewählte Daten bei jeder Anmeldung automatisch löschen"
 
@@ -598,7 +597,6 @@ msgid "Recent Item History"
 msgstr "Verlauf letzter Elemente"
 
 #: gnome-extensions/extension/prefs.js:1219
-#, fuzzy
 msgid "Clear lists of recently used items."
 msgstr "Listen von zuletzt genutzten items löschen."
 
@@ -733,17 +731,14 @@ msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
-#, fuzzy
 msgid "No results found."
 msgstr "Keine Resultate für »%s« gefunden."
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
-#, fuzzy
 msgid "Clipboard history is empty."
 msgstr "Zwischenablageverlauf"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:216
-#, fuzzy
 msgid "Pinned"
 msgstr "Angeheftete Elemente"
 
@@ -798,12 +793,10 @@ msgstr ""
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:18
-#, fuzzy
 msgid "Pinned Clipboard"
-msgstr "All-in-One Zwischenablage"
+msgstr "Angeheftete Elemente"
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:54
-#, fuzzy
 msgid "Recent Clipboard History"
 msgstr "Zwischenablageverlauf"
 

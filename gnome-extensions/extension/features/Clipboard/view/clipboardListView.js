@@ -6,10 +6,20 @@ import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 
+/**
+ * ClipboardListView
+ * Stack layout for clipboard items.
+ *
+ * Renders clipboard items as cards in a vertical list.
+ * Each card contains the content preview and action buttons.
+ *
+ * Extends ClipboardBaseView for shared scaffolding like headers, pagination, etc.
+ * The StackLayout children handle vertical positioning internally.
+ */
 export const ClipboardListView = GObject.registerClass(
     class ClipboardListView extends ClipboardBaseView {
         /**
-         * @param {Object} options - Configuration options
+         * @param {Object} options Configuration options
          */
         constructor(options) {
             super(options, { style_class: 'clipboard-list-view' });

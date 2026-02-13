@@ -16,7 +16,7 @@ import { ClipboardBaseView } from './clipboardBaseView.js';
  * Renders clipboard items as cards in a Pinterest-style masonry grid.
  * Each card contains the content preview and action buttons.
  *
- * Extends ClipboardBaseView for shared scaffolding (headers, pagination, etc).
+ * Extends ClipboardBaseView for shared scaffolding like headers, pagination, etc.
  * The MasonryLayout children handle absolute positioning internally.
  */
 export const ClipboardGridView = GObject.registerClass(

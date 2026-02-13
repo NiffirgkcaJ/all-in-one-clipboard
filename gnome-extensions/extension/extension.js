@@ -25,8 +25,27 @@ import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Em
 
 /**
  * Creates a simple, predictable identifier from a tab name.
+ * Handles translated names by checking against the English keys.
  */
 function getTabIdentifier(tabName) {
+    // Map of English ID -> Translated Name
+    const tabMap = {
+        'Recently Used': _('Recently Used'),
+        Emoji: _('Emoji'),
+        GIF: _('GIF'),
+        Kaomoji: _('Kaomoji'),
+        Symbols: _('Symbols'),
+        Clipboard: _('Clipboard'),
+    };
+
+    // Reverse lookup to find the English key that matches the translated tabName
+    for (const [englishId, translatedName] of Object.entries(tabMap)) {
+        if (translatedName === tabName) {
+            return englishId.replace(/\s+/g, '');
+        }
+    }
+
+    // Fallback for un-translated or unexpected names
     return tabName.replace(/\s+/g, '');
 }
 
