@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 03:44+0000\n"
+"POT-Creation-Date: 2026-02-13 04:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -734,19 +734,19 @@ msgstr ""
 msgid "Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:138
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:138
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:216
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:245
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:233
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:262
 msgid "History"
 msgstr ""
 
