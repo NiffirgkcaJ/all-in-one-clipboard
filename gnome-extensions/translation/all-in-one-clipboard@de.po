@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 08:55+0800\n"
+"POT-Creation-Date: 2026-02-13 02:58+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -17,11 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: gnome-extensions/extension/extension.js:90
-msgid "All-in-One Clipboard"
-msgstr "All-in-One Zwischenablage"
-
-#: gnome-extensions/extension/extension.js:567
+#: gnome-extensions/extension/extension.js:33
+#: gnome-extensions/extension/extension.js:586
 #: gnome-extensions/extension/features/Emoji/tabEmoji.js:98
 #: gnome-extensions/extension/features/GIF/tabGIF.js:151
 #: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:76
@@ -29,28 +26,37 @@ msgstr "All-in-One Zwischenablage"
 msgid "Recently Used"
 msgstr "Zuletzt genutzt"
 
-#: gnome-extensions/extension/extension.js:589
-#: gnome-extensions/extension/extension.js:992
-msgid "Clipboard"
-msgstr "Zwischenablage"
+#: gnome-extensions/extension/extension.js:34
+#: gnome-extensions/extension/extension.js:1012
+msgid "Emoji"
+msgstr "Emoji"
 
-#: gnome-extensions/extension/extension.js:589
-#: gnome-extensions/extension/extension.js:994
+#: gnome-extensions/extension/extension.js:35
+#: gnome-extensions/extension/extension.js:608
+#: gnome-extensions/extension/extension.js:1013
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr "GIF"
 
-#: gnome-extensions/extension/extension.js:993
-msgid "Emoji"
-msgstr "Emoji"
-
-#: gnome-extensions/extension/extension.js:995
+#: gnome-extensions/extension/extension.js:36
+#: gnome-extensions/extension/extension.js:1014
 msgid "Kaomoji"
 msgstr "Kaomoji"
 
-#: gnome-extensions/extension/extension.js:996
+#: gnome-extensions/extension/extension.js:37
+#: gnome-extensions/extension/extension.js:1015
 msgid "Symbols"
 msgstr "Symbole"
+
+#: gnome-extensions/extension/extension.js:38
+#: gnome-extensions/extension/extension.js:608
+#: gnome-extensions/extension/extension.js:1011
+msgid "Clipboard"
+msgstr "Zwischenablage"
+
+#: gnome-extensions/extension/extension.js:109
+msgid "All-in-One Clipboard"
+msgstr "All-in-One Zwischenablage"
 
 #: gnome-extensions/extension/prefs.js:25
 msgid "All-in-One Clipboard Settings"
