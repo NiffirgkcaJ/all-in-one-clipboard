@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-12 17:39+0000\n"
+"POT-Creation-Date: 2026-02-13 00:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -683,8 +683,8 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/tabClipboard.js:112
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:483
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:489
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:487
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:493
 msgid "Select All"
 msgstr ""
 
@@ -699,12 +699,12 @@ msgid "Switch to List View"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/tabClipboard.js:152
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:363
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:367
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/tabClipboard.js:162
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:504
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:508
 msgid "Pin/Unpin Selected"
 msgstr ""
 
@@ -712,19 +712,19 @@ msgstr ""
 msgid "Delete Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:363
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:367
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:486
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:490
 msgid "Deselect All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:511
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:515
 msgid "Pin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:511
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:515
 msgid "Unpin Selected"
 msgstr ""
 
