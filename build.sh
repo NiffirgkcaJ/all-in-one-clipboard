@@ -38,9 +38,9 @@ update_translation_templates() {
         if [ -f "$po_file" ]; then
             # Figure out which template to use based on the filename
             if [[ "$po_file" == *"all-in-one-clipboard-content"* ]]; then
-                msgmerge --update "$po_file" gnome-extensions/translation/all-in-one-clipboard-content.pot
+                msgmerge --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard-content.pot
             else
-                msgmerge --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
+                msgmerge --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
             fi
         fi
     done

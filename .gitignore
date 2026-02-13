@@ -5,6 +5,7 @@
 .agent/
 .idea/
 .vscode/
+*.po~
 *.swp
 
 # Ignore Node modules
