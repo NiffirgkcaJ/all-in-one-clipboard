@@ -11,7 +11,8 @@ import { createStaticIconButton, createDynamicIconButton } from '../../shared/ut
 
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardGridView } from './view/clipboardGridView.js';
-import { ClipboardType, ClipboardIcons } from './constants/clipboardConstants.js';
+import { ClipboardIcons } from './constants/clipboardConstants.js';
+import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
 
 /**
  * ClipboardTabContent
@@ -535,23 +536,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
             // Apply search filter if active
             if (isSearching) {
-                const filterFn = (item) => {
-                    let searchTarget;
-                    switch (item.type) {
-                        case ClipboardType.IMAGE:
-                            searchTarget = item.source_url || item.image_filename;
-                            break;
-                        case ClipboardType.URL:
-                            searchTarget = item.title || item.url;
-                            break;
-                        case ClipboardType.COLOR:
-                            searchTarget = item.color_value;
-                            break;
-                        default:
-                            searchTarget = item.preview;
-                    }
-                    return searchTarget && searchTarget.toLowerCase().includes(this._currentSearchText);
-                };
+                const filterFn = (item) => ClipboardSearchUtils.isMatch(item, this._currentSearchText);
                 pinnedItems = pinnedItems.filter(filterFn);
                 historyItems = historyItems.filter(filterFn);
             }
