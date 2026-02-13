@@ -15,6 +15,10 @@
     background-color: rgba(128, 128, 128, 0.3);
 }
 
+.aio-clipboard-container .aio-clipboard-tab-topbar {
+    margin-bottom: 4px;
+}
+
 .aio-clipboard-container .aio-clipboard-tab-scrollview {
     margin-left: 2px;
 }

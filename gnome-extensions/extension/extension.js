@@ -194,7 +194,9 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             mainVerticalBox.connect('captured-event', this._onContainerKeyPress.bind(this));
             this.menu.box.add_child(mainVerticalBox);
 
-            this._mainTabBar = new St.BoxLayout();
+            this._mainTabBar = new St.BoxLayout({
+                style_class: 'aio-clipboard-tab-topbar',
+            });
             mainVerticalBox.add_child(this._mainTabBar);
 
             this._tabContentArea = new St.Bin({
