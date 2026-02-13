@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 01:21+0000\n"
+"POT-Creation-Date: 2026-02-13 08:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,6 +36,7 @@ msgstr ""
 
 #: gnome-extensions/extension/extension.js:589
 #: gnome-extensions/extension/extension.js:994
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr ""
 
@@ -334,8 +335,7 @@ msgid "Enable Auto-Paste"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:683
-msgid ""
-"Automatically paste selected items instead of just copying to clipboard."
+msgid "Automatically paste selected items instead of just copying to clipboard."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:698
@@ -453,8 +453,7 @@ msgid "GIF Settings"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:871
-msgid ""
-"To search for GIFs, you must select a provider and provide your own API key."
+msgid "To search for GIFs, you must select a provider and provide your own API key."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:877
@@ -527,8 +526,7 @@ msgid "Ignored Applications"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1057
-msgid ""
-"Prevent specific applications from saving content to the clipboard history."
+msgid "Prevent specific applications from saving content to the clipboard history."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1102
@@ -544,9 +542,7 @@ msgid "Data Management"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1150
-msgid ""
-"Manage stored data and configure automatic cleanup. Manual actions cannot be "
-"undone."
+msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1156
@@ -603,6 +599,7 @@ msgid "Clear lists of recently used items."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1226
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:26
 msgid "Recent Emojis"
 msgstr ""
 
@@ -611,6 +608,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1231
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:33
 msgid "Recent GIFs"
 msgstr ""
 
@@ -619,6 +617,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1236
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 msgid "Recent Kaomojis"
 msgstr ""
 
@@ -627,6 +626,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1241
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:47
 msgid "Recent Symbols"
 msgstr ""
 
@@ -728,6 +728,22 @@ msgstr ""
 msgid "Unpin Selected"
 msgstr ""
 
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+msgid "No results found."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+msgid "Clipboard history is empty."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:216
+msgid "Pinned"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:233
+msgid "History"
+msgstr ""
+
 #: gnome-extensions/extension/features/GIF/tabGIF.js:221
 msgid "Online search is disabled."
 msgstr ""
@@ -772,6 +788,23 @@ msgid ""
 "Please check your API key and network connection."
 msgstr ""
 
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:18
+msgid "Pinned Clipboard"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:54
+msgid "Recent Clipboard History"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:586
+msgid "No recent items yet."
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:136
+msgid "Show All"
+msgstr ""
+
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:84
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
@@ -786,10 +819,6 @@ msgstr ""
 
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:585
 msgid "No items match your search."
-msgstr ""
-
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:586
-msgid "No recent items yet."
 msgstr ""
 
 #: gnome-extensions/extension/shared/utilities/utilitySearch.js:40

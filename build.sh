@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+shopt -s globstar
 
 # --- Configuration & Argument Parsing ---
 TARGET=$1
@@ -27,7 +28,7 @@ update_translation_templates() {
     echo "Updating translation templates..."
 
     # Update the UI strings template (from .js files)
-    xgettext --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
+    xgettext --no-wrap --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
 
     # Update the DATA strings template (from .json files) using our Python script
     python3 ./gnome-extensions/build-aux/extract-data-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data/json
@@ -38,10 +39,12 @@ update_translation_templates() {
         if [ -f "$po_file" ]; then
             # Figure out which template to use based on the filename
             if [[ "$po_file" == *"all-in-one-clipboard-content"* ]]; then
-                msgmerge --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard-content.pot
+                msgmerge --no-wrap --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard-content.pot
             else
-                msgmerge --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
+                msgmerge --no-wrap --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
             fi
+            # Force reformat to single line
+            msgcat --no-wrap "$po_file" -o "$po_file"
         fi
     done
     echo "Translation templates are up-to-date."

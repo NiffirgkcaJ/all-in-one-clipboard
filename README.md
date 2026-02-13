@@ -113,6 +113,7 @@ All-in-One Clipboard is available in multiple languages thanks to the efforts of
 
 **Supported Languages:**
 *   English
+*   German
 
 ### Want to Help Translate?
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 00:56+0000\n"
+"POT-Creation-Date: 2026-02-13 08:55+0800\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -36,6 +36,7 @@ msgstr "Zwischenablage"
 
 #: gnome-extensions/extension/extension.js:589
 #: gnome-extensions/extension/extension.js:994
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr "GIF"
 
@@ -165,8 +166,7 @@ msgstr "Standardreiter"
 
 #: gnome-extensions/extension/prefs.js:231
 msgid "The tab that opens when you first open the menu."
-msgstr ""
-"Der Reiter, der geöffnet wird, wenn Sie das Menü zum ersten Mal öffnen."
+msgstr "Der Reiter, der geöffnet wird, wenn Sie das Menü zum ersten Mal öffnen."
 
 #: gnome-extensions/extension/prefs.js:331
 msgid "Tab Order"
@@ -194,9 +194,7 @@ msgstr "Tastenkombinationen"
 
 #: gnome-extensions/extension/prefs.js:437
 msgid "Click on a shortcut to change it. Press Backspace to clear."
-msgstr ""
-"Auf eine Tastenkombination klicken, um sie zu ändern. Rücktaste drücken "
-"zumLöschen."
+msgstr "Auf eine Tastenkombination klicken, um sie zu ändern. Rücktaste drücken zum Löschen."
 
 #: gnome-extensions/extension/prefs.js:443
 msgid "Global Shortcuts"
@@ -307,8 +305,7 @@ msgstr "Limit für letzte Elemente"
 
 #: gnome-extensions/extension/prefs.js:638
 msgid "Maximum number of items to keep in \"Recents\" for each feature."
-msgstr ""
-"Maximale Anzahl an Elementen, die pro Funktion in »Zuletzt« behalten werden."
+msgstr "Maximale Anzahl an Elementen, die pro Funktion in »Zuletzt« behalten werden."
 
 #: gnome-extensions/extension/prefs.js:643
 msgid "Maximum Recent Emojis"
@@ -340,11 +337,8 @@ msgid "Enable Auto-Paste"
 msgstr "Automatisches Einfügen aktivieren"
 
 #: gnome-extensions/extension/prefs.js:683
-msgid ""
-"Automatically paste selected items instead of just copying to clipboard."
-msgstr ""
-"Ausgewählte Elemente automatisch einfügen, statt sie nur in die "
-"Zwischenablagezu kopieren."
+msgid "Automatically paste selected items instead of just copying to clipboard."
+msgstr "Ausgewählte Elemente automatisch einfügen, statt sie nur in die Zwischenablagezu kopieren."
 
 #: gnome-extensions/extension/prefs.js:698
 msgid "Auto-Paste Emojis"
@@ -402,8 +396,7 @@ msgstr "Bildvorschau-Größe"
 #: gnome-extensions/extension/prefs.js:769
 #, javascript-format
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
-msgstr ""
-"Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
+msgstr "Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
 
 #: gnome-extensions/extension/prefs.js:788
 msgid "Emoji Settings"
@@ -419,29 +412,27 @@ msgstr "Benutzerdefinierte Hauttöne aktivieren"
 
 #: gnome-extensions/extension/prefs.js:795
 msgid "If off, skinnable emojis are neutral. If on, use the settings below."
-msgstr ""
-"Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutzeuntenstehende "
-"Einstellungen."
+msgstr "Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutzeuntenstehende Einstellungen."
 
 #: gnome-extensions/extension/prefs.js:802
 msgid "Light"
-msgstr ""
+msgstr "Heller"
 
 #: gnome-extensions/extension/prefs.js:803
 msgid "Medium-Light"
-msgstr ""
+msgstr "Mittlerer-Licht"
 
 #: gnome-extensions/extension/prefs.js:804
 msgid "Medium"
-msgstr ""
+msgstr "Mittlerer"
 
 #: gnome-extensions/extension/prefs.js:805
 msgid "Medium-Dark"
-msgstr ""
+msgstr "Mittlerer-Dunkel"
 
 #: gnome-extensions/extension/prefs.js:806
 msgid "Dark"
-msgstr ""
+msgstr "Dunkel"
 
 #: gnome-extensions/extension/prefs.js:812
 msgid "Primary Tone / Single Emoji"
@@ -464,11 +455,8 @@ msgid "GIF Settings"
 msgstr "GIF-Einstellungen"
 
 #: gnome-extensions/extension/prefs.js:871
-msgid ""
-"To search for GIFs, you must select a provider and provide your own API key."
-msgstr ""
-"Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren "
-"eigenenAPI-Schlüssel angeben."
+msgid "To search for GIFs, you must select a provider and provide your own API key."
+msgstr "Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren eigenenAPI-Schlüssel angeben."
 
 #: gnome-extensions/extension/prefs.js:877
 msgid "GIF Provider"
@@ -529,41 +517,35 @@ msgstr "Bereich: %d–%d MB. Standard: %d MB"
 
 #: gnome-extensions/extension/prefs.js:1050
 msgid "Excluded Applications"
-msgstr ""
+msgstr "Ausschließlich Anwendungen"
 
 #: gnome-extensions/extension/prefs.js:1051
 msgid "Manage applications that should be ignored by the clipboard manager."
-msgstr ""
+msgstr "Verwaltung von Anwendungen, die vom Zwischenablageverwaltung ignoriert werden sollen."
 
 #: gnome-extensions/extension/prefs.js:1056
 msgid "Ignored Applications"
-msgstr ""
+msgstr "Ignorierte Anwendungen"
 
 #: gnome-extensions/extension/prefs.js:1057
-msgid ""
-"Prevent specific applications from saving content to the clipboard history."
-msgstr ""
+msgid "Prevent specific applications from saving content to the clipboard history."
+msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
 
 #: gnome-extensions/extension/prefs.js:1102
 msgid "Add New Exclusion"
-msgstr ""
+msgstr "Neu ausgeschlossen hinzufügen"
 
 #: gnome-extensions/extension/prefs.js:1106
 msgid "Application Name or ID"
-msgstr ""
+msgstr "Anwendungsnamen oder ID"
 
 #: gnome-extensions/extension/prefs.js:1149
 msgid "Data Management"
 msgstr "Datenverwaltung"
 
 #: gnome-extensions/extension/prefs.js:1150
-msgid ""
-"Manage stored data and configure automatic cleanup. Manual actions cannot be "
-"undone."
-msgstr ""
-"Verwalten Sie gespeicherte Daten und konfigurieren Sie die "
-"automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht "
-"werden."
+msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
+msgstr "Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
 
 #: gnome-extensions/extension/prefs.js:1156
 msgid "Clear Data at Login"
@@ -618,9 +600,10 @@ msgstr "Verlauf letzter Elemente"
 #: gnome-extensions/extension/prefs.js:1219
 #, fuzzy
 msgid "Clear lists of recently used items."
-msgstr "Listen von zuletzt genutzten Emojis, GIFs etc. löschen."
+msgstr "Listen von zuletzt genutzten items löschen."
 
 #: gnome-extensions/extension/prefs.js:1226
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:26
 msgid "Recent Emojis"
 msgstr "Letzte Emojis"
 
@@ -629,6 +612,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr "Löscht die Liste zuletzt genutzter Emojis unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1231
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:33
 msgid "Recent GIFs"
 msgstr "Letzte GIFs"
 
@@ -637,6 +621,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr "Löscht die Liste zuletzt genutzter GIFs unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1236
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 msgid "Recent Kaomojis"
 msgstr "Letzte Kaomojis"
 
@@ -645,6 +630,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr "Löscht die Liste zuletzt genutzter Kaomojis unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1241
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:47
 msgid "Recent Symbols"
 msgstr "Letzte Symbole"
 
@@ -666,9 +652,7 @@ msgstr "Zwischenablagedaten"
 
 #: gnome-extensions/extension/prefs.js:1260
 msgid "Permanently delete your saved clipboard history and pinned items."
-msgstr ""
-"Ihren gespeicherten Zwischenablageverlauf und angehefteten "
-"Elementeunwiderruflich löschen."
+msgstr "Ihren gespeicherten Zwischenablageverlauf und angehefteten Elementeunwiderruflich löschen."
 
 #: gnome-extensions/extension/prefs.js:1265
 msgid "Clipboard History"
@@ -676,9 +660,7 @@ msgstr "Zwischenablageverlauf"
 
 #: gnome-extensions/extension/prefs.js:1266
 msgid "Permanently clears all saved unpinned clipboard items."
-msgstr ""
-"Löscht alle gespeicherten nicht angehefteten "
-"Zwischenablageelementeunwiderruflich."
+msgstr "Löscht alle gespeicherten nicht angehefteten Zwischenablageelementeunwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1272
 msgid "Pinned Items"
@@ -686,9 +668,7 @@ msgstr "Angeheftete Elemente"
 
 #: gnome-extensions/extension/prefs.js:1273
 msgid "Permanently clears all saved pinned clipboard items."
-msgstr ""
-"Löscht alle gespeicherten angehefteten Zwischenablageelemente "
-"undwiderruflich."
+msgstr "Löscht alle gespeicherten angehefteten Zwischenablageelemente undwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1280
 msgid "Performance Caches"
@@ -696,9 +676,7 @@ msgstr "Performance-Zwischenspeicher"
 
 #: gnome-extensions/extension/prefs.js:1281
 msgid "Clear temporary data used to improve loading speed."
-msgstr ""
-"Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit "
-"genutztwerden."
+msgstr "Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit genutzt werden."
 
 #: gnome-extensions/extension/prefs.js:1286
 msgid "GIF Preview Cache"
@@ -754,6 +732,25 @@ msgstr "Ausgewählte anheften"
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+#, fuzzy
+msgid "No results found."
+msgstr "Keine Resultate für »%s« gefunden."
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:106
+#, fuzzy
+msgid "Clipboard history is empty."
+msgstr "Zwischenablageverlauf"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:216
+#, fuzzy
+msgid "Pinned"
+msgstr "Angeheftete Elemente"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:233
+msgid "History"
+msgstr "Geschichte"
+
 #: gnome-extensions/extension/features/GIF/tabGIF.js:221
 msgid "Online search is disabled."
 msgstr "Onlinesuche ist deaktiviert."
@@ -800,6 +797,25 @@ msgstr ""
 "Fehler: %s\n"
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:18
+#, fuzzy
+msgid "Pinned Clipboard"
+msgstr "All-in-One Zwischenablage"
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:54
+#, fuzzy
+msgid "Recent Clipboard History"
+msgstr "Zwischenablageverlauf"
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:586
+msgid "No recent items yet."
+msgstr "Bisher keine letzten Elemente."
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:136
+msgid "Show All"
+msgstr "Alle anzeigen"
+
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:84
 msgid "Component configuration is invalid. Check logs."
 msgstr "Komponentenkonfiguration ist ungültig. Logs prüfen."
@@ -815,10 +831,6 @@ msgstr "Keine Elemente verfügbar."
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:585
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
-
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:586
-msgid "No recent items yet."
-msgstr "Bisher keine letzten Elemente."
 
 #: gnome-extensions/extension/shared/utilities/utilitySearch.js:40
 msgid "Search..."
