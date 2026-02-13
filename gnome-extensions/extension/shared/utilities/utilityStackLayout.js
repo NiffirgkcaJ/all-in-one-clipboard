@@ -25,7 +25,7 @@ export const StackLayout = GObject.registerClass(
          * @param {Object} [otherParams] Other St.BoxLayout parameters
          */
         constructor(params) {
-            const { renderItemFn, scrollView, ...otherParams } = params;
+            const { renderItemFn, updateItemFn, scrollView, ...otherParams } = params;
 
             super({
                 vertical: true,
@@ -34,6 +34,7 @@ export const StackLayout = GObject.registerClass(
             });
 
             this._renderItemFn = renderItemFn;
+            this._updateItemFn = updateItemFn;
             this._scrollView = scrollView;
             this._items = [];
             this._checkboxIconsMap = new Map();
@@ -66,6 +67,9 @@ export const StackLayout = GObject.registerClass(
 
                 if (widget) {
                     existingWidgets.delete(item.id);
+                    if (this._updateItemFn) {
+                        this._updateItemFn(widget, item, renderSession);
+                    }
                     if (this.get_child_at_index(index) !== widget) {
                         this.set_child_at_index(widget, index);
                     }

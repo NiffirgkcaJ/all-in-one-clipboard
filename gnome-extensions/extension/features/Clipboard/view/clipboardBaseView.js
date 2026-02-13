@@ -5,7 +5,6 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 /**
- * ClipboardBaseView
  * Abstract base class for clipboard views.
  *
  * Handles common functionality:
@@ -83,6 +82,39 @@ export const ClipboardBaseView = GObject.registerClass(
             throw new Error('Method _createHistoryContainer must be implemented by subclass');
         }
 
+        /**
+         * Get the item factory class for this view.
+         * @abstract
+         * @returns {Class} The factory class
+         */
+        _getItemFactory() {
+            throw new Error('Method _getItemFactory must be implemented by subclass');
+        }
+
+        /**
+         * Get options for creating/updating items.
+         * @abstract
+         * @param {boolean} isPinned Whether the item is pinned
+         * @returns {Object} Options object
+         */
+        _getItemOptions(_isPinned) {
+            throw new Error('Method _getItemOptions must be implemented by subclass');
+        }
+
+        /**
+         * Update an existing item widget.
+         * @param {St.Widget} widget The existing widget
+         * @param {Object} itemData The new item data
+         * @param {Object} [session] Render session
+         * @protected
+         */
+        _updateItemWidget(widget, itemData, session) {
+            const isPinned = session === true;
+            const Factory = this._getItemFactory();
+            const options = this._getItemOptions(isPinned);
+            Factory.updateItem(widget, itemData, options);
+        }
+
         // ========================================================================
         // Public API
         // ========================================================================
@@ -156,10 +188,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 const children = container.get_children();
                 for (const child of children) {
                     if (child._itemId && child._itemCheckbox) {
-                        // Ensure we have the latest state from the widget
                         this._checkboxIconsMap.set(child._itemId, child._itemCheckbox.child);
-
-                        // Ensure visual state matches
                         if (this._selectedIds.has(child._itemId)) {
                             child._itemCheckbox.child.state = 'checked';
                         } else {
@@ -208,7 +237,7 @@ export const ClipboardBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Build common UI components (Headers, Separator, Empty Label).
+         * Build common UI components.
          * @private
          */
         _buildCommonUI() {
@@ -299,7 +328,6 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _getHistoryItemCount() {
-            // Subclass must implement if container provides count, otherwise default 0
             if (this._historyContainer && typeof this._historyContainer.getItemCount === 'function') {
                 return this._historyContainer.getItemCount();
             }
@@ -324,7 +352,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Append batch to history container.
-         * @param {Array} newBatch - Just the new items
+         * @param {Array} newBatch Just the new items
          */
         _appendHistoryBatch(newBatch) {
             this._historyContainer.addItems(newBatch);
@@ -335,7 +363,6 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _clearPinnedContainer() {
-            // Optional override
             if (this._pinnedContainer && typeof this._pinnedContainer.clear === 'function') {
                 this._pinnedContainer.clear();
             }
@@ -346,7 +373,6 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _clearHistoryContainer() {
-            // Optional override
             if (this._historyContainer && typeof this._historyContainer.clear === 'function') {
                 this._historyContainer.clear();
             }
@@ -354,18 +380,17 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Capture the current focus state.
-         * @returns {Object|null}
+         * @returns {Object|null} The captured focus state including itemId
+         * @private
          */
         _captureFocusState() {
             const currentFocus = global.stage.get_key_focus();
             if (!currentFocus) return null;
 
-            // Check if focus is inside one of our containers
             const inPinned = this._pinnedContainer && this._pinnedContainer.contains(currentFocus);
             const inHistory = this._historyContainer && this._historyContainer.contains(currentFocus);
 
             if (inPinned || inHistory) {
-                // Walk up to find the item (which checks the _itemId)
                 let itemWidget = currentFocus;
                 while (itemWidget && !itemWidget._itemId) {
                     itemWidget = itemWidget.get_parent();
@@ -380,7 +405,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Restore focus to the previously focused item.
-         * @param {Object|null} focusState
+         * @param {Object|null} focusState The state to restore
+         * @private
          */
         _restoreFocusState(focusState) {
             if (!focusState || !focusState.itemId) return;
@@ -425,7 +451,6 @@ export const ClipboardBaseView = GObject.registerClass(
 
                     if (attempts > 10) {
                         const stillPending = (this._pinnedContainer?.hasPendingItems?.() ?? false) || (this._historyContainer?.hasPendingItems?.() ?? false);
-
                         if (!stillPending) {
                             this.emit('navigate-up');
                         }
@@ -440,7 +465,7 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Load next batch.
+         * Load next batch of history items.
          * @private
          */
         _loadNextHistoryBatch() {
@@ -469,6 +494,7 @@ export const ClipboardBaseView = GObject.registerClass(
         /**
          * Check if loading should be deferred.
          * @returns {boolean} True if loading should be deferred
+         * @private
          */
         _shouldDeferLoading() {
             return this._historyContainer?.shouldDeferLoading?.() ?? false;
@@ -507,7 +533,7 @@ export const ClipboardBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Clear all items.
+         * Clear all items and reset state.
          */
         clear() {
             this._allItems = [];
@@ -521,7 +547,7 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Destroy the view.
+         * Destroy the view and clean up resources.
          */
         destroy() {
             this._isDestroyed = true;

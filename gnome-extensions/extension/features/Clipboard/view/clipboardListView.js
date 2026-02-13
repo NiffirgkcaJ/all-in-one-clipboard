@@ -19,6 +19,7 @@ import { ClipboardBaseView } from './clipboardBaseView.js';
 export const ClipboardListView = GObject.registerClass(
     class ClipboardListView extends ClipboardBaseView {
         /**
+         * Initialize the list view.
          * @param {Object} options Configuration options
          */
         constructor(options) {
@@ -41,6 +42,7 @@ export const ClipboardListView = GObject.registerClass(
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, true),
+                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
             });
         }
 
@@ -54,6 +56,7 @@ export const ClipboardListView = GObject.registerClass(
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, false),
+                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
             });
         }
 
@@ -81,7 +84,27 @@ export const ClipboardListView = GObject.registerClass(
          * @private
          */
         _createItemWidget(itemData, isPinned) {
-            const itemWidget = ClipboardListItemFactory.createItem(itemData, {
+            const options = this._getItemOptions(isPinned);
+            return ClipboardListItemFactory.createItem(itemData, options);
+        }
+
+        /**
+         * Get the item factory class.
+         * @returns {Class} BillboardListItemFactory
+         * @override
+         */
+        _getItemFactory() {
+            return ClipboardListItemFactory;
+        }
+
+        /**
+         * Get item options.
+         * @param {boolean} isPinned
+         * @returns {Object}
+         * @override
+         */
+        _getItemOptions(isPinned) {
+            return {
                 isPinned: isPinned,
                 imagesDir: this._manager._imagesDir,
                 linkPreviewsDir: this._manager._linkPreviewsDir,
@@ -92,9 +115,7 @@ export const ClipboardListView = GObject.registerClass(
                 onSelectionChanged: this._onSelectionChanged,
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
-            });
-
-            return itemWidget;
+            };
         }
 
         // ========================================================================
@@ -158,7 +179,7 @@ export const ClipboardListView = GObject.registerClass(
          *   const finder = this._createFocusFinder(currentFocus);
          *   otherContainer.focusFirst(finder);
          *
-         * @param {Clutter.Actor} currentFocus - The currently focused actor
+         * @param {Clutter.Actor} currentFocus The currently focused actor
          * @returns {Function|undefined} A function (itemWidget) => childWidget, or undefined
          * @private
          */

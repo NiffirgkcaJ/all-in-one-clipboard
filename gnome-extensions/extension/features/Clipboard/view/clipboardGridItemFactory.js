@@ -19,10 +19,9 @@ import { ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
 export class ClipboardGridItemFactory {
     /**
      * Get item view configuration.
-     *
-     * @param {Object} item - The raw item data
-     * @param {string} imagesDir - Directory where images are stored
-     * @param {string} linkPreviewsDir - Directory where link previews are stored
+     * @param {Object} item The raw item data
+     * @param {string} imagesDir Directory where images are stored
+     * @param {string} linkPreviewsDir Directory where link previews are stored
      * @returns {Object} The view configuration
      */
     static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
@@ -104,6 +103,7 @@ export class ClipboardGridItemFactory {
             }
 
             cardStack.add_child(typeBadge);
+            itemWidget._typeBadge = typeBadge;
         }
 
         const actionsOverlay = new St.BoxLayout({
@@ -114,7 +114,7 @@ export class ClipboardGridItemFactory {
             y_align: Clutter.ActorAlign.END,
         });
 
-        // Checkbox using Shared Factory
+        // Checkbox
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
             itemData,
             {
@@ -124,7 +124,7 @@ export class ClipboardGridItemFactory {
             },
             {
                 style_class: 'button clipboard-grid-checkbox',
-                can_focus: false, // Uses the keyboard schema hotkey
+                can_focus: false,
             },
         );
         actionsOverlay.add_child(itemCheckbox);
@@ -186,8 +186,82 @@ export class ClipboardGridItemFactory {
         itemWidget._pinButton = pinButton;
         itemWidget._deleteButton = deleteButton;
         itemWidget._itemId = itemData.id;
+        itemWidget._contentWrapper = contentWrapper;
+        itemWidget._cardStack = cardStack;
 
         return itemWidget;
+    }
+
+    /**
+     * Update an existing item widget with new data.
+     * @param {St.Widget} itemWidget The existing widget
+     * @param {Object} newItemData The new item data
+     * @param {Object} options Options for rendering
+     */
+    static updateItem(itemWidget, newItemData, options) {
+        if (!itemWidget || !newItemData) return;
+        itemWidget._itemId = newItemData.id;
+
+        const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
+
+        // Update Content
+        const contentWrapper = itemWidget._contentWrapper;
+        if (contentWrapper) {
+            const newContentWidget = ClipboardGridItemFactory.createGridContent(config, newItemData, {
+                imagesDir: options.imagesDir,
+                imagePreviewSize: options.imagePreviewSize,
+            });
+            contentWrapper.set_child(newContentWidget);
+
+            const isFullBleed = ['color', 'image'].includes(config.layoutMode);
+            if (!isFullBleed) {
+                contentWrapper.add_style_class_name('clipboard-grid-card-content');
+            } else {
+                contentWrapper.remove_style_class_name('clipboard-grid-card-content');
+            }
+        }
+
+        // Update Type Badge
+        const cardStack = itemWidget._cardStack;
+        if (cardStack) {
+            // Remove old badge
+            if (itemWidget._typeBadge) {
+                itemWidget._typeBadge.destroy();
+                itemWidget._typeBadge = null;
+            }
+
+            // Create new badge
+            if (config.icon) {
+                const typeBadge = new St.BoxLayout({
+                    style_class: 'clipboard-grid-type-badge',
+                    x_expand: true,
+                    y_expand: true,
+                    x_align: Clutter.ActorAlign.FILL,
+                    y_align: Clutter.ActorAlign.START,
+                });
+                const typeIcon = createStaticIcon({ ...config, iconSize: IconSizes.BADGE_TYPE_ICON }, { styleClass: 'clipboard-grid-type-icon' });
+                typeBadge.add_child(typeIcon);
+
+                if (config.layoutMode === 'code' && config.rawLines > 0) {
+                    const spacer = new St.Widget({ x_expand: true });
+                    typeBadge.add_child(spacer);
+
+                    const lineCountLabel = new St.Label({
+                        text: `${config.rawLines} lines`,
+                        style_class: 'clipboard-grid-code-line-count',
+                    });
+                    typeBadge.add_child(lineCountLabel);
+                }
+
+                cardStack.add_child(typeBadge);
+                itemWidget._typeBadge = typeBadge;
+
+                const actionsOverlay = cardStack.get_children().find((c) => c.has_style_class_name('clipboard-grid-controls'));
+                if (actionsOverlay) {
+                    cardStack.set_child_above_sibling(actionsOverlay, typeBadge);
+                }
+            }
+        }
     }
 
     /**

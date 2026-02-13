@@ -9,13 +9,12 @@ import { ClipboardIcons } from '../constants/clipboardConstants.js';
 export class ClipboardBaseWidgetFactory {
     /**
      * Create a selection checkbox with standard binding logic.
-     *
-     * @param {Object} itemData - The item data
-     * @param {Object} options - Render options
-     * @param {Set} options.selectedIds - Set of selected item IDs
-     * @param {Map} [options.checkboxIconsMap] - Map to register checkbox icons
-     * @param {Function} [options.onSelectionChanged] - Callback when selection changes
-     * @param {Object} [styleOptions] - Additional style options for the button
+     * @param {Object} itemData The item data
+     * @param {Object} options Render options
+     * @param {Set} options.selectedIds Set of selected item IDs
+     * @param {Map} [options.checkboxIconsMap] Map to register checkbox icons
+     * @param {Function} [options.onSelectionChanged] Callback when selection changes
+     * @param {Object} [styleOptions] Additional style options for the button
      * @returns {St.Button} The configured checkbox button
      */
     static createCheckbox(itemData, options, styleOptions = {}) {
@@ -28,8 +27,8 @@ export class ClipboardBaseWidgetFactory {
             },
             {
                 initial: isChecked ? 'checked' : 'unchecked',
-                style_class: 'button clipboard-checkbox', // Generic class, specific views can add more
-                can_focus: false, // Default to false as per existing patterns (usually handled by parent row/card or separate focus logic)
+                style_class: 'button clipboard-checkbox',
+                can_focus: false,
                 ...styleOptions,
             },
         );
@@ -55,12 +54,11 @@ export class ClipboardBaseWidgetFactory {
 
     /**
      * Create a Pin/Unpin button.
-     *
-     * @param {Object} itemData - The item data
-     * @param {boolean} isPinned - Whether the item is currently pinned
-     * @param {Object} options - Render options
-     * @param {Object} options.manager - ClipboardManager instance
-     * @param {Object} [styleOptions] - Additional style options
+     * @param {Object} itemData The item data
+     * @param {boolean} isPinned Whether the item is currently pinned
+     * @param {Object} options Render options
+     * @param {Object} options.manager ClipboardManager instance
+     * @param {Object} [styleOptions] Additional style options
      * @returns {St.Button} The configured pin button
      */
     static createPinButton(itemData, isPinned, options, styleOptions = {}) {
@@ -83,11 +81,10 @@ export class ClipboardBaseWidgetFactory {
 
     /**
      * Create a Delete button.
-     *
-     * @param {Object} itemData - The item data
-     * @param {Object} options - Render options
-     * @param {Object} options.manager - ClipboardManager instance
-     * @param {Object} [styleOptions] - Additional style options
+     * @param {Object} itemData The item data
+     * @param {Object} options Render options
+     * @param {Object} options.manager ClipboardManager instance
+     * @param {Object} [styleOptions] Additional style options
      * @returns {St.Button} The configured delete button
      */
     static createDeleteButton(itemData, options, styleOptions = {}) {

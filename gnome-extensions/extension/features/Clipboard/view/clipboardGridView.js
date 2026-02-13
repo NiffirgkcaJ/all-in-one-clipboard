@@ -22,6 +22,7 @@ import { ClipboardBaseView } from './clipboardBaseView.js';
 export const ClipboardGridView = GObject.registerClass(
     class ClipboardGridView extends ClipboardBaseView {
         /**
+         * Initialize the grid view.
          * @param {Object} options Configuration options
          */
         constructor(options) {
@@ -54,7 +55,8 @@ export const ClipboardGridView = GObject.registerClass(
                 columns: 3,
                 spacing: 8,
                 scrollView: this._scrollView,
-                renderItemFn: this._createItemWidget.bind(this),
+                renderItemFn: (item) => this._createItemWidget(item, true),
+                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
                 prepareItemFn: (item) => this._prepareGridItem(item, true),
             });
         }
@@ -69,7 +71,8 @@ export const ClipboardGridView = GObject.registerClass(
                 columns: 3,
                 spacing: 8,
                 scrollView: this._scrollView,
-                renderItemFn: this._createItemWidget.bind(this),
+                renderItemFn: (item) => this._createItemWidget(item, false),
+                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
                 prepareItemFn: (item) => this._prepareGridItem(item, false),
             });
         }
@@ -106,12 +109,34 @@ export const ClipboardGridView = GObject.registerClass(
         /**
          * Render a single card widget for the masonry layout.
          * @param {Object} itemData The item data with _isPinned flag
-         * @param {Object} _session Render session (unused)
+         * @param {Object} _session Render session is unused
          * @returns {St.Widget} The card widget
          * @private
          */
         _createItemWidget(itemData, _session) {
-            return ClipboardGridItemFactory.createItem(itemData, {
+            const isPinned = _session === true;
+            const options = this._getItemOptions(isPinned);
+            return ClipboardGridItemFactory.createItem(itemData, options);
+        }
+
+        /**
+         * Get the item factory class.
+         * @returns {Class} ClipboardGridItemFactory
+         * @override
+         */
+        _getItemFactory() {
+            return ClipboardGridItemFactory;
+        }
+
+        /**
+         * Get item options.
+         * @param {boolean} isPinned
+         * @returns {Object}
+         * @override
+         */
+        _getItemOptions(isPinned) {
+            return {
+                isPinned: isPinned,
                 imagesDir: this._manager._imagesDir,
                 linkPreviewsDir: this._manager._linkPreviewsDir,
                 imagePreviewSize: this._imagePreviewSize * 2,
@@ -121,7 +146,7 @@ export const ClipboardGridView = GObject.registerClass(
                 onSelectionChanged: this._onSelectionChanged,
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
-            });
+            };
         }
 
         /**
@@ -160,7 +185,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Estimate the relative height of a card based on item type.
-         * @param {Object} item - The clipboard item
+         * @param {Object} item The clipboard item
          * @returns {number} Estimated relative height
          * @private
          */
@@ -184,7 +209,7 @@ export const ClipboardGridView = GObject.registerClass(
         /**
          * Get cached dimensions for an image file.
          * If not cached, triggers async load and returns null.
-         * @param {string} filename - The image filename
+         * @param {string} filename The image filename
          * @returns {Object|null} { width, height } or null
          * @private
          */

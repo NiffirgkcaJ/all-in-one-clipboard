@@ -19,10 +19,9 @@ import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 export class ClipboardListItemFactory {
     /**
      * Get item view configuration.
-     *
-     * @param {Object} item - The raw item data
-     * @param {string} imagesDir - Directory where images are stored
-     * @param {string} linkPreviewsDir - Directory where link previews are stored
+     * @param {Object} item The raw item data
+     * @param {string} imagesDir Directory where images are stored
+     * @param {string} linkPreviewsDir Directory where link previews are stored
      * @returns {Object} The view configuration
      */
     static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
@@ -30,7 +29,7 @@ export class ClipboardListItemFactory {
     }
 
     /**
-     * Create a complete list item (row) with content and action buttons.
+     * Create a complete list item row with content and action buttons.
      *
      * @param {Object} itemData The item data with _isPinned flag
      * @param {Object} options Options for rendering
@@ -149,8 +148,37 @@ export class ClipboardListItemFactory {
         itemWidget._pinButton = pinButton;
         itemWidget._deleteButton = deleteButton;
         itemWidget._itemId = itemData.id;
+        itemWidget._contentWidget = contentWidget;
+        itemWidget._mainBox = mainBox;
 
         return itemWidget;
+    }
+
+    /**
+     * Update an existing item widget with new data.
+     * @param {St.Widget} itemWidget The existing widget
+     * @param {Object} newItemData The new item data
+     * @param {Object} options Options for rendering
+     */
+    static updateItem(itemWidget, newItemData, options) {
+        if (!itemWidget || !newItemData) return;
+
+        itemWidget._itemId = newItemData.id;
+
+        const config = ClipboardListItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
+        const newContentWidget = ClipboardListItemFactory.createListContent(config, newItemData, {
+            imagesDir: options.imagesDir,
+            imagePreviewSize: options.imagePreviewSize,
+        });
+
+        const mainBox = itemWidget._mainBox || itemWidget.get_child();
+        const oldContentWidget = itemWidget._contentWidget;
+
+        if (mainBox && oldContentWidget) {
+            mainBox.replace_child(oldContentWidget, newContentWidget);
+            itemWidget._contentWidget = newContentWidget;
+            oldContentWidget.destroy();
+        }
     }
 
     /**

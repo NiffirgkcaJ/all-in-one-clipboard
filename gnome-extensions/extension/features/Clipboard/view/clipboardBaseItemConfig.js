@@ -12,11 +12,10 @@ import { ClipboardType, ClipboardStyling, ClipboardIcons } from '../constants/cl
 export class ClipboardBaseItemConfig {
     /**
      * Maps an item's data to a standardized view configuration.
-     *
-     * @param {Object} item - The raw item data
-     * @param {string} imagesDir - Directory where images are stored
-     * @param {string} linkPreviewsDir - Directory where link previews are stored
-     * @returns {Object} { layoutMode, icon, title, subtitle, text, gicon, cssColor, rawLines }
+     * @param {Object} item The raw item data
+     * @param {string} imagesDir Directory where images are stored
+     * @param {string} linkPreviewsDir Directory where link previews are stored
+     * @returns {Object} Configuration object
      */
     static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
         const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
@@ -78,7 +77,7 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure File item view
+     * Configure File item view.
      * @private
      */
     static _configureFileItem(config, item) {
@@ -87,7 +86,7 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure URL item view
+     * Configure URL item view.
      * @private
      */
     static _configureUrlItem(config, item, linkPreviewsDir) {
@@ -100,7 +99,7 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure Contact item view
+     * Configure Contact item view.
      * @private
      */
     static _configureContactItem(config, item, style, linkPreviewsDir) {
@@ -122,7 +121,7 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure Color item view
+     * Configure Color item view.
      * @private
      */
     static _configureColorItem(config, item, style) {
@@ -135,7 +134,7 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure Code item view
+     * Configure Code item view.
      * @private
      */
     static _configureCodeItem(config, item) {
@@ -144,11 +143,10 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Configure Text item view
+     * Configure Text item view.
      * @private
      */
     static _configureTextItem(config, item) {
-        // If item.preview is missing, use item.text or empty string.
         config.text = item.preview || item.text || '';
     }
 }

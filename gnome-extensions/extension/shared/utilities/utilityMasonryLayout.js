@@ -53,11 +53,12 @@ export const MasonryLayout = GObject.registerClass(
         constructor(params) {
             super({ x_expand: true });
 
-            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn, prepareItemFn, scrollView } = params;
+            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
 
             this._columns = columns;
             this._spacing = spacing;
             this._renderItemFn = renderItemFn;
+            this._updateItemFn = updateItemFn;
             this._prepareItemFn = prepareItemFn || ((item) => item);
             this._scrollView = scrollView || null;
             this._columnHeights = new Array(this._columns).fill(0);
@@ -244,6 +245,9 @@ export const MasonryLayout = GObject.registerClass(
                 let itemWidget = existingWidgets.get(itemData.id);
                 if (itemWidget) {
                     existingWidgets.delete(itemData.id);
+                    if (this._updateItemFn) {
+                        this._updateItemFn(itemWidget, itemData, renderSession);
+                    }
                     const oldData = itemWidget._masonryData;
                     const positionChanged = oldData && (oldData.x !== x || oldData.y !== y || oldData.width !== columnWidth || oldData.height !== itemHeight);
                     itemWidget._masonryData = { x, y, width: columnWidth, height: itemHeight };
