@@ -58,11 +58,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._gifCacheDir = FilePath.GIF_PREVIEWS;
 
-            this._isDestroyed = false;
             this._extension = extension;
             this._settings = settings;
             this._clipboardManager = clipboardManager;
             this._settingsBtnFocusTimeoutId = 0;
+            this._focusIdleId = 0;
+            this._scrollIntoViewIdleId = 0;
 
             this._imagePreviewSize = this._settings.get_int(RecentlyUsedSettings.CLIPBOARD_IMAGE_PREVIEW_SIZE);
             this._recentManagers = {};
@@ -79,7 +80,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._buildUI();
 
             this.initializationPromise = this._loadRecentManagers()
-                .then(() => this._connectSignalsAndRender())
+                .then(() => {
+                    if (this._mainContainer) {
+                        this._connectSignalsAndRender();
+                    }
+                })
                 .catch((e) => console.error('[AIO-Clipboard] Failed to load recent managers:', e));
         }
 
@@ -169,7 +174,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             showAllBtn.connect('key-focus-in', () => {
                 this._previousFocus = showAllBtn;
 
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (this._scrollIntoViewIdleId) {
+                    GLib.source_remove(this._scrollIntoViewIdleId);
+                    this._scrollIntoViewIdleId = 0;
+                }
+                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._scrollIntoViewIdleId = 0;
                     ensureActorVisibleInScrollView(this._scrollView, section);
                     return GLib.SOURCE_REMOVE;
                 });
@@ -310,7 +320,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     pinnedWidgets.add(sectionData.showAllBtn);
                     this._previousFocus = sectionData.showAllBtn;
 
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    if (this._scrollIntoViewIdleId) {
+                        GLib.source_remove(this._scrollIntoViewIdleId);
+                        this._scrollIntoViewIdleId = 0;
+                    }
+                    this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        this._scrollIntoViewIdleId = 0;
                         if (sectionData.section.get_stage()) {
                             ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
                         }
@@ -332,7 +347,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                         if (isEnteringFromOutside) {
                             this._unlockOuterScroll();
 
-                            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            if (this._scrollIntoViewIdleId) {
+                                GLib.source_remove(this._scrollIntoViewIdleId);
+                                this._scrollIntoViewIdleId = 0;
+                            }
+                            this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                                this._scrollIntoViewIdleId = 0;
                                 if (widget.get_stage()) {
                                     ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
                                     ensureActorVisibleInScrollView(pinnedScrollView, widget);
@@ -348,7 +368,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                         } else {
                             this._lockOuterScroll();
 
-                            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            if (this._scrollIntoViewIdleId) {
+                                GLib.source_remove(this._scrollIntoViewIdleId);
+                                this._scrollIntoViewIdleId = 0;
+                            }
+                            this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                                this._scrollIntoViewIdleId = 0;
                                 if (widget.get_stage()) {
                                     ensureActorVisibleInScrollView(pinnedScrollView, widget);
                                 }
@@ -362,7 +387,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     widget.connect('key-focus-in', () => {
                         this._unlockOuterScroll();
 
-                        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        if (this._scrollIntoViewIdleId) {
+                            GLib.source_remove(this._scrollIntoViewIdleId);
+                            this._scrollIntoViewIdleId = 0;
+                        }
+                        this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            this._scrollIntoViewIdleId = 0;
                             if (widget.get_stage()) {
                                 ensureActorVisibleInScrollView(this._scrollView, widget);
                             }
@@ -475,7 +505,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     const context = {
                         gifDownloadService: this._gifDownloadService,
                         gifCacheDir: this._gifCacheDir,
-                        isDestroyed: () => this._isDestroyed,
                         currentRenderSession: () => this._renderSession,
                         getGifCacheManager,
                     };
@@ -519,7 +548,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             button.connect('key-focus-in', () => {
                 this._unlockOuterScroll();
 
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (this._scrollIntoViewIdleId) {
+                    GLib.source_remove(this._scrollIntoViewIdleId);
+                    this._scrollIntoViewIdleId = 0;
+                }
+                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._scrollIntoViewIdleId = 0;
                     if (button.get_stage()) {
                         ensureActorVisibleInScrollView(this._scrollView, button);
                     }
@@ -546,7 +580,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             button.connect('key-focus-in', () => {
                 this._unlockOuterScroll();
 
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (this._scrollIntoViewIdleId) {
+                    GLib.source_remove(this._scrollIntoViewIdleId);
+                    this._scrollIntoViewIdleId = 0;
+                }
+                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._scrollIntoViewIdleId = 0;
                     ensureActorVisibleInScrollView(this._scrollView, button);
                     return GLib.SOURCE_REMOVE;
                 });
@@ -755,9 +794,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          */
         onTabSelected() {
             this._tabVisCheckIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (!this._isDestroyed) {
-                    this.emit('set-main-tab-bar-visibility', true);
-                }
+                this.emit('set-main-tab-bar-visibility', true);
                 this._tabVisCheckIdleId = 0;
                 return GLib.SOURCE_REMOVE;
             });
@@ -782,7 +819,13 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _restoreFocus() {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+
+            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                this._focusIdleId = 0;
                 if (this._focusGrid.length === 0) {
                     return GLib.SOURCE_REMOVE;
                 }
@@ -794,11 +837,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     }
                 }
 
-                if (this._tryFocusContentItem(showAllButtons)) {
+                if (this._tryFocusShowAllButton(showAllButtons)) {
                     return GLib.SOURCE_REMOVE;
                 }
 
-                if (this._tryFocusShowAllButton(showAllButtons)) {
+                if (this._tryFocusContentItem(showAllButtons)) {
                     return GLib.SOURCE_REMOVE;
                 }
 
@@ -881,8 +924,18 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 GLib.source_remove(this._settingsBtnFocusTimeoutId);
                 this._settingsBtnFocusTimeoutId = 0;
             }
-
-            this._isDestroyed = true;
+            if (this._lockTimeoutId) {
+                GLib.source_remove(this._lockTimeoutId);
+                this._lockTimeoutId = 0;
+            }
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+            if (this._scrollIntoViewIdleId) {
+                GLib.source_remove(this._scrollIntoViewIdleId);
+                this._scrollIntoViewIdleId = 0;
+            }
 
             if (this._httpSession) {
                 this._httpSession.abort();
@@ -907,6 +960,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             }
 
             Object.values(this._recentManagers).forEach((m) => m?.destroy());
+
+            this._renderSession = null;
+            this._mainContainer = null;
 
             super.destroy();
         }

@@ -72,8 +72,9 @@ export const GIFTabContent = GObject.registerClass(
             this._gifManager = new GifManager(settings, extension.uuid);
             this._downloadService = new GifDownloadService(this._httpSession, clipboardManager);
 
-            this._isDestroyed = false;
             this._providerChangedSignalId = 0;
+            this._focusIdleId = 0;
+            this._scrollHeaderIdleId = 0;
             this._isClearingForCategoryChange = false;
             this._recentsManager = null;
             this._recentsSignalId = 0;
@@ -594,7 +595,12 @@ export const GIFTabContent = GObject.registerClass(
 
             const button = this._tabButtons[categories[newIndex].id];
             if (button) {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                if (this._scrollHeaderIdleId) {
+                    GLib.source_remove(this._scrollHeaderIdleId);
+                    this._scrollHeaderIdleId = 0;
+                }
+                this._scrollHeaderIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                    this._scrollHeaderIdleId = 0;
                     scrollToItemCentered(this.headerScrollView, button);
                     return GLib.SOURCE_REMOVE;
                 });
@@ -780,11 +786,13 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _focusSearchOrFirstItem() {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (this._isDestroyed) {
-                    return GLib.SOURCE_REMOVE;
-                }
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
 
+            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._focusIdleId = 0;
                 const searchWidget = this._searchComponent?.getWidget();
 
                 if (searchWidget && searchWidget.visible) {
@@ -1012,6 +1020,8 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _renderGrid(results, replace = true) {
+            if (!this._masonryView) return;
+
             // Show the grid and hide the info message container
             this._masonryView.visible = true;
             this._infoBin.visible = false;
@@ -1035,6 +1045,8 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _renderLoadingState() {
+            if (!this._masonryView) return;
+
             this._showSpinner(true);
             this._masonryView.visible = false;
             this._infoBin.visible = false;
@@ -1051,6 +1063,7 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _renderInfoState(message) {
+            if (!this._masonryView) return;
             this._showSpinner(false);
 
             // Hide the grid and show the info message container
@@ -1067,6 +1080,7 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _renderErrorState(errorMessage) {
+            if (!this._masonryView) return;
             this._showSpinner(false);
             this._masonryView.visible = false;
             this._infoBin.visible = true;
@@ -1081,7 +1095,9 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _showSpinner(visible) {
-            this._spinner.visible = visible;
+            if (this._spinner) {
+                this._spinner.visible = visible;
+            }
         }
 
         // ========================================================================
@@ -1150,7 +1166,16 @@ export const GIFTabContent = GObject.registerClass(
          * Clean up all resources.
          */
         destroy() {
-            this._isDestroyed = true;
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+            if (this._scrollHeaderIdleId) {
+                GLib.source_remove(this._scrollHeaderIdleId);
+                this._scrollHeaderIdleId = 0;
+            }
+
+            this._itemFactory?.destroy();
 
             if (this._httpSession) {
                 this._httpSession.abort();
@@ -1190,6 +1215,8 @@ export const GIFTabContent = GObject.registerClass(
 
             this._searchComponent?.destroy();
             this._itemFactory?.destroy();
+            this._masonryView = null;
+            this._spinner = null;
 
             super.destroy();
         }

@@ -274,7 +274,9 @@ export const ClipboardGridView = GObject.registerClass(
                 }
 
                 if (gotDimensions) {
-                    this._scheduleRerender();
+                    if (this._pendingLoads) {
+                        this._scheduleRerender();
+                    }
                 } else {
                     this._dimensionCache.set(filename, null);
                 }
@@ -282,7 +284,7 @@ export const ClipboardGridView = GObject.registerClass(
                 console.warn(`[AIO-Clipboard] General error loading ${filename}: ${e.message}`);
                 this._dimensionCache.set(filename, null);
             } finally {
-                this._pendingLoads.delete(filename);
+                this._pendingLoads?.delete(filename);
             }
         }
 
@@ -291,17 +293,13 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _scheduleRerender() {
-            if (this._isDestroyed) return;
-
             if (this._dimensionRerenderTimeoutId) {
                 GLib.source_remove(this._dimensionRerenderTimeoutId);
             }
 
             this._dimensionRerenderTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
                 this._dimensionRerenderTimeoutId = null;
-                if (!this._isDestroyed) {
-                    this._doRenderPreservingState();
-                }
+                this._doRenderPreservingState();
                 return GLib.SOURCE_REMOVE;
             });
         }

@@ -38,10 +38,13 @@ export const StackLayout = GObject.registerClass(
             this._scrollView = scrollView;
             this._items = [];
             this._checkboxIconsMap = new Map();
-            this._isDestroyed = false;
+            this._focusTimeoutId = 0;
 
             this.connect('destroy', () => {
-                this._isDestroyed = true;
+                if (this._focusTimeoutId) {
+                    GLib.source_remove(this._focusTimeoutId);
+                    this._focusTimeoutId = 0;
+                }
             });
         }
 
@@ -116,9 +119,13 @@ export const StackLayout = GObject.registerClass(
         focusItem(widget, targetFinder) {
             if (!widget) return;
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
-                if (this._isDestroyed) return GLib.SOURCE_REMOVE;
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
 
+            this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+                this._focusTimeoutId = 0;
                 let target = widget;
                 if (typeof targetFinder === 'function') {
                     const found = targetFinder(widget);

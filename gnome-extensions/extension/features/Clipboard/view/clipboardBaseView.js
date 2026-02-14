@@ -53,7 +53,8 @@ export const ClipboardBaseView = GObject.registerClass(
             this._pendingHistoryItems = [];
             this._batchSize = 15; // Default batch size
             this._isLoadingMore = false;
-            this._isDestroyed = false;
+            this._restoreFocusTimeoutId = 0;
+            this._scrollIdleId = 0;
             this._checkboxIconsMap = new Map();
 
             this._buildCommonUI();
@@ -439,13 +440,17 @@ export const ClipboardBaseView = GObject.registerClass(
             const historyPending = this._historyContainer?.hasPendingItems?.() ?? false;
 
             if (pinnedPending || historyPending) {
+                if (this._restoreFocusTimeoutId) {
+                    GLib.source_remove(this._restoreFocusTimeoutId);
+                    this._restoreFocusTimeoutId = 0;
+                }
+
                 let attempts = 0;
-                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
+                this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
                     attempts++;
 
-                    if (this._isDestroyed) return GLib.SOURCE_REMOVE;
-
                     if (performFocus()) {
+                        this._restoreFocusTimeoutId = 0;
                         return GLib.SOURCE_REMOVE;
                     }
 
@@ -454,6 +459,7 @@ export const ClipboardBaseView = GObject.registerClass(
                         if (!stillPending) {
                             this.emit('navigate-up');
                         }
+                        this._restoreFocusTimeoutId = 0;
                         return GLib.SOURCE_REMOVE;
                     }
 
@@ -519,10 +525,11 @@ export const ClipboardBaseView = GObject.registerClass(
 
             const threshold = vadjustment.upper - vadjustment.page_size - 500;
             if (vadjustment.value >= threshold) {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    if (!this._isDestroyed) {
-                        this._loadNextHistoryBatch();
-                    }
+                if (this._scrollIdleId) return;
+
+                this._scrollIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._scrollIdleId = 0;
+                    this._loadNextHistoryBatch();
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -550,7 +557,15 @@ export const ClipboardBaseView = GObject.registerClass(
          * Destroy the view and clean up resources.
          */
         destroy() {
-            this._isDestroyed = true;
+            if (this._restoreFocusTimeoutId) {
+                GLib.source_remove(this._restoreFocusTimeoutId);
+                this._restoreFocusTimeoutId = 0;
+            }
+            if (this._scrollIdleId) {
+                GLib.source_remove(this._scrollIdleId);
+                this._scrollIdleId = 0;
+            }
+
             this._allItems = null;
             this._pendingHistoryItems = null;
             this._manager = null;

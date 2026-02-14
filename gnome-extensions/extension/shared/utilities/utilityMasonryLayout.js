@@ -70,13 +70,16 @@ export const MasonryLayout = GObject.registerClass(
             this._pendingTimeoutId = null;
             this._spatialMap = [];
             this._pendingItems = [];
-            this._isDestroyed = false;
             this._relayoutDebouncer = new Debouncer(() => this._relayout(), MasonryTiming.RELAYOUT_DEBOUNCE_MS);
+            this._focusTimeoutId = 0;
 
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
             this.connect('destroy', () => {
-                this._isDestroyed = true;
+                if (this._focusTimeoutId) {
+                    GLib.source_remove(this._focusTimeoutId);
+                    this._focusTimeoutId = 0;
+                }
                 this._cleanupPendingCallbacks();
             });
         }
@@ -380,9 +383,13 @@ export const MasonryLayout = GObject.registerClass(
         focusItem(widget) {
             if (!widget) return;
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
-                if (this._isDestroyed) return GLib.SOURCE_REMOVE;
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
 
+            this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+                this._focusTimeoutId = 0;
                 widget.grab_key_focus();
 
                 if (this._scrollView) {
@@ -628,7 +635,6 @@ export const MasonryLayout = GObject.registerClass(
             const myGeneration = this._renderGeneration;
 
             const tryRender = () => {
-                if (this._isDestroyed) return;
                 this._cleanupPendingCallbacks();
                 if (myGeneration !== this._renderGeneration) return;
 
@@ -643,9 +649,7 @@ export const MasonryLayout = GObject.registerClass(
 
             this._pendingTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MasonryTiming.RENDER_TIMEOUT_MS, () => {
                 this._pendingTimeoutId = null;
-                if (!this._isDestroyed) {
-                    tryRender();
-                }
+                tryRender();
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -661,12 +665,10 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             if (this._pendingAllocationId) {
-                if (!this._isDestroyed) {
-                    try {
-                        this.disconnect(this._pendingAllocationId);
-                    } catch {
-                        // Object may already be disposing
-                    }
+                try {
+                    this.disconnect(this._pendingAllocationId);
+                } catch {
+                    // Object may already be disposing
                 }
                 this._pendingAllocationId = null;
             }

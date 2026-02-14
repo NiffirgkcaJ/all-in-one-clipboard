@@ -216,7 +216,7 @@ export async function updateGifButtonWithPreview(button, url, renderSession, con
         const filePath = await context.gifDownloadService.downloadPreviewCached(url, context.gifCacheDir);
         context.getGifCacheManager().triggerDebouncedCleanup();
 
-        if (context.isDestroyed() || renderSession !== context.currentRenderSession()) {
+        if (renderSession !== context.currentRenderSession()) {
             return;
         }
 

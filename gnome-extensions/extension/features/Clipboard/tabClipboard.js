@@ -56,6 +56,8 @@ export const ClipboardTabContent = GObject.registerClass(
             this._isPrivateMode = false;
             this._currentView = null;
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
+            this._redrawIdleId = 0;
+            this._focusIdleId = 0;
 
             this._mainBox = new St.BoxLayout({
                 vertical: true,
@@ -287,11 +289,14 @@ export const ClipboardTabContent = GObject.registerClass(
                 return;
             }
             this._redrawScheduled = true;
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            if (this._redrawIdleId) {
+                GLib.source_remove(this._redrawIdleId);
+                this._redrawIdleId = 0;
+            }
+            this._redrawIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._redrawIdleId = 0;
                 this._redrawScheduled = false;
-                if (!this._isDestroyed) {
-                    this._redraw();
-                }
+                this._redraw();
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -562,7 +567,12 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         onTabSelected() {
             this._redraw();
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._focusIdleId = 0;
                 this._searchComponent?.grabFocus();
                 return GLib.SOURCE_REMOVE;
             });
@@ -581,6 +591,15 @@ export const ClipboardTabContent = GObject.registerClass(
          * Cleanup when the widget is destroyed
          */
         destroy() {
+            if (this._redrawIdleId) {
+                GLib.source_remove(this._redrawIdleId);
+                this._redrawIdleId = 0;
+            }
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+
             // Tell it to stop listening for our image size setting changes
             if (this._settings && this._settingSignalId > 0) {
                 this._settings.disconnect(this._settingSignalId);
