@@ -356,9 +356,16 @@ export const GifManager = GObject.registerClass(
          * @throws {GifManagerError} If the request fails
          */
         async _makeApiRequest(url, headers = {}) {
+            let uri;
+            try {
+                uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
+            } catch (e) {
+                throw new GifManagerError(`Invalid URI: ${url}`, { cause: e });
+            }
+
             const message = new Soup.Message({
                 method: 'GET',
-                uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
+                uri: uri,
             });
 
             // Add custom headers

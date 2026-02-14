@@ -59,6 +59,7 @@ export class LinkProcessor {
     async fetchMetadata(url) {
         try {
             const message = Soup.Message.new('GET', url);
+            if (!message) return { title: null, iconUrl: null };
             const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return { title: null, iconUrl: null };
@@ -189,6 +190,7 @@ export class LinkProcessor {
             if (!manifestUrl) return null;
 
             const message = Soup.Message.new('GET', manifestUrl);
+            if (!message) return null;
             const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             if (message.status_code !== 200 || !bytes) return null;
@@ -230,10 +232,12 @@ export class LinkProcessor {
             const faviconUrl = `${originMatch[1]}/favicon.ico`;
             const message = Soup.Message.new('HEAD', faviconUrl);
 
-            await this._httpSession.send_async(message, GLib.PRIORITY_DEFAULT, null);
+            if (message) {
+                await this._httpSession.send_async(message, GLib.PRIORITY_DEFAULT, null);
 
-            if (message.status_code === 200) {
-                return faviconUrl;
+                if (message.status_code === 200) {
+                    return faviconUrl;
+                }
             }
         } catch {
             // Ignore errors

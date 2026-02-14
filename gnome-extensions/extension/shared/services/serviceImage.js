@@ -54,9 +54,19 @@ export const ServiceImage = {
         if (!httpSession || !url) return null;
 
         try {
+            let uri;
+            try {
+                uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
+            } catch (e) {
+                console.warn(`[AIO-Clipboard] Invalid URI '${url}': ${e.message}`);
+                return null;
+            }
+
+            if (!uri) return null;
+
             const message = new Soup.Message({
                 method: 'GET',
-                uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
+                uri: uri,
             });
 
             return await new Promise((resolve, reject) => {
