@@ -341,6 +341,10 @@ export const ClipboardGridView = GObject.registerClass(
                 GLib.source_remove(this._pendingRenderTimeoutId);
                 this._pendingRenderTimeoutId = null;
             }
+            if (this._dimensionRerenderTimeoutId) {
+                GLib.source_remove(this._dimensionRerenderTimeoutId);
+                this._dimensionRerenderTimeoutId = null;
+            }
         }
 
         // ========================================================================
@@ -427,17 +431,10 @@ export const ClipboardGridView = GObject.registerClass(
          */
         destroy() {
             this._cancelPendingRender();
-
-            if (this._dimensionRerenderTimeoutId) {
-                GLib.source_remove(this._dimensionRerenderTimeoutId);
-                this._dimensionRerenderTimeoutId = null;
-            }
-
             this._gridPinnedItems = null;
             this._gridHistoryItems = null;
             this._dimensionCache.clear();
-            this._pendingLoads = null;
-
+            this._pendingLoads.clear();
             super.destroy();
         }
     },

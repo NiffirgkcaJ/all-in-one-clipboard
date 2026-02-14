@@ -188,6 +188,7 @@ export class ClipboardGridItemFactory {
         itemWidget._itemId = itemData.id;
         itemWidget._contentWrapper = contentWrapper;
         itemWidget._cardStack = cardStack;
+        itemWidget._viewConfig = config;
 
         return itemWidget;
     }
@@ -203,6 +204,13 @@ export class ClipboardGridItemFactory {
         itemWidget._itemId = newItemData.id;
 
         const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
+
+        // Optimization for if the configuration hasn't changed, then skip DOM rebuild
+        if (itemWidget._viewConfig && JSON.stringify(itemWidget._viewConfig) === JSON.stringify(config)) {
+            return;
+        }
+
+        itemWidget._viewConfig = config;
 
         // Update Content
         const contentWrapper = itemWidget._contentWrapper;
