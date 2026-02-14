@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-13 14:39+0000\n"
+"POT-Creation-Date: 2026-02-14 18:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: gnome-extensions/extension/extension.js:33
 #: gnome-extensions/extension/extension.js:588
 #: gnome-extensions/extension/features/Emoji/tabEmoji.js:98
-#: gnome-extensions/extension/features/GIF/tabGIF.js:151
+#: gnome-extensions/extension/features/GIF/tabGIF.js:152
 #: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:76
 #: gnome-extensions/extension/features/Symbols/tabSymbols.js:76
 msgid "Recently Used"
@@ -688,106 +688,106 @@ msgstr ""
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:113
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:488
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:494
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:115
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:493
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:499
 msgid "Select All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:138
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:248
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:140
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:250
 msgid "Switch to Grid View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:138
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:248
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:140
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:250
 msgid "Switch to List View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:153
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:368
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:155
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:373
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:163
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:509
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:165
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:514
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:171
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:173
 msgid "Delete Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:368
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:373
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:491
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:496
 msgid "Deselect All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:516
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:521
 msgid "Pin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:516
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:521
 msgid "Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:138
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:139
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:138
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:139
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:245
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:246
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:262
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:263
 msgid "History"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:221
+#: gnome-extensions/extension/features/GIF/tabGIF.js:222
 msgid "Online search is disabled."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:401
-#: gnome-extensions/extension/features/GIF/tabGIF.js:495
-#: gnome-extensions/extension/features/GIF/tabGIF.js:504
+#: gnome-extensions/extension/features/GIF/tabGIF.js:402
+#: gnome-extensions/extension/features/GIF/tabGIF.js:496
+#: gnome-extensions/extension/features/GIF/tabGIF.js:505
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:504
 msgid "Recents"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:447
+#: gnome-extensions/extension/features/GIF/tabGIF.js:448
 msgid "No categories available."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:515
-#: gnome-extensions/extension/features/GIF/tabGIF.js:521
+#: gnome-extensions/extension/features/GIF/tabGIF.js:516
+#: gnome-extensions/extension/features/GIF/tabGIF.js:522
 msgid "Trending"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:522
+#: gnome-extensions/extension/features/GIF/tabGIF.js:523
 msgid "Trending GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:832
+#: gnome-extensions/extension/features/GIF/tabGIF.js:840
 msgid "No recent GIFs."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:867
+#: gnome-extensions/extension/features/GIF/tabGIF.js:875
 msgid "No trending GIFs found."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:914
+#: gnome-extensions/extension/features/GIF/tabGIF.js:922
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:1074
+#: gnome-extensions/extension/features/GIF/tabGIF.js:1088
 #, javascript-format
 msgid ""
 "Error: %s\n"
