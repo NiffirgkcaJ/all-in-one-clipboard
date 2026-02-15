@@ -46,7 +46,7 @@ export let ResourceItem = null;
 // -------------------------------------------------------------
 // Initialization
 // -------------------------------------------------------------
-export function initStorage(uuid) {
+function _initFilePaths(uuid = 'default') {
     // File base paths
     FilePath = {
         DATA: getUserDataDir(uuid),
@@ -63,19 +63,22 @@ export function initStorage(uuid) {
         CLIPBOARD_HISTORY: `${FilePath.CACHE}/history_clipboard.json`,
         CLIPBOARD_PINNED: `${FilePath.DATA}/pinned_clipboard.json`,
         RECENT_EMOJI: `${FilePath.CACHE}/recent_emojis.json`,
+        RECENT_GIFS: `${FilePath.CACHE}/recent_gifs.json`,
         RECENT_KAOMOJI: `${FilePath.CACHE}/recent_kaomojis.json`,
         RECENT_SYMBOLS: `${FilePath.CACHE}/recent_symbols.json`,
-        RECENT_GIFS: `${FilePath.CACHE}/recent_gifs.json`,
     };
+}
 
+function _initResourcePaths() {
     // Resource base paths
     ResourcePath = {
         DATA: buildResourceUri(getResourceDataDir()),
         ICONS: buildResourceUri(getResourceIconsDir()),
     };
     ResourcePath.JSON = `${ResourcePath.DATA}/json`;
-    ResourcePath.UI = `${ResourcePath.ICONS}/ui`;
+    ResourcePath.GIF = `${ResourcePath.DATA}/gif`;
     ResourcePath.FLAGS = `${ResourcePath.ICONS}/flags`;
+    ResourcePath.UI = `${ResourcePath.ICONS}/ui`;
     ResourcePath.uri = buildResourceUri;
 
     // Resource items
@@ -86,3 +89,12 @@ export function initStorage(uuid) {
         COUNTRIES: `${ResourcePath.JSON}/countries.json`,
     };
 }
+
+export function initStorage(uuid) {
+    _initFilePaths(uuid);
+    _initResourcePaths();
+}
+
+// Initialize the file paths and resource paths
+_initFilePaths();
+_initResourcePaths();

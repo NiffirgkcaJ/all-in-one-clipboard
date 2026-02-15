@@ -1,411 +1,131 @@
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
 
-// GSettings keys
-const GIF_PROVIDER_KEY = 'gif-provider';
-const GIF_TENOR_API_KEY = 'gif-tenor-api-key';
-const GIF_IMGUR_CLIENT_ID_KEY = 'gif-imgur-client-id';
+import { GifSettings } from '../constants/gifConstants.js';
+import { GifProviderRegistry } from './gifProviderRegistry.js';
 
 /**
- * Custom error class for GifManager-specific errors
- */
-class GifManagerError extends Error {
-    constructor(message, details = {}) {
-        super(message);
-        this.name = 'GifManagerError';
-        this.details = details;
-    }
-}
-
-/**
- * GifManager - Handles GIF fetching from multiple providers like Tenor and Imgur
+ * GifManager
  *
- * Provides a unified interface for searching, trending, and categories
- * regardless of the underlying provider.
+ * Handles GIF fetching via the active provider.
+ * Uses dynamic GifProviderRegistry.
  */
 export const GifManager = GObject.registerClass(
     class GifManager extends GObject.Object {
         /**
          * Initialize the GIF manager
          * @param {Gio.Settings} settings - Extension settings object
-         * @param {string} extensionUUID - Extension UUID for logging
+         * @param {string} extensionUUID - Extension UUID
+         * @param {string} extensionPath - Path to extension root
          */
-        constructor(settings, extensionUUID) {
+        constructor(settings, extensionUUID, extensionPath) {
             super();
             this._settings = settings;
             this._uuid = extensionUUID;
             this._httpSession = new Soup.Session();
-        }
 
-        // ========================================================================
-        // Private Helper Methods
-        // ========================================================================
+            // Initialize Registry
+            this._registry = new GifProviderRegistry(extensionPath, this._httpSession, settings);
+
+            // Initialize Active Provider
+            this._activeProvider = null;
+            this._loadActiveProvider();
+
+            // Listen for provider changes
+            this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
+                this._loadActiveProvider();
+            });
+        }
 
         /**
-         * Gets the user's primary locale in the format APIs expect (e.g., 'en_US').
-         * @private
-         * @returns {string|null} The locale string or null if not found.
+         * Loads the provider specified in settings.
          */
-        _getUserLocale() {
-            const languages = GLib.get_language_names();
-            if (languages && languages.length > 0) {
-                // GLib returns something like "en_US.UTF-8" but we want "en_US"
-                // We'll replace the hyphen and ensure the region is uppercase.
-                const parts = languages[0].replace('-', '_').split('_');
-                if (parts.length === 2) {
-                    return `${parts[0].toLowerCase()}_${parts[1].toUpperCase()}`;
-                }
-                return languages[0]; // Fallback to whatever GLib gave us
-            }
-            return null;
-        }
+        _loadActiveProvider() {
+            const providerId = this._settings.get_string(GifSettings.PROVIDER_KEY);
 
-        // ========================================================================
-        // Public API Methods
-        // ========================================================================
+            if (providerId === 'none') {
+                this._activeProvider = null;
+                return;
+            }
+
+            this._activeProvider = this._registry.createProvider(providerId);
+
+            if (!this._activeProvider) {
+                console.warn(`[AIO-Clipboard] Provider '${providerId}' not found in registry.`);
+            }
+        }
 
         /**
          * Search for GIFs using the currently configured provider
          * @param {string} query - The search term
-         * @param {string|null} nextPos - Pagination token for the next page of results
-         * @returns {Promise<{results: Array, nextPos: string|null}>} Search results and next page token
+         * @param {string|null} nextPos - Pagination token
+         * @returns {Promise<{results: Array, nextPos: string|null}>} Search results
          */
         async search(query, nextPos = null) {
-            const provider = this._settings.get_string(GIF_PROVIDER_KEY);
+            if (!this._activeProvider) return { results: [], nextPos: null };
 
-            switch (provider) {
-                case 'tenor':
-                    return this._fetchFromTenor(query, false, nextPos);
-
-                case 'imgur': {
-                    // Imgur uses page numbers instead of opaque tokens
-                    const page = nextPos ? parseInt(nextPos, 10) : 0;
-                    return this._fetchFromImgur(query, false, page);
-                }
-
-                case 'none':
-                default:
-                    return { results: [], nextPos: null };
+            try {
+                const response = await this._activeProvider.search(query, nextPos);
+                return {
+                    results: response.results,
+                    nextPos: response.next_offset,
+                };
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Search failed: ${e.message}`);
+                throw e;
             }
         }
 
         /**
-         * Fetch trending GIFs from the currently configured provider
-         * @param {string|null} nextPos - Pagination token for the next page
-         * @returns {Promise<{results: Array, nextPos: string|null}>} Trending results and next page token
+         * Fetch trending GIFs
+         * @param {string|null} nextPos - Pagination token
+         * @returns {Promise<{results: Array, nextPos: string|null}>} Trending results
          */
         async getTrending(nextPos = null) {
-            const provider = this._settings.get_string(GIF_PROVIDER_KEY);
+            if (!this._activeProvider) return { results: [], nextPos: null };
 
-            switch (provider) {
-                case 'tenor':
-                    return this._fetchFromTenor(null, true, nextPos);
-
-                case 'imgur': {
-                    const page = nextPos ? parseInt(nextPos, 10) : 0;
-                    return this._fetchFromImgur(null, true, page);
-                }
-
-                case 'none':
-                default:
-                    return { results: [], nextPos: null };
+            try {
+                const response = await this._activeProvider.getTrending(nextPos);
+                return {
+                    results: response.results,
+                    nextPos: response.next_offset,
+                };
+            } catch (e) {
+                console.error(`[AIO-Clipboard] Trending failed: ${e.message}`);
+                throw e;
             }
         }
 
         /**
-         * Fetch the list of GIF categories/topics from the configured provider
-         * @returns {Promise<Array<{name: string, searchTerm: string}>>} Array of standardized category objects
+         * Fetch categories
+         * @returns {Promise<Array<{name: string, searchTerm: string}>>}
          */
         async getCategories() {
-            const provider = this._settings.get_string(GIF_PROVIDER_KEY);
-
-            switch (provider) {
-                case 'tenor':
-                    return this._fetchTenorCategories();
-                case 'imgur':
-                    return this._fetchImgurTopics();
-                default:
-                    return [];
-            }
-        }
-
-        // ========================================================================
-        // Category Fetching Methods
-        // ========================================================================
-
-        /**
-         * Fetch categories from Tenor API
-         * @private
-         * @returns {Promise<Array<{name: string, searchTerm: string}>>}
-         */
-        async _fetchTenorCategories() {
-            const apiKey = this._settings.get_string(GIF_TENOR_API_KEY);
-            if (!apiKey) {
-                throw new GifManagerError('Missing Tenor API Key.');
-            }
-
-            // Fetch categories
-            const locale = this._getUserLocale();
-            let url = `https://tenor.googleapis.com/v2/categories?key=${apiKey}&client_key=all-in-one-clipboard-gnome-shell`;
-            if (locale) {
-                url += `&locale=${locale}`;
-            }
-            const responseJson = await this._makeApiRequest(url);
-
-            // Standardize the response format
-            if (!responseJson || !Array.isArray(responseJson.tags)) {
-                return [];
-            }
-
-            return responseJson.tags.map((tag) => ({
-                name: tag.name,
-                searchTerm: tag.searchterm,
-            }));
-        }
-
-        /**
-         * Fetch topics from Imgur API
-         * @private
-         * @returns {Promise<Array<{name: string, searchTerm: string}>>}
-         */
-        async _fetchImgurTopics() {
-            const clientId = this._settings.get_string(GIF_IMGUR_CLIENT_ID_KEY);
-            if (!clientId) {
-                throw new GifManagerError('Missing Imgur Client ID.');
-            }
-
-            // Fetch topics
-            const url = `https://api.imgur.com/3/topics/defaults`;
-            const headers = { Authorization: `Client-ID ${clientId}` };
-            const responseJson = await this._makeApiRequest(url, headers);
-
-            // Standardize the response format
-            if (!responseJson || !Array.isArray(responseJson.data)) {
-                return [];
-            }
-
-            return responseJson.data.map((topic) => ({
-                name: topic.name,
-                searchTerm: topic.name, // For Imgur, the search term is the topic name itself
-            }));
-        }
-
-        // ========================================================================
-        // Tenor Provider Methods
-        // ========================================================================
-
-        /**
-         * Fetch GIFs from Tenor API
-         * @private
-         * @param {string|null} query - Search query or null for trending
-         * @param {boolean} isTrending - Whether to fetch trending instead of search
-         * @param {string|null} nextPos - Pagination position token
-         * @returns {Promise<{results: Array, nextPos: string|null}>}
-         */
-        async _fetchFromTenor(query, isTrending, nextPos) {
-            const apiKey = this._settings.get_string(GIF_TENOR_API_KEY);
-            if (!apiKey) {
-                throw new GifManagerError('Missing Tenor API Key.');
-            }
-
-            const clientKey = 'all-in-one-clipboard-gnome-shell';
-            const limit = '20';
-            let url;
-
-            const locale = this._getUserLocale();
-
-            if (isTrending) {
-                url = `https://tenor.googleapis.com/v2/featured?key=${apiKey}&client_key=${clientKey}&limit=${limit}`;
-            } else {
-                const encodedQuery = query.trim().replace(/\s+/g, '+');
-                url = `https://tenor.googleapis.com/v2/search?q=${encodedQuery}&key=${apiKey}&client_key=${clientKey}&limit=${limit}`;
-            }
-
-            // Add locale if available
-            if (locale) {
-                url += `&locale=${locale}`;
-            }
-
-            // Add pagination position if it exists
-            if (nextPos) {
-                url += `&pos=${nextPos}`;
-            }
-
-            const responseJson = await this._makeApiRequest(url);
-            const parsedResults = this._parseTenorResponse(responseJson);
-
-            // Return the results and the token for the next page
-            return {
-                results: parsedResults,
-                nextPos: responseJson.next || null,
-            };
-        }
-
-        /**
-         * Parse Tenor API response into standardized format
-         * @private
-         * @param {Object} json - Raw Tenor API response
-         * @returns {Array<{id: string, description: string, preview_url: string, full_url: string, width: number, height: number}>}
-         */
-        _parseTenorResponse(json) {
-            if (!json || !Array.isArray(json.results)) {
-                return [];
-            }
-
-            return json.results
-                .map((result) => {
-                    const dims = result.media_formats?.tinygif?.dims;
-                    return {
-                        id: result.id,
-                        description: result.content_description,
-                        preview_url: result.media_formats?.tinygif?.url,
-                        full_url: result.media_formats?.gif?.url,
-                        width: dims ? dims[0] : 0,
-                        height: dims ? dims[1] : 0,
-                    };
-                })
-                .filter((item) => item.preview_url && item.full_url && item.width > 0);
-        }
-
-        // ========================================================================
-        // Imgur Provider Methods
-        // ========================================================================
-
-        /**
-         * Fetch GIFs from Imgur API
-         * @private
-         * @param {string|null} query - Search query or null for trending
-         * @param {boolean} isTrending - Whether to fetch trending instead of search
-         * @param {number} page - Page number for pagination
-         * @returns {Promise<{results: Array, nextPos: string|null}>}
-         */
-        async _fetchFromImgur(query, isTrending, page) {
-            const clientId = this._settings.get_string(GIF_IMGUR_CLIENT_ID_KEY);
-            if (!clientId) {
-                throw new GifManagerError('Missing Imgur Client ID.');
-            }
-
-            let url;
-            if (isTrending) {
-                // Imgur's trending path contains the page number
-                url = `https://api.imgur.com/3/gallery/hot/viral/day/${page}?image_type=gif`;
-            } else {
-                const encodedQuery = query.trim().replace(/\s+/g, '+');
-                // Imgur's search uses a query parameter for the page
-                url = `https://api.imgur.com/3/gallery/search/viral/${page}?q=${encodedQuery}+ext:gif`;
-            }
-
-            const headers = { Authorization: `Client-ID ${clientId}` };
-            const responseJson = await this._makeApiRequest(url, headers);
-            const parsedResults = this._parseImgurResponse(responseJson);
-
-            // If we got results, the next page is page + 1
-            const nextPos = parsedResults.length > 0 ? (page + 1).toString() : null;
-
-            return {
-                results: parsedResults,
-                nextPos: nextPos,
-            };
-        }
-
-        /**
-         * Parse Imgur API response into standardized format
-         * @private
-         * @param {Object} json - Raw Imgur API response
-         * @returns {Array<{id: string, description: string, preview_url: string, full_url: string, width: number, height: number}>}
-         */
-        _parseImgurResponse(json) {
-            if (!json || !Array.isArray(json.data)) {
-                return [];
-            }
-
-            const gifs = [];
-
-            for (const item of json.data) {
-                // Handle both albums and single images
-                const images = item.is_album && Array.isArray(item.images) ? item.images : [item];
-
-                for (const image of images) {
-                    if (image.animated && image.type === 'image/gif' && image.link) {
-                        gifs.push({
-                            id: image.id,
-                            description: image.title || image.description || 'Imgur GIF',
-                            preview_url: `https://i.imgur.com/${image.id}b.jpg`,
-                            full_url: image.link,
-                            width: image.width,
-                            height: image.height,
-                        });
-                    }
-                }
-            }
-
-            return gifs.filter((item) => item.width > 0);
-        }
-
-        // ========================================================================
-        // HTTP Request Methods
-        // ========================================================================
-
-        /**
-         * Make an HTTP API request
-         * @private
-         * @param {string} url - The API endpoint URL
-         * @param {Object} headers - Additional HTTP headers
-         * @returns {Promise<Object>} Parsed JSON response
-         * @throws {GifManagerError} If the request fails
-         */
-        async _makeApiRequest(url, headers = {}) {
-            let uri;
-            try {
-                uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
-            } catch (e) {
-                throw new GifManagerError(`Invalid URI: ${url}`, { cause: e });
-            }
-
-            const message = new Soup.Message({
-                method: 'GET',
-                uri: uri,
-            });
-
-            // Add custom headers
-            for (const [key, value] of Object.entries(headers)) {
-                message.get_request_headers().append(key, value);
-            }
+            if (!this._activeProvider) return [];
 
             try {
-                const bytes = await new Promise((resolve, reject) => {
-                    this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (source, res) => {
-                        if (message.get_status() >= 300) {
-                            reject(new Error(`HTTP Error: ${message.get_status()} ${message.get_reason_phrase()}`));
-                            return;
-                        }
-
-                        try {
-                            resolve(source.send_and_read_finish(res));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    });
-                });
-
-                if (!bytes) {
-                    throw new Error('No data received from API.');
-                }
-
-                return JSON.parse(new TextDecoder('utf-8').decode(bytes.get_data()));
+                const categories = await this._activeProvider.getCategories();
+                // Map to ensure compatibility with UI expectations
+                return categories.map((c) => ({
+                    name: c.name,
+                    searchTerm: c.keyword || c.name,
+                }));
             } catch (e) {
-                console.error(`[AIO-Clipboard] API request to ${url} failed: ${e.message}`);
-                throw new GifManagerError('API request failed.', { cause: e });
+                console.error(`[AIO-Clipboard] Categories failed: ${e.message}`);
+                return [];
             }
         }
 
-        // ========================================================================
-        // Lifecycle Methods
-        // ========================================================================
+        /**
+         * Get list of available providers for UI (Settings)
+         * @returns {Array<{id: string, name: string}>}
+         */
+        getAvailableProviders() {
+            return this._registry.getAvailableProviders();
+        }
 
         /**
-         * Cleans up resources when the manager is destroyed, such as aborting ongoing network requests.
+         * Clean up resources
          */
         destroy() {
             if (this._httpSession) {

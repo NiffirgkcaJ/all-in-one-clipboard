@@ -5,9 +5,10 @@ import { IOFile } from '../../../shared/utilities/utilityIO.js';
 let _instance = null;
 
 /**
+ * GifCacheManager
+ *
  * A singleton manager for the GIF preview cache.
- * It centralizes the logic for cache path, limits, and cleanup operations,
- * including a debounced trigger for efficiency.
+ * It centralizes the logic for cache path, limits, and cleanup operations, including a debounced trigger for efficiency.
  */
 class GifCacheManager {
     constructor(uuid, settings) {
@@ -71,8 +72,8 @@ class GifCacheManager {
 
 /**
  * Initializes and/or returns the singleton instance of the GifCacheManager.
- * @param {string} [uuid] - The extension UUID (required for first-time initialization).
- * @param {Gio.Settings} [settings] - The GSettings object (required for first-time initialization).
+ * @param {string} [uuid] - The extension UUID which is required for first-time initialization.
+ * @param {Gio.Settings} [settings] - The GSettings object which is required for first-time initialization.
  * @returns {GifCacheManager} The singleton instance.
  */
 export function getGifCacheManager(uuid, settings) {

@@ -69,7 +69,7 @@ export const GIFTabContent = GObject.registerClass(
             IOFile.mkdir(this._cacheDir);
 
             this._settings = settings;
-            this._gifManager = new GifManager(settings, extension.uuid);
+            this._gifManager = new GifManager(settings, extension.uuid, extension.path);
             this._downloadService = new GifDownloadService(this._httpSession, clipboardManager);
 
             this._providerChangedSignalId = 0;

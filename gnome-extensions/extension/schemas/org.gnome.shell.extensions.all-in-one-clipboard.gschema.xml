@@ -239,17 +239,12 @@
         <key name="gif-provider" type="s">
             <default>'none'</default>
             <summary>The selected GIF provider service</summary>
-            <description>Can be 'none', 'tenor', or 'imgur'.</description>
+            <description>The ID of the active GIF provider or disabled.</description>
         </key>
-        <key name="gif-tenor-api-key" type="s">
+        <key name="gif-custom-api-key" type="s">
             <default>''</default>
-            <summary>User's API key for the Tenor GIF service</summary>
-            <description>Required when using Tenor as the GIF provider.</description>
-        </key>
-        <key name="gif-imgur-client-id" type="s">
-            <default>''</default>
-            <summary>User's Client ID for the Imgur service</summary>
-            <description>Required when using Imgur as the GIF provider.</description>
+            <summary>Custom API Key</summary>
+            <description>User-provided API key for the selected GIF provider.</description>
         </key>
         <key name="gif-paste-behavior" type="i">
             <default>0</default>

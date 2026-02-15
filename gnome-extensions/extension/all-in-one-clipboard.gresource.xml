@@ -7,6 +7,8 @@
         <file compressed="true">assets/data/json/emojisModifier.json</file>
         <file compressed="true">assets/data/json/kaomojis.json</file>
         <file compressed="true">assets/data/json/symbols.json</file>
+        <file compressed="true">assets/data/gif/klipy.json</file>
+        <file compressed="true">assets/data/gif/tenor.json</file>
 
         <!-- Icon Files -->
         <file compressed="true">assets/icons/ui/clipboard-checkbox-checked-symbolic.svg</file>

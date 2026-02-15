@@ -6,6 +6,7 @@ import Gtk from 'gi://Gtk';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import { getGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
+import { GifProviderRegistry } from './features/GIF/logic/gifProviderRegistry.js';
 
 export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     /**
@@ -16,6 +17,27 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         // Initialize translations
         this.initTranslations('all-in-one-clipboard');
+
+        // Load GResource for the prefs process
+        let extensionDir = this.dir;
+        if (!extensionDir && this.path) {
+            extensionDir = Gio.File.new_for_path(this.path);
+        }
+
+        if (extensionDir) {
+            const resourceFile = extensionDir.get_child('resources.gresource');
+
+            try {
+                if (resourceFile.query_exists(null)) {
+                    const resource = Gio.Resource.load(resourceFile.get_path());
+                    Gio.resources_register(resource);
+                } else {
+                    console.warn(`[AIO-Clipboard] GResource not found at: ${resourceFile.get_path()}`);
+                }
+            } catch (e) {
+                console.warn(`[AIO-Clipboard] Failed to register GResource: ${e.message}`);
+            }
+        }
 
         // Get the Gio.Settings instance for this extension
         const settings = this.getSettings();
@@ -872,57 +894,65 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
         page.add(group);
 
-        // Provider selection
+        // Load providers dynamically
+        let extPath = this.path;
+        if (!extPath && this.dir) {
+            extPath = this.dir.get_path();
+        }
+
+        const registry = new GifProviderRegistry(extPath, null, settings);
+        const providers = registry.getAvailableProviders();
+
+        // Build the list with "Disabled" and dynamic providers
+        const providerList = [_('Disabled')];
+        const providerIds = ['none'];
+
+        providers.forEach((p) => {
+            providerList.push(p.name);
+            providerIds.push(p.id);
+        });
+
         const providerRow = new Adw.ComboRow({
             title: _('GIF Provider'),
             subtitle: _('Select the service to use for fetching GIFs.'),
-            model: new Gtk.StringList({
-                strings: [_('Disabled'), _('Tenor'), _('Imgur')],
-            }),
+            model: new Gtk.StringList({ strings: providerList }),
         });
         group.add(providerRow);
 
-        const providerMap = { 0: 'none', 1: 'tenor', 2: 'imgur' };
-
-        // Bind provider setting
-        const currentProvider = settings.get_string('gif-provider');
-        let selectedIndex = 0;
-        for (const [index, provider] of Object.entries(providerMap)) {
-            if (provider === currentProvider) {
-                selectedIndex = parseInt(index, 10);
-                break;
-            }
-        }
-        providerRow.set_selected(selectedIndex);
+        // Bind selection manually since we map IDs to indices
+        const currentProviderId = settings.get_string('gif-provider');
+        let initialIndex = providerIds.indexOf(currentProviderId);
+        if (initialIndex === -1) initialIndex = 0; // Default to Disabled if not found
+        providerRow.set_selected(initialIndex);
 
         providerRow.connect('notify::selected', () => {
-            const newProvider = providerMap[providerRow.get_selected()];
-            if (settings.get_string('gif-provider') !== newProvider) {
-                settings.set_string('gif-provider', newProvider);
+            const index = providerRow.get_selected();
+            if (index >= 0 && index < providerIds.length) {
+                const newId = providerIds[index];
+                if (settings.get_string('gif-provider') !== newId) {
+                    settings.set_string('gif-provider', newId);
+                }
             }
         });
 
-        // API key rows
-        const tenorRow = new Adw.PasswordEntryRow({
-            title: _('Tenor API Key'),
-            visible: settings.get_string('gif-provider') === 'tenor',
+        // Generic API Key Row
+        const apiKeyRow = new Adw.PasswordEntryRow({
+            title: _('API Key'),
         });
-        group.add(tenorRow);
-        settings.bind('gif-tenor-api-key', tenorRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+        group.add(apiKeyRow);
 
-        const imgurRow = new Adw.PasswordEntryRow({
-            title: _('Imgur Client ID'),
-            visible: settings.get_string('gif-provider') === 'imgur',
-        });
-        group.add(imgurRow);
-        settings.bind('gif-imgur-client-id', imgurRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+        // Bind to the generic manual key
+        settings.bind('gif-custom-api-key', apiKeyRow, 'text', Gio.SettingsBindFlags.DEFAULT);
 
-        // Update visibility based on provider
-        providerRow.connect('notify::selected', () => {
-            const selectedProvider = providerMap[providerRow.get_selected()];
-            tenorRow.set_visible(selectedProvider === 'tenor');
-            imgurRow.set_visible(selectedProvider === 'imgur');
-        });
+        // Only show API key row if a provider is selected
+        const updateVisibility = () => {
+            const index = providerRow.get_selected();
+            const isNone = providerIds[index] === 'none';
+            apiKeyRow.set_visible(!isNone);
+        };
+
+        providerRow.connect('notify::selected', updateVisibility);
+        updateVisibility(); // Initial
 
         // GIF Paste Behavior
         const pasteBehaviorRow = new Adw.ComboRow({

@@ -1,0 +1,39 @@
+{
+    "id": "tenor",
+    "name": "Tenor",
+    "base_url": "https://tenor.googleapis.com/v2",
+    "endpoints": {
+        "search": "/search",
+        "trending": "/featured",
+        "categories": "/categories"
+    },
+    "params": {
+        "query": "q",
+        "offset": "pos",
+        "limit": "limit",
+        "api_key": "key"
+    },
+    "default_params": {
+        "media_filter": "gif,tinygif"
+    },
+    "response_map": {
+        "results": "results",
+        "next_offset": "next",
+        "categories": {
+            "root": "tags",
+            "item": {
+                "name": "name",
+                "keyword": "searchterm",
+                "image": "image"
+            }
+        },
+        "item": {
+            "id": "id",
+            "description": "content_description",
+            "preview_url": "media_formats.tinygif.url",
+            "full_url": "media_formats.gif.url",
+            "width": "media_formats.gif.dims.0",
+            "height": "media_formats.gif.dims.1"
+        }
+    }
+}
