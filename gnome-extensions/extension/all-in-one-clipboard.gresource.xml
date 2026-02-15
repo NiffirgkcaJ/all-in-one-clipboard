@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
     <gresource prefix="/org/gnome/shell/extensions/all-in-one-clipboard">
-        <!-- Data Files -->
-        <file compressed="true">assets/data/json/countries.json</file>
-        <file compressed="true">assets/data/json/emojis.json</file>
-        <file compressed="true">assets/data/json/emojisModifier.json</file>
-        <file compressed="true">assets/data/json/kaomojis.json</file>
-        <file compressed="true">assets/data/json/symbols.json</file>
+        <!-- Clipboard Files -->
+        <file compressed="true">assets/data/clipboard/countries.json</file>
+
+        <!-- Emoji Files -->
+        <file compressed="true">assets/data/emoji/emojis.json</file>
+        <file compressed="true">assets/data/emoji/emojisModifier.json</file>
+
+        <!-- GIF Files -->
         <file compressed="true">assets/data/gif/klipy.json</file>
         <file compressed="true">assets/data/gif/tenor.json</file>
+
+        <!-- Kaomoji Files -->
+        <file compressed="true">assets/data/kaomoji/kaomojis.json</file>
+
+        <!-- Symbols Files -->
+        <file compressed="true">assets/data/symbols/symbols.json</file>
 
         <!-- Icon Files -->
         <file compressed="true">assets/icons/ui/clipboard-checkbox-checked-symbolic.svg</file>

@@ -75,18 +75,21 @@ function _initResourcePaths() {
         DATA: buildResourceUri(getResourceDataDir()),
         ICONS: buildResourceUri(getResourceIconsDir()),
     };
-    ResourcePath.JSON = `${ResourcePath.DATA}/json`;
+    ResourcePath.CLIPBOARD = `${ResourcePath.DATA}/clipboard`;
+    ResourcePath.EMOJI = `${ResourcePath.DATA}/emoji`;
     ResourcePath.GIF = `${ResourcePath.DATA}/gif`;
+    ResourcePath.KAOMOJI = `${ResourcePath.DATA}/kaomoji`;
+    ResourcePath.SYMBOLS = `${ResourcePath.DATA}/symbols`;
     ResourcePath.FLAGS = `${ResourcePath.ICONS}/flags`;
     ResourcePath.UI = `${ResourcePath.ICONS}/ui`;
     ResourcePath.uri = buildResourceUri;
 
     // Resource items
     ResourceItem = {
-        EMOJI: `${ResourcePath.JSON}/emojis.json`,
-        KAOMOJI: `${ResourcePath.JSON}/kaomojis.json`,
-        SYMBOLS: `${ResourcePath.JSON}/symbols.json`,
-        COUNTRIES: `${ResourcePath.JSON}/countries.json`,
+        COUNTRIES: `${ResourcePath.CLIPBOARD}/countries.json`,
+        EMOJI: `${ResourcePath.EMOJI}/emojis.json`,
+        KAOMOJI: `${ResourcePath.KAOMOJI}/kaomojis.json`,
+        SYMBOLS: `${ResourcePath.SYMBOLS}/symbols.json`,
     };
 }
 

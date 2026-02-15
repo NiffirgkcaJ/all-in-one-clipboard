@@ -9,10 +9,11 @@ Usage:
     python extract-data-strings.py <output_file.pot> <input_dir>
 
 Example:
-    python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data/json
+    python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -29,6 +30,12 @@ TRANSLATABLE_KEYS = frozenset({
 SKIP_FILES = frozenset({
     'countries.json',      # Country codes, not user-facing
     'emojisModifier.json', # Skin tone modifiers, not user-facing text
+})
+
+# Directories to skip (relative path parts)
+SKIP_DIRS = frozenset({
+    'clipboard',
+    'gif',
 })
 
 # Template for the header of the .pot file
@@ -62,10 +69,10 @@ def escape_string(s):
 def extract_strings_recursive(obj, string_set):
     """
     Recursively extracts translatable strings from any JSON structure.
-    
+
     Looks for keys defined in TRANSLATABLE_KEYS and extracts their string values.
     Handles both direct string values and arrays of strings (like keywords).
-    
+
     Args:
         obj: The JSON object (dict, list, or primitive) to process
         string_set: Set to accumulate extracted strings
@@ -90,29 +97,29 @@ def extract_strings_recursive(obj, string_set):
 def process_json_file(json_path, string_set):
     """
     Processes a single JSON file and extracts translatable strings.
-    
+
     Args:
         json_path: Path to the JSON file
         string_set: Set to accumulate extracted strings
-        
+
     Returns:
         Number of strings extracted from this file
     """
     initial_count = len(string_set)
-    
+
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            
+        with open(json_path, 'r', encoding='utf-8') as json_file:
+            data = json.load(json_file)
+
         # Handle both wrapped ({"data": [...]}) and unwrapped ([...]) formats
         if isinstance(data, dict) and 'data' in data:
             data = data['data']
-            
+
         extract_strings_recursive(data, string_set)
-        
+
         extracted = len(string_set) - initial_count
         return extracted
-        
+
     except json.JSONDecodeError as e:
         print(f"  Error: Invalid JSON in '{json_path.name}': {e}")
         return 0
@@ -124,28 +131,43 @@ def process_json_file(json_path, string_set):
 def discover_json_files(input_dir):
     """
     Auto-discovers all JSON files in the input directory.
-    
+
     Args:
         input_dir: Path to the directory to scan
-        
+
     Returns:
         List of Path objects for discovered JSON files
     """
     json_files = []
-    
-    for json_path in sorted(input_dir.glob('*.json')):
-        if json_path.name in SKIP_FILES:
-            print(f"  Skipping: {json_path.name} (in skip list)")
-            continue
-        json_files.append(json_path)
-        
+
+    for current_dir, directories, filenames in os.walk(input_dir, topdown=True):
+        # Prune excluded directories before descending
+        for directory in list(directories):
+            if directory in SKIP_DIRS:
+                print(f"  Skipping directory: {Path(current_dir) / directory}")
+                directories.remove(directory)
+
+        # Filter and collect JSON files
+        for filename in sorted(filenames):
+            if not filename.endswith('.json'):
+                continue
+
+            if filename in SKIP_FILES:
+                print(f"  Skipping file: {filename}")
+                continue
+
+            json_path = Path(current_dir) / filename
+            json_files.append(json_path)
+    print()
+
+    json_files.sort()
     return json_files
 
 # Generates the .pot file with extracted strings
 def generate_pot_file(output_path, strings, source_files):
     """
     Generates the .pot file with extracted strings.
-    
+
     Args:
         output_path: Path for the output .pot file
         strings: Set of strings to include
@@ -154,29 +176,28 @@ def generate_pot_file(output_path, strings, source_files):
     # Remove empty strings and sort
     strings.discard('')
     sorted_strings = sorted(strings)
-    
+
     # Generate source comment
-    source_comment = ', '.join(f.name for f in source_files)
-    
+    source_comment = ', '.join(json_file.name for json_file in source_files)
+
     creation_date = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M+0000')
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(POT_HEADER_TEMPLATE.format(creation_date=creation_date))
-        
-        for s in sorted_strings:
-            f.write(f'#: {source_comment}\n')
-            f.write(f'msgid "{escape_string(s)}"\n')
-            f.write('msgstr ""\n\n')
-    
+
+    with open(output_path, 'w', encoding='utf-8') as pot_file:
+        pot_file.write(POT_HEADER_TEMPLATE.format(creation_date=creation_date))
+
+        for string in sorted_strings:
+            pot_file.write(f'#: {source_comment}\n')
+            pot_file.write(f'msgid "{escape_string(string)}"\n')
+            pot_file.write('msgstr ""\n\n')
+
     return len(sorted_strings)
 
 
 # --- Main Entry Point ---
-# Main function
 def main():
     if len(sys.argv) != 3:
         print("Usage: python extract-data-strings.py <output_file.pot> <input_dir>")
-        print("Example: python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data/json")
+        print("Example: python extract-data-strings.py gnome-extensions/translation/data-content.pot gnome-extensions/extension/assets/data")
         sys.exit(1)
 
     output_file = Path(sys.argv[1])
@@ -192,32 +213,31 @@ def main():
 
     print(f"Scanning directory: {input_dir}")
     print()
-    
+
     # Auto-discover JSON files
     json_files = discover_json_files(input_dir)
-    
+
     if not json_files:
         print("No JSON files found to process.")
         sys.exit(0)
-    
+
     print(f"Found {len(json_files)} JSON file(s) to process:")
-    for f in json_files:
-        print(f"  - {f.name}")
+    for json_file in json_files:
+        print(f"  - {json_file.name}")
     print()
-    
+
     # Extract strings from all files
     all_strings = set()
-    
+
     for json_path in json_files:
         count = process_json_file(json_path, all_strings)
         print(f"  {json_path.name}: {count} new strings")
-    
     print()
-    
+
     # Generate output
     output_file.parent.mkdir(parents=True, exist_ok=True)
     total = generate_pot_file(output_file, all_strings, json_files)
-    
+
     print(f"Generated '{output_file}' with {total} unique translatable strings.")
 
 # Entry point

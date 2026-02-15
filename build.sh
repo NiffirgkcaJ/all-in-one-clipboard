@@ -31,7 +31,7 @@ update_translation_templates() {
     xgettext --no-wrap --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
 
     # Update the DATA strings template (from .json files) using our Python script
-    python3 ./gnome-extensions/build-aux/extract-data-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data/json
+    python3 ./gnome-extensions/build-aux/extract-data-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data
 
     # Safely merge any new strings into the language files (e.g., all-in-one-clipboard@fr.po)
     echo "Merging new strings into language files..."
