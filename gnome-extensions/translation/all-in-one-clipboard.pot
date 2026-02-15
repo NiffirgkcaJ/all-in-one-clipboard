@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-14 23:34+0000\n"
+"POT-Creation-Date: 2026-02-15 11:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,633 +58,621 @@ msgstr ""
 msgid "All-in-One Clipboard"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:25
+#: gnome-extensions/extension/prefs.js:47
 msgid "All-in-One Clipboard Settings"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:75
+#: gnome-extensions/extension/prefs.js:97
 msgid "General"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:81
+#: gnome-extensions/extension/prefs.js:103
 msgid "Hide Panel Icon"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:82
+#: gnome-extensions/extension/prefs.js:104
 msgid "The menu can still be opened with shortcuts."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:90
+#: gnome-extensions/extension/prefs.js:112
 msgid "Remember Last Opened Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:91
+#: gnome-extensions/extension/prefs.js:113
 msgid "Re-open the menu to the last used tab."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:102
+#: gnome-extensions/extension/prefs.js:124
 msgid "Mouse Cursor"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:103
+#: gnome-extensions/extension/prefs.js:125
 msgid "Screen Center"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:104
+#: gnome-extensions/extension/prefs.js:126
 msgid "Active Window"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:110
+#: gnome-extensions/extension/prefs.js:132
 msgid "Menu Position"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:157
+#: gnome-extensions/extension/prefs.js:179
 msgid "Tab Management"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:158
+#: gnome-extensions/extension/prefs.js:180
 msgid "Customize the visibility, order, and default tab."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:175
+#: gnome-extensions/extension/prefs.js:197
 msgid "Recently Used Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:176
+#: gnome-extensions/extension/prefs.js:198
 msgid "Required when Always Show Main Tabs is off."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:178
+#: gnome-extensions/extension/prefs.js:200
 msgid "Emoji Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:179
+#: gnome-extensions/extension/prefs.js:201
 msgid "GIF Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:180
+#: gnome-extensions/extension/prefs.js:202
 msgid "Kaomoji Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:181
+#: gnome-extensions/extension/prefs.js:203
 msgid "Symbols Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:182
+#: gnome-extensions/extension/prefs.js:204
 msgid "Clipboard Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:187
+#: gnome-extensions/extension/prefs.js:209
 msgid "Visible Tabs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:188
+#: gnome-extensions/extension/prefs.js:210
 msgid "Show or hide individual tabs from the main bar."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:207
+#: gnome-extensions/extension/prefs.js:229
 msgid "Tab Bar Behavior"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:208
+#: gnome-extensions/extension/prefs.js:230
 msgid "Configure when the top tab bar is visible."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:214
+#: gnome-extensions/extension/prefs.js:236
 msgid "Always Show Main Tabs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:215
+#: gnome-extensions/extension/prefs.js:237
 msgid "Keep the main tab buttons visible in every tab."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:222
+#: gnome-extensions/extension/prefs.js:244
 msgid "Hide Last Main Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:223
+#: gnome-extensions/extension/prefs.js:245
 msgid "Automatically hide the last main tab visible."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:230
+#: gnome-extensions/extension/prefs.js:252
 msgid "Default Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:231
+#: gnome-extensions/extension/prefs.js:253
 msgid "The tab that opens when you first open the menu."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:331
+#: gnome-extensions/extension/prefs.js:353
 msgid "Tab Order"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:332
+#: gnome-extensions/extension/prefs.js:354
 msgid "Use the buttons to reorder tabs in the main bar."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:399
+#: gnome-extensions/extension/prefs.js:421
 msgid "Reset Order"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:400
+#: gnome-extensions/extension/prefs.js:422
 msgid "Restore the original tab order."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:406
+#: gnome-extensions/extension/prefs.js:428
 msgid "Reset"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:436
+#: gnome-extensions/extension/prefs.js:458
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:437
+#: gnome-extensions/extension/prefs.js:459
 msgid "Click on a shortcut to change it. Press Backspace to clear."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:443
+#: gnome-extensions/extension/prefs.js:465
 msgid "Global Shortcuts"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:444
+#: gnome-extensions/extension/prefs.js:466
 msgid "These work even when the menu is closed."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:449
+#: gnome-extensions/extension/prefs.js:471
 msgid "Toggle Main Menu"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:450
+#: gnome-extensions/extension/prefs.js:472
 msgid "Open Emoji Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:451
+#: gnome-extensions/extension/prefs.js:473
 msgid "Open GIF Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:452
+#: gnome-extensions/extension/prefs.js:474
 msgid "Open Kaomoji Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:453
+#: gnome-extensions/extension/prefs.js:475
 msgid "Open Symbols Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:454
+#: gnome-extensions/extension/prefs.js:476
 msgid "Open Clipboard Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:464
+#: gnome-extensions/extension/prefs.js:486
 msgid "Main Tab Navigation"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:465
+#: gnome-extensions/extension/prefs.js:487
 msgid "Switch between the main tabs within the menu."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:470
+#: gnome-extensions/extension/prefs.js:492
 msgid "Next Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:471
+#: gnome-extensions/extension/prefs.js:493
 msgid "Previous Tab"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:481
+#: gnome-extensions/extension/prefs.js:503
 msgid "Category Navigation"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:482
+#: gnome-extensions/extension/prefs.js:504
 msgid "Switch between the categories within the tabs."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:487
+#: gnome-extensions/extension/prefs.js:509
 msgid "Next Category"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:488
+#: gnome-extensions/extension/prefs.js:510
 msgid "Previous Category"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:498
+#: gnome-extensions/extension/prefs.js:520
 msgid "Clipboard Item Actions"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:499
+#: gnome-extensions/extension/prefs.js:521
 msgid "Shortcuts for items in the grid/list view."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:504
+#: gnome-extensions/extension/prefs.js:526
 msgid "Select Item"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:505
+#: gnome-extensions/extension/prefs.js:527
 msgid "Pin Item"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:506
+#: gnome-extensions/extension/prefs.js:528
 msgid "Delete Item"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:546
-#: gnome-extensions/extension/prefs.js:548
-#: gnome-extensions/extension/prefs.js:549
-#: gnome-extensions/extension/prefs.js:880
+#: gnome-extensions/extension/prefs.js:568
+#: gnome-extensions/extension/prefs.js:570
+#: gnome-extensions/extension/prefs.js:571
+#: gnome-extensions/extension/prefs.js:907
 msgid "Disabled"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:556
+#: gnome-extensions/extension/prefs.js:578
 msgid "Set Shortcut"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:563
+#: gnome-extensions/extension/prefs.js:585
 msgid ""
 "Press a key combination\n"
 "Backspace to Clear, Escape to Cancel"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:637
+#: gnome-extensions/extension/prefs.js:659
 msgid "Recent Items Limits"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:638
+#: gnome-extensions/extension/prefs.js:660
 msgid "Maximum number of items to keep in \"Recents\" for each feature."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:643
+#: gnome-extensions/extension/prefs.js:665
 msgid "Maximum Recent Emojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:644
+#: gnome-extensions/extension/prefs.js:666
 msgid "Maximum Recent Kaomojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:645
+#: gnome-extensions/extension/prefs.js:667
 msgid "Maximum Recent Symbols"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:646
+#: gnome-extensions/extension/prefs.js:668
 msgid "Maximum Recent GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:657
+#: gnome-extensions/extension/prefs.js:679
 #, javascript-format
 msgid "Range: %d-%d. Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:676
+#: gnome-extensions/extension/prefs.js:698
 msgid "Auto-Paste Settings"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:682
+#: gnome-extensions/extension/prefs.js:704
 msgid "Enable Auto-Paste"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:683
+#: gnome-extensions/extension/prefs.js:705
 msgid "Automatically paste selected items instead of just copying to clipboard."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:698
+#: gnome-extensions/extension/prefs.js:720
 msgid "Auto-Paste Emojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:699
+#: gnome-extensions/extension/prefs.js:721
 msgid "Auto-Paste GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:700
+#: gnome-extensions/extension/prefs.js:722
 msgid "Auto-Paste Kaomojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:701
+#: gnome-extensions/extension/prefs.js:723
 msgid "Auto-Paste Symbols"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:702
+#: gnome-extensions/extension/prefs.js:724
 msgid "Auto-Paste from Clipboard History"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:724
+#: gnome-extensions/extension/prefs.js:746
 msgid "Clipboard Settings"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:735
+#: gnome-extensions/extension/prefs.js:757
 msgid "Maximum Clipboard History"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:736
+#: gnome-extensions/extension/prefs.js:758
 #, javascript-format
 msgid "Number of items to keep in history (%d-%d). Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:748
+#: gnome-extensions/extension/prefs.js:770
 msgid "Move Item to Top on Copy"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:749
+#: gnome-extensions/extension/prefs.js:771
 msgid "When copying an item from history, make it the most recent."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:756
+#: gnome-extensions/extension/prefs.js:778
 msgid "Unpin Item on Paste"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:757
+#: gnome-extensions/extension/prefs.js:779
 msgid "Automatically unpin an item when it is pasted."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:768
+#: gnome-extensions/extension/prefs.js:790
 msgid "Image Preview Size"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:769
+#: gnome-extensions/extension/prefs.js:791
 #, javascript-format
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:788
+#: gnome-extensions/extension/prefs.js:810
 msgid "Emoji Settings"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:789
+#: gnome-extensions/extension/prefs.js:811
 msgid "Configure emoji appearance and behavior."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:794
+#: gnome-extensions/extension/prefs.js:816
 msgid "Enable Custom Skin Tones"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:795
+#: gnome-extensions/extension/prefs.js:817
 msgid "If off, skinnable emojis are neutral. If on, use the settings below."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:802
+#: gnome-extensions/extension/prefs.js:824
 msgid "Light"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:803
+#: gnome-extensions/extension/prefs.js:825
 msgid "Medium-Light"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:804
+#: gnome-extensions/extension/prefs.js:826
 msgid "Medium"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:805
+#: gnome-extensions/extension/prefs.js:827
 msgid "Medium-Dark"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:806
+#: gnome-extensions/extension/prefs.js:828
 msgid "Dark"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:812
+#: gnome-extensions/extension/prefs.js:834
 msgid "Primary Tone / Single Emoji"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:813
+#: gnome-extensions/extension/prefs.js:835
 msgid "For single emojis and the first person in pairs."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:819
+#: gnome-extensions/extension/prefs.js:841
 msgid "Secondary Tone"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:820
+#: gnome-extensions/extension/prefs.js:842
 msgid "For the second person in pairs."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:870
+#: gnome-extensions/extension/prefs.js:892
 msgid "GIF Settings"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:871
+#: gnome-extensions/extension/prefs.js:893
 msgid "To search for GIFs, you must select a provider and provide your own API key."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:877
+#: gnome-extensions/extension/prefs.js:916
 msgid "GIF Provider"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:878
+#: gnome-extensions/extension/prefs.js:917
 msgid "Select the service to use for fetching GIFs."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:880
-msgid "Tenor"
+#: gnome-extensions/extension/prefs.js:940
+msgid "API Key"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:880
-msgid "Imgur"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:907
-msgid "Tenor API Key"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:914
-msgid "Imgur Client ID"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:929
+#: gnome-extensions/extension/prefs.js:959
 msgid "Paste Behavior"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:930
+#: gnome-extensions/extension/prefs.js:960
 msgid "Choose how GIFs are pasted."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:931
+#: gnome-extensions/extension/prefs.js:961
 msgid "Paste Link"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:931
+#: gnome-extensions/extension/prefs.js:961
 msgid "Paste Image"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:941
+#: gnome-extensions/extension/prefs.js:971
 msgid "Limit GIF Preview Cache Size"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:942
+#: gnome-extensions/extension/prefs.js:972
 msgid "Turn off for an unlimited cache size."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:956
+#: gnome-extensions/extension/prefs.js:986
 msgid "Cache Size Limit (MB)"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:957
+#: gnome-extensions/extension/prefs.js:987
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1050
+#: gnome-extensions/extension/prefs.js:1080
 msgid "Excluded Applications"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1051
+#: gnome-extensions/extension/prefs.js:1081
 msgid "Manage applications that should be ignored by the clipboard manager."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1056
+#: gnome-extensions/extension/prefs.js:1086
 msgid "Ignored Applications"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1057
+#: gnome-extensions/extension/prefs.js:1087
 msgid "Prevent specific applications from saving content to the clipboard history."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1102
+#: gnome-extensions/extension/prefs.js:1132
 msgid "Add New Exclusion"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1106
+#: gnome-extensions/extension/prefs.js:1136
 msgid "Application Name or ID"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1149
+#: gnome-extensions/extension/prefs.js:1179
 msgid "Data Management"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1150
+#: gnome-extensions/extension/prefs.js:1180
 msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1156
+#: gnome-extensions/extension/prefs.js:1186
 msgid "Clear Data at Login"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1157
+#: gnome-extensions/extension/prefs.js:1187
 msgid "Automatically clear selected data at every login."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1172
+#: gnome-extensions/extension/prefs.js:1202
 msgid "Clear Clipboard History"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1173
+#: gnome-extensions/extension/prefs.js:1203
 msgid "Clear Recent Emojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1174
+#: gnome-extensions/extension/prefs.js:1204
 msgid "Clear Recent GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1175
+#: gnome-extensions/extension/prefs.js:1205
 msgid "Clear Recent Kaomojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1176
+#: gnome-extensions/extension/prefs.js:1206
 msgid "Clear Recent Symbols"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1190
-#: gnome-extensions/extension/prefs.js:1202
+#: gnome-extensions/extension/prefs.js:1220
+#: gnome-extensions/extension/prefs.js:1232
 msgid "Clear"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1196
+#: gnome-extensions/extension/prefs.js:1226
 msgid "Are you sure?"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1197
+#: gnome-extensions/extension/prefs.js:1227
 msgid "The selected data will be permanently deleted."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1201
+#: gnome-extensions/extension/prefs.js:1231
 msgid "Cancel"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1218
+#: gnome-extensions/extension/prefs.js:1248
 msgid "Recent Item History"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1219
+#: gnome-extensions/extension/prefs.js:1249
 msgid "Clear lists of recently used items."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1226
+#: gnome-extensions/extension/prefs.js:1256
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:26
 msgid "Recent Emojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1227
+#: gnome-extensions/extension/prefs.js:1257
 msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1231
+#: gnome-extensions/extension/prefs.js:1261
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:33
 msgid "Recent GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1232
+#: gnome-extensions/extension/prefs.js:1262
 msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1236
+#: gnome-extensions/extension/prefs.js:1266
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 msgid "Recent Kaomojis"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1237
+#: gnome-extensions/extension/prefs.js:1267
 msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1241
+#: gnome-extensions/extension/prefs.js:1271
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:47
 msgid "Recent Symbols"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1242
+#: gnome-extensions/extension/prefs.js:1272
 msgid "Permanently clears the list of recent symbols."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1251
+#: gnome-extensions/extension/prefs.js:1281
 msgid "All Recent Items"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1252
+#: gnome-extensions/extension/prefs.js:1282
 msgid "Permanently clears all of the above lists at once."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1259
+#: gnome-extensions/extension/prefs.js:1289
 msgid "Clipboard Data"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1260
+#: gnome-extensions/extension/prefs.js:1290
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1265
+#: gnome-extensions/extension/prefs.js:1295
 msgid "Clipboard History"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1266
+#: gnome-extensions/extension/prefs.js:1296
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1272
+#: gnome-extensions/extension/prefs.js:1302
 msgid "Pinned Items"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1273
+#: gnome-extensions/extension/prefs.js:1303
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1280
+#: gnome-extensions/extension/prefs.js:1310
 msgid "Performance Caches"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1281
+#: gnome-extensions/extension/prefs.js:1311
 msgid "Clear temporary data used to improve loading speed."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1286
+#: gnome-extensions/extension/prefs.js:1316
 msgid "GIF Preview Cache"
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1287
+#: gnome-extensions/extension/prefs.js:1317
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
