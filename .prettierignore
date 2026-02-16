@@ -1,4 +1,4 @@
-# Ignore files for ESLint & Prettier
+# Ignore linting configuration files
 eslint.config.js
 .prettierrc
 .prettierignore
@@ -10,6 +10,10 @@ metadata.json
 # Ignore Markdown files
 *.md
 
-# Ignore YAML configuration files
+# Ignore configuration files
+*.toml
 *.yaml
 *.yml
+
+# Ignore server files
+server/**

@@ -906,10 +906,12 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Build the list with "Disabled" and dynamic providers
         const providerList = [_('Disabled')];
         const providerIds = ['none'];
+        const providerMeta = { none: { hasProxy: false } };
 
         providers.forEach((p) => {
             providerList.push(p.name);
             providerIds.push(p.id);
+            providerMeta[p.id] = { hasProxy: p.hasProxy };
         });
 
         const providerRow = new Adw.ComboRow({
@@ -944,15 +946,26 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         // Bind to the generic manual key
         settings.bind('gif-custom-api-key', apiKeyRow, 'text', Gio.SettingsBindFlags.DEFAULT);
 
-        // Only show API key row if a provider is selected
-        const updateVisibility = () => {
+        // Update API Key row visibility and text based on provider
+        const updateProviderUI = () => {
             const index = providerRow.get_selected();
-            const isNone = providerIds[index] === 'none';
+            const providerId = providerIds[index];
+            const isNone = providerId === 'none';
+            const hasProxy = providerMeta[providerId]?.hasProxy;
+
             apiKeyRow.set_visible(!isNone);
+
+            if (hasProxy) {
+                apiKeyRow.set_title(_('API Key (Optional)'));
+                apiKeyRow.set_tooltip_text(_('Leave blank to use the built-in default key.'));
+            } else {
+                apiKeyRow.set_title(_('API Key (Required)'));
+                apiKeyRow.set_tooltip_text(_('You must provide an API key to use this provider.'));
+            }
         };
 
-        providerRow.connect('notify::selected', updateVisibility);
-        updateVisibility(); // Initial
+        providerRow.connect('notify::selected', updateProviderUI);
+        updateProviderUI(); // Initial
 
         // GIF Paste Behavior
         const pasteBehaviorRow = new Adw.ComboRow({

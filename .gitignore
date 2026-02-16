@@ -1,15 +1,19 @@
-# Ignore built files
-*.zip
-
 # Ignore IDE/editor-specific files
 .agent/
 .idea/
 .vscode/
-*.po~
-*.swp
 
-# Ignore Node modules
+# Ignore Node modules directories
 node_modules/
+
+# Ignore Wrangler directories
+.wrangler/
 
 # Ignore macOS system files
 .DS_Store
+
+# Ignore built and temporary files
+*.log
+*.po~
+*.swp
+*.zip

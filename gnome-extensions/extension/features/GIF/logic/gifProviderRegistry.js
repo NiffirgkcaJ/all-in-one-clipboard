@@ -79,12 +79,13 @@ export class GifProviderRegistry {
 
     /**
      * Returns a list of available provider definitions (for UI/Settings).
-     * @returns {Array<{id: string, name: string}>}
+     * @returns {Array<{id: string, name: string, hasProxy: boolean}>}
      */
     getAvailableProviders() {
         return Array.from(this._providers.values()).map((p) => ({
             id: p.id,
             name: p.name,
+            hasProxy: !!p.proxy_url,
         }));
     }
 

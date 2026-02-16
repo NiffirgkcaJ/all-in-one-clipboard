@@ -113,8 +113,12 @@ export class GifGenericProvider {
      * @returns {string} Full URL
      */
     _buildUrl(endpointPath, internalParams, options = {}) {
-        let url = this._def.base_url + endpointPath;
         const queryParams = [];
+
+        // Determine the API key and base URL
+        const keyValue = this._settings.get_string('gif-custom-api-key');
+        const useProxy = !keyValue && this._def.proxy_url;
+        let url = (useProxy ? this._def.proxy_url : this._def.base_url) + endpointPath;
 
         // Add Default Parameters
         if (!options.skipDefaultParams && this._def.default_params) {
@@ -123,14 +127,11 @@ export class GifGenericProvider {
             }
         }
 
-        // Add API Key if configured
-        let keyValue = this._settings.get_string('gif-custom-api-key');
-
-        if (this._def.api_key_in_path) {
-            url = url.replace('{api_key}', keyValue || '');
-        } else if (this._def.params.api_key) {
-            // Standard Query Parameter
-            if (keyValue) {
+        // Add API Key when using the direct URL as proxy injects its own
+        if (!useProxy) {
+            if (this._def.api_key_in_path) {
+                url = url.replace('{api_key}', keyValue || '');
+            } else if (keyValue && this._def.params.api_key) {
                 queryParams.push(`${this._def.params.api_key}=${encodeURIComponent(keyValue)}`);
             }
         }

@@ -1,0 +1,7 @@
+name = "aio-clipboard-api"
+main = "src/index.js"
+compatibility_date = "2026-02-15"
+
+# API keys are stored as encrypted secrets, NOT here.
+# Add them with:
+#   wrangler secret put KLIPY_API_KEY
