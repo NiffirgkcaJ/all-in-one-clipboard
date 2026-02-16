@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-15 11:51+0000\n"
+"POT-Creation-Date: 2026-02-16 02:38+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -464,218 +464,234 @@ msgstr "GIF-Einstellungen"
 msgid "To search for GIFs, you must select a provider and provide your own API key."
 msgstr "Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren eigenenAPI-Schlüssel angeben."
 
-#: gnome-extensions/extension/prefs.js:916
+#: gnome-extensions/extension/prefs.js:918
 msgid "GIF Provider"
 msgstr "GIF-Anbieter"
 
-#: gnome-extensions/extension/prefs.js:917
+#: gnome-extensions/extension/prefs.js:919
 msgid "Select the service to use for fetching GIFs."
 msgstr "Wählen Sie den Dienst zum Laden von GIFs aus."
 
-#: gnome-extensions/extension/prefs.js:940
+#: gnome-extensions/extension/prefs.js:942
 #, fuzzy
 msgid "API Key"
 msgstr "Tenor API-Schlüssel"
 
 #: gnome-extensions/extension/prefs.js:959
+msgid "API Key (Optional)"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:960
+msgid "Leave blank to use the built-in default key."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:962
+msgid "API Key (Required)"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:963
+msgid "You must provide an API key to use this provider."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:972
 msgid "Paste Behavior"
 msgstr "Verhalten beim Einfügen"
 
-#: gnome-extensions/extension/prefs.js:960
+#: gnome-extensions/extension/prefs.js:973
 msgid "Choose how GIFs are pasted."
 msgstr "Wählen, wie GIFs eingefügt werden."
 
-#: gnome-extensions/extension/prefs.js:961
+#: gnome-extensions/extension/prefs.js:974
 msgid "Paste Link"
 msgstr "Link einfügen"
 
-#: gnome-extensions/extension/prefs.js:961
+#: gnome-extensions/extension/prefs.js:974
 msgid "Paste Image"
 msgstr "Bild einfügen"
 
-#: gnome-extensions/extension/prefs.js:971
+#: gnome-extensions/extension/prefs.js:984
 msgid "Limit GIF Preview Cache Size"
 msgstr "Zwischenspeicher-Größe für GIF-Vorschau limitieren"
 
-#: gnome-extensions/extension/prefs.js:972
+#: gnome-extensions/extension/prefs.js:985
 msgid "Turn off for an unlimited cache size."
 msgstr "Ausschalten für eine unlimitierte Zwischenspeicher-Größe."
 
-#: gnome-extensions/extension/prefs.js:986
+#: gnome-extensions/extension/prefs.js:999
 msgid "Cache Size Limit (MB)"
 msgstr "Limit für Zwischenspeicher-Größe (MB)"
 
-#: gnome-extensions/extension/prefs.js:987
+#: gnome-extensions/extension/prefs.js:1000
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr "Bereich: %d–%d MB. Standard: %d MB"
 
-#: gnome-extensions/extension/prefs.js:1080
+#: gnome-extensions/extension/prefs.js:1093
 msgid "Excluded Applications"
 msgstr "Ausschließlich Anwendungen"
 
-#: gnome-extensions/extension/prefs.js:1081
+#: gnome-extensions/extension/prefs.js:1094
 msgid "Manage applications that should be ignored by the clipboard manager."
 msgstr "Verwaltung von Anwendungen, die vom Zwischenablageverwaltung ignoriert werden sollen."
 
-#: gnome-extensions/extension/prefs.js:1086
+#: gnome-extensions/extension/prefs.js:1099
 msgid "Ignored Applications"
 msgstr "Ignorierte Anwendungen"
 
-#: gnome-extensions/extension/prefs.js:1087
+#: gnome-extensions/extension/prefs.js:1100
 msgid "Prevent specific applications from saving content to the clipboard history."
 msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
 
-#: gnome-extensions/extension/prefs.js:1132
+#: gnome-extensions/extension/prefs.js:1145
 msgid "Add New Exclusion"
 msgstr "Neu ausgeschlossen hinzufügen"
 
-#: gnome-extensions/extension/prefs.js:1136
+#: gnome-extensions/extension/prefs.js:1149
 msgid "Application Name or ID"
 msgstr "Anwendungsnamen oder ID"
 
-#: gnome-extensions/extension/prefs.js:1179
+#: gnome-extensions/extension/prefs.js:1192
 msgid "Data Management"
 msgstr "Datenverwaltung"
 
-#: gnome-extensions/extension/prefs.js:1180
+#: gnome-extensions/extension/prefs.js:1193
 msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
 msgstr "Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
 
-#: gnome-extensions/extension/prefs.js:1186
+#: gnome-extensions/extension/prefs.js:1199
 msgid "Clear Data at Login"
 msgstr "Daten beim Anmelden löschen"
 
-#: gnome-extensions/extension/prefs.js:1187
+#: gnome-extensions/extension/prefs.js:1200
 msgid "Automatically clear selected data at every login."
 msgstr "Ausgewählte Daten bei jeder Anmeldung automatisch löschen"
 
-#: gnome-extensions/extension/prefs.js:1202
+#: gnome-extensions/extension/prefs.js:1215
 msgid "Clear Clipboard History"
 msgstr "Zwischenablageverlauf löschen"
 
-#: gnome-extensions/extension/prefs.js:1203
+#: gnome-extensions/extension/prefs.js:1216
 msgid "Clear Recent Emojis"
 msgstr "Letzte Emojis löschen"
 
-#: gnome-extensions/extension/prefs.js:1204
+#: gnome-extensions/extension/prefs.js:1217
 msgid "Clear Recent GIFs"
 msgstr "Letzte GIFs löschen"
 
-#: gnome-extensions/extension/prefs.js:1205
+#: gnome-extensions/extension/prefs.js:1218
 msgid "Clear Recent Kaomojis"
 msgstr "Letzte Kaomojis löschen"
 
-#: gnome-extensions/extension/prefs.js:1206
+#: gnome-extensions/extension/prefs.js:1219
 msgid "Clear Recent Symbols"
 msgstr "Letzte Symbole löschen"
 
-#: gnome-extensions/extension/prefs.js:1220
-#: gnome-extensions/extension/prefs.js:1232
+#: gnome-extensions/extension/prefs.js:1233
+#: gnome-extensions/extension/prefs.js:1245
 msgid "Clear"
 msgstr "Löschen"
 
-#: gnome-extensions/extension/prefs.js:1226
+#: gnome-extensions/extension/prefs.js:1239
 msgid "Are you sure?"
 msgstr "Sind Sie sicher?"
 
-#: gnome-extensions/extension/prefs.js:1227
+#: gnome-extensions/extension/prefs.js:1240
 msgid "The selected data will be permanently deleted."
 msgstr "Die ausgewählten Daten werden unwiderruflich gelöscht."
 
-#: gnome-extensions/extension/prefs.js:1231
+#: gnome-extensions/extension/prefs.js:1244
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: gnome-extensions/extension/prefs.js:1248
+#: gnome-extensions/extension/prefs.js:1261
 msgid "Recent Item History"
 msgstr "Verlauf letzter Elemente"
 
-#: gnome-extensions/extension/prefs.js:1249
+#: gnome-extensions/extension/prefs.js:1262
 msgid "Clear lists of recently used items."
 msgstr "Listen von zuletzt genutzten items löschen."
 
-#: gnome-extensions/extension/prefs.js:1256
+#: gnome-extensions/extension/prefs.js:1269
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:26
 msgid "Recent Emojis"
 msgstr "Letzte Emojis"
 
-#: gnome-extensions/extension/prefs.js:1257
+#: gnome-extensions/extension/prefs.js:1270
 msgid "Permanently clears the list of recent emojis."
 msgstr "Löscht die Liste zuletzt genutzter Emojis unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1261
+#: gnome-extensions/extension/prefs.js:1274
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:33
 msgid "Recent GIFs"
 msgstr "Letzte GIFs"
 
-#: gnome-extensions/extension/prefs.js:1262
+#: gnome-extensions/extension/prefs.js:1275
 msgid "Permanently clears the list of recent GIFs."
 msgstr "Löscht die Liste zuletzt genutzter GIFs unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1266
+#: gnome-extensions/extension/prefs.js:1279
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 msgid "Recent Kaomojis"
 msgstr "Letzte Kaomojis"
 
-#: gnome-extensions/extension/prefs.js:1267
+#: gnome-extensions/extension/prefs.js:1280
 msgid "Permanently clears the list of recent kaomojis."
 msgstr "Löscht die Liste zuletzt genutzter Kaomojis unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1271
+#: gnome-extensions/extension/prefs.js:1284
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:47
 msgid "Recent Symbols"
 msgstr "Letzte Symbole"
 
-#: gnome-extensions/extension/prefs.js:1272
+#: gnome-extensions/extension/prefs.js:1285
 msgid "Permanently clears the list of recent symbols."
 msgstr "Löscht die Liste zuletzt genutzter Symbole unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1281
+#: gnome-extensions/extension/prefs.js:1294
 msgid "All Recent Items"
 msgstr "Alle letzten Elemente"
 
-#: gnome-extensions/extension/prefs.js:1282
+#: gnome-extensions/extension/prefs.js:1295
 msgid "Permanently clears all of the above lists at once."
 msgstr "Löscht alle oben genannten Listen unwiderruflich auf ein Mal."
 
-#: gnome-extensions/extension/prefs.js:1289
+#: gnome-extensions/extension/prefs.js:1302
 msgid "Clipboard Data"
 msgstr "Zwischenablagedaten"
 
-#: gnome-extensions/extension/prefs.js:1290
+#: gnome-extensions/extension/prefs.js:1303
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr "Ihren gespeicherten Zwischenablageverlauf und angehefteten Elementeunwiderruflich löschen."
 
-#: gnome-extensions/extension/prefs.js:1295
+#: gnome-extensions/extension/prefs.js:1308
 msgid "Clipboard History"
 msgstr "Zwischenablageverlauf"
 
-#: gnome-extensions/extension/prefs.js:1296
+#: gnome-extensions/extension/prefs.js:1309
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr "Löscht alle gespeicherten nicht angehefteten Zwischenablageelementeunwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1302
+#: gnome-extensions/extension/prefs.js:1315
 msgid "Pinned Items"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/prefs.js:1303
+#: gnome-extensions/extension/prefs.js:1316
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr "Löscht alle gespeicherten angehefteten Zwischenablageelemente undwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1310
+#: gnome-extensions/extension/prefs.js:1323
 msgid "Performance Caches"
 msgstr "Performance-Zwischenspeicher"
 
-#: gnome-extensions/extension/prefs.js:1311
+#: gnome-extensions/extension/prefs.js:1324
 msgid "Clear temporary data used to improve loading speed."
 msgstr "Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit genutzt werden."
 
-#: gnome-extensions/extension/prefs.js:1316
+#: gnome-extensions/extension/prefs.js:1329
 msgid "GIF Preview Cache"
 msgstr "GIF-Vorschau-Zwischenspeicher"
 
-#: gnome-extensions/extension/prefs.js:1317
+#: gnome-extensions/extension/prefs.js:1330
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
