@@ -335,7 +335,10 @@ export const GIFTabContent = GObject.registerClass(
          */
         _connectProviderChangedSignal() {
             this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
-                this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
+                if (this.mapped) {
+                    this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
+                    this._loadInitialData().catch((e) => this._renderErrorState(e.message));
+                }
             });
         }
 
