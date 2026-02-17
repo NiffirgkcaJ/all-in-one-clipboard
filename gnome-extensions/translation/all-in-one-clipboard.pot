@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-17 02:07+0000\n"
+"POT-Creation-Date: 2026-02-17 18:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: gnome-extensions/extension/extension.js:33
 #: gnome-extensions/extension/extension.js:588
 #: gnome-extensions/extension/features/Emoji/tabEmoji.js:98
-#: gnome-extensions/extension/features/GIF/tabGIF.js:152
+#: gnome-extensions/extension/features/GIF/tabGIF.js:186
 #: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:76
 #: gnome-extensions/extension/features/Symbols/tabSymbols.js:76
 msgid "Recently Used"
@@ -754,44 +754,58 @@ msgstr ""
 msgid "History"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:222
+#: gnome-extensions/extension/features/GIF/tabGIF.js:137
+msgid "Search"
+msgstr ""
+
+#: gnome-extensions/extension/features/GIF/tabGIF.js:143
+#, javascript-format
+msgid "Search %s..."
+msgstr ""
+
+#: gnome-extensions/extension/features/GIF/tabGIF.js:143
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:40
+msgid "Search..."
+msgstr ""
+
+#: gnome-extensions/extension/features/GIF/tabGIF.js:256
 msgid "Online search is disabled."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:405
-#: gnome-extensions/extension/features/GIF/tabGIF.js:499
-#: gnome-extensions/extension/features/GIF/tabGIF.js:508
+#: gnome-extensions/extension/features/GIF/tabGIF.js:438
+#: gnome-extensions/extension/features/GIF/tabGIF.js:532
+#: gnome-extensions/extension/features/GIF/tabGIF.js:541
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:504
 msgid "Recents"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:451
+#: gnome-extensions/extension/features/GIF/tabGIF.js:484
 msgid "No categories available."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:519
-#: gnome-extensions/extension/features/GIF/tabGIF.js:525
+#: gnome-extensions/extension/features/GIF/tabGIF.js:552
+#: gnome-extensions/extension/features/GIF/tabGIF.js:558
 msgid "Trending"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:526
+#: gnome-extensions/extension/features/GIF/tabGIF.js:559
 msgid "Trending GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:843
+#: gnome-extensions/extension/features/GIF/tabGIF.js:887
 msgid "No recent GIFs."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:878
+#: gnome-extensions/extension/features/GIF/tabGIF.js:921
 msgid "No trending GIFs found."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:925
+#: gnome-extensions/extension/features/GIF/tabGIF.js:968
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:1091
+#: gnome-extensions/extension/features/GIF/tabGIF.js:1130
 #, javascript-format
 msgid ""
 "Error: %s\n"
@@ -829,8 +843,4 @@ msgstr ""
 
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:585
 msgid "No items match your search."
-msgstr ""
-
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:40
-msgid "Search..."
 msgstr ""
