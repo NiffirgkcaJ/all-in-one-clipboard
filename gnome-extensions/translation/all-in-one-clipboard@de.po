@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-16 02:38+0000\n"
+"POT-Creation-Date: 2026-02-17 02:07+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -761,40 +761,40 @@ msgstr "Geschichte"
 msgid "Online search is disabled."
 msgstr "Onlinesuche ist deaktiviert."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:402
-#: gnome-extensions/extension/features/GIF/tabGIF.js:496
-#: gnome-extensions/extension/features/GIF/tabGIF.js:505
+#: gnome-extensions/extension/features/GIF/tabGIF.js:405
+#: gnome-extensions/extension/features/GIF/tabGIF.js:499
+#: gnome-extensions/extension/features/GIF/tabGIF.js:508
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:504
 msgid "Recents"
 msgstr "Letzte"
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:448
+#: gnome-extensions/extension/features/GIF/tabGIF.js:451
 msgid "No categories available."
 msgstr "Keine Kategorien verfügbar."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:516
-#: gnome-extensions/extension/features/GIF/tabGIF.js:522
+#: gnome-extensions/extension/features/GIF/tabGIF.js:519
+#: gnome-extensions/extension/features/GIF/tabGIF.js:525
 msgid "Trending"
 msgstr "Beliebt"
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:523
+#: gnome-extensions/extension/features/GIF/tabGIF.js:526
 msgid "Trending GIFs"
 msgstr "Beliebte GIFs"
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:840
+#: gnome-extensions/extension/features/GIF/tabGIF.js:843
 msgid "No recent GIFs."
 msgstr "Keine letzten GIFs."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:875
+#: gnome-extensions/extension/features/GIF/tabGIF.js:878
 msgid "No trending GIFs found."
 msgstr "Keine beliebten GIFs gefunden."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:922
+#: gnome-extensions/extension/features/GIF/tabGIF.js:925
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr "Keine Resultate für »%s« gefunden."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:1088
+#: gnome-extensions/extension/features/GIF/tabGIF.js:1091
 #, javascript-format
 msgid ""
 "Error: %s\n"
