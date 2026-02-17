@@ -1,4 +1,5 @@
 import Gio from 'gi://Gio';
+import Rsvg from 'gi://Rsvg';
 import St from 'gi://St';
 
 import { ResourcePath } from '../constants/storagePaths.js';
@@ -151,6 +152,9 @@ function _applyIconConfig(iconWidget, iconConfig) {
     if (iconConfig.iconSize) {
         options.iconSize = iconConfig.iconSize;
     }
+    if (iconConfig.basePath) {
+        options.basePath = iconConfig.basePath;
+    }
     _setIcon(iconWidget, iconConfig.icon, options);
 }
 
@@ -185,7 +189,8 @@ function _setIcon(iconWidget, iconName, options = {}) {
     }
 
     if (iconName && iconName.includes('.')) {
-        const resourceUri = `${ResourcePath.UI}/${iconName}`;
+        const base = options.basePath || ResourcePath.UI;
+        const resourceUri = `${base}/${iconName}`;
         const file = Gio.File.new_for_uri(resourceUri);
 
         iconWidget.set_icon_name(null);
@@ -193,5 +198,77 @@ function _setIcon(iconWidget, iconName, options = {}) {
     } else {
         iconWidget.set_gicon(null);
         iconWidget.set_icon_name(iconName);
+    }
+}
+
+/**
+ * Creates a logo widget from an SVG resource file using Rsvg and St.DrawingArea
+ * for crisp vector rendering at the correct aspect ratio.
+ *
+ * SVGs using `currentColor` will auto-resolve from the parent widget's CSS
+ * `color` at paint time, unless an explicit `config.color` is provided.
+ *
+ * @param {Object} config
+ * @param {string} config.icon - The SVG filename
+ * @param {number} config.height - The desired display height in pixels
+ * @param {string} [config.basePath] - Resource path prefix (defaults to ResourcePath.LOGOS)
+ * @param {string} [config.color] - Explicit color to replace `currentColor` with (overrides CSS)
+ * @returns {St.DrawingArea|null} A widget displaying the logo, or null on error
+ */
+export function createLogo(config) {
+    const basePath = config.basePath || ResourcePath.LOGOS;
+    const resourceUri = `${basePath}/${config.icon}`;
+    const file = Gio.File.new_for_uri(resourceUri);
+    let [, contents] = file.load_contents(null);
+
+    const svgText = new TextDecoder().decode(contents);
+    const usesCurrentColor = svgText.includes('currentColor');
+
+    if (config.color && usesCurrentColor) {
+        contents = new TextEncoder().encode(svgText.replaceAll('currentColor', config.color));
+    }
+
+    try {
+        let handle = Rsvg.Handle.new_from_data(contents);
+        const dim = handle.get_dimensions();
+        const aspectRatio = dim.width / dim.height;
+        const height = config.height;
+        const width = Math.round(height * aspectRatio);
+
+        let resolvedColor = config.color || null;
+
+        const area = new St.DrawingArea({ width, height });
+        area.connect('repaint', () => {
+            const cr = area.get_context();
+
+            if (usesCurrentColor && !config.color) {
+                let parentColor = null;
+                try {
+                    const parent = area.get_parent();
+                    if (parent?.get_theme_node) {
+                        const c = parent.get_theme_node().get_color('color');
+                        parentColor = `rgba(${c.red},${c.green},${c.blue},${c.alpha / 255})`;
+                    }
+                } catch {
+                    // Ignore
+                }
+
+                if (parentColor && parentColor !== resolvedColor) {
+                    resolvedColor = parentColor;
+                    const resolved = svgText.replaceAll('currentColor', resolvedColor);
+                    handle = Rsvg.Handle.new_from_data(new TextEncoder().encode(resolved));
+                }
+            }
+
+            const [w, h] = area.get_surface_size();
+            cr.scale(w / dim.width, h / dim.height);
+            handle.render_cairo(cr);
+            cr.$dispose();
+        });
+
+        return area;
+    } catch (e) {
+        console.error(`Failed to create logo for ${config.icon}:`, e);
+        return null;
     }
 }

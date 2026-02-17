@@ -2,6 +2,7 @@
     "id": "tenor",
     "name": "Tenor",
     "base_url": "https://tenor.googleapis.com/v2",
+    "default_limit": 20,
     "endpoints": {
         "search": "/search",
         "trending": "/featured",
@@ -35,5 +36,9 @@
             "width": "media_formats.gif.dims.0",
             "height": "media_formats.gif.dims.1"
         }
+    },
+    "attribution": {
+        "search_icon": "tenor-main-logo.svg",
+        "search_icon_height": 10.5
     }
 }

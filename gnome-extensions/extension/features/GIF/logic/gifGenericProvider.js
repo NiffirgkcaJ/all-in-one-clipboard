@@ -1,5 +1,8 @@
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
+
+import { GifProvider } from '../constants/gifConstants.js';
 
 /**
  * Custom error class for Provider-specific errors
@@ -29,7 +32,6 @@ export class GifGenericProvider {
         this._httpSession = httpSession;
         this._settings = settings;
 
-        // Basic validation
         if (!this._def.base_url || !this._def.endpoints) {
             throw new Error(`Invalid provider definition for ${this._def.name}: missing base_url or endpoints`);
         }
@@ -47,9 +49,10 @@ export class GifGenericProvider {
      * Search for GIFs
      * @param {string} query
      * @param {string|number|null} offset
+     * @param {Gio.Cancellable|null} [cancellable=null]
      * @returns {Promise<{results: Array, next_offset: string|number|null}>}
      */
-    async search(query, offset = null) {
+    async search(query, offset = null, cancellable = null) {
         if (!this._def.endpoints.search) {
             return { results: [], next_offset: null };
         }
@@ -59,16 +62,17 @@ export class GifGenericProvider {
             offset: offset,
         });
 
-        const json = await this._fetch(url);
+        const json = await this._fetch(url, cancellable);
         return this._parseResponse(json);
     }
 
     /**
      * Get Trending GIFs
      * @param {string|number|null} offset
+     * @param {Gio.Cancellable|null} [cancellable=null]
      * @returns {Promise<{results: Array, next_offset: string|number|null}>}
      */
-    async getTrending(offset = null) {
+    async getTrending(offset = null, cancellable = null) {
         if (!this._def.endpoints.trending) {
             return { results: [], next_offset: null };
         }
@@ -77,15 +81,16 @@ export class GifGenericProvider {
             offset: offset,
         });
 
-        const json = await this._fetch(url);
+        const json = await this._fetch(url, cancellable);
         return this._parseResponse(json);
     }
 
     /**
      * Get Categories
+     * @param {Gio.Cancellable|null} [cancellable=null]
      * @returns {Promise<Array<{name: string, keyword: string}>>}
      */
-    async getCategories() {
+    async getCategories(cancellable = null) {
         if (!this._def.endpoints.categories) {
             return [];
         }
@@ -93,7 +98,7 @@ export class GifGenericProvider {
         const url = this._buildUrl(this._def.endpoints.categories, {}, { skipDefaultParams: true });
 
         try {
-            const json = await this._fetch(url);
+            const json = await this._fetch(url, cancellable);
             return this._parseCategories(json);
         } catch (e) {
             console.warn(`[AIO-Clipboard] Failed to fetch categories: ${e.message}`);
@@ -114,20 +119,16 @@ export class GifGenericProvider {
      */
     _buildUrl(endpointPath, internalParams, options = {}) {
         const queryParams = [];
-
-        // Determine the API key and base URL
         const keyValue = this._settings.get_string('gif-custom-api-key');
         const useProxy = !keyValue && this._def.proxy_url;
         let url = (useProxy ? this._def.proxy_url : this._def.base_url) + endpointPath;
 
-        // Add Default Parameters
         if (!options.skipDefaultParams && this._def.default_params) {
             for (const [key, value] of Object.entries(this._def.default_params)) {
                 queryParams.push(`${key}=${encodeURIComponent(value)}`);
             }
         }
 
-        // Add API Key when using the direct URL as proxy injects its own
         if (!useProxy) {
             if (this._def.api_key_in_path) {
                 url = url.replace('{api_key}', keyValue || '');
@@ -136,7 +137,6 @@ export class GifGenericProvider {
             }
         }
 
-        // Map Internal Params to API Params
         if (internalParams.query && this._def.params.query) {
             const val = internalParams.query.trim().replace(/\s+/g, '+');
             queryParams.push(`${this._def.params.query}=${val}`);
@@ -146,8 +146,7 @@ export class GifGenericProvider {
             queryParams.push(`${this._def.params.offset}=${internalParams.offset}`);
         }
 
-        // Hardcoded limit for now, or from config
-        const limit = 20;
+        const limit = this._def.default_limit || GifProvider.DEFAULT_RESULT_LIMIT;
         if (this._def.params.limit) {
             queryParams.push(`${this._def.params.limit}=${limit}`);
         }
@@ -160,26 +159,76 @@ export class GifGenericProvider {
     }
 
     /**
-     * Execute HTTP request
+     * Execute HTTP request with retry for transient errors.
+     * Retries on 5xx and network errors with exponential backoff.
+     *
      * @param {string} url
+     * @param {Gio.Cancellable|null} [cancellable=null]
      * @returns {Promise<Object>} JSON response
      */
-    async _fetch(url) {
+    async _fetch(url, cancellable = null) {
+        return this._fetchWithRetry(url, cancellable, 0);
+    }
+
+    /**
+     * Recursive retry wrapper for HTTP requests.
+     *
+     * @param {string} url
+     * @param {Gio.Cancellable|null} cancellable
+     * @param {number} attempt - Current attempt (0-indexed)
+     * @returns {Promise<Object>} JSON response
+     */
+    async _fetchWithRetry(url, cancellable, attempt) {
+        const maxRetries = GifProvider.MAX_RETRIES;
+        const baseDelayMs = GifProvider.RETRY_BASE_DELAY_MS;
+
+        try {
+            return await this._fetchOnce(url, cancellable);
+        } catch (e) {
+            const isRetryable = e.details?.status >= GifProvider.SERVER_ERROR_THRESHOLD || !e.details?.status;
+
+            if (!isRetryable || attempt >= maxRetries) throw e;
+
+            const delay = baseDelayMs * Math.pow(2, attempt);
+            await new Promise((r) => {
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
+                    r();
+                    return GLib.SOURCE_REMOVE;
+                });
+            });
+
+            return this._fetchWithRetry(url, cancellable, attempt + 1);
+        }
+    }
+
+    /**
+     * Execute a single HTTP request.
+     *
+     * @param {string} url
+     * @param {Gio.Cancellable|null} [cancellable=null]
+     * @returns {Promise<Object>} JSON response
+     */
+    async _fetchOnce(url, cancellable = null) {
         const message = new Soup.Message({
             method: 'GET',
             uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
         });
 
         const bytes = await new Promise((resolve, reject) => {
-            this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (source, res) => {
-                if (message.get_status() >= 300) {
-                    reject(new GifProviderError(`HTTP ${message.get_status()}`));
+            this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, cancellable, (source, res) => {
+                const status = message.get_status();
+                if (status >= GifProvider.HTTP_ERROR_THRESHOLD) {
+                    reject(new GifProviderError(`HTTP ${status}`, { status }));
                     return;
                 }
                 try {
                     resolve(source.send_and_read_finish(res));
                 } catch (e) {
-                    reject(new GifProviderError(e.message));
+                    if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                        reject(e);
+                    } else {
+                        reject(new GifProviderError(e.message));
+                    }
                 }
             });
         });
@@ -195,31 +244,25 @@ export class GifGenericProvider {
      */
     _parseResponse(json) {
         const map = this._def.response_map;
-
-        // Extract List
         const rawList = this._getValueByPath(json, map.results);
         if (!Array.isArray(rawList)) {
             return { results: [], next_offset: null };
         }
 
-        // Extract Next Offset
         let nextOffset = null;
         if (map.next_offset) {
             nextOffset = this._getValueByPath(json, map.next_offset);
         }
 
-        // Map Items
         const results = rawList
             .map((item) => {
                 const mapped = {};
-                // Start with ID
                 mapped.id = this._getValueByPath(item, map.item.id);
                 mapped.description = this._getValueByPath(item, map.item.description) || '';
                 mapped.preview_url = this._getValueByPath(item, map.item.preview_url);
                 mapped.full_url = this._getValueByPath(item, map.item.full_url);
                 mapped.width = parseInt(this._getValueByPath(item, map.item.width), 10);
                 mapped.height = parseInt(this._getValueByPath(item, map.item.height), 10);
-
                 return mapped;
             })
             .filter((item) => item.preview_url && item.full_url && item.width > 0);

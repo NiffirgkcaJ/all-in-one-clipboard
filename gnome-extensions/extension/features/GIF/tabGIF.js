@@ -1,7 +1,7 @@
 import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -14,8 +14,8 @@ import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
 import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
-import { FilePath, FileItem } from '../../shared/constants/storagePaths.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
+import { FilePath, FileItem, ResourcePath } from '../../shared/constants/storagePaths.js';
 
 import { GifDownloadService } from './logic/gifDownloadService.js';
 import { GifItemFactory } from './view/gifItemFactory.js';
@@ -60,7 +60,6 @@ export const GIFTabContent = GObject.registerClass(
             });
 
             this.connect('captured-event', this._onGlobalKeyPress.bind(this));
-            this._httpSession = new Soup.Session();
             this._extension = extension;
             this._clipboardManager = clipboardManager;
 
@@ -70,7 +69,7 @@ export const GIFTabContent = GObject.registerClass(
 
             this._settings = settings;
             this._gifManager = new GifManager(settings, extension.uuid, extension.path);
-            this._downloadService = new GifDownloadService(this._httpSession, clipboardManager);
+            this._downloadService = new GifDownloadService();
 
             this._providerChangedSignalId = 0;
             this._focusIdleId = 0;
@@ -94,11 +93,19 @@ export const GIFTabContent = GObject.registerClass(
             this._infoBar = null;
             this._currentSearchQuery = null;
             this._currentLoadingSession = null;
+            this._currentCancellable = null;
             this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
 
             this._searchDebouncer = new Debouncer((query) => {
-                this._performSearch(query).catch((e) => {
-                    this._renderErrorState(e.message);
+                this._cancelCurrentRequests();
+
+                const sessionId = Symbol('loading-session');
+                this._currentLoadingSession = sessionId;
+
+                this._performSearch(query, null, sessionId).catch((e) => {
+                    if (this._currentLoadingSession === sessionId) {
+                        this._renderErrorState(e.message);
+                    }
                 });
             }, GifUI.SEARCH_DEBOUNCE_TIME_MS);
 
@@ -109,6 +116,33 @@ export const GIFTabContent = GObject.registerClass(
             this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._updateBackButtonPreference());
             this._connectProviderChangedSignal();
             this._loadInitialData().catch((e) => this._renderErrorState(e.message));
+        }
+
+        // ========================================================================
+        // Branding Methods
+        // ========================================================================
+
+        /**
+         * Updates provider branding elements based on the active provider's JSON configuration.
+         * @private
+         */
+        _updateProviderBranding() {
+            const attribution = this._gifManager.getActiveProviderAttribution();
+            const providerName = this._gifManager.getActiveProviderName();
+            const brandPath = `${ResourcePath.LOGOS}/${this._provider}`;
+
+            // Search Bar Branding
+            if (attribution?.search_icon) {
+                this._searchComponent.setHint({
+                    text: _('Search'),
+                    logo: { icon: attribution.search_icon, height: attribution.search_icon_height ?? GifUI.DEFAULT_LOGO_HEIGHT, basePath: brandPath },
+                    spacing: GifUI.SEARCH_HINT_SPACING,
+                });
+            } else {
+                this._searchComponent.setHint({
+                    text: providerName ? _('Search %s...').format(providerName) : _('Search...'),
+                });
+            }
         }
 
         // ========================================================================
@@ -216,7 +250,7 @@ export const GIFTabContent = GObject.registerClass(
 
             const infoIcon = createStaticIcon(GifIcons.INFO);
 
-            const spacer = new St.Widget({ width: 8 });
+            const spacer = new St.Widget({ width: GifUI.INFO_BAR_SPACER_WIDTH });
 
             const infoLabel = new St.Label({
                 text: _('Online search is disabled.'),
@@ -268,10 +302,9 @@ export const GIFTabContent = GObject.registerClass(
             this._scrollableContainer = new St.BoxLayout({ vertical: true });
             this._scrollView.set_child(this._scrollableContainer);
 
-            // Create the Masonry view for displaying GIFs
             this._masonryView = new MasonryLayout({
                 columns: GifUI.ITEMS_PER_ROW,
-                spacing: 2,
+                spacing: GifUI.MASONRY_SPACING,
                 scrollView: this._scrollView,
                 renderItemFn: (itemData) => {
                     const bin = this._itemFactory.createItem(itemData, this._onGifSelected.bind(this));
@@ -280,7 +313,7 @@ export const GIFTabContent = GObject.registerClass(
                     }
                     return bin;
                 },
-                visible: true, // Start visible
+                visible: true,
             });
 
             this._infoBin = new St.Bin({
@@ -288,15 +321,13 @@ export const GIFTabContent = GObject.registerClass(
                 y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-                visible: false, // Start hidden
+                visible: false,
             });
             this._infoLabel = new St.Label();
             this._infoBin.set_child(this._infoLabel);
 
             this._scrollableContainer.add_child(this._masonryView);
             this._scrollableContainer.add_child(this._infoBin);
-
-            // Make the container reactive to handle key events
             this._scrollableContainer.reactive = true;
             this._scrollableContainer.connect('key-press-event', this._onGridKeyPress.bind(this));
 
@@ -337,6 +368,7 @@ export const GIFTabContent = GObject.registerClass(
             this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
                 if (this.mapped) {
                     this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
+                    this._updateProviderBranding();
                     this._loadInitialData().catch((e) => this._renderErrorState(e.message));
                 }
             });
@@ -348,6 +380,7 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         async _loadInitialData() {
+            this._updateProviderBranding();
             this.headerBox.destroy_all_children();
             this._tabButtons = {};
             this._initializeHeaderFocusables();
@@ -554,7 +587,6 @@ export const GIFTabContent = GObject.registerClass(
          * Handles key presses on the main container to cycle categories.
          */
         _onGlobalKeyPress(actor, event) {
-            // Only handle key press events
             if (event.type() !== Clutter.EventType.KEY_PRESS) {
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -686,7 +718,6 @@ export const GIFTabContent = GObject.registerClass(
         _onGridKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
 
-            // MasonryLayout propagates up when at the top edge
             if (symbol === Clutter.KEY_Up) {
                 this._focusNextElementUp();
                 return Clutter.EVENT_STOP;
@@ -749,9 +780,9 @@ export const GIFTabContent = GObject.registerClass(
             this._searchComponent.clearSearch();
             this._isClearingForCategoryChange = false;
 
-            // Defer loading until tab is visible to prevent allocation errors
+            this._loadCategoryContent(category);
+
             if (this.mapped) {
-                this._loadCategoryContent(category);
                 this._focusSearchOrFirstItem();
             }
         }
@@ -763,6 +794,8 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _loadCategoryContent(category) {
+            this._cancelCurrentRequests();
+
             const sessionId = Symbol('loading-session');
             this._currentLoadingSession = sessionId;
 
@@ -781,6 +814,18 @@ export const GIFTabContent = GObject.registerClass(
                     }
                 });
             }
+        }
+
+        /**
+         * Cancel any in-flight HTTP requests from the GIF provider.
+         *
+         * @private
+         */
+        _cancelCurrentRequests() {
+            if (this._currentCancellable) {
+                this._currentCancellable.cancel();
+            }
+            this._currentCancellable = new Gio.Cancellable();
         }
 
         /**
@@ -837,7 +882,6 @@ export const GIFTabContent = GObject.registerClass(
             this._showSpinner(false);
 
             if (recents.length > 0) {
-                // Render immediately to avoid empty state
                 this._renderGrid(recents, true);
             } else {
                 this._renderInfoState(_('No recent GIFs.'));
@@ -863,9 +907,8 @@ export const GIFTabContent = GObject.registerClass(
             }
 
             try {
-                const { results, nextPos: newNextPos } = await this._gifManager.getTrending(nextPos);
+                const { results, nextPos: newNextPos } = await this._gifManager.getTrending(nextPos, this._currentCancellable);
 
-                // Check session again after await
                 if (sessionId && sessionId !== this._currentLoadingSession) {
                     return;
                 }
@@ -878,12 +921,13 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderInfoState(_('No trending GIFs found.'));
                 }
             } catch (e) {
-                // Check session before rendering error
+                if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                    return;
+                }
                 if (!sessionId || sessionId === this._currentLoadingSession) {
                     this._renderErrorState(e.message);
                 }
             } finally {
-                // Only hide spinner if we're still in the same session
                 if (!sessionId || sessionId === this._currentLoadingSession) {
                     this._showSpinner(false);
                 }
@@ -910,9 +954,8 @@ export const GIFTabContent = GObject.registerClass(
             }
 
             try {
-                const { results, nextPos: newNextPos } = await this._gifManager.search(query, nextPos);
+                const { results, nextPos: newNextPos } = await this._gifManager.search(query, nextPos, this._currentCancellable);
 
-                // Check session again after await
                 if (sessionId && sessionId !== this._currentLoadingSession) {
                     return;
                 }
@@ -925,6 +968,9 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderInfoState(_("No results found for '%s'.").format(query));
                 }
             } catch (e) {
+                if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                    return;
+                }
                 if (!sessionId || sessionId === this._currentLoadingSession) {
                     this._renderErrorState(e.message);
                 }
@@ -950,19 +996,15 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
-            // Trim leading/trailing whitespace
             const query = searchText.trim();
 
-            // Only perform a search if the query is non-empty
             if (query.length >= 1) {
                 this._currentSearchQuery = query;
                 this._searchDebouncer.trigger(query);
             } else if (query.length === 0) {
-                // If the query is empty, clear the current search
                 this._currentSearchQuery = null;
-                this._searchDebouncer.cancel(); // Cancel any pending search
+                this._searchDebouncer.cancel();
 
-                // Reload the active category content
                 if (this._activeCategory) {
                     this._loadCategoryContent(this._activeCategory);
                 }
@@ -980,7 +1022,7 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
-            const threshold = vadjustment.upper - vadjustment.page_size - 100;
+            const threshold = vadjustment.upper - vadjustment.page_size - GifUI.SCROLL_THRESHOLD_PX;
 
             if (vadjustment.value >= threshold) {
                 this._loadMoreResults().catch((e) => {
@@ -999,7 +1041,6 @@ export const GIFTabContent = GObject.registerClass(
         async _loadMoreResults() {
             this._isLoadingMore = true;
 
-            // If we're in search mode, use the search query
             if (this._currentSearchQuery) {
                 await this._performSearch(this._currentSearchQuery, this._nextPos, this._currentLoadingSession);
             } else if (this._activeCategory?.id === 'trending') {
@@ -1025,7 +1066,6 @@ export const GIFTabContent = GObject.registerClass(
         _renderGrid(results, replace = true) {
             if (!this._masonryView) return;
 
-            // Show the grid and hide the info message container
             this._masonryView.visible = true;
             this._infoBin.visible = false;
 
@@ -1069,7 +1109,6 @@ export const GIFTabContent = GObject.registerClass(
             if (!this._masonryView) return;
             this._showSpinner(false);
 
-            // Hide the grid and show the info message container
             this._masonryView.visible = false;
             this._infoBin.visible = true;
             this._infoLabel.set_style_class_name('aio-clipboard-info-label');
@@ -1160,9 +1199,10 @@ export const GIFTabContent = GObject.registerClass(
                     this._renderErrorState(e.message);
                 });
             } else if (this._activeCategory) {
-                // Set the active category to ensure content is loaded
                 this._setActiveCategory(this._activeCategory);
             }
+
+            this._focusSearchOrFirstItem();
         }
 
         /**
@@ -1178,11 +1218,9 @@ export const GIFTabContent = GObject.registerClass(
                 this._scrollHeaderIdleId = 0;
             }
 
-            this._itemFactory?.destroy();
-
-            if (this._httpSession) {
-                this._httpSession.abort();
-                this._httpSession = null;
+            if (this._currentCancellable) {
+                this._currentCancellable.cancel();
+                this._currentCancellable = null;
             }
 
             if (this._downloadService) {
@@ -1195,7 +1233,6 @@ export const GIFTabContent = GObject.registerClass(
                 this._searchDebouncer = null;
             }
 
-            // Clean up signals
             if (this._providerChangedSignalId) {
                 this._settings.disconnect(this._providerChangedSignalId);
                 this._providerChangedSignalId = 0;

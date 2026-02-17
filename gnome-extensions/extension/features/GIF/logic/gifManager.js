@@ -1,8 +1,8 @@
 import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
 
-import { GifSettings } from '../constants/gifConstants.js';
 import { GifProviderRegistry } from './gifProviderRegistry.js';
+import { GifSettings } from '../constants/gifConstants.js';
 
 /**
  * GifManager
@@ -23,15 +23,11 @@ export const GifManager = GObject.registerClass(
             this._settings = settings;
             this._uuid = extensionUUID;
             this._httpSession = new Soup.Session();
-
-            // Initialize Registry
             this._registry = new GifProviderRegistry(extensionPath, this._httpSession, settings);
-
-            // Initialize Active Provider
             this._activeProvider = null;
+
             this._loadActiveProvider();
 
-            // Listen for provider changes
             this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
                 this._loadActiveProvider();
             });
@@ -59,13 +55,14 @@ export const GifManager = GObject.registerClass(
          * Search for GIFs using the currently configured provider
          * @param {string} query - The search term
          * @param {string|null} nextPos - Pagination token
+         * @param {Gio.Cancellable|null} [cancellable=null]
          * @returns {Promise<{results: Array, nextPos: string|null}>} Search results
          */
-        async search(query, nextPos = null) {
+        async search(query, nextPos = null, cancellable = null) {
             if (!this._activeProvider) return { results: [], nextPos: null };
 
             try {
-                const response = await this._activeProvider.search(query, nextPos);
+                const response = await this._activeProvider.search(query, nextPos, cancellable);
                 return {
                     results: response.results,
                     nextPos: response.next_offset,
@@ -79,13 +76,14 @@ export const GifManager = GObject.registerClass(
         /**
          * Fetch trending GIFs
          * @param {string|null} nextPos - Pagination token
+         * @param {Gio.Cancellable|null} [cancellable=null]
          * @returns {Promise<{results: Array, nextPos: string|null}>} Trending results
          */
-        async getTrending(nextPos = null) {
+        async getTrending(nextPos = null, cancellable = null) {
             if (!this._activeProvider) return { results: [], nextPos: null };
 
             try {
-                const response = await this._activeProvider.getTrending(nextPos);
+                const response = await this._activeProvider.getTrending(nextPos, cancellable);
                 return {
                     results: response.results,
                     nextPos: response.next_offset,
@@ -98,14 +96,14 @@ export const GifManager = GObject.registerClass(
 
         /**
          * Fetch categories
+         * @param {Gio.Cancellable|null} [cancellable=null]
          * @returns {Promise<Array<{name: string, searchTerm: string}>>}
          */
-        async getCategories() {
+        async getCategories(cancellable = null) {
             if (!this._activeProvider) return [];
 
             try {
-                const categories = await this._activeProvider.getCategories();
-                // Map to ensure compatibility with UI expectations
+                const categories = await this._activeProvider.getCategories(cancellable);
                 return categories.map((c) => ({
                     name: c.name,
                     searchTerm: c.keyword || c.name,
@@ -114,6 +112,26 @@ export const GifManager = GObject.registerClass(
                 console.error(`[AIO-Clipboard] Categories failed: ${e.message}`);
                 return [];
             }
+        }
+
+        /**
+         * Get the attribution configuration for the active provider.
+         * @returns {Object|null} Attribution object with search_icon, or null
+         */
+        getActiveProviderAttribution() {
+            const providerId = this._settings.get_string(GifSettings.PROVIDER_KEY);
+            const def = this._registry.getProviderDefinition(providerId);
+            return def?.attribution || null;
+        }
+
+        /**
+         * Get the display name of the active provider.
+         * @returns {string|null} Provider name or null
+         */
+        getActiveProviderName() {
+            const providerId = this._settings.get_string(GifSettings.PROVIDER_KEY);
+            const def = this._registry.getProviderDefinition(providerId);
+            return def?.name || null;
         }
 
         /**

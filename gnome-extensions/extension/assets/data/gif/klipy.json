@@ -2,6 +2,7 @@
     "id": "klipy",
     "name": "Klipy",
     "base_url": "https://api.klipy.com/v2",
+    "default_limit": 20,
     "proxy_url": "https://aio-clipboard-api.niffirgkcaj.workers.dev/klipy",
     "endpoints": {
         "search": "/search",
@@ -36,5 +37,9 @@
             "width": "media_formats.gif.dims.0",
             "height": "media_formats.gif.dims.1"
         }
+    },
+    "attribution": {
+        "search_icon": "klipy-main-logo.svg",
+        "search_icon_height": 16
     }
 }

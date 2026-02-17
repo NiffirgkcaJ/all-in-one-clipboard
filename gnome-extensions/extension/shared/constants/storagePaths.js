@@ -21,6 +21,10 @@ function getResourceIconsDir() {
     return 'assets/icons';
 }
 
+function getResourceLogosDir() {
+    return 'assets/logos';
+}
+
 function buildFileUri(absolutePath) {
     return `file://${absolutePath}`;
 }
@@ -74,6 +78,7 @@ function _initResourcePaths() {
     ResourcePath = {
         DATA: buildResourceUri(getResourceDataDir()),
         ICONS: buildResourceUri(getResourceIconsDir()),
+        LOGOS: buildResourceUri(getResourceLogosDir()),
     };
     ResourcePath.CLIPBOARD = `${ResourcePath.DATA}/clipboard`;
     ResourcePath.EMOJI = `${ResourcePath.DATA}/emoji`;

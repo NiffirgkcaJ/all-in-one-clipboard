@@ -1,7 +1,8 @@
 import Gio from 'gi://Gio';
 
-import { GifGenericProvider } from './gifGenericProvider.js';
 import { ResourcePath } from '../../../shared/constants/storagePaths.js';
+
+import { GifGenericProvider } from './gifGenericProvider.js';
 
 /**
  * GifProviderRegistry
@@ -87,6 +88,15 @@ export class GifProviderRegistry {
             name: p.name,
             hasProxy: !!p.proxy_url,
         }));
+    }
+
+    /**
+     * Returns the raw JSON definition for a provider.
+     * @param {string} providerId
+     * @returns {Object|null} The provider definition or null
+     */
+    getProviderDefinition(providerId) {
+        return this._providers.get(providerId) || null;
     }
 
     /**

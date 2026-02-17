@@ -310,5 +310,9 @@
         <file compressed="true">assets/icons/flags/za.svg</file>
         <file compressed="true">assets/icons/flags/zm.svg</file>
         <file compressed="true">assets/icons/flags/zw.svg</file>
+
+        <!-- Logo Files -->
+        <file compressed="true">assets/logos/klipy/klipy-main-logo.svg</file>
+        <file compressed="true">assets/logos/tenor/tenor-main-logo.svg</file>
     </gresource>
 </gresources>

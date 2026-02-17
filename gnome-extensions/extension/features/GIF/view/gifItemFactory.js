@@ -3,7 +3,6 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
 
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
 import { GifIcons } from '../constants/gifConstants.js';
@@ -98,15 +97,9 @@ export class GifItemFactory {
      */
     async _loadPreviewImage(bin, url, session) {
         try {
-            const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, url, -1);
-            const filename = `${hash}.gif`;
-            const filePath = GLib.build_filenamev([this._cacheDir, filename]);
+            const filePath = await this._downloadService.downloadPreviewCached(url, this._cacheDir);
 
-            if (!IOFile.existsSync(filePath)) {
-                await this._downloadService.downloadAndSave(url, filePath);
-
-                getGifCacheManager().triggerDebouncedCleanup();
-            }
+            getGifCacheManager().triggerDebouncedCleanup();
 
             if (session !== this._renderSession) {
                 return;

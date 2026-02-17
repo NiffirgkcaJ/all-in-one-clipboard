@@ -3,7 +3,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createStaticIcon } from './utilityIcon.js';
+import { createStaticIcon, createLogo } from './utilityIcon.js';
 
 const SearchIcons = {
     CLEAR: {
@@ -69,7 +69,7 @@ export const SearchComponent = GObject.registerClass(
                 child: createStaticIcon(SearchIcons.CLEAR),
                 can_focus: true,
                 y_align: Clutter.ActorAlign.CENTER,
-                visible: false, // Initially hidden
+                visible: false,
             });
             this._clearButton.connect('clicked', () => this.clearSearch());
             this._clearButton.connect('key-press-event', (actor, event) => this._onKeyPress(actor, event));
@@ -88,7 +88,6 @@ export const SearchComponent = GObject.registerClass(
         _onSearchChanged() {
             const searchText = this._entry.get_text();
             this._clearButton.visible = searchText.length > 0;
-
             this._onSearchChangedCallback?.(searchText);
         }
 
@@ -140,6 +139,71 @@ export const SearchComponent = GObject.registerClass(
             if (this._entry.get_text() === '') return;
             this._entry.set_text('');
             this._entry.grab_key_focus();
+        }
+
+        /**
+         * Sets the search hint content. Accepts text, a logo config, or both.
+         * Text-only hints use the native `set_hint_text()` for perfect theme colors.
+         * When a logo is present, an St.Label with `hint-text` class is used for
+         * theme-consistent coloring, and the logo auto-resolves its color to match.
+         *
+         * @param {Object} [config]
+         * @param {string} [config.text] - Hint text (e.g. "Search Tenor...")
+         * @param {Object} [config.logo] - Logo config for createLogo (e.g. { icon, height, basePath })
+         * @param {number} [config.spacing=4] - Spacing in px between text and logo
+         */
+        setHint(config) {
+            if (this._hintWrapper) {
+                this._entry.hint_actor = null;
+                this._hintWrapper.destroy();
+                this._hintWrapper = null;
+            }
+
+            if (!config?.text && !config?.logo) {
+                this._entry.set_hint_text('');
+                return;
+            }
+
+            if (config.logo) {
+                this._entry.set_hint_text('');
+                this._hintWrapper = new St.BoxLayout({
+                    y_align: Clutter.ActorAlign.CENTER,
+                    style: `spacing: ${config.spacing ?? 4}px;`,
+                });
+
+                let hintLabel = null;
+                if (config.text) {
+                    // Uses the theme's StEntry StLabel.hint-text selector for native hint color
+                    hintLabel = new St.Label({
+                        text: config.text,
+                        style_class: 'hint-text',
+                    });
+                    this._hintWrapper.add_child(hintLabel);
+                }
+
+                const logo = createLogo(config.logo);
+                if (logo) {
+                    logo.y_align = Clutter.ActorAlign.CENTER;
+                    logo.y_expand = false;
+                    this._hintWrapper.add_child(logo);
+                }
+
+                this._entry.hint_actor = this._hintWrapper;
+
+                if (hintLabel) {
+                    hintLabel.connect('style-changed', () => {
+                        try {
+                            const c = hintLabel.get_theme_node().get_color('color');
+                            this._hintWrapper.style = `spacing: ${config.spacing ?? 4}px; color: rgba(${c.red},${c.green},${c.blue},${c.alpha / 255});`;
+                        } catch {
+                            // Ignore
+                        }
+                    });
+                }
+            } else {
+                // Text-only hints use the native hint_text for theme-consistent color
+                this._entry.set_hint_text(config.text);
+            }
         }
 
         /**
