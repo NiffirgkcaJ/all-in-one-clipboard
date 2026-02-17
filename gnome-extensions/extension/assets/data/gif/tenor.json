@@ -2,6 +2,7 @@
     "id": "tenor",
     "name": "Tenor",
     "base_url": "https://tenor.googleapis.com/v2",
+    "proxy_url": "https://aio-clipboard-api.niffirgkcaj.workers.dev/tenor",
     "default_limit": 20,
     "endpoints": {
         "search": "/search",

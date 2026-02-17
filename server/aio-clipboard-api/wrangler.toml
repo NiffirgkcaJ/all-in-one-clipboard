@@ -5,3 +5,4 @@ compatibility_date = "2026-02-15"
 # API keys are stored as encrypted secrets, NOT here.
 # Add them with:
 #   wrangler secret put KLIPY_API_KEY
+#   wrangler secret put TENOR_API_KEY

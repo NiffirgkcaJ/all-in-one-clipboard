@@ -2,8 +2,8 @@
     "id": "klipy",
     "name": "Klipy",
     "base_url": "https://api.klipy.com/v2",
-    "default_limit": 20,
     "proxy_url": "https://aio-clipboard-api.niffirgkcaj.workers.dev/klipy",
+    "default_limit": 20,
     "endpoints": {
         "search": "/search",
         "trending": "/featured",
