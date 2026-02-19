@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-17 18:38+0000\n"
+"POT-Creation-Date: 2026-02-19 00:04+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: gnome-extensions/extension/extension.js:33
-#: gnome-extensions/extension/extension.js:588
+#: gnome-extensions/extension/extension.js:609
 #: gnome-extensions/extension/features/Emoji/tabEmoji.js:98
 #: gnome-extensions/extension/features/GIF/tabGIF.js:186
 #: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:76
@@ -27,30 +27,30 @@ msgid "Recently Used"
 msgstr "Zuletzt genutzt"
 
 #: gnome-extensions/extension/extension.js:34
-#: gnome-extensions/extension/extension.js:1014
+#: gnome-extensions/extension/extension.js:1035
 msgid "Emoji"
 msgstr "Emoji"
 
 #: gnome-extensions/extension/extension.js:35
-#: gnome-extensions/extension/extension.js:610
-#: gnome-extensions/extension/extension.js:1015
+#: gnome-extensions/extension/extension.js:631
+#: gnome-extensions/extension/extension.js:1036
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr "GIF"
 
 #: gnome-extensions/extension/extension.js:36
-#: gnome-extensions/extension/extension.js:1016
+#: gnome-extensions/extension/extension.js:1037
 msgid "Kaomoji"
 msgstr "Kaomoji"
 
 #: gnome-extensions/extension/extension.js:37
-#: gnome-extensions/extension/extension.js:1017
+#: gnome-extensions/extension/extension.js:1038
 msgid "Symbols"
 msgstr "Symbole"
 
 #: gnome-extensions/extension/extension.js:38
-#: gnome-extensions/extension/extension.js:610
-#: gnome-extensions/extension/extension.js:1013
+#: gnome-extensions/extension/extension.js:631
+#: gnome-extensions/extension/extension.js:1034
 msgid "Clipboard"
 msgstr "Zwischenablage"
 
