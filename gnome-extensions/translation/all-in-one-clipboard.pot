@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-19 06:39+0000\n"
+"POT-Creation-Date: 2026-02-19 13:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,30 +27,30 @@ msgid "Recently Used"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:34
-#: gnome-extensions/extension/extension.js:1035
+#: gnome-extensions/extension/extension.js:1039
 msgid "Emoji"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:35
 #: gnome-extensions/extension/extension.js:631
-#: gnome-extensions/extension/extension.js:1036
+#: gnome-extensions/extension/extension.js:1040
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:36
-#: gnome-extensions/extension/extension.js:1037
+#: gnome-extensions/extension/extension.js:1041
 msgid "Kaomoji"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:37
-#: gnome-extensions/extension/extension.js:1038
+#: gnome-extensions/extension/extension.js:1042
 msgid "Symbols"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:38
 #: gnome-extensions/extension/extension.js:631
-#: gnome-extensions/extension/extension.js:1034
+#: gnome-extensions/extension/extension.js:1038
 msgid "Clipboard"
 msgstr ""
 
@@ -783,7 +783,7 @@ msgstr ""
 #: gnome-extensions/extension/features/GIF/tabGIF.js:438
 #: gnome-extensions/extension/features/GIF/tabGIF.js:532
 #: gnome-extensions/extension/features/GIF/tabGIF.js:541
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:504
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:525
 msgid "Recents"
 msgstr ""
 
@@ -829,7 +829,7 @@ msgid "Recent Clipboard History"
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:586
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:612
 msgid "No recent items yet."
 msgstr ""
 
@@ -841,14 +841,14 @@ msgstr ""
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:433
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:454
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:584
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:610
 msgid "No items available."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:585
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:611
 msgid "No items match your search."
 msgstr ""
