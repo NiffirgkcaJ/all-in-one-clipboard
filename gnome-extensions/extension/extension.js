@@ -156,6 +156,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             // Listen for changes to the 'always-show-main-tab' setting.
             const alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => {
                 this._alwaysShowTabBar = this._settings.get_boolean('always-show-main-tab');
+                this._updateTabBarMargin();
                 this._updateTabBarVisibilityForActiveTab();
             });
             this._tabVisibilitySignalIds.push(alwaysShowTabsSignalId);
@@ -210,6 +211,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
 
             // Rebuild the tab bar based on current settings
             this._rebuildTabBar();
+            this._updateTabBarMargin();
 
             this._mainTabBar.set_reactive(true);
             this._mainTabBar.connect('key-press-event', this._onMainTabBarKeyPress.bind(this));
@@ -331,6 +333,22 @@ const AllInOneClipboardIndicator = GObject.registerClass(
 
             if (this._mainTabBar && this._mainTabBar.visible !== shouldBeVisible) {
                 this._mainTabBar.visible = shouldBeVisible;
+            }
+        }
+
+        /**
+         * Syncs the tab bar's margin-bottom based on the always-show-main-tab setting and whether the active tab is full-view.
+         * The margin only applies when the bar is persistently shown above a full-view tab.
+         * @private
+         */
+        _updateTabBarMargin() {
+            if (!this._mainTabBar) return;
+            const isActiveTabFullView = this._fullViewTabs.includes(this._activeTabName);
+            const shouldHaveMargin = this._alwaysShowTabBar && isActiveTabFullView;
+            if (shouldHaveMargin) {
+                this._mainTabBar.remove_style_class_name('no-margin');
+            } else {
+                this._mainTabBar.add_style_class_name('no-margin');
             }
         }
 
@@ -538,6 +556,9 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                     // Moving to full-view tab, hide the tab bar
                     this._setMainTabBarVisibility(false);
                 }
+
+                // Sync margin now that the active tab type is known
+                this._updateTabBarMargin();
 
                 // Now that the old actor is off-stage, safely disconnect signals and destroy it.
                 this._disconnectTabSignals(oldActor);

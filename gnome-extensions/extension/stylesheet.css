@@ -19,6 +19,10 @@
     margin-bottom: 4px;
 }
 
+.aio-clipboard-container .aio-clipboard-tab-topbar.no-margin {
+    margin-bottom: 0;
+}
+
 .aio-clipboard-container .aio-clipboard-tab-scrollview {
     margin-left: 2px;
 }
