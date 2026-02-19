@@ -1,5 +1,5 @@
 {
-    "description": "A powerful clipboard manager that combines your clipboard history, emojis, GIFs, kaomojis, and symbols into a single, searchable interface.\n\nExternal Services:\n• Tenor & Imgur - GIF search and browsing\n• Google S2 Favicons - Favicon fallback for URLs\n\nExtension Homepage:\nhttps://github.com/NiffirgkcaJ/all-in-one-clipboard\nhttps://gitlab.com/NiffirgkcaJ/all-in-one-clipboard",
+    "description": "A powerful clipboard manager that combines your clipboard history, emojis, GIFs, kaomojis, and symbols into a single, searchable interface.\n\nExternal Services:\n• Klipy & Tenor - GIF search and browsing\n• Google S2 Favicons - Favicon fallback for URLs\n• Cloudflare Workers - API key storage\n\nExtension Homepage:\nhttps://github.com/NiffirgkcaJ/all-in-one-clipboard\nhttps://gitlab.com/NiffirgkcaJ/all-in-one-clipboard",
     "name": "All-in-One Clipboard",
     "shell-version": [
         "46",

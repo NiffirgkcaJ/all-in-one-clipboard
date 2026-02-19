@@ -2,7 +2,7 @@
 
 A powerful, integrated clipboard manager for GNOME Shell that combines your clipboard history with quick access to Emojis, GIFs, Kaomojis, and Symbols.
 
-This extension provides a unified, searchable interface to manage your clipboard history, find and insert emojis with skin-tone support, search for GIFs via Tenor or Imgur, and browse extensive libraries of kaomojis and symbols.
+This extension provides a unified, searchable interface to manage your clipboard history, find and insert emojis with skin-tone support, search for GIFs via supported providers, and browse extensive libraries of kaomojis and symbols.
 
 ## Features
 
@@ -16,7 +16,7 @@ This extension provides a unified, searchable interface to manage your clipboard
     *   Full support for skin-tone modifiers, configurable in preferences.
     *   Keeps track of your recently used emojis.
 *   **GIF Search:**
-    *   Integrates with Tenor and Imgur (requires a free API key).
+    *   Integrates with supported GIF providers.
     *   Search for GIFs by keyword and browse trending categories.
     *   Saves your recent GIFs for quick re-use.
 *   **Kaomoji & Symbols:**
