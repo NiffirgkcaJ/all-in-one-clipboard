@@ -10,8 +10,8 @@ import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
 import { ServiceText } from '../../../shared/services/serviceText.js';
-import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
+import { clipboardSetText, clipboardSetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
@@ -54,6 +54,7 @@ export const ClipboardManager = GObject.registerClass(
             super();
             this._uuid = uuid;
             this._settings = settings;
+            ExclusionUtils.setSettings(settings);
             this._initialLoadSuccess = false;
 
             this._linkPreviewsDir = FilePath.LINK_PREVIEWS;
@@ -74,6 +75,9 @@ export const ClipboardManager = GObject.registerClass(
             this._isPaused = false;
             this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
             this._processClipboardTimeoutId = 0;
+
+            // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
+            this._blockedContentHashes = new Set();
 
             this._ensureDirectories();
             this._setupClipboardMonitoring();
@@ -161,7 +165,17 @@ export const ClipboardManager = GObject.registerClass(
             const focusWindow = global.display.focus_window;
             if (focusWindow) {
                 const exclusionList = this._settings.get_strv('exclusion-list');
-                if (ExclusionUtils.isWindowExcluded(focusWindow, exclusionList)) {
+                const excluded = ExclusionUtils.isWindowExcluded(focusWindow, exclusionList);
+                if (excluded) {
+                    this._hashAndBlockClipboardContent();
+                    return;
+                }
+            } else {
+                // No focus window and check if the AT-SPI context was recently excluded
+                const exclusionList = this._settings.get_strv('exclusion-list');
+                const contextExcluded = ExclusionUtils.isContextExcluded(exclusionList);
+                if (contextExcluded) {
+                    this._hashAndBlockClipboardContent();
                     return;
                 }
             }
@@ -175,6 +189,45 @@ export const ClipboardManager = GObject.registerClass(
                 this._processClipboardTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
             });
+        }
+
+        /**
+         * Read clipboard text and store its hash in the blocked set.
+         * Called when a clipboard event is excluded, so that the same content is rejected on subsequent events.
+         * @private
+         */
+        _hashAndBlockClipboardContent() {
+            clipboardGetText()
+                .then((text) => {
+                    if (text) {
+                        const hash = this._hashString(text);
+                        this._blockedContentHashes.add(hash);
+
+                        // Cap the set to prevent unbounded growth
+                        if (this._blockedContentHashes.size > 50) {
+                            const first = this._blockedContentHashes.values().next().value;
+                            this._blockedContentHashes.delete(first);
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Ignore clipboard read errors
+                });
+        }
+
+        /**
+         * Simple djb2 hash for strings.
+         *
+         * @param {string} str - The string to hash
+         * @returns {number} A numeric hash value
+         * @private
+         */
+        _hashString(str) {
+            let hash = 5381;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+            }
+            return hash;
         }
 
         /**
@@ -196,6 +249,12 @@ export const ClipboardManager = GObject.registerClass(
                 const textResult = await TextProcessor.extract();
                 if (textResult) {
                     const text = textResult.text;
+
+                    // Check if this text was previously blocked by an exclusion rule
+                    const hash = this._hashString(text);
+                    if (this._blockedContentHashes.has(hash)) {
+                        return;
+                    }
 
                     // File
                     const fileResult = await FileProcessor.process(text);

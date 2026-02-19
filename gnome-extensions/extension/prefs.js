@@ -1049,7 +1049,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             gifCacheManager.runCleanupImmediately();
         });
 
-        // When the user changes the spinner's value...
+        // When the user changes the spinner's value.
         cacheLimitRow.adjustment.connect('value-changed', () => {
             if (isUpdatingFromSettings) return;
             // Only update the setting if the main switch is active.
@@ -1094,6 +1094,20 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             description: _('Manage applications that should be ignored by the clipboard manager.'),
         });
         page.add(group);
+
+        // Enhanced exclusion detection toggle with AT-SPI
+        const atspiRow = new Adw.SwitchRow({
+            title: _('Enhanced Exclusion Detection'),
+            subtitle: _('Detects excluded applications inside browser windows and enables the system accessibility service if needed.'),
+        });
+        group.add(atspiRow);
+        settings.bind('enable-atspi-exclusion', atspiRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        // Enable or disable the system accessibility service when the toggle changes
+        atspiRow.connect('notify::active', () => {
+            const a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+            a11ySettings.set_boolean('toolkit-accessibility', atspiRow.active);
+        });
 
         const exclusionExpander = new Adw.ExpanderRow({
             title: _('Ignored Applications'),
@@ -1185,7 +1199,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
      * Add the "Data Management" preferences group to the page.
      * @param {Adw.PreferencesPage} page - The preferences page to add the group to.
      * @param {Gio.Settings} settings - The Gio.Settings instance.
-     * @param {Adw.PreferencesWindow} window - The preferences window (for dialogs).
+     * @param {Adw.PreferencesWindow} window - The preferences window for dialogs.
      */
     _addDataManagementGroup(page, settings, window) {
         const group = new Adw.PreferencesGroup({

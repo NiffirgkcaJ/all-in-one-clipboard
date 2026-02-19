@@ -259,6 +259,11 @@
         </key>
 
         <!-- Excluded Applications -->
+        <key name="enable-atspi-exclusion" type="b">
+            <default>false</default>
+            <summary>Enhanced Exclusion Detection</summary>
+            <description>When enabled, uses the system accessibility service (AT-SPI) to detect excluded applications inside browser windows, such as password manager extension popups. This will enable the system accessibility service (toolkit-accessibility) if it is not already active.</description>
+        </key>
         <key name="exclusion-list" type="as">
             <default>[]</default>
             <summary>List of excluded applications</summary>
