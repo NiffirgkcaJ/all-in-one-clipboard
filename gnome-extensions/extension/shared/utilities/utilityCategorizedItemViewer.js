@@ -102,6 +102,12 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._gridAllButtons = [];
             this._setActiveCategoryTimeoutId = 0;
             this._yieldTimeoutId = 0;
+            this._scrollIdleId = 0;
+            this._focusIdleId = 0;
+            this._initIdleId = 0;
+            this._layoutIdleId = 0;
+            this._itemFocusIdleId = 0;
+            this._renderIdleId = 0;
             this._searchDebouncer = new Debouncer(() => this._applyFiltersAndRenderGrid(), 250);
 
             this._buildUI();
@@ -268,8 +274,13 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             if (this._config.enableTabScrolling && this._categoryButtons[targetId]) {
                 const button = this._categoryButtons[targetId];
-                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                if (this._scrollIdleId) {
+                    GLib.source_remove(this._scrollIdleId);
+                    this._scrollIdleId = 0;
+                }
+                this._scrollIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                     scrollToItemCentered(this._categoryTabScrollView, button);
+                    this._scrollIdleId = 0;
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -347,8 +358,13 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Focuses the search bar for immediate typing.
          */
         onSelected() {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 this._searchComponent?.grabFocus();
+                this._focusIdleId = 0;
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -381,8 +397,13 @@ export const CategorizedItemViewer = GObject.registerClass(
             try {
                 // Ensure the UI loop has a chance to render the loading state
                 await new Promise((resolve) => {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                    if (this._initIdleId) {
+                        GLib.source_remove(this._initIdleId);
+                        this._initIdleId = 0;
+                    }
+                    this._initIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                         resolve();
+                        this._initIdleId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
                 });
@@ -516,8 +537,13 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             if (this._config.enableTabScrolling) {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                if (this._layoutIdleId) {
+                    GLib.source_remove(this._layoutIdleId);
+                    this._layoutIdleId = 0;
+                }
+                this._layoutIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._categoryTabBar.queue_relayout();
+                    this._layoutIdleId = 0;
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -636,8 +662,13 @@ export const CategorizedItemViewer = GObject.registerClass(
                 });
 
                 itemButton.connect('key-focus-in', () => {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    if (this._itemFocusIdleId) {
+                        GLib.source_remove(this._itemFocusIdleId);
+                        this._itemFocusIdleId = 0;
+                    }
+                    this._itemFocusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                         ensureActorVisibleInScrollView(scrollView, itemButton);
+                        this._itemFocusIdleId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
                 });
@@ -647,8 +678,13 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             if (endIndex < this._filteredData.length) {
-                GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                if (this._renderIdleId) {
+                    GLib.source_remove(this._renderIdleId);
+                    this._renderIdleId = 0;
+                }
+                this._renderIdleId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
                     this._renderGridChunk(grid, endIndex, session, scrollView);
+                    this._renderIdleId = 0;
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -686,6 +722,30 @@ export const CategorizedItemViewer = GObject.registerClass(
             if (this._yieldTimeoutId) {
                 GLib.source_remove(this._yieldTimeoutId);
                 this._yieldTimeoutId = 0;
+            }
+            if (this._scrollIdleId) {
+                GLib.source_remove(this._scrollIdleId);
+                this._scrollIdleId = 0;
+            }
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
+            if (this._initIdleId) {
+                GLib.source_remove(this._initIdleId);
+                this._initIdleId = 0;
+            }
+            if (this._layoutIdleId) {
+                GLib.source_remove(this._layoutIdleId);
+                this._layoutIdleId = 0;
+            }
+            if (this._itemFocusIdleId) {
+                GLib.source_remove(this._itemFocusIdleId);
+                this._itemFocusIdleId = 0;
+            }
+            if (this._renderIdleId) {
+                GLib.source_remove(this._renderIdleId);
+                this._renderIdleId = 0;
             }
 
             if (this._recentsChangedSignalId > 0) {

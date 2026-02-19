@@ -86,7 +86,9 @@ export const ExclusionUtils = {
                 a11ySettings.set_boolean('toolkit-accessibility', true);
             }
 
-            Atspi.init();
+            if (!Atspi.is_initialized()) {
+                Atspi.init();
+            }
 
             this._atspiListener = Atspi.EventListener.new((event) => {
                 try {
@@ -225,9 +227,9 @@ export const ExclusionUtils = {
         this._cachedExclusions = exclusionList;
         this._ensureAtspiListener();
 
-        // Block by default until the listener has received its first focus event
+        // Allow content through until AT-SPI is ready, as primary window-based exclusion already occurred.
         if (!this._atspiReady) {
-            return true;
+            return false;
         }
 
         return this._inExcludedContext;

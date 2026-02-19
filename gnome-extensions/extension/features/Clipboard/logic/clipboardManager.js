@@ -75,12 +75,12 @@ export const ClipboardManager = GObject.registerClass(
             this._isPaused = false;
             this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
             this._processClipboardTimeoutId = 0;
+            this._retryTimeoutId = 0;
 
             // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
             this._blockedContentHashes = new Set();
 
             this._ensureDirectories();
-            this._setupClipboardMonitoring();
             this._setupSettingsMonitoring();
 
             this._linkProcessor = new LinkProcessor();
@@ -129,6 +129,9 @@ export const ClipboardManager = GObject.registerClass(
             }
 
             this._initialLoadSuccess = await this.loadData();
+
+            // Start monitoring only after data is loaded to prevent race conditions
+            this._setupClipboardMonitoring();
 
             if (this._initialLoadSuccess) {
                 this._verifyAndHealData().catch((e) => {
@@ -247,6 +250,7 @@ export const ClipboardManager = GObject.registerClass(
 
                 // Text Extraction
                 const textResult = await TextProcessor.extract();
+
                 if (textResult) {
                     const text = textResult.text;
 
@@ -297,8 +301,12 @@ export const ClipboardManager = GObject.registerClass(
                 }
 
                 if (attempt <= MAX_RETRIES) {
-                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_DELAY_MS, () => {
+                    if (this._retryTimeoutId) {
+                        GLib.source_remove(this._retryTimeoutId);
+                    }
+                    this._retryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_DELAY_MS, () => {
                         this._processClipboardContent(attempt + 1);
+                        this._retryTimeoutId = 0;
                         return GLib.SOURCE_REMOVE;
                     });
                 }
@@ -908,6 +916,10 @@ export const ClipboardManager = GObject.registerClass(
             this.emit('pinned-list-changed');
         }
 
+        // ========================================================================
+        // File Operations
+        // ========================================================================
+
         /**
          * Helper to delete a file from disk
          *
@@ -953,6 +965,10 @@ export const ClipboardManager = GObject.registerClass(
             if (!filename) return;
             this._deleteFile(this._linkPreviewsDir, filename);
         }
+
+        // ========================================================================
+        // Data Integrity & Maintenance
+        // ========================================================================
 
         /**
          * Verify and heal image items
@@ -1190,6 +1206,10 @@ export const ClipboardManager = GObject.registerClass(
             this._isPaused = isPaused;
         }
 
+        // ========================================================================
+        // Lifecycle
+        // ========================================================================
+
         /**
          * Cleanup resources
          */
@@ -1197,6 +1217,11 @@ export const ClipboardManager = GObject.registerClass(
             if (this._processClipboardTimeoutId) {
                 GLib.source_remove(this._processClipboardTimeoutId);
                 this._processClipboardTimeoutId = 0;
+            }
+
+            if (this._retryTimeoutId) {
+                GLib.source_remove(this._retryTimeoutId);
+                this._retryTimeoutId = 0;
             }
 
             if (this._selectionOwnerChangedId) {

@@ -774,13 +774,17 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 return;
             }
 
-            // If the menu is hidden, open it manually and position it.
+            // If the menu is hidden, ensure it's open and position it.
             if (!this.visible) {
                 this.menu.open(false); // Open without animation for manual positioning
-                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                if (this._menuPositionIdleId) {
+                    GLib.source_remove(this._menuPositionIdleId);
+                }
+                this._menuPositionIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                     if (this.menu.actor) {
                         positionMenu(this.menu.actor, this._settings);
                     }
+                    this._menuPositionIdleId = 0;
                     return GLib.SOURCE_REMOVE;
                 });
             } else {
@@ -1100,6 +1104,11 @@ export default class AllInOneClipboardExtension extends Extension {
             }
         });
         this._settingsSignalIds = [];
+
+        if (this._menuPositionIdleId) {
+            GLib.source_remove(this._menuPositionIdleId);
+            this._menuPositionIdleId = 0;
+        }
 
         // Destroy singleton managers
         destroyAutoPaster();

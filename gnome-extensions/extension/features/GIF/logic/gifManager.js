@@ -39,6 +39,11 @@ export const GifManager = GObject.registerClass(
         _loadActiveProvider() {
             const providerId = this._settings.get_string(GifSettings.PROVIDER_KEY);
 
+            if (this._activeProvider) {
+                this._activeProvider.destroy();
+                this._activeProvider = null;
+            }
+
             if (providerId === 'none') {
                 this._activeProvider = null;
                 return;
@@ -149,6 +154,11 @@ export const GifManager = GObject.registerClass(
             if (this._httpSession) {
                 this._httpSession.abort();
                 this._httpSession = null;
+            }
+
+            if (this._activeProvider) {
+                this._activeProvider.destroy();
+                this._activeProvider = null;
             }
         }
     },

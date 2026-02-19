@@ -191,8 +191,12 @@ export class GifGenericProvider {
 
             const delay = baseDelayMs * Math.pow(2, attempt);
             await new Promise((r) => {
-                GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
+                if (this._retryTimeoutId) {
+                    GLib.source_remove(this._retryTimeoutId);
+                }
+                this._retryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
                     r();
+                    this._retryTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
                 });
             });
@@ -299,5 +303,19 @@ export class GifGenericProvider {
     _getValueByPath(obj, path) {
         if (!path || !obj) return null;
         return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    }
+
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
+    /**
+     * Cleanup resources
+     */
+    destroy() {
+        if (this._retryTimeoutId) {
+            GLib.source_remove(this._retryTimeoutId);
+            this._retryTimeoutId = 0;
+        }
     }
 }
