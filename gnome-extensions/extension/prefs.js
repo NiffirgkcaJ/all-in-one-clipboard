@@ -7,6 +7,7 @@ import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/
 
 import { getGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { GifProviderRegistry } from './features/GIF/logic/gifProviderRegistry.js';
+import { initStorage } from './shared/constants/storagePaths.js';
 
 export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     /**
@@ -17,6 +18,9 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         // Initialize translations
         this.initTranslations('all-in-one-clipboard');
+
+        // Initialize storage paths
+        initStorage(this.uuid);
 
         // Load GResource for the prefs process
         let extensionDir = this.dir;
