@@ -42,28 +42,6 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Clean up resources on destruction.
-         */
-        vfunc_destroy() {
-            if (this._focusTimeoutId) {
-                GLib.source_remove(this._focusTimeoutId);
-                this._focusTimeoutId = 0;
-            }
-
-            if (super.vfunc_destroy) {
-                super.vfunc_destroy();
-            }
-        }
-
-        /**
-         * Clear all items from the layout.
-         */
-        clear() {
-            this._items = [];
-            this.destroy_all_children();
-        }
-
-        /**
          * Append additional items without full reconciliation.
          * @param {Array<Object>} newItems Items to append
          * @param {Object} renderSession Optional session data
@@ -320,6 +298,26 @@ export const StackLayout = GObject.registerClass(
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Clear all items from the layout.
+         */
+        clear() {
+            this._items = [];
+            this.destroy_all_children();
+        }
+
+        /**
+         * Clean up resources on destruction.
+         */
+        destroy() {
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
+
+            super.destroy();
         }
     },
 );

@@ -78,22 +78,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Clean up resources on destruction.
-         */
-        vfunc_destroy() {
-            if (this._focusTimeoutId) {
-                GLib.source_remove(this._focusTimeoutId);
-                this._focusTimeoutId = 0;
-            }
-            this._cleanupPendingCallbacks();
-            this._relayoutDebouncer?.destroy();
-
-            if (super.vfunc_destroy) {
-                super.vfunc_destroy();
-            }
-        }
-
-        /**
          * Handle allocation changes and manually allocate each child.
          * @param {Clutter.ActorBox} box The allocation box
          */
@@ -155,25 +139,6 @@ export const MasonryLayout = GObject.registerClass(
         vfunc_get_preferred_width(_forHeight) {
             const width = this._lastLayoutWidth > 0 ? this._lastLayoutWidth : 0;
             return [width, width];
-        }
-
-        /**
-         * Clear all items from the layout.
-         */
-        clear() {
-            this._cleanupPendingCallbacks();
-            this._relayoutDebouncer.cancel();
-            this._renderGeneration = (this._renderGeneration || 0) + 1;
-
-            this._items = [];
-            this._pendingItems = [];
-            this._spatialMap = [];
-            this._columnHeights = new Array(this._columns).fill(0);
-            this._lockedColumnWidth = -1;
-            this._pendingRelayout = false;
-
-            this.destroy_all_children();
-            this.height = 0;
         }
 
         /**
@@ -849,6 +814,39 @@ export const MasonryLayout = GObject.registerClass(
             if (isFinite(maxHeight) && maxHeight > 0) {
                 this.height = maxHeight;
             }
+        }
+
+        /**
+         * Clear all items from the layout.
+         */
+        clear() {
+            this._cleanupPendingCallbacks();
+            this._relayoutDebouncer.cancel();
+            this._renderGeneration = (this._renderGeneration || 0) + 1;
+
+            this._items = [];
+            this._pendingItems = [];
+            this._spatialMap = [];
+            this._columnHeights = new Array(this._columns).fill(0);
+            this._lockedColumnWidth = -1;
+            this._pendingRelayout = false;
+
+            this.destroy_all_children();
+            this.height = 0;
+        }
+
+        /**
+         * Clean up resources on destruction.
+         */
+        destroy() {
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
+            this._cleanupPendingCallbacks();
+            this._relayoutDebouncer?.destroy();
+
+            super.destroy();
         }
     },
 );
