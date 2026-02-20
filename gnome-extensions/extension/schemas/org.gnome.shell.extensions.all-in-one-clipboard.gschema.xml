@@ -192,7 +192,7 @@
         <!-- Clipboard Settings -->
         <key name="clipboard-history-max-items" type="i">
             <default>50</default>
-            <range min="10" max="200"/>
+            <range min="10" max="1000"/>
             <summary>Maximum number of items in clipboard history</summary>
             <description>The maximum number of unpinned items to store in the clipboard history.</description>
         </key>
