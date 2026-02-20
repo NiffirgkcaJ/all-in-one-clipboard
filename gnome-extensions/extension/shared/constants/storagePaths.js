@@ -102,7 +102,3 @@ export function initStorage(uuid) {
     _initFilePaths(uuid);
     _initResourcePaths();
 }
-
-// Initialize the file paths and resource paths
-_initFilePaths();
-_initResourcePaths();

@@ -75,13 +75,21 @@ export const MasonryLayout = GObject.registerClass(
 
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
-            this.connect('destroy', () => {
-                if (this._focusTimeoutId) {
-                    GLib.source_remove(this._focusTimeoutId);
-                    this._focusTimeoutId = 0;
-                }
-                this._cleanupPendingCallbacks();
-            });
+        }
+
+        /**
+         * Clean up resources on destruction.
+         */
+        vfunc_destroy() {
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
+            this._cleanupPendingCallbacks();
+
+            if (super.vfunc_destroy) {
+                super.vfunc_destroy();
+            }
         }
 
         /**

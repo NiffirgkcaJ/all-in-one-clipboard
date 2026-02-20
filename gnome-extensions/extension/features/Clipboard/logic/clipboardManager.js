@@ -1243,6 +1243,8 @@ export const ClipboardManager = GObject.registerClass(
                 this._httpSession.abort();
                 this._httpSession = null;
             }
+
+            ExclusionUtils.destroy();
         }
     },
 );

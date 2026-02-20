@@ -308,4 +308,25 @@ export const ExclusionUtils = {
 
         return this._isAtspiExcluded(normalizedExclusions);
     },
+
+    /**
+     * Cleans up resources, timeouts, and listeners.
+     */
+    destroy() {
+        if (this._clearContextTimeoutId) {
+            GLib.source_remove(this._clearContextTimeoutId);
+            this._clearContextTimeoutId = 0;
+        }
+
+        if (this._atspiListenerActive && this._atspiListener) {
+            this._atspiListener.deregister('object:state-changed:focused');
+            this._atspiListener = null;
+            this._atspiListenerActive = false;
+        }
+
+        this._cachedExclusions = [];
+        this._inExcludedContext = false;
+        this._atspiReady = false;
+        this._settings = null;
+    },
 };

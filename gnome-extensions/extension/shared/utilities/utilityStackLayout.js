@@ -39,13 +39,20 @@ export const StackLayout = GObject.registerClass(
             this._items = [];
             this._checkboxIconsMap = new Map();
             this._focusTimeoutId = 0;
+        }
 
-            this.connect('destroy', () => {
-                if (this._focusTimeoutId) {
-                    GLib.source_remove(this._focusTimeoutId);
-                    this._focusTimeoutId = 0;
-                }
-            });
+        /**
+         * Clean up resources on destruction.
+         */
+        vfunc_destroy() {
+            if (this._focusTimeoutId) {
+                GLib.source_remove(this._focusTimeoutId);
+                this._focusTimeoutId = 0;
+            }
+
+            if (super.vfunc_destroy) {
+                super.vfunc_destroy();
+            }
         }
 
         /**
