@@ -56,6 +56,30 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
+         * Clear all items from the layout.
+         */
+        clear() {
+            this._items = [];
+            this.destroy_all_children();
+        }
+
+        /**
+         * Append additional items without full reconciliation.
+         * @param {Array<Object>} newItems Items to append
+         * @param {Object} renderSession Optional session data
+         */
+        addItems(newItems, renderSession) {
+            this._items = [...this._items, ...newItems];
+            newItems.forEach((item) => {
+                const widget = this._renderItemFn(item, renderSession);
+                if (widget) {
+                    if (!widget._itemId) widget._itemId = item.id;
+                    this.add_child(widget);
+                }
+            });
+        }
+
+        /**
          * Reconcile the layout with a new list of items reusing existing widgets.
          * @param {Array<Object>} items New list of items to render
          * @param {Object} renderSession Optional session data passed to renderItemFn
@@ -103,19 +127,57 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Append additional items without full reconciliation.
-         * @param {Array<Object>} newItems Items to append
-         * @param {Object} renderSession Optional session data
+         * Get the number of items currently in the layout.
+         * @returns {number} Item count
          */
-        addItems(newItems, renderSession) {
-            this._items = [...this._items, ...newItems];
-            newItems.forEach((item) => {
-                const widget = this._renderItemFn(item, renderSession);
-                if (widget) {
-                    if (!widget._itemId) widget._itemId = item.id;
-                    this.add_child(widget);
-                }
-            });
+        getItemCount() {
+            return this._items.length;
+        }
+
+        /**
+         * Check if there are pending items waiting to be rendered.
+         * @returns {boolean} Always false for StackLayout
+         */
+        hasPendingItems() {
+            return false;
+        }
+
+        /**
+         * Check if loading should be deferred.
+         * @returns {boolean} Always false for StackLayout
+         */
+        shouldDeferLoading() {
+            return false;
+        }
+
+        /**
+         * Focus the first item in the list.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
+         * @returns {boolean} True if an item was focused
+         */
+        focusFirst(targetFinder) {
+            const children = this.get_children();
+            if (children.length > 0) {
+                const first = children[0];
+                this.focusItem(first, targetFinder);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Focus the last item in the list.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
+         * @returns {boolean} True if an item was focused
+         */
+        focusLast(targetFinder) {
+            const children = this.get_children();
+            if (children.length > 0) {
+                const last = children[children.length - 1];
+                this.focusItem(last, targetFinder);
+                return true;
+            }
+            return false;
         }
 
         /**
@@ -258,68 +320,6 @@ export const StackLayout = GObject.registerClass(
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
-        }
-
-        /**
-         * Focus the first item in the list.
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if an item was focused
-         */
-        focusFirst(targetFinder) {
-            const children = this.get_children();
-            if (children.length > 0) {
-                const first = children[0];
-                this.focusItem(first, targetFinder);
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Focus the last item in the list.
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if an item was focused
-         */
-        focusLast(targetFinder) {
-            const children = this.get_children();
-            if (children.length > 0) {
-                const last = children[children.length - 1];
-                this.focusItem(last, targetFinder);
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Clear all items from the layout.
-         */
-        clear() {
-            this._items = [];
-            this.destroy_all_children();
-        }
-
-        /**
-         * Get the number of items currently in the layout.
-         * @returns {number} Item count
-         */
-        getItemCount() {
-            return this._items.length;
-        }
-
-        /**
-         * Check if there are pending items waiting to be rendered.
-         * @returns {boolean} Always false for StackLayout
-         */
-        hasPendingItems() {
-            return false;
-        }
-
-        /**
-         * Check if loading should be deferred.
-         * @returns {boolean} Always false for StackLayout
-         */
-        shouldDeferLoading() {
-            return false;
         }
     },
 );

@@ -11,7 +11,7 @@ const MasonryDefaults = {
     SPACING: 2,
 };
 
-const MasonryLayout_ = {
+const MasonryDimensions = {
     PADDING: 8,
     MIN_VALID_WIDTH: 32,
 };
@@ -86,6 +86,7 @@ export const MasonryLayout = GObject.registerClass(
                 this._focusTimeoutId = 0;
             }
             this._cleanupPendingCallbacks();
+            this._relayoutDebouncer?.destroy();
 
             if (super.vfunc_destroy) {
                 super.vfunc_destroy();
@@ -239,7 +240,7 @@ export const MasonryLayout = GObject.registerClass(
             this._columnHeights = new Array(this._columns).fill(0);
             this._spatialMap = [];
 
-            const paddingLeft = MasonryLayout_.PADDING;
+            const paddingLeft = MasonryDimensions.PADDING;
 
             for (let itemData of items) {
                 itemData = this._prepareItemFn(itemData);
@@ -316,6 +317,14 @@ export const MasonryLayout = GObject.registerClass(
          */
         shouldDeferLoading() {
             return !this._isValidWidth() || this.hasPendingItems();
+        }
+
+        /**
+         * Public method to check if width is valid for rendering.
+         * @returns {boolean} True if width is valid
+         */
+        hasValidWidth() {
+            return this._isValidWidth();
         }
 
         /**
@@ -408,6 +417,44 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Handles key press events for grid navigation.
+         * @param {Clutter.Actor} _actor The actor that received the event
+         * @param {Clutter.Event} event The key press event
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @private
+         */
+        handleKeyPress(_actor, event) {
+            const symbol = event.get_key_symbol();
+            const direction = this._getDirectionFromKey(symbol);
+
+            if (!direction) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            const currentFocus = global.stage.get_key_focus();
+            const currentItem = this._spatialMap.find((item) => item.widget === currentFocus);
+
+            if (!currentItem) return Clutter.EVENT_PROPAGATE;
+
+            const nextWidget = this._findClosestInDirection(currentFocus, direction);
+
+            if (!nextWidget) {
+                if (direction === 'up' || direction === 'down') {
+                    return Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_STOP;
+            }
+
+            nextWidget.grab_key_focus();
+
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, nextWidget);
+            }
+
+            return Clutter.EVENT_STOP;
+        }
+
+        /**
          * Builds a cache of item positions for keyboard navigation.
          * @private
          */
@@ -458,44 +505,6 @@ export const MasonryLayout = GObject.registerClass(
                 isLeftEdge: item.x1 <= minX + tolerance,
                 isRightEdge: item.x2 >= maxX - tolerance,
             }));
-        }
-
-        /**
-         * Handles key press events for grid navigation.
-         * @param {Clutter.Actor} _actor The actor that received the event
-         * @param {Clutter.Event} event The key press event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
-         * @private
-         */
-        handleKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
-            const direction = this._getDirectionFromKey(symbol);
-
-            if (!direction) {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            const currentFocus = global.stage.get_key_focus();
-            const currentItem = this._spatialMap.find((item) => item.widget === currentFocus);
-
-            if (!currentItem) return Clutter.EVENT_PROPAGATE;
-
-            const nextWidget = this._findClosestInDirection(currentFocus, direction);
-
-            if (!nextWidget) {
-                if (direction === 'up' || direction === 'down') {
-                    return Clutter.EVENT_PROPAGATE;
-                }
-                return Clutter.EVENT_STOP;
-            }
-
-            nextWidget.grab_key_focus();
-
-            if (this._scrollView) {
-                ensureActorVisibleInScrollView(this._scrollView, nextWidget);
-            }
-
-            return Clutter.EVENT_STOP;
         }
 
         /**
@@ -610,23 +619,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Checks if the current width is valid for rendering.
-         * @returns {boolean} True if width is valid, false otherwise
-         * @private
-         */
-        _isValidWidth() {
-            return this._lastLayoutWidth > MasonryLayout_.MIN_VALID_WIDTH;
-        }
-
-        /**
-         * Public method to check if width is valid for rendering.
-         * @returns {boolean} True if width is valid
-         */
-        hasValidWidth() {
-            return this._isValidWidth();
-        }
-
-        /**
          * Defer rendering until a valid width is available.
          * @param {Array<object>} items Items to render
          * @param {object} renderSession Render session object
@@ -683,11 +675,22 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @returns {number} The effective width accounting for padding
+         * Re-layout all existing items when width changes.
          * @private
          */
-        _calculateEffectiveWidth() {
-            return this._lastLayoutWidth - MasonryLayout_.PADDING * 2;
+        _relayout() {
+            const itemsToLayout = [...this._items];
+            this.clear();
+            this.addItems(itemsToLayout, {});
+        }
+
+        /**
+         * Checks if the current width is valid for rendering.
+         * @returns {boolean} True if width is valid, false otherwise
+         * @private
+         */
+        _isValidWidth() {
+            return this._lastLayoutWidth > MasonryDimensions.MIN_VALID_WIDTH;
         }
 
         /**
@@ -704,16 +707,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @param {number} effectiveWidth The effective width of the container
-         * @returns {number} The column width
-         * @private
-         */
-        _calculateColumnWidth(effectiveWidth) {
-            const totalSpacing = this._spacing * (this._columns - 1);
-            return Math.floor((effectiveWidth - totalSpacing) / this._columns);
-        }
-
-        /**
          * @param {number} columnWidth The column width to validate
          * @returns {boolean} True if valid
          * @private
@@ -727,6 +720,44 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Check if item data has valid dimensions.
+         * @param {object} itemData The item data
+         * @returns {boolean} True if dimensions are valid
+         * @private
+         */
+        _hasValidDimensions(itemData) {
+            return itemData.width && itemData.height;
+        }
+
+        /**
+         * Check if the calculated item height is valid.
+         * @param {number} itemHeight The item height to validate
+         * @returns {boolean} True if valid
+         * @private
+         */
+        _isValidItemHeight(itemHeight) {
+            return isFinite(itemHeight) && itemHeight > 0;
+        }
+
+        /**
+         * @returns {number} The effective width accounting for padding
+         * @private
+         */
+        _calculateEffectiveWidth() {
+            return this._lastLayoutWidth - MasonryDimensions.PADDING * 2;
+        }
+
+        /**
+         * @param {number} effectiveWidth The effective width of the container
+         * @returns {number} The column width
+         * @private
+         */
+        _calculateColumnWidth(effectiveWidth) {
+            const totalSpacing = this._spacing * (this._columns - 1);
+            return Math.floor((effectiveWidth - totalSpacing) / this._columns);
+        }
+
+        /**
          * Render all items into the masonry layout.
          * @param {Array<object>} items Items to render
          * @param {number} columnWidth Width of each column
@@ -734,7 +765,7 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _renderItems(items, columnWidth, renderSession) {
-            const paddingLeft = MasonryLayout_.PADDING;
+            const paddingLeft = MasonryDimensions.PADDING;
 
             for (let itemData of items) {
                 itemData = this._prepareItemFn(itemData);
@@ -756,16 +787,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Check if item data has valid dimensions.
-         * @param {object} itemData The item data
-         * @returns {boolean} True if dimensions are valid
-         * @private
-         */
-        _hasValidDimensions(itemData) {
-            return itemData.width && itemData.height;
-        }
-
-        /**
          * Calculate item height based on aspect ratio.
          * @param {object} itemData The item data with width and height
          * @param {number} columnWidth The width of the column
@@ -775,16 +796,6 @@ export const MasonryLayout = GObject.registerClass(
         _calculateItemHeight(itemData, columnWidth) {
             const aspectRatio = itemData.height / itemData.width;
             return Math.round(columnWidth * aspectRatio);
-        }
-
-        /**
-         * Check if the calculated item height is valid.
-         * @param {number} itemHeight The item height to validate
-         * @returns {boolean} True if valid
-         * @private
-         */
-        _isValidItemHeight(itemHeight) {
-            return isFinite(itemHeight) && itemHeight > 0;
         }
 
         /**
@@ -838,25 +849,6 @@ export const MasonryLayout = GObject.registerClass(
             if (isFinite(maxHeight) && maxHeight > 0) {
                 this.height = maxHeight;
             }
-        }
-
-        /**
-         * Re-layout all existing items when width changes.
-         * @private
-         */
-        _relayout() {
-            const itemsToLayout = [...this._items];
-            this.clear();
-            this.addItems(itemsToLayout, {});
-        }
-
-        /**
-         * Clean up resources when the widget is destroyed.
-         */
-        destroy() {
-            this._cleanupPendingCallbacks();
-            this._relayoutDebouncer?.destroy();
-            super.destroy();
         }
     },
 );
