@@ -54,7 +54,8 @@ export const ClipboardManager = GObject.registerClass(
             super();
             this._uuid = uuid;
             this._settings = settings;
-            ExclusionUtils.setSettings(settings);
+            this._exclusionUtils = new ExclusionUtils();
+            this._exclusionUtils.initialize(settings);
             this._initialLoadSuccess = false;
 
             this._linkPreviewsDir = FilePath.LINK_PREVIEWS;
@@ -76,6 +77,7 @@ export const ClipboardManager = GObject.registerClass(
             this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
             this._processClipboardTimeoutId = 0;
             this._retryTimeoutId = 0;
+            this._settingsSignalIds = [];
 
             // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
             this._blockedContentHashes = new Set();
@@ -109,10 +111,11 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _setupSettingsMonitoring() {
-            this._settingsChangedId = this._settings.connect(`changed::${CLIPBOARD_HISTORY_MAX_ITEMS_KEY}`, () => {
+            const maxHistorySignalId = this._settings.connect(`changed::${CLIPBOARD_HISTORY_MAX_ITEMS_KEY}`, () => {
                 this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
                 this._pruneHistory();
             });
+            this._settingsSignalIds.push(maxHistorySignalId);
         }
 
         /**
@@ -166,28 +169,28 @@ export const ClipboardManager = GObject.registerClass(
             // Exclude applications
             const global = Shell.Global.get();
             const focusWindow = global.display.focus_window;
-            if (focusWindow) {
-                const exclusionList = this._settings.get_strv('exclusion-list');
-                const excluded = ExclusionUtils.isWindowExcluded(focusWindow, exclusionList);
-                if (excluded) {
-                    this._hashAndBlockClipboardContent();
-                    return;
-                }
-            } else {
-                // No focus window and check if the AT-SPI context was recently excluded
-                const exclusionList = this._settings.get_strv('exclusion-list');
-                const contextExcluded = ExclusionUtils.isContextExcluded(exclusionList);
-                if (contextExcluded) {
-                    this._hashAndBlockClipboardContent();
-                    return;
-                }
+
+            // Early exclusion check for fast-path blocking.
+            if (this._exclusionUtils.shouldBlockClipboardNow(focusWindow)) {
+                this._hashAndBlockClipboardContent();
+                return;
             }
 
             if (this._processClipboardTimeoutId) {
                 GLib.source_remove(this._processClipboardTimeoutId);
             }
 
-            this._processClipboardTimeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, 50, () => {
+            const processDelayMs = this._exclusionUtils.getClipboardCheckDelayMs();
+
+            this._processClipboardTimeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, processDelayMs, () => {
+                // Re-check right before processing to catch first-event AT-SPI races.
+                const currentFocusWindow = Shell.Global.get().display.focus_window;
+                if (this._exclusionUtils.shouldBlockClipboardNow(currentFocusWindow)) {
+                    this._hashAndBlockClipboardContent();
+                    this._processClipboardTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+
                 this._processClipboardContent(1).catch((e) => console.error(`[AIO-Clipboard] Unhandled error: ${e.message}`));
                 this._processClipboardTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
@@ -1229,9 +1232,11 @@ export const ClipboardManager = GObject.registerClass(
                 this._selectionOwnerChangedId = 0;
             }
 
-            if (this._settingsChangedId) {
-                this._settings.disconnect(this._settingsChangedId);
-                this._settingsChangedId = 0;
+            if (this._settingsSignalIds?.length) {
+                this._settingsSignalIds.forEach((id) => {
+                    if (id) this._settings.disconnect(id);
+                });
+                this._settingsSignalIds = [];
             }
 
             if (this._linkProcessor) {
@@ -1244,7 +1249,10 @@ export const ClipboardManager = GObject.registerClass(
                 this._httpSession = null;
             }
 
-            ExclusionUtils.destroy();
+            if (this._exclusionUtils) {
+                this._exclusionUtils.destroy();
+                this._exclusionUtils = null;
+            }
         }
     },
 );
