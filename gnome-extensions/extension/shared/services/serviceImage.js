@@ -64,6 +64,12 @@ export const ServiceImage = {
 
             if (!uri) return null;
 
+            const scheme = uri.get_scheme();
+            if (scheme !== 'http' && scheme !== 'https') return null;
+
+            const host = uri.get_host();
+            if (!host) return null;
+
             const message = new Soup.Message({
                 method: 'GET',
                 uri: uri,
