@@ -140,6 +140,7 @@ export class ClipboardBaseItemConfig {
     static _configureCodeItem(config, item) {
         config.text = item.preview || '';
         config.rawLines = item.raw_lines || 0;
+        config.previewLinesCount = config.text ? config.text.split('\n').length : 0;
     }
 
     /**

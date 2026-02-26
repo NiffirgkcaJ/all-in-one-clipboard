@@ -350,7 +350,7 @@ export class ClipboardListItemFactory {
 
             const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
 
-            const lineCount = config.rawLines || 0;
+            const lineCount = config.previewLinesCount !== undefined ? config.previewLinesCount : config.rawLines || 0;
             const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
 
             const numLabel = new St.Label({
