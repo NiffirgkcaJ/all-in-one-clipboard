@@ -11,6 +11,7 @@ This extension provides a unified, searchable interface to manage your clipboard
     *   Pin important items to keep them at the top.
     *   Search your clipboard history.
     *   Select and delete multiple items at once.
+    *   Enhanced privacy by smartly ignoring sensitive apps using standard window rules or enhanced AT-SPI detection, detailed in [Exclusion Detection](EXCLUSIONS.md#exclusion-detection).
 *   **Emoji Selector:**
     *   Browse emojis by category or search by name.
     *   Full support for skin-tone modifiers, configurable in preferences.
@@ -119,7 +120,7 @@ All-in-One Clipboard is available in multiple languages thanks to the efforts of
 
 We would love your help to make this extension available in your language! Contributions are welcome from everyone.
 
-To get started, please read our **[Translation Guide](CONTRIBUTING.md#translating-the-extension)**.
+To get started, please read our [Translation Guide](CONTRIBUTING.md#translating-the-extension).
 
 ## Contributing
 
