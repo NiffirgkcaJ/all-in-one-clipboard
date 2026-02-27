@@ -255,28 +255,19 @@ export class ExclusionUtils {
         const names = [];
         let current = source;
 
-        try {
-            for (let depth = 0; depth < ATSPI_PARENT_DEPTH && current; depth++) {
-                const name = current.get_name();
-                if (name) names.push(name.toLowerCase());
-                current = current.get_parent();
-            }
-        } catch {
-            // Ignore errors
+        for (let depth = 0; depth < ATSPI_PARENT_DEPTH && current; depth++) {
+            const name = current.get_name();
+            if (name) names.push(name.toLowerCase());
+            current = current.get_parent();
         }
 
-        try {
-            const app = source.get_application();
-            if (app) {
-                const appName = app.get_name();
-                if (appName) names.push(appName.toLowerCase());
-                const appDesc = app.get_description();
-                if (appDesc) names.push(appDesc.toLowerCase());
-            }
-        } catch {
-            // Ignore errors
+        const app = source.get_application();
+        if (app) {
+            const appName = app.get_name();
+            if (appName) names.push(appName.toLowerCase());
+            const appDesc = app.get_description();
+            if (appDesc) names.push(appDesc.toLowerCase());
         }
-
         return names;
     }
 
