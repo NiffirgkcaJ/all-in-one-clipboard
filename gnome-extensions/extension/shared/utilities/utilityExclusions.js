@@ -3,6 +3,8 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 
+import { Debouncer } from './utilityDebouncer.js';
+
 const ATSPI_PARENT_DEPTH = 12;
 const ATSPI_CLEAR_DELAY_MS = 500;
 const ATSPI_EVENT_DEBOUNCE_MS = 40;
@@ -32,7 +34,7 @@ export class ExclusionUtils {
         this._inExcludedContext = false;
         this._atspiReady = false;
         this._cachedExclusions = [];
-        this._processFocusTimeoutId = 0;
+        this._processFocusDebouncer = new Debouncer(() => this._flushPendingFocusNow(), ATSPI_EVENT_DEBOUNCE_MS);
         this._clearContextTimeoutId = 0;
         this._pendingFocusSource = null;
         this._settings = null;
@@ -109,9 +111,8 @@ export class ExclusionUtils {
      * Stops AT-SPI focus tracking and clears cached context.
      */
     stop() {
-        if (this._processFocusTimeoutId) {
-            GLib.source_remove(this._processFocusTimeoutId);
-            this._processFocusTimeoutId = 0;
+        if (this._processFocusDebouncer) {
+            this._processFocusDebouncer.cancel();
         }
 
         if (this._clearContextTimeoutId) {
@@ -219,13 +220,7 @@ export class ExclusionUtils {
 
                 this._pendingFocusSource = event.source;
 
-                if (this._processFocusTimeoutId) return;
-                this._processFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, ATSPI_EVENT_DEBOUNCE_MS, () => {
-                    this._processFocusTimeoutId = 0;
-                    this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
-                    this._pendingFocusSource = null;
-                    return GLib.SOURCE_REMOVE;
-                });
+                this._processFocusDebouncer.trigger();
             });
 
             this._atspiListener.register('object:state-changed:focused');
@@ -242,9 +237,8 @@ export class ExclusionUtils {
     _flushPendingFocusNow() {
         if (!this._pendingFocusSource || !this._cachedExclusions.length) return;
 
-        if (this._processFocusTimeoutId) {
-            GLib.source_remove(this._processFocusTimeoutId);
-            this._processFocusTimeoutId = 0;
+        if (this._processFocusDebouncer) {
+            this._processFocusDebouncer.cancel();
         }
 
         this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
@@ -464,5 +458,8 @@ export class ExclusionUtils {
         this._cachedExclusions = [];
         this._firstClipboardCheckPending = true;
         this._settings = null;
+        if (this._processFocusDebouncer) {
+            this._processFocusDebouncer.destroy();
+        }
     }
 }
