@@ -50,12 +50,16 @@ export const ClipboardTabContent = GObject.registerClass(
                 }
                 this._redraw();
             });
+            this._selectionBarSettingSignalId = this._settings.connect('changed::clipboard-show-action-bar', () => {
+                this._syncSelectionBarVisibility();
+            });
 
             this._selectedIds = new Set();
             this._currentSearchText = '';
             this._isPrivateMode = false;
             this._currentView = null;
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
+            this._selectionBar = null;
             this._redrawIdleId = 0;
             this._focusIdleId = 0;
 
@@ -177,7 +181,30 @@ export const ClipboardTabContent = GObject.registerClass(
             actionButtonsBox.add_child(this._pinSelectedButton);
             actionButtonsBox.add_child(this._deleteSelectedButton);
 
-            this._mainBox.add_child(selectionBar);
+            this._selectionBar = selectionBar;
+            this._mainBox.add_child(this._selectionBar);
+            this._syncSelectionBarVisibility();
+        }
+
+        _isSelectionBarEnabled() {
+            return this._settings.get_boolean('clipboard-show-action-bar');
+        }
+
+        _syncSelectionBarVisibility() {
+            if (!this._selectionBar) {
+                return;
+            }
+
+            if (this._isSelectionBarEnabled()) {
+                this._selectionBar.show();
+                return;
+            }
+
+            const currentFocus = global.stage.get_key_focus();
+            if (currentFocus && this._selectionBar.contains(currentFocus)) {
+                this._searchComponent?.grabFocus();
+            }
+            this._selectionBar.hide();
         }
 
         /**
@@ -231,7 +258,11 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             this._navigateUpSignalId = this._currentView.connect('navigate-up', () => {
-                this._selectAllButton.grab_key_focus();
+                if (this._selectionBar?.visible) {
+                    this._selectAllButton.grab_key_focus();
+                } else {
+                    this._searchComponent?.grabFocus();
+                }
             });
 
             this._scrollView.set_child(this._currentView);
@@ -262,9 +293,12 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _setupKeyboardNavigation() {
             // Header navigation
-            const selectionBar = this._mainBox.get_child_at_index(1);
-            selectionBar.set_reactive(true);
-            selectionBar.connect('key-press-event', this._onHeaderKeyPress.bind(this));
+            if (!this._selectionBar) {
+                return;
+            }
+
+            this._selectionBar.set_reactive(true);
+            this._selectionBar.connect('key-press-event', this._onHeaderKeyPress.bind(this));
         }
 
         /**
@@ -311,6 +345,10 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {St.Button[]} Array of focusable header buttons
          */
         _getHeaderButtons() {
+            if (!this._selectionBar?.visible) {
+                return [];
+            }
+
             return [this._selectAllButton, this._layoutToggleButton, this._privateModeButton, this._pinSelectedButton, this._deleteSelectedButton].filter(
                 (button) => button.can_focus && button.visible,
             );
@@ -566,6 +604,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * Called when the tab is selected/activated
          */
         onTabSelected() {
+            this._syncSelectionBarVisibility();
             this._redraw();
             if (this._focusIdleId) {
                 GLib.source_remove(this._focusIdleId);
@@ -603,6 +642,9 @@ export const ClipboardTabContent = GObject.registerClass(
             // Tell it to stop listening for our image size setting changes
             if (this._settings && this._settingSignalId > 0) {
                 this._settings.disconnect(this._settingSignalId);
+            }
+            if (this._settings && this._selectionBarSettingSignalId > 0) {
+                this._settings.disconnect(this._selectionBarSettingSignalId);
             }
 
             if (this._manager) {

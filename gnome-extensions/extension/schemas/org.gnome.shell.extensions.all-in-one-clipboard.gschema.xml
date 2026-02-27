@@ -217,6 +217,11 @@
             <summary>Clipboard Layout Mode</summary>
             <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
         </key>
+        <key name="clipboard-show-action-bar" type="b">
+            <default>true</default>
+            <summary>Show Clipboard Action Bar</summary>
+            <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
+        </key>
 
         <!-- Emoji Settings -->
         <key name="enable-custom-skin-tones" type="b">

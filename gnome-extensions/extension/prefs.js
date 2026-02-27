@@ -785,6 +785,13 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         group.add(unpinOnPasteRow);
         settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        const showActionBarRow = new Adw.SwitchRow({
+            title: _('Show Clipboard Action Bar'),
+            subtitle: _('Show the top row with select-all, layout, private mode, pin, and delete controls.'),
+        });
+        group.add(showActionBarRow);
+        settings.bind('clipboard-show-action-bar', showActionBarRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         // Clipboard image preview sizing
         const previewKey = 'clipboard-image-preview-size';
         const previewDefault = settings.get_default_value(previewKey).get_int32();
