@@ -398,7 +398,7 @@ msgid "Show Clipboard Action Bar"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:790
-msgid "Show the top row with select-all, layout, private mode, pin, and delete controls."
+msgid "Show action buttons (select all, layout, private mode, pin, delete)."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:801

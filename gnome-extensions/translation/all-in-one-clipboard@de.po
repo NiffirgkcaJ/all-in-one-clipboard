@@ -396,13 +396,12 @@ msgid "Automatically unpin an item when it is pasted."
 msgstr "Ein Element beim Einfügen automatisch abheften."
 
 #: gnome-extensions/extension/prefs.js:789
-#, fuzzy
 msgid "Show Clipboard Action Bar"
-msgstr "Zwischenablagenelement-Aktionen"
+msgstr "Aktionsleiste der Zwischenablage anzeigen"
 
 #: gnome-extensions/extension/prefs.js:790
-msgid "Show the top row with select-all, layout, private mode, pin, and delete controls."
-msgstr ""
+msgid "Show action buttons (select all, layout, private mode, pin, delete)."
+msgstr "Aktionsschaltflächen anzeigen (Alles auswählen, Layout, Privatmodus, Anheften, Löschen)."
 
 #: gnome-extensions/extension/prefs.js:801
 msgid "Image Preview Size"

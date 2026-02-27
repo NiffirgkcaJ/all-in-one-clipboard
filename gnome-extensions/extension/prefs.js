@@ -787,7 +787,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         const showActionBarRow = new Adw.SwitchRow({
             title: _('Show Clipboard Action Bar'),
-            subtitle: _('Show the top row with select-all, layout, private mode, pin, and delete controls.'),
+            subtitle: _('Show action buttons (select all, layout, private mode, pin, delete).'),
         });
         group.add(showActionBarRow);
         settings.bind('clipboard-show-action-bar', showActionBarRow, 'active', Gio.SettingsBindFlags.DEFAULT);
