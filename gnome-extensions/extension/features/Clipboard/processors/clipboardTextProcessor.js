@@ -66,7 +66,7 @@ export class TextProcessor {
             preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
         }
 
-        return {
+        const resultItem = {
             id,
             type: finalType,
             timestamp: ProcessorUtils.getCurrentTimestamp(),
@@ -75,5 +75,12 @@ export class TextProcessor {
             has_full_content,
             raw_lines: item.raw_lines || 0,
         };
+
+        // Preserve exact short text content since it bypasses file storage
+        if (!has_full_content && text) {
+            resultItem.text = text;
+        }
+
+        return resultItem;
     }
 }

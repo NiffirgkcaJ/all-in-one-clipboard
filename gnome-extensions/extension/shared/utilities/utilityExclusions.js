@@ -142,13 +142,8 @@ export class ExclusionUtils {
             return;
         }
         if (this._cachedExclusions.length === 0) {
-            if (this._clearContextTimeoutId) {
-                GLib.source_remove(this._clearContextTimeoutId);
-                this._clearContextTimeoutId = 0;
-            }
-            this._pendingFocusSource = null;
-            this._atspiReady = false;
-            this._inExcludedContext = false;
+            this.stop();
+            return;
         }
         this.start();
     }
@@ -392,10 +387,12 @@ export class ExclusionUtils {
      * @returns {boolean}
      */
     isWindowExcluded(window, exclusionList) {
-        if (!window || !exclusionList || exclusionList.length === 0) return false;
+        if (!window || !exclusionList) return false;
 
         const normalizedExclusions = exclusionList.map((s) => s.toLowerCase().trim()).filter((s) => s.length > 0);
-        if (normalizedExclusions.length === 0) return false;
+
+        // Ensure AT-SPI context evaluates empty exclusion lists
+        if (normalizedExclusions.length === 0) return this._isAtspiExcluded(normalizedExclusions);
 
         const identifiers = [];
         const title = window.get_title();
@@ -427,9 +424,8 @@ export class ExclusionUtils {
      * @returns {boolean}
      */
     isContextExcluded(exclusionList) {
-        if (!exclusionList || exclusionList.length === 0) return false;
+        if (!exclusionList) return false;
         const normalizedExclusions = exclusionList.map((s) => s.toLowerCase().trim()).filter((s) => s.length > 0);
-        if (normalizedExclusions.length === 0) return false;
         return this._isAtspiExcluded(normalizedExclusions);
     }
 

@@ -23,6 +23,8 @@ import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
+const EXCLUDED_HASH_TTL_MS = 5000;
+const MAX_BLOCKED_HASHES = 50;
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 100;
 
@@ -80,7 +82,7 @@ export const ClipboardManager = GObject.registerClass(
             this._settingsSignalIds = [];
 
             // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
-            this._blockedContentHashes = new Set();
+            this._blockedContentHashes = new Map();
 
             this._ensureDirectories();
             this._setupSettingsMonitoring();
@@ -207,11 +209,12 @@ export const ClipboardManager = GObject.registerClass(
                 .then((text) => {
                     if (text) {
                         const hash = this._hashString(text);
-                        this._blockedContentHashes.add(hash);
+                        // Buffer hash with expiry to temporarily block identical subsequent copies
+                        this._blockedContentHashes.set(hash, Date.now() + EXCLUDED_HASH_TTL_MS);
 
-                        // Cap the set to prevent unbounded growth
-                        if (this._blockedContentHashes.size > 50) {
-                            const first = this._blockedContentHashes.values().next().value;
+                        // Bound map size
+                        if (this._blockedContentHashes.size > MAX_BLOCKED_HASHES) {
+                            const first = this._blockedContentHashes.keys().next().value;
                             this._blockedContentHashes.delete(first);
                         }
                     }
@@ -260,7 +263,9 @@ export const ClipboardManager = GObject.registerClass(
                     // Check if this text was previously blocked by an exclusion rule
                     const hash = this._hashString(text);
                     if (this._blockedContentHashes.has(hash)) {
-                        return;
+                        const expiry = this._blockedContentHashes.get(hash);
+                        if (Date.now() < expiry) return;
+                        this._blockedContentHashes.delete(hash);
                     }
 
                     // File
@@ -896,7 +901,7 @@ export const ClipboardManager = GObject.registerClass(
                 if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                 if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                 if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
-                if (item.type === ClipboardType.TEXT && item.has_full_content) this._deleteTextFile(item.id);
+                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
             });
             this._history = [];
             this._saveHistory();
@@ -912,7 +917,7 @@ export const ClipboardManager = GObject.registerClass(
                 if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                 if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
                 if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
-                if (item.type === ClipboardType.TEXT && item.has_full_content) this._deleteTextFile(item.id);
+                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
             });
             this._pinned = [];
             this._savePinned();
