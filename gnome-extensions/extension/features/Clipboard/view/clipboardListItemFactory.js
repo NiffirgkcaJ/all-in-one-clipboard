@@ -74,6 +74,7 @@ export class ClipboardListItemFactory {
                 y_align: Clutter.ActorAlign.CENTER,
             },
         );
+        itemCheckbox.visible = options.settings.get_boolean('clipboard-show-action-bar');
         mainBox.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 

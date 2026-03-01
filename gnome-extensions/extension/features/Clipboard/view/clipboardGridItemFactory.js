@@ -114,7 +114,6 @@ export class ClipboardGridItemFactory {
             y_align: Clutter.ActorAlign.END,
         });
 
-        // Checkbox
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
             itemData,
             {
@@ -127,6 +126,7 @@ export class ClipboardGridItemFactory {
                 can_focus: false,
             },
         );
+        itemCheckbox.visible = options.settings.get_boolean('clipboard-show-action-bar');
         actionsOverlay.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 

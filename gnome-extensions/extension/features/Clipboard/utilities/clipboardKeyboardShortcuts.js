@@ -46,6 +46,10 @@ export function handleClipboardItemKeyPress(event, options) {
 
     // Toggle Selection
     if (selectRecKey !== null && keyName === selectRecKey) {
+        if (!settings.get_boolean('clipboard-show-action-bar')) {
+            return Clutter.EVENT_PROPAGATE;
+        }
+
         if (selectedIds.has(itemId)) {
             selectedIds.delete(itemId);
             checkboxIcon.state = 'unchecked';
