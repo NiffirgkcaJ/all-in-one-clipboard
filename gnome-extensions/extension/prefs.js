@@ -785,12 +785,48 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         group.add(unpinOnPasteRow);
         settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        // Show action bar
         const showActionBarRow = new Adw.SwitchRow({
             title: _('Show Clipboard Action Bar'),
-            subtitle: _('Show action buttons (select all, layout, private mode, pin, delete).'),
+            subtitle: _('Show the toolbar above the clipboard list.'),
         });
         group.add(showActionBarRow);
         settings.bind('clipboard-show-action-bar', showActionBarRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        // Layout mode dropdown
+        const layoutModes = [
+            { id: 'list', label: _('List') },
+            { id: 'grid', label: _('Grid') },
+        ];
+
+        const layoutRow = new Adw.ComboRow({
+            title: _('Clipboard Layout'),
+            subtitle: _('Display clipboard history as a list or a grid.'),
+            model: new Gtk.StringList({ strings: layoutModes.map((m) => m.label) }),
+        });
+        group.add(layoutRow);
+
+        const currentLayout = settings.get_string('clipboard-layout-mode') || 'list';
+        const initialLayoutIndex = layoutModes.findIndex((m) => m.id === currentLayout);
+        layoutRow.set_selected(initialLayoutIndex > -1 ? initialLayoutIndex : 0);
+
+        layoutRow.connect('notify::selected', () => {
+            const index = layoutRow.get_selected();
+            if (index >= 0 && index < layoutModes.length) {
+                const newMode = layoutModes[index].id;
+                if (settings.get_string('clipboard-layout-mode') !== newMode) {
+                    settings.set_string('clipboard-layout-mode', newMode);
+                }
+            }
+        });
+
+        settings.connect('changed::clipboard-layout-mode', () => {
+            const newMode = settings.get_string('clipboard-layout-mode');
+            const newIndex = layoutModes.findIndex((m) => m.id === newMode);
+            if (newIndex > -1 && layoutRow.get_selected() !== newIndex) {
+                layoutRow.set_selected(newIndex);
+            }
+        });
 
         // Clipboard image preview sizing
         const previewKey = 'clipboard-image-preview-size';

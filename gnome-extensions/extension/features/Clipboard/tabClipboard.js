@@ -53,6 +53,9 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectionBarSettingSignalId = this._settings.connect('changed::clipboard-show-action-bar', () => {
                 this._syncSelectionBarVisibility();
             });
+            this._layoutSettingSignalId = this._settings.connect('changed::clipboard-layout-mode', () => {
+                this._applyLayoutMode(this._settings.get_string('clipboard-layout-mode') || 'list');
+            });
 
             this._selectedIds = new Set();
             this._currentSearchText = '';
@@ -121,7 +124,6 @@ export const ClipboardTabContent = GObject.registerClass(
             );
             // Store icon reference for updates
             this._selectAllIcon = this._selectAllButton.child;
-
             this._selectAllButton.connect('clicked', () => this._onSelectAllClicked());
             selectionBar.add_child(this._selectAllButton);
 
@@ -186,10 +188,20 @@ export const ClipboardTabContent = GObject.registerClass(
             this._syncSelectionBarVisibility();
         }
 
+        /**
+         * Check if the action bar is enabled in user settings
+         *
+         * @returns {boolean} Whether the action bar should be visible
+         */
         _isSelectionBarEnabled() {
             return this._settings.get_boolean('clipboard-show-action-bar');
         }
 
+        /**
+         * Sync the action bar visibility with the user setting.
+         * Clears any active selections when hiding, since the user
+         * can no longer act on them without the action buttons.
+         */
         _syncSelectionBarVisibility() {
             if (!this._selectionBar) {
                 return;
@@ -200,11 +212,19 @@ export const ClipboardTabContent = GObject.registerClass(
                 return;
             }
 
+            this._selectedIds.clear();
+
             const currentFocus = global.stage.get_key_focus();
             if (currentFocus && this._selectionBar.contains(currentFocus)) {
                 this._searchComponent?.grabFocus();
             }
+
             this._selectionBar.hide();
+
+            // Redraw to remove visual checkmarks if the view is already constructed
+            if (this._currentView) {
+                this._redraw();
+            }
         }
 
         /**
@@ -225,7 +245,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
         /**
          * Create or switch to a specific view type
-         * @param {string} mode - 'list' or 'grid'
+         * @param {string} mode 'list' or 'grid'
          * @private
          */
         _createView(mode) {
@@ -269,12 +289,26 @@ export const ClipboardTabContent = GObject.registerClass(
         }
 
         /**
-         * Handle layout toggle button click
+         * Handle layout toggle button click.
+         * Writes the new mode to settings and the settings listener handles the rest.
          * @private
          */
         _onLayoutToggle() {
-            this._layoutMode = this._layoutMode === 'list' ? 'grid' : 'list';
-            this._settings.set_string('clipboard-layout-mode', this._layoutMode);
+            const newMode = this._layoutMode === 'list' ? 'grid' : 'list';
+            this._settings.set_string('clipboard-layout-mode', newMode);
+        }
+
+        /**
+         * Apply a layout mode change by updating internal state, syncing the toggle button, and recreating the view.
+         * @param {string} mode 'list' or 'grid'
+         * @private
+         */
+        _applyLayoutMode(mode) {
+            if (mode === this._layoutMode) {
+                return;
+            }
+
+            this._layoutMode = mode;
 
             // Update button state and tooltip
             this._layoutToggleButton.child.state = this._layoutMode;
@@ -646,6 +680,9 @@ export const ClipboardTabContent = GObject.registerClass(
             if (this._settings && this._selectionBarSettingSignalId > 0) {
                 this._settings.disconnect(this._selectionBarSettingSignalId);
             }
+            if (this._settings && this._layoutSettingSignalId > 0) {
+                this._settings.disconnect(this._layoutSettingSignalId);
+            }
 
             if (this._manager) {
                 if (this._historyChangedId) {
@@ -659,6 +696,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._searchComponent?.destroy();
             this._currentView?.destroy();
             this._currentView = null;
+            this._selectionBar = null;
             this._manager = null;
             super.destroy();
         }

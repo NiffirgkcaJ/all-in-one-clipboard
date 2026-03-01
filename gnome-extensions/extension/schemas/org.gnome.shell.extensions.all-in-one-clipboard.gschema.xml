@@ -206,21 +206,21 @@
             <summary>Unpin item on paste</summary>
             <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
         </key>
-        <key name="clipboard-image-preview-size" type="i">
-            <default>48</default>
-            <range min="48" max="300"/>
-            <summary>Clipboard image preview size</summary>
-            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
+        <key name="clipboard-show-action-bar" type="b">
+            <default>true</default>
+            <summary>Show Clipboard Action Bar</summary>
+            <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
         </key>
         <key name="clipboard-layout-mode" type="s">
             <default>'list'</default>
             <summary>Clipboard Layout Mode</summary>
             <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
         </key>
-        <key name="clipboard-show-action-bar" type="b">
-            <default>true</default>
-            <summary>Show Clipboard Action Bar</summary>
-            <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
+        <key name="clipboard-image-preview-size" type="i">
+            <default>48</default>
+            <range min="48" max="300"/>
+            <summary>Clipboard image preview size</summary>
+            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
         </key>
 
         <!-- Emoji Settings -->
