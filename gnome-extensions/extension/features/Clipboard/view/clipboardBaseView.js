@@ -184,11 +184,14 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _rebuildCheckboxMap() {
+            const showCheckboxes = this._settings.get_boolean('clipboard-show-action-bar');
+
             const registerCheckboxes = (container) => {
                 if (!container) return;
                 const children = container.get_children();
                 for (const child of children) {
                     if (child._itemId && child._itemCheckbox) {
+                        child._itemCheckbox.visible = showCheckboxes;
                         this._checkboxIconsMap.set(child._itemId, child._itemCheckbox.child);
                         if (this._selectedIds.has(child._itemId)) {
                             child._itemCheckbox.child.state = 'checked';
