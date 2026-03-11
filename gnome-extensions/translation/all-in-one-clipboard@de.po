@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 23:38+0000\n"
+"POT-Creation-Date: 2026-03-11 12:12+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -812,7 +812,7 @@ msgstr "Onlinesuche ist deaktiviert."
 #: gnome-extensions/extension/features/GIF/tabGIF.js:438
 #: gnome-extensions/extension/features/GIF/tabGIF.js:532
 #: gnome-extensions/extension/features/GIF/tabGIF.js:541
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:525
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:533
 msgid "Recents"
 msgstr "Letzte"
 
@@ -860,7 +860,7 @@ msgid "Recent Clipboard History"
 msgstr "Zwischenablageverlauf"
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:612
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:620
 msgid "No recent items yet."
 msgstr "Bisher keine letzten Elemente."
 
@@ -872,15 +872,15 @@ msgstr "Alle anzeigen"
 msgid "Component configuration is invalid. Check logs."
 msgstr "Komponentenkonfiguration ist ungültig. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:454
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:462
 msgid "Error loading data. Check logs."
 msgstr "Fehler beim Laden von Daten. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:610
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:618
 msgid "No items available."
 msgstr "Keine Elemente verfügbar."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:611
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:619
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
 

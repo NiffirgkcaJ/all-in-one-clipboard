@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 23:38+0000\n"
+"POT-Creation-Date: 2026-03-11 12:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -807,7 +807,7 @@ msgstr ""
 #: gnome-extensions/extension/features/GIF/tabGIF.js:438
 #: gnome-extensions/extension/features/GIF/tabGIF.js:532
 #: gnome-extensions/extension/features/GIF/tabGIF.js:541
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:525
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:533
 msgid "Recents"
 msgstr ""
 
@@ -853,7 +853,7 @@ msgid "Recent Clipboard History"
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:612
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:620
 msgid "No recent items yet."
 msgstr ""
 
@@ -865,14 +865,14 @@ msgstr ""
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:454
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:462
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:610
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:618
 msgid "No items available."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:611
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:619
 msgid "No items match your search."
 msgstr ""
