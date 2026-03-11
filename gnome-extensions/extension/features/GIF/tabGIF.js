@@ -10,8 +10,8 @@ import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../shared/utilities/utilityShortcutMatcher.js';
 import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
+import { getRecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
-import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
@@ -411,7 +411,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         _initializeRecentsManager() {
             if (!this._recentsManager) {
-                this._recentsManager = new RecentItemsManager(this._extension.uuid, this._settings, FileItem.RECENT_GIFS, GifSettings.RECENTS_MAX_ITEMS_KEY);
+                this._recentsManager = getRecentItemsManager(this._extension.uuid, this._settings, FileItem.RECENT_GIFS, GifSettings.RECENTS_MAX_ITEMS_KEY);
 
                 this._recentsSignalId = this._recentsManager.connect('recents-changed', () => {
                     if (this._activeCategory?.id === 'recents') {

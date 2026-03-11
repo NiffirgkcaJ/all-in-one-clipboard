@@ -9,10 +9,10 @@ import { createStaticIcon } from './utilityIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
-import { ServiceJson } from '../services/serviceJson.js';
-import { RecentItemsManager } from './utilityRecents.js';
+import { getRecentItemsManager } from './utilityRecents.js';
 import { IOResource } from './utilityIO.js';
 import { SearchComponent } from './utilitySearch.js';
+import { ServiceJson } from '../services/serviceJson.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 
 const RECENTS_TAB_ID = '##RECENTS##';
@@ -86,7 +86,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             this._parser = new this._config.parserClass(extension.uuid);
-            this._recentItemsManager = new RecentItemsManager(extension.uuid, settings, this._config.recentsPath, this._config.recentsMaxItemsKey);
+            this._recentItemsManager = getRecentItemsManager(extension.uuid, settings, this._config.recentsPath, this._config.recentsMaxItemsKey);
 
             this._recentsChangedSignalId = 0;
             this._mainData = null;
@@ -112,14 +112,22 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._buildUI();
 
-            const initialLoadSignalId = this._recentItemsManager.connect('recents-changed', () => {
-                this._recentItemsManager.disconnect(initialLoadSignalId);
+            const setupRender = () => {
                 this._loadAndRenderInitialState();
 
                 this._recentsChangedSignalId = this._recentItemsManager.connect('recents-changed', () => {
                     if (this._currentSearchText === '' && this._activeCategory === RECENTS_TAB_ID) this._applyFiltersAndRenderGrid();
                 });
-            });
+            };
+
+            if (this._recentItemsManager._isLoaded) {
+                setupRender();
+            } else {
+                const initialLoadSignalId = this._recentItemsManager.connect('recents-changed', () => {
+                    this._recentItemsManager.disconnect(initialLoadSignalId);
+                    setupRender();
+                });
+            }
         }
 
         /**

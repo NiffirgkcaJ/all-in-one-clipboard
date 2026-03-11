@@ -5,8 +5,11 @@ import { ServiceJson } from '../services/serviceJson.js';
 
 const DEFAULT_MAX_RECENTS_FALLBACK = 45;
 
+// Shared instances keyed by cache file path, enabling multiple consumers to reuse a single manager.
+const _instances = new Map();
+
 /**
- * Manages a list of recently used items for a specific data type (e.g., emojis, kaomojis).
+ * Manages a list of recently used items for a specific data type.
  * Handles loading from and saving to a cache file, enforcing a maximum item limit
  * from GSettings, and notifying listeners of changes.
  *
@@ -23,12 +26,13 @@ export const RecentItemsManager = GObject.registerClass(
          * @param {string} extensionUUID - The UUID of the extension.
          * @param {Gio.Settings} settings - The GSettings object.
          * @param {string} absolutePath - The absolute path for this manager's recents file.
-         * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type (e.g., 'emoji-recents-max-items').
+         * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type.
          */
         constructor(extensionUUID, settings, absolutePath, maxItemsSettingKey) {
             super();
             this._uuid = extensionUUID;
             this._settings = settings;
+            this._refCount = 1;
             this._recents = [];
 
             if (!absolutePath || typeof absolutePath !== 'string' || absolutePath.trim() === '') {
@@ -146,6 +150,11 @@ export const RecentItemsManager = GObject.registerClass(
          * Cleans up resources, particularly the GSettings signal connection.
          */
         destroy() {
+            this._refCount--;
+            if (this._refCount > 0) return;
+
+            _instances.delete(this._cacheFilePath);
+
             if (this._settings && this._settingsSignalId > 0) {
                 this._settings.disconnect(this._settingsSignalId);
             }
@@ -158,3 +167,29 @@ export const RecentItemsManager = GObject.registerClass(
         }
     },
 );
+
+/**
+ * Gets or creates a shared RecentItemsManager instance for the given cache file path.
+ * Multiple consumers that manage the same recents file will receive the same instance,
+ * keeping the in-memory state synchronized. Each call increments a reference count;
+ * the instance is only destroyed when the last consumer calls destroy().
+ *
+ * @param {string} extensionUUID - The UUID of the extension.
+ * @param {Gio.Settings} settings - The GSettings object.
+ * @param {string} absolutePath - The absolute path for this manager's recents file.
+ * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type.
+ * @returns {RecentItemsManager} A shared manager instance.
+ */
+export function getRecentItemsManager(extensionUUID, settings, absolutePath, maxItemsSettingKey) {
+    const key = absolutePath.trim();
+    let instance = _instances.get(key);
+
+    if (instance) {
+        instance._refCount++;
+        return instance;
+    }
+
+    instance = new RecentItemsManager(extensionUUID, settings, absolutePath, maxItemsSettingKey);
+    _instances.set(key, instance);
+    return instance;
+}

@@ -9,7 +9,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
-import { RecentItemsManager } from '../../shared/utilities/utilityRecents.js';
+import { getRecentItemsManager } from '../../shared/utilities/utilityRecents.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
@@ -212,7 +212,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             for (const feature of features) {
                 const absolutePath = feature.getPath(this._extension.uuid);
-                this._recentManagers[feature.id] = new RecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
+                this._recentManagers[feature.id] = getRecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
             }
         }
 
@@ -633,6 +633,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             if (copySuccess) {
                 if (feature === 'clipboard') {
                     this._clipboardManager.promoteItemToTop(itemData.id);
+                } else if (featureConfig) {
+                    // Bump the item to the top of its home tab's recents list
+                    this._recentManagers[feature]?.addItem(itemData);
                 }
 
                 if (AutoPaster.shouldAutoPaste(this._settings, autoPasteKey)) {
