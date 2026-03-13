@@ -138,4 +138,5 @@ export const IconSizes = {
 // Interaction & System Configuration
 export const ClipboardConfig = {
     DIMENSION_DEBOUNCE_MS: 200,
+    TARGET_ITEM_WIDTH: 100,
 };

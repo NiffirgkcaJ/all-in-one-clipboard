@@ -8,9 +8,9 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
 import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../shared/utilities/utilityShortcutMatcher.js';
-import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { getRecentItemsManager } from '../../shared/utilities/utilityRecents.js';
+import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
@@ -303,7 +303,7 @@ export const GIFTabContent = GObject.registerClass(
             this._scrollView.set_child(this._scrollableContainer);
 
             this._masonryView = new MasonryLayout({
-                columns: GifUI.ITEMS_PER_ROW,
+                targetItemWidth: GifUI.TARGET_ITEM_WIDTH,
                 spacing: GifUI.MASONRY_SPACING,
                 scrollView: this._scrollView,
                 renderItemFn: (itemData) => {

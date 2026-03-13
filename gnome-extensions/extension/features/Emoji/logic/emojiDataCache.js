@@ -1,6 +1,6 @@
 import { IOResource } from '../../../shared/utilities/utilityIO.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
 

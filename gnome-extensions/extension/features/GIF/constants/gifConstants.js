@@ -15,7 +15,7 @@ export const GifProvider = {
 
 // UI Configuration
 export const GifUI = {
-    ITEMS_PER_ROW: 4,
+    TARGET_ITEM_WIDTH: 100,
     SEARCH_DEBOUNCE_TIME_MS: 300,
     SCROLL_THRESHOLD_PX: 100,
     DEFAULT_LOGO_HEIGHT: 16,

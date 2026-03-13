@@ -3,8 +3,8 @@ import GObject from 'gi://GObject';
 
 import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
 
-import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
+import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 
 /**
  * ClipboardListView

@@ -6,8 +6,9 @@ import GObject from 'gi://GObject';
 
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
-import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
+import { ClipboardConfig } from '../constants/clipboardConstants.js';
+import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 
 /**
  * ClipboardGridView
@@ -52,7 +53,7 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _createPinnedContainer() {
             return new MasonryLayout({
-                columns: 3,
+                targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, true),
@@ -68,7 +69,7 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _createHistoryContainer() {
             return new MasonryLayout({
-                columns: 3,
+                targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, false),

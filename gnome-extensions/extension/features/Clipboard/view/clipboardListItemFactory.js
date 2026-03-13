@@ -7,9 +7,9 @@ import St from 'gi://St';
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
+import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
-import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 
 /**
  * ClipboardListItemFactory

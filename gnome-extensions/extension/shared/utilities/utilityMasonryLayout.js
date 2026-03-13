@@ -53,9 +53,10 @@ export const MasonryLayout = GObject.registerClass(
         constructor(params) {
             super({ x_expand: true });
 
-            const { columns = MasonryDefaults.COLUMNS, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
+            const { columns = MasonryDefaults.COLUMNS, targetItemWidth, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
 
             this._columns = columns;
+            this._targetItemWidth = targetItemWidth;
             this._spacing = spacing;
             this._renderItemFn = renderItemFn;
             this._updateItemFn = updateItemFn;
@@ -721,6 +722,14 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _calculateColumnWidth(effectiveWidth) {
+            if (this._targetItemWidth) {
+                const cellWidth = this._targetItemWidth + this._spacing;
+                const newColumns = Math.max(1, Math.floor((effectiveWidth + this._spacing) / cellWidth));
+                if (this._columns !== newColumns) {
+                    this._columns = newColumns;
+                    this._columnHeights = new Array(this._columns).fill(0);
+                }
+            }
             const totalSpacing = this._spacing * (this._columns - 1);
             return Math.floor((effectiveWidth - totalSpacing) / this._columns);
         }

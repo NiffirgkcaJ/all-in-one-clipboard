@@ -1,7 +1,7 @@
 import GLib from 'gi://GLib';
 
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceText } from '../../../shared/services/serviceText.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
