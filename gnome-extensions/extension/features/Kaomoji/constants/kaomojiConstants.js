@@ -5,5 +5,5 @@ export const KaomojiSettings = {
 
 // UI Configuration
 export const KaomojiUI = {
-    ITEMS_PER_ROW: 4,
+    TARGET_ITEM_WIDTH: 100,
 };

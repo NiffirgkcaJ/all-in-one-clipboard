@@ -134,3 +134,8 @@ export const IconSizes = {
     GRID_RICH_ICON: 48,
     BADGE_TYPE_ICON: 14,
 };
+
+// Interaction & System Configuration
+export const ClipboardConfig = {
+    DIMENSION_DEBOUNCE_MS: 200,
+};

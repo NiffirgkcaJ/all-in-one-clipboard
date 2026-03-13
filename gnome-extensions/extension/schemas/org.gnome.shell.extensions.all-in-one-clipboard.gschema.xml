@@ -2,6 +2,18 @@
 <schemalist>
     <schema id="org.gnome.shell.extensions.all-in-one-clipboard" path="/org/gnome/shell/extensions/all-in-one-clipboard/">
         <!-- General Settings -->
+        <key name="extension-width" type="i">
+            <default>420</default>
+            <range min="420" max="1000"/>
+            <summary>Extension Menu Width</summary>
+            <description>The width of the main extension popup menu in pixels.</description>
+        </key>
+        <key name="extension-height" type="i">
+            <default>420</default>
+            <range min="420" max="1000"/>
+            <summary>Extension Menu Height</summary>
+            <description>The height of the main extension popup menu in pixels.</description>
+        </key>
         <key name="hide-panel-icon" type="b">
             <default>false</default>
             <summary>Hide Panel Icon</summary>

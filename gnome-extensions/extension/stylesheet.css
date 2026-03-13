@@ -281,7 +281,7 @@
 
 .aio-clipboard-container .kaomoji-grid-button {
     min-width: 50px;
-    max-width: 100px;
+    max-width: 50px;
     min-height: 30px;
     max-height: 30px;
     padding: 0 4px;

@@ -15,6 +15,9 @@ import { SearchComponent } from './utilitySearch.js';
 import { ServiceJson } from '../services/serviceJson.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 
+const WIDTH_CHANGE_DEBOUNCE_MS = 200;
+const TAB_SCROLL_POLICY_DEBOUNCE_MS = 50;
+
 const RECENTS_TAB_ID = '##RECENTS##';
 const ViewerIcons = {
     RECENTS: {
@@ -33,7 +36,8 @@ const ViewerIcons = {
  * @property {Function} parserClass - The constructor for the class that will parse the JSON data.
  * @property {string} recentsPath - The absolute path for storing recent items.
  * @property {string} recentsMaxItemsKey - The GSettings key for the maximum number of recent items.
- * @property {number} itemsPerRow - The number of items to display in each row of the grid.
+ * @property {number} [itemsPerRow] - Static number of items per row. Used as fallback if targetItemWidth is not set.
+ * @property {number} [targetItemWidth] - The width of a single grid item while excluding margin. When set, columns are calculated dynamically.
  * @property {string} categoryPropertyName - The name of the property in the parsed data that holds the category name.
  * @property {boolean} [sortCategories=false] - Whether to sort the categories alphabetically. Defaults to false (preserves order).
  * @property {Function} searchFilterFn - A function `(item, searchText)` that returns true if the item matches the search.
@@ -109,8 +113,35 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._itemFocusIdleId = 0;
             this._renderIdleId = 0;
             this._searchDebouncer = new Debouncer(() => this._applyFiltersAndRenderGrid(), 250);
+            this._extensionWidthSignalId = 0;
+            this._tabScrollPolicyDebouncer = null;
+            this._tabScrollPolicyWidthSignalId = 0;
+            this._tabScrollPolicyAllocationSignalId = 0;
+            this._tabScrollPolicyState = null;
+            this._tabContainer = null;
 
             this._buildUI();
+
+            // Re-render grid when extension width changes for dynamic column count
+            if (this._config.targetItemWidth) {
+                this._widthChangeDebouncer = new Debouncer(() => {
+                    if (this._isContentLoaded) this._applyFiltersAndRenderGrid();
+                }, WIDTH_CHANGE_DEBOUNCE_MS);
+                this._extensionWidthSignalId = this._settings.connect('changed::extension-width', () => {
+                    this._widthChangeDebouncer.trigger();
+                });
+            }
+            if (this._config.enableTabScrolling) {
+                this._tabScrollPolicyDebouncer = new Debouncer(() => this._updateTabScrollPolicy(), TAB_SCROLL_POLICY_DEBOUNCE_MS);
+                this._tabScrollPolicyWidthSignalId = this._settings.connect('changed::extension-width', () => {
+                    this._tabScrollPolicyDebouncer.trigger();
+                });
+                if (this._tabContainer) {
+                    this._tabScrollPolicyAllocationSignalId = this._tabContainer.connect('notify::width', () => {
+                        this._tabScrollPolicyDebouncer.trigger();
+                    });
+                }
+            }
 
             const setupRender = () => {
                 this._loadAndRenderInitialState();
@@ -142,7 +173,6 @@ export const CategorizedItemViewer = GObject.registerClass(
                 'parserClass',
                 'recentsPath',
                 'recentsMaxItemsKey',
-                'itemsPerRow',
                 'categoryPropertyName',
                 'searchFilterFn',
                 'renderGridItemFn',
@@ -186,6 +216,8 @@ export const CategorizedItemViewer = GObject.registerClass(
                     x_expand: false,
                     overlay_scrollbars: true,
                     clip_to_allocation: true,
+                    hscrollbar_policy: St.PolicyType.AUTOMATIC,
+                    vscrollbar_policy: St.PolicyType.NEVER,
                 });
                 scrollView.set_child(this._categoryTabBar);
                 this._categoryTabScrollView = scrollView;
@@ -195,9 +227,11 @@ export const CategorizedItemViewer = GObject.registerClass(
                     x_align: Clutter.ActorAlign.CENTER,
                     child: scrollView,
                 });
+                this._tabContainer = tabContainer;
                 this._header.add_child(tabContainer);
             } else {
                 this._categoryTabScrollView = null;
+                this._tabContainer = null;
                 const tabContainer = new St.Bin({
                     x_expand: true,
                     x_align: Clutter.ActorAlign.CENTER,
@@ -350,7 +384,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             const currentIndex = this._gridAllButtons.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._config.itemsPerRow, {
+            return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._currentItemsPerRow || this._config.itemsPerRow || 1, {
                 onBoundary: (side) => {
                     if (side === 'up') {
                         this._searchComponent?.grabFocus();
@@ -552,8 +586,87 @@ export const CategorizedItemViewer = GObject.registerClass(
                 this._layoutIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._categoryTabBar.queue_relayout();
                     this._layoutIdleId = 0;
+                    this._scheduleTabScrollPolicyUpdate();
                     return GLib.SOURCE_REMOVE;
                 });
+            } else {
+                this._scheduleTabScrollPolicyUpdate();
+            }
+        }
+
+        /**
+         * Schedule a scroll policy update for the category tab bar.
+         * @private
+         */
+        _scheduleTabScrollPolicyUpdate() {
+            if (!this._config.enableTabScrolling || !this._categoryTabScrollView || !this._tabScrollPolicyDebouncer) return;
+            this._tabScrollPolicyDebouncer.trigger();
+        }
+
+        /**
+         * Determine the available width for the category tab bar.
+         * @returns {number}
+         * @private
+         */
+        _getTabScrollAvailableWidth() {
+            if (this._tabContainer) {
+                const width = this._tabContainer.get_width();
+                if (width > 0) return width;
+            }
+
+            if (this._categoryTabScrollView) {
+                const width = this._categoryTabScrollView.get_width();
+                if (width > 0) return width;
+            }
+
+            if (this._header) {
+                const width = this._header.get_width();
+                if (width > 0) {
+                    let backWidth = 0;
+                    if (this._backButton) {
+                        const [, nat] = this._backButton.get_preferred_width(-1);
+                        backWidth = nat || 0;
+                    }
+                    return Math.max(0, width - backWidth);
+                }
+            }
+
+            if (this._settings) {
+                const width = this._settings.get_int('extension-width');
+                if (width > 0) {
+                    let backWidth = 0;
+                    if (this._backButton) {
+                        const [, nat] = this._backButton.get_preferred_width(-1);
+                        backWidth = nat || 0;
+                    }
+                    return Math.max(0, width - backWidth);
+                }
+            }
+
+            return 0;
+        }
+
+        /**
+         * Update the scroll policy based on overflow.
+         * @private
+         */
+        _updateTabScrollPolicy() {
+            if (!this._config.enableTabScrolling || !this._categoryTabScrollView || !this._categoryTabBar) return;
+
+            const availableWidth = this._getTabScrollAvailableWidth();
+            if (availableWidth <= 0) return;
+
+            const [, naturalWidth] = this._categoryTabBar.get_preferred_width(-1);
+            const shouldScroll = naturalWidth > availableWidth;
+
+            if (this._tabScrollPolicyState === shouldScroll) return;
+            this._tabScrollPolicyState = shouldScroll;
+
+            this._categoryTabScrollView.hscrollbar_policy = shouldScroll ? St.PolicyType.AUTOMATIC : St.PolicyType.NEVER;
+            this._categoryTabScrollView.overlay_scrollbars = shouldScroll;
+
+            if (!shouldScroll && this._categoryTabScrollView.hadjustment) {
+                this._categoryTabScrollView.hadjustment.value = 0;
             }
         }
 
@@ -588,6 +701,25 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
+         * Calculate the number of items per row based on the current container width.
+         * If `targetItemWidth` is configured, calculates dynamically from the available width.
+         * @returns {number} The number of items per row
+         * @private
+         */
+        _getItemsPerRow() {
+            if (this._config.targetItemWidth) {
+                let availableWidth = this._contentArea.get_width();
+                if (availableWidth <= 0) {
+                    availableWidth = this._settings.get_int('extension-width');
+                }
+
+                const cellWidth = this._config.targetItemWidth + (this._gridItemHorizontalMargin || 0);
+                return Math.max(1, Math.floor(availableWidth / cellWidth));
+            }
+            return this._config.itemsPerRow;
+        }
+
+        /**
          * Renders the grid of items based on the currently filtered data.
          * @private
          */
@@ -595,6 +727,15 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._contentArea.destroy_all_children();
             this._gridAllButtons = [];
             this._renderSession = {};
+
+            // Read CSS margin from a probe button before calculating columns
+            if (this._config.targetItemWidth && !this._gridItemHorizontalMargin) {
+                const probe = this._config.renderGridItemFn({ char: ' ', value: ' ', name: '' });
+                this._contentArea.add_child(probe);
+                const themeNode = probe.get_theme_node();
+                this._gridItemHorizontalMargin = themeNode.get_margin(St.Side.LEFT) + themeNode.get_margin(St.Side.RIGHT);
+                probe.destroy();
+            }
 
             let scrollView = new St.ScrollView({
                 style_class: 'menu-scrollview',
@@ -635,6 +776,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     x_align: Clutter.ActorAlign.FILL,
                 });
                 scrollableContainer.add_child(grid);
+                this._currentItemsPerRow = this._getItemsPerRow();
                 this._renderGridChunk(grid, 0, this._renderSession, scrollView);
             }
             this._contentArea.add_child(scrollView);
@@ -657,8 +799,8 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             for (let i = startIndex; i < endIndex; i++) {
                 const itemData = this._filteredData[i];
-                const col = i % this._config.itemsPerRow;
-                const row = Math.floor(i / this._config.itemsPerRow);
+                const col = i % this._currentItemsPerRow;
+                const row = Math.floor(i / this._currentItemsPerRow);
                 const itemButton = this._config.renderGridItemFn(itemData);
 
                 itemButton.connect('clicked', () => {
@@ -720,9 +862,10 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Cleans up resources when the component is destroyed.
+         * Cleans up GLib source IDs.
+         * @private
          */
-        destroy() {
+        _clearGLibSources() {
             if (this._setActiveCategoryTimeoutId) {
                 GLib.source_remove(this._setActiveCategoryTimeoutId);
                 this._setActiveCategoryTimeoutId = 0;
@@ -755,16 +898,49 @@ export const CategorizedItemViewer = GObject.registerClass(
                 GLib.source_remove(this._renderIdleId);
                 this._renderIdleId = 0;
             }
+        }
 
-            if (this._recentsChangedSignalId > 0) {
+        /**
+         * Disconnects signal listeners.
+         * @private
+         */
+        _disconnectSignals() {
+            if (this._recentsChangedSignalId > 0 && this._recentItemsManager) {
                 this._recentItemsManager.disconnect(this._recentsChangedSignalId);
             }
+            if (this._extensionWidthSignalId > 0 && this._settings) {
+                this._settings.disconnect(this._extensionWidthSignalId);
+            }
+            if (this._tabScrollPolicyWidthSignalId > 0 && this._settings) {
+                this._settings.disconnect(this._tabScrollPolicyWidthSignalId);
+            }
+            if (this._tabScrollPolicyAllocationSignalId > 0 && this._tabContainer && !this._tabContainer.is_destroyed?.()) {
+                this._tabContainer.disconnect(this._tabScrollPolicyAllocationSignalId);
+                this._tabScrollPolicyAllocationSignalId = 0;
+            }
+        }
 
+        /**
+         * Destroys child objects attached to the component.
+         * @private
+         */
+        _destroyChildObjects() {
             this._searchDebouncer?.destroy();
+            this._widthChangeDebouncer?.destroy();
+            this._tabScrollPolicyDebouncer?.destroy();
             this._recentItemsManager?.destroy();
             this._searchComponent?.destroy();
             this._categoryTabScrollView?.destroy();
             this._categoryTabScrollView = null;
+        }
+
+        /**
+         * Cleans up resources when the component is destroyed.
+         */
+        destroy() {
+            this._clearGLibSources();
+            this._disconnectSignals();
+            this._destroyChildObjects();
 
             super.destroy();
         }

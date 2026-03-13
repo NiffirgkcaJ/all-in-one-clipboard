@@ -16,10 +16,14 @@ export const HorizontalScrollView = GObject.registerClass(
          * @param {St.PolicyType} [params.hscrollbar_policy=St.PolicyType.AUTOMATIC] - Horizontal scrollbar policy
          * @param {St.PolicyType} [params.vscrollbar_policy=St.PolicyType.NEVER] - Vertical scrollbar policy
          */
-        constructor(params) {
+        constructor(params = {}) {
             super(params);
-            this.hscrollbar_policy = St.PolicyType.AUTOMATIC;
-            this.vscrollbar_policy = St.PolicyType.NEVER;
+
+            const hasHPolicy = Object.prototype.hasOwnProperty.call(params, 'hscrollbar_policy');
+            const hasVPolicy = Object.prototype.hasOwnProperty.call(params, 'vscrollbar_policy');
+
+            if (!hasHPolicy) this.hscrollbar_policy = St.PolicyType.AUTOMATIC;
+            if (!hasVPolicy) this.vscrollbar_policy = St.PolicyType.NEVER;
         }
 
         /**

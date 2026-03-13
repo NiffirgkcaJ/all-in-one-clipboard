@@ -69,7 +69,7 @@ export const EmojiTabContent = GObject.registerClass(
                 parserClass: EmojiJsonParser,
                 recentsPath: FileItem.RECENT_EMOJI,
                 recentsMaxItemsKey: EmojiSettings.RECENTS_MAX_ITEMS_KEY,
-                itemsPerRow: EmojiUI.ITEMS_PER_ROW,
+                targetItemWidth: EmojiUI.TARGET_ITEM_WIDTH,
                 categoryPropertyName: 'category',
                 enableTabScrolling: false,
                 sortCategories: false,

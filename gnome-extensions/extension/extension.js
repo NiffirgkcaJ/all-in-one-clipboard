@@ -23,6 +23,8 @@ import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 
+const DIMENSION_DEBOUNCE_MS = 150;
+
 /**
  * Creates a simple, predictable identifier from a tab name.
  * Handles translated names by checking against the English keys.
@@ -183,22 +185,40 @@ const AllInOneClipboardIndicator = GObject.registerClass(
         _buildMenu() {
             this.menu.removeAll();
 
-            const mainVerticalBox = new St.BoxLayout({
+            this._mainVerticalBox = new St.BoxLayout({
                 vertical: true,
-                width: 420,
-                height: 420,
+                width: this._settings.get_int('extension-width'),
+                height: this._settings.get_int('extension-height'),
                 style_class: 'aio-clipboard-container',
                 reactive: true, // Essential for capturing key events
                 can_focus: false,
             });
             // Intercept key presses for tab cycling
-            mainVerticalBox.connect('captured-event', this._onContainerKeyPress.bind(this));
-            this.menu.box.add_child(mainVerticalBox);
+            this._mainVerticalBox.connect('captured-event', this._onContainerKeyPress.bind(this));
+            this.menu.box.add_child(this._mainVerticalBox);
+
+            // Connect signals to update dimensions dynamically
+            this._dimensionDebounceId = 0;
+            const debounceDimensionUpdate = () => {
+                if (this._dimensionDebounceId > 0) GLib.source_remove(this._dimensionDebounceId);
+                this._dimensionDebounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, DIMENSION_DEBOUNCE_MS, () => {
+                    this._dimensionDebounceId = 0;
+                    this._mainVerticalBox.width = this._settings.get_int('extension-width');
+                    this._mainVerticalBox.height = this._settings.get_int('extension-height');
+                    return GLib.SOURCE_REMOVE;
+                });
+            };
+
+            const widthSignalId = this._settings.connect('changed::extension-width', debounceDimensionUpdate);
+            this._tabVisibilitySignalIds.push(widthSignalId);
+
+            const heightSignalId = this._settings.connect('changed::extension-height', debounceDimensionUpdate);
+            this._tabVisibilitySignalIds.push(heightSignalId);
 
             this._mainTabBar = new St.BoxLayout({
                 style_class: 'aio-clipboard-tab-topbar',
             });
-            mainVerticalBox.add_child(this._mainTabBar);
+            this._mainVerticalBox.add_child(this._mainTabBar);
 
             this._tabContentArea = new St.Bin({
                 style_class: 'aio-clipboard-content-area',
@@ -207,7 +227,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 y_align: Clutter.ActorAlign.FILL,
                 x_align: Clutter.ActorAlign.FILL,
             });
-            mainVerticalBox.add_child(this._tabContentArea);
+            this._mainVerticalBox.add_child(this._tabContentArea);
 
             // Rebuild the tab bar based on current settings
             this._rebuildTabBar();
@@ -854,6 +874,12 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             });
             this._tabVisibilitySignalIds = [];
 
+            if (this._dimensionDebounceId > 0) {
+                GLib.source_remove(this._dimensionDebounceId);
+                this._dimensionDebounceId = 0;
+            }
+
+            this._mainVerticalBox = null;
             this._tabButtons = null;
             this._mainTabBar = null;
             this._tabContentArea = null;

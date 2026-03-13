@@ -48,7 +48,7 @@ export const SymbolsTabContent = GObject.registerClass(
                 parserClass: SymbolsJsonParser,
                 recentsPath: FileItem.RECENT_SYMBOLS,
                 recentsMaxItemsKey: SymbolsSettings.RECENTS_MAX_ITEMS_KEY,
-                itemsPerRow: SymbolsUI.ITEMS_PER_ROW,
+                targetItemWidth: SymbolsUI.TARGET_ITEM_WIDTH,
                 categoryPropertyName: 'category',
                 enableTabScrolling: true,
                 sortCategories: false,

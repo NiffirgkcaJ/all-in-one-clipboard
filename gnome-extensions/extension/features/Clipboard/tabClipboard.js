@@ -4,15 +4,16 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
-import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardGridView } from './view/clipboardGridView.js';
-import { ClipboardIcons } from './constants/clipboardConstants.js';
+import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
+import { ClipboardIcons, ClipboardConfig } from './constants/clipboardConstants.js';
 
 /**
  * ClipboardTabContent
@@ -55,6 +56,13 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             this._layoutSettingSignalId = this._settings.connect('changed::clipboard-layout-mode', () => {
                 this._applyLayoutMode(this._settings.get_string('clipboard-layout-mode') || 'list');
+            });
+            this._dimensionDebouncer = new Debouncer(() => this._scheduleRedraw(), ClipboardConfig.DIMENSION_DEBOUNCE_MS);
+            this._dimensionWidthSignalId = this._settings.connect('changed::extension-width', () => {
+                this._dimensionDebouncer.trigger();
+            });
+            this._dimensionHeightSignalId = this._settings.connect('changed::extension-height', () => {
+                this._dimensionDebouncer.trigger();
             });
 
             this._selectedIds = new Set();
@@ -672,6 +680,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 GLib.source_remove(this._focusIdleId);
                 this._focusIdleId = 0;
             }
+            this._dimensionDebouncer?.destroy();
 
             // Tell it to stop listening for our image size setting changes
             if (this._settings && this._settingSignalId > 0) {
@@ -682,6 +691,12 @@ export const ClipboardTabContent = GObject.registerClass(
             }
             if (this._settings && this._layoutSettingSignalId > 0) {
                 this._settings.disconnect(this._layoutSettingSignalId);
+            }
+            if (this._settings && this._dimensionWidthSignalId > 0) {
+                this._settings.disconnect(this._dimensionWidthSignalId);
+            }
+            if (this._settings && this._dimensionHeightSignalId > 0) {
+                this._settings.disconnect(this._dimensionHeightSignalId);
             }
 
             if (this._manager) {

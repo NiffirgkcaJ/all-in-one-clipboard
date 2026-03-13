@@ -5,5 +5,5 @@ export const SymbolsSettings = {
 
 // UI Configuration
 export const SymbolsUI = {
-    ITEMS_PER_ROW: 9,
+    TARGET_ITEM_WIDTH: 40,
 };

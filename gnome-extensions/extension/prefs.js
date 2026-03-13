@@ -102,6 +102,47 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         });
         page.add(group);
 
+        // Extension Dimensions Expander
+        const dimensionsExpander = new Adw.ExpanderRow({
+            title: _('Extension Dimensions'),
+            subtitle: _('Set custom width and height for the extension menu.'),
+        });
+        group.add(dimensionsExpander);
+
+        // Extension Width
+        const widthKey = 'extension-width';
+        const widthDefault = settings.get_default_value(widthKey).get_int32();
+        const widthRange = this._getRangeFromSchema(settings, widthKey);
+
+        const widthRow = new Adw.SpinRow({
+            title: _('Width'),
+            subtitle: _('Range: %d-%d. Default: %d.').format(widthRange.min, widthRange.max, widthDefault),
+            adjustment: new Gtk.Adjustment({
+                lower: widthRange.min,
+                upper: widthRange.max,
+                step_increment: 10,
+            }),
+        });
+        dimensionsExpander.add_row(widthRow);
+        settings.bind(widthKey, widthRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+        // Extension Height
+        const heightKey = 'extension-height';
+        const heightDefault = settings.get_default_value(heightKey).get_int32();
+        const heightRange = this._getRangeFromSchema(settings, heightKey);
+
+        const heightRow = new Adw.SpinRow({
+            title: _('Height'),
+            subtitle: _('Range: %d-%d. Default: %d.').format(heightRange.min, heightRange.max, heightDefault),
+            adjustment: new Gtk.Adjustment({
+                lower: heightRange.min,
+                upper: heightRange.max,
+                step_increment: 10,
+            }),
+        });
+        dimensionsExpander.add_row(heightRow);
+        settings.bind(heightKey, heightRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+
         // Hide panel icon
         const hideIconRow = new Adw.SwitchRow({
             title: _('Hide Panel Icon'),

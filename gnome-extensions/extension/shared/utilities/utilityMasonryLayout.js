@@ -88,7 +88,10 @@ export const MasonryLayout = GObject.registerClass(
             if (this._lastLayoutWidth !== newWidth && this._lastLayoutWidth > 0) {
                 if (this._items.length > 0) {
                     if (this._lockedColumnWidth > 0) {
-                        this._pendingRelayout = true;
+                        this._lockedColumnWidth = -1;
+                        this._pendingRelayout = false;
+                        this._lastLayoutWidth = newWidth;
+                        this._relayoutDebouncer.trigger();
                     } else {
                         this._lastLayoutWidth = newWidth;
                         this._relayout();
