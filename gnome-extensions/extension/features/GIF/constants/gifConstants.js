@@ -2,6 +2,8 @@
 export const GifSettings = {
     PROVIDER_KEY: 'gif-provider',
     RECENTS_MAX_ITEMS_KEY: 'gif-recents-max-items',
+    GRID_LIMIT_COLUMNS_KEY: 'gif-grid-limit-columns',
+    GRID_MAX_COLUMNS_KEY: 'gif-grid-max-columns',
 };
 
 // Provider Configuration
@@ -15,7 +17,7 @@ export const GifProvider = {
 
 // UI Configuration
 export const GifUI = {
-    TARGET_ITEM_WIDTH: 100,
+    TARGET_ITEM_WIDTH: 90,
     SEARCH_DEBOUNCE_TIME_MS: 300,
     SCROLL_THRESHOLD_PX: 100,
     DEFAULT_LOGO_HEIGHT: 16,

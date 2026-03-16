@@ -201,6 +201,63 @@
             <description>Automatically paste items from clipboard history when selected (requires master toggle).</description>
         </key>
 
+        <!-- Grid Column Settings -->
+        <key name="emoji-grid-limit-columns" type="b">
+            <default>false</default>
+            <summary>Limit Emoji Grid Columns</summary>
+            <description>When enabled, caps the number of columns in the emoji grid.</description>
+        </key>
+        <key name="emoji-grid-max-columns" type="i">
+            <default>9</default>
+            <range min="1" max="22"/>
+            <summary>Emoji Grid Max Columns</summary>
+            <description>Maximum number of columns to show in the emoji grid when the limit is enabled.</description>
+        </key>
+        <key name="gif-grid-limit-columns" type="b">
+            <default>false</default>
+            <summary>Limit GIF Grid Columns</summary>
+            <description>When enabled, caps the number of columns in the GIF masonry grid.</description>
+        </key>
+        <key name="gif-grid-max-columns" type="i">
+            <default>4</default>
+            <range min="1" max="10"/>
+            <summary>GIF Grid Max Columns</summary>
+            <description>Maximum number of columns to show in the GIF masonry grid when the limit is enabled.</description>
+        </key>
+        <key name="kaomoji-grid-limit-columns" type="b">
+            <default>false</default>
+            <summary>Limit Kaomoji Grid Columns</summary>
+            <description>When enabled, caps the number of columns in the kaomoji grid.</description>
+        </key>
+        <key name="kaomoji-grid-max-columns" type="i">
+            <default>4</default>
+            <range min="1" max="9"/>
+            <summary>Kaomoji Grid Max Columns</summary>
+            <description>Maximum number of columns to show in the kaomoji grid when the limit is enabled.</description>
+        </key>
+        <key name="symbols-grid-limit-columns" type="b">
+            <default>false</default>
+            <summary>Limit Symbols Grid Columns</summary>
+            <description>When enabled, caps the number of columns in the symbols grid.</description>
+        </key>
+        <key name="symbols-grid-max-columns" type="i">
+            <default>9</default>
+            <range min="1" max="22"/>
+            <summary>Symbols Grid Max Columns</summary>
+            <description>Maximum number of columns to show in the symbols grid when the limit is enabled.</description>
+        </key>
+        <key name="clipboard-grid-limit-columns" type="b">
+            <default>false</default>
+            <summary>Limit Clipboard Grid Columns</summary>
+            <description>When enabled, caps the number of columns in the clipboard masonry grid.</description>
+        </key>
+        <key name="clipboard-grid-max-columns" type="i">
+            <default>3</default>
+            <range min="1" max="9"/>
+            <summary>Clipboard Grid Max Columns</summary>
+            <description>Maximum number of columns to show in the clipboard masonry grid when the limit is enabled.</description>
+        </key>
+
         <!-- Clipboard Settings -->
         <key name="clipboard-history-max-items" type="i">
             <default>50</default>

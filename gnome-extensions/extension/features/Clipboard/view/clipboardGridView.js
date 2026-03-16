@@ -7,7 +7,7 @@ import GObject from 'gi://GObject';
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
 import { ClipboardBaseView } from './clipboardBaseView.js';
-import { ClipboardConfig } from '../constants/clipboardConstants.js';
+import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 
 /**
@@ -38,8 +38,10 @@ export const ClipboardGridView = GObject.registerClass(
 
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
+            this._gridColumnSignalIds = [];
 
             this.connect('key-press-event', this._onKeyPress.bind(this));
+            this._bindGridColumnSettings();
         }
 
         // ========================================================================
@@ -55,6 +57,7 @@ export const ClipboardGridView = GObject.registerClass(
             return new MasonryLayout({
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
+                maxColumns: this._getMaxColumnsSetting(),
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, true),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
@@ -71,6 +74,7 @@ export const ClipboardGridView = GObject.registerClass(
             return new MasonryLayout({
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
+                maxColumns: this._getMaxColumnsSetting(),
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, false),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
@@ -118,6 +122,40 @@ export const ClipboardGridView = GObject.registerClass(
             const isPinned = _session === true;
             const options = this._getItemOptions(isPinned);
             return ClipboardGridItemFactory.createItem(itemData, options);
+        }
+
+        /**
+         * Read the max columns setting when the limit is enabled.
+         * @returns {number|null} max columns or null for auto
+         * @private
+         */
+        _getMaxColumnsSetting() {
+            if (!this._settings?.get_boolean(ClipboardSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
+            const maxColumns = this._settings.get_int(ClipboardSettings.GRID_MAX_COLUMNS_KEY);
+            return maxColumns > 0 ? maxColumns : null;
+        }
+
+        /**
+         * Bind settings for grid column limits.
+         * @private
+         */
+        _bindGridColumnSettings() {
+            if (!this._settings) return;
+            const keys = [ClipboardSettings.GRID_LIMIT_COLUMNS_KEY, ClipboardSettings.GRID_MAX_COLUMNS_KEY];
+            keys.forEach((key) => {
+                const id = this._settings.connect(`changed::${key}`, () => this._applyColumnLimit());
+                this._gridColumnSignalIds.push(id);
+            });
+        }
+
+        /**
+         * Apply the current column limit to masonry containers.
+         * @private
+         */
+        _applyColumnLimit() {
+            const maxColumns = this._getMaxColumnsSetting();
+            this._pinnedContainer?.setMaxColumns?.(maxColumns);
+            this._historyContainer?.setMaxColumns?.(maxColumns);
         }
 
         /**
@@ -436,6 +474,10 @@ export const ClipboardGridView = GObject.registerClass(
             this._gridHistoryItems = null;
             this._dimensionCache.clear();
             this._pendingLoads.clear();
+            if (this._gridColumnSignalIds.length > 0 && this._settings) {
+                this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
+                this._gridColumnSignalIds = [];
+            }
             super.destroy();
         }
     },

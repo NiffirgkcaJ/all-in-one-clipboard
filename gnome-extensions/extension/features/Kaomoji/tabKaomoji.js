@@ -49,6 +49,8 @@ export const KaomojiTabContent = GObject.registerClass(
                 recentsPath: FileItem.RECENT_KAOMOJI,
                 recentsMaxItemsKey: KaomojiSettings.RECENTS_MAX_ITEMS_KEY,
                 targetItemWidth: KaomojiUI.TARGET_ITEM_WIDTH,
+                limitItemsPerRowKey: KaomojiSettings.GRID_LIMIT_COLUMNS_KEY,
+                maxItemsPerRowKey: KaomojiSettings.GRID_MAX_COLUMNS_KEY,
                 categoryPropertyName: 'greaterCategory',
                 enableTabScrolling: true,
                 sortCategories: false,

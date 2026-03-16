@@ -95,6 +95,7 @@ export const GIFTabContent = GObject.registerClass(
             this._currentLoadingSession = null;
             this._currentCancellable = null;
             this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
+            this._gridColumnSignalIds = [];
 
             this._searchDebouncer = new Debouncer((query) => {
                 this._cancelCurrentRequests();
@@ -110,6 +111,7 @@ export const GIFTabContent = GObject.registerClass(
             }, GifUI.SEARCH_DEBOUNCE_TIME_MS);
 
             this._buildUISkeleton();
+            this._bindGridColumnSettings();
 
             this._itemFactory = new GifItemFactory(this._downloadService, this._cacheDir, this._scrollView);
 
@@ -299,12 +301,17 @@ export const GIFTabContent = GObject.registerClass(
             const vadjustment = this._scrollView.vadjustment;
             vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
 
-            this._scrollableContainer = new St.BoxLayout({ vertical: true });
+            this._scrollableContainer = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                x_align: Clutter.ActorAlign.FILL,
+            });
             this._scrollView.set_child(this._scrollableContainer);
 
             this._masonryView = new MasonryLayout({
                 targetItemWidth: GifUI.TARGET_ITEM_WIDTH,
                 spacing: GifUI.MASONRY_SPACING,
+                maxColumns: this._getGridMaxColumnsSetting(),
                 scrollView: this._scrollView,
                 renderItemFn: (itemData) => {
                     const bin = this._itemFactory.createItem(itemData, this._onGifSelected.bind(this));
@@ -332,6 +339,38 @@ export const GIFTabContent = GObject.registerClass(
             this._scrollableContainer.connect('key-press-event', this._onGridKeyPress.bind(this));
 
             this.add_child(this._scrollView);
+        }
+
+        /**
+         * Read the max columns setting when the limit is enabled.
+         * @returns {number|null} max columns or null for auto
+         * @private
+         */
+        _getGridMaxColumnsSetting() {
+            if (!this._settings?.get_boolean(GifSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
+            const maxColumns = this._settings.get_int(GifSettings.GRID_MAX_COLUMNS_KEY);
+            return maxColumns > 0 ? maxColumns : null;
+        }
+
+        /**
+         * Bind settings for grid column limits.
+         * @private
+         */
+        _bindGridColumnSettings() {
+            const keys = [GifSettings.GRID_LIMIT_COLUMNS_KEY, GifSettings.GRID_MAX_COLUMNS_KEY];
+            keys.forEach((key) => {
+                const id = this._settings.connect(`changed::${key}`, () => this._applyGridColumnLimit());
+                this._gridColumnSignalIds.push(id);
+            });
+        }
+
+        /**
+         * Apply the current column limit to the masonry view.
+         * @private
+         */
+        _applyGridColumnLimit() {
+            const maxColumns = this._getGridMaxColumnsSetting();
+            this._masonryView?.setMaxColumns?.(maxColumns);
         }
 
         /**
@@ -1241,6 +1280,11 @@ export const GIFTabContent = GObject.registerClass(
             if (this._alwaysShowTabsSignalId) {
                 this._settings.disconnect(this._alwaysShowTabsSignalId);
                 this._alwaysShowTabsSignalId = 0;
+            }
+
+            if (this._gridColumnSignalIds.length > 0) {
+                this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
+                this._gridColumnSignalIds = [];
             }
 
             if (this._recentsSignalId && this._recentsManager) {

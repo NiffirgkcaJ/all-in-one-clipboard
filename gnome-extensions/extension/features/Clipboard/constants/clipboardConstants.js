@@ -140,3 +140,9 @@ export const ClipboardConfig = {
     DIMENSION_DEBOUNCE_MS: 200,
     TARGET_ITEM_WIDTH: 100,
 };
+
+// GSettings Keys
+export const ClipboardSettings = {
+    GRID_LIMIT_COLUMNS_KEY: 'clipboard-grid-limit-columns',
+    GRID_MAX_COLUMNS_KEY: 'clipboard-grid-max-columns',
+};

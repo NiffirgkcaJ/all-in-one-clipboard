@@ -38,6 +38,8 @@ const ViewerIcons = {
  * @property {string} recentsMaxItemsKey - The GSettings key for the maximum number of recent items.
  * @property {number} [itemsPerRow] - Static number of items per row. Used as fallback if targetItemWidth is not set.
  * @property {number} [targetItemWidth] - The width of a single grid item while excluding margin. When set, columns are calculated dynamically.
+ * @property {string} [limitItemsPerRowKey] - GSettings key that enables column limiting for this grid.
+ * @property {string} [maxItemsPerRowKey] - GSettings key for the maximum number of columns when limiting is enabled.
  * @property {string} categoryPropertyName - The name of the property in the parsed data that holds the category name.
  * @property {boolean} [sortCategories=false] - Whether to sort the categories alphabetically. Defaults to false (preserves order).
  * @property {Function} searchFilterFn - A function `(item, searchText)` that returns true if the item matches the search.
@@ -119,6 +121,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._tabScrollPolicyAllocationSignalId = 0;
             this._tabScrollPolicyState = null;
             this._tabContainer = null;
+            this._layoutSettingSignalIds = [];
 
             this._buildUI();
 
@@ -129,6 +132,20 @@ export const CategorizedItemViewer = GObject.registerClass(
                 }, WIDTH_CHANGE_DEBOUNCE_MS);
                 this._extensionWidthSignalId = this._settings.connect('changed::extension-width', () => {
                     this._widthChangeDebouncer.trigger();
+                });
+            }
+
+            const layoutKeys = [this._config.limitItemsPerRowKey, this._config.maxItemsPerRowKey].filter(Boolean);
+            if (layoutKeys.length > 0) {
+                layoutKeys.forEach((key) => {
+                    const id = this._settings.connect(`changed::${key}`, () => {
+                        if (this._widthChangeDebouncer) {
+                            this._widthChangeDebouncer.trigger();
+                        } else {
+                            this._applyFiltersAndRenderGrid();
+                        }
+                    });
+                    this._layoutSettingSignalIds.push(id);
                 });
             }
             if (this._config.enableTabScrolling) {
@@ -714,7 +731,18 @@ export const CategorizedItemViewer = GObject.registerClass(
                 }
 
                 const cellWidth = this._config.targetItemWidth + (this._gridItemHorizontalMargin || 0);
-                return Math.max(1, Math.floor(availableWidth / cellWidth));
+                let itemsPerRow = Math.max(1, Math.floor(availableWidth / cellWidth));
+
+                const limitKey = this._config.limitItemsPerRowKey;
+                const maxKey = this._config.maxItemsPerRowKey;
+                if (limitKey && maxKey && this._settings.get_boolean(limitKey)) {
+                    const maxColumns = this._settings.get_int(maxKey);
+                    if (maxColumns > 0) {
+                        itemsPerRow = Math.min(itemsPerRow, maxColumns);
+                    }
+                }
+
+                return itemsPerRow;
             }
             return this._config.itemsPerRow;
         }
@@ -910,6 +938,10 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
             if (this._extensionWidthSignalId > 0 && this._settings) {
                 this._settings.disconnect(this._extensionWidthSignalId);
+            }
+            if (this._layoutSettingSignalIds.length > 0 && this._settings) {
+                this._layoutSettingSignalIds.forEach((id) => this._settings.disconnect(id));
+                this._layoutSettingSignalIds = [];
             }
             if (this._tabScrollPolicyWidthSignalId > 0 && this._settings) {
                 this._settings.disconnect(this._tabScrollPolicyWidthSignalId);

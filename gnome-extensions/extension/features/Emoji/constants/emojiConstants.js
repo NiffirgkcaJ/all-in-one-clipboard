@@ -4,6 +4,8 @@ export const EmojiSettings = {
     CUSTOM_SKIN_TONE_PRIMARY_KEY: 'custom-skin-tone-primary',
     CUSTOM_SKIN_TONE_SECONDARY_KEY: 'custom-skin-tone-secondary',
     RECENTS_MAX_ITEMS_KEY: 'emoji-recents-max-items',
+    GRID_LIMIT_COLUMNS_KEY: 'emoji-grid-limit-columns',
+    GRID_MAX_COLUMNS_KEY: 'emoji-grid-max-columns',
 };
 
 // UI Configuration

@@ -36,6 +36,7 @@ const MasonryNavigation = {
  * const masonry = new MasonryLayout({
  *     columns: 4,
  *     spacing: 2,
+ *     maxColumns: 6,
  *     renderItemFn: (itemData, session) => createItemWidget(itemData)
  * });
  * masonry.addItems(myItemsArray, renderSession);
@@ -46,16 +47,19 @@ export const MasonryLayout = GObject.registerClass(
          * Initialize the masonry layout.
          * @param {object} params Configuration parameters
          * @param {number} [params.columns=4] Number of columns to display
+         * @param {number} [params.maxColumns] Optional maximum number of columns when auto-sizing
          * @param {number} [params.spacing=2] Spacing between items in pixels
+         * @param {number} [params.targetItemWidth] Target item width for auto column calculation
          * @param {Function} params.renderItemFn Function to render each item
          * @param {St.ScrollView} [params.scrollView] Optional scroll view for auto-scroll on focus
          */
         constructor(params) {
             super({ x_expand: true });
 
-            const { columns = MasonryDefaults.COLUMNS, targetItemWidth, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
+            const { columns = MasonryDefaults.COLUMNS, maxColumns = null, targetItemWidth, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
 
             this._columns = columns;
+            this._maxColumns = typeof maxColumns === 'number' && maxColumns > 0 ? maxColumns : null;
             this._targetItemWidth = targetItemWidth;
             this._spacing = spacing;
             this._renderItemFn = renderItemFn;
@@ -70,12 +74,89 @@ export const MasonryLayout = GObject.registerClass(
             this._pendingAllocationId = null;
             this._pendingTimeoutId = null;
             this._spatialMap = [];
+            this._spatialMapDirty = false;
             this._pendingItems = [];
             this._relayoutDebouncer = new Debouncer(() => this._relayout(), MasonryTiming.RELAYOUT_DEBOUNCE_MS);
             this._focusTimeoutId = 0;
+            this._pendingRelayoutOnMap = false;
 
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
+            this.connect('notify::mapped', () => this._flushPendingRelayoutOnMap());
+            this.connect('notify::visible', () => this._flushPendingRelayoutOnMap());
+        }
+
+        /**
+         * Mark the spatial map as dirty so it can be rebuilt on demand.
+         * @private
+         */
+        _markSpatialMapDirty() {
+            this._spatialMapDirty = true;
+        }
+
+        /**
+         * Check if this actor and its parents are visible.
+         * @returns {boolean}
+         * @private
+         */
+        _isEffectivelyVisible() {
+            let actor = this;
+            while (actor) {
+                if (actor.visible === false) return false;
+                actor = actor.get_parent?.();
+            }
+            return true;
+        }
+
+        /**
+         * Check if the widget is mapped and ready for relayout.
+         * @returns {boolean}
+         * @private
+         */
+        _canRelayoutNow() {
+            return this.mapped && this.get_stage() && this._isEffectivelyVisible();
+        }
+
+        /**
+         * Schedule a relayout if mapped, otherwise defer until mapped.
+         * @private
+         */
+        _scheduleRelayout() {
+            if (!this._items.length) return;
+
+            if (!this._canRelayoutNow()) {
+                this._pendingRelayoutOnMap = true;
+                return;
+            }
+
+            this._relayoutDebouncer.trigger();
+        }
+
+        /**
+         * Flush any pending relayout when the widget becomes mapped.
+         * @private
+         */
+        _flushPendingRelayoutOnMap() {
+            if (!this._pendingRelayoutOnMap || !this._canRelayoutNow()) return;
+            this._pendingRelayoutOnMap = false;
+            this._relayoutDebouncer.trigger();
+        }
+
+        /**
+         * Update the maximum number of columns and trigger a relayout.
+         * @param {number|null} maxColumns Maximum columns, or null to remove the cap
+         */
+        setMaxColumns(maxColumns) {
+            const normalized = typeof maxColumns === 'number' && maxColumns > 0 ? maxColumns : null;
+            if (this._maxColumns === normalized) return;
+            this._maxColumns = normalized;
+            this._lockedColumnWidth = -1;
+            this._pendingRelayout = false;
+            if (this._items.length > 0) {
+                this._scheduleRelayout();
+            } else {
+                this.queue_relayout();
+            }
         }
 
         /**
@@ -91,13 +172,9 @@ export const MasonryLayout = GObject.registerClass(
                     if (this._lockedColumnWidth > 0) {
                         this._lockedColumnWidth = -1;
                         this._pendingRelayout = false;
-                        this._lastLayoutWidth = newWidth;
-                        this._relayoutDebouncer.trigger();
-                    } else {
-                        this._lastLayoutWidth = newWidth;
-                        this._relayout();
-                        return;
                     }
+                    this._lastLayoutWidth = newWidth;
+                    this._scheduleRelayout();
                 }
             }
             this._lastLayoutWidth = newWidth;
@@ -142,7 +219,8 @@ export const MasonryLayout = GObject.registerClass(
          */
         vfunc_get_preferred_width(_forHeight) {
             const width = this._lastLayoutWidth > 0 ? this._lastLayoutWidth : 0;
-            return [width, width];
+            // Allow the parent to shrink this actor when the available width changes.
+            return [0, width];
         }
 
         /**
@@ -175,7 +253,7 @@ export const MasonryLayout = GObject.registerClass(
 
             this._renderItems(items, columnWidth, renderSession);
             this._updateContainerHeight();
-            this._buildSpatialMap();
+            this._markSpatialMapDirty();
         }
 
         /**
@@ -249,7 +327,7 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             this._updateContainerHeight();
-            this._buildSpatialMap();
+            this._markSpatialMapDirty();
             this.queue_relayout();
         }
 
@@ -400,6 +478,11 @@ export const MasonryLayout = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
+            if (this._spatialMapDirty) {
+                this._buildSpatialMap();
+                this._spatialMapDirty = false;
+            }
+
             const currentFocus = global.stage.get_key_focus();
             const currentItem = this._spatialMap.find((item) => item.widget === currentFocus);
 
@@ -431,6 +514,7 @@ export const MasonryLayout = GObject.registerClass(
             const widgets = this.get_children();
             if (widgets.length === 0) {
                 this._spatialMap = [];
+                this._spatialMapDirty = false;
                 return;
             }
 
@@ -474,6 +558,7 @@ export const MasonryLayout = GObject.registerClass(
                 isLeftEdge: item.x1 <= minX + tolerance,
                 isRightEdge: item.x2 >= maxX - tolerance,
             }));
+            this._spatialMapDirty = false;
         }
 
         /**
@@ -649,8 +734,7 @@ export const MasonryLayout = GObject.registerClass(
          */
         _relayout() {
             const itemsToLayout = [...this._items];
-            this.clear();
-            this.addItems(itemsToLayout, {});
+            this.reconcile(itemsToLayout, {});
         }
 
         /**
@@ -724,7 +808,10 @@ export const MasonryLayout = GObject.registerClass(
         _calculateColumnWidth(effectiveWidth) {
             if (this._targetItemWidth) {
                 const cellWidth = this._targetItemWidth + this._spacing;
-                const newColumns = Math.max(1, Math.floor((effectiveWidth + this._spacing) / cellWidth));
+                let newColumns = Math.max(1, Math.floor((effectiveWidth + this._spacing) / cellWidth));
+                if (this._maxColumns) {
+                    newColumns = Math.min(newColumns, this._maxColumns);
+                }
                 if (this._columns !== newColumns) {
                     this._columns = newColumns;
                     this._columnHeights = new Array(this._columns).fill(0);
@@ -839,9 +926,11 @@ export const MasonryLayout = GObject.registerClass(
             this._items = [];
             this._pendingItems = [];
             this._spatialMap = [];
+            this._spatialMapDirty = false;
             this._columnHeights = new Array(this._columns).fill(0);
             this._lockedColumnWidth = -1;
             this._pendingRelayout = false;
+            this._pendingRelayoutOnMap = false;
 
             this.destroy_all_children();
             this.height = 0;
@@ -857,6 +946,7 @@ export const MasonryLayout = GObject.registerClass(
             }
             this._cleanupPendingCallbacks();
             this._relayoutDebouncer?.destroy();
+            this._pendingRelayoutOnMap = false;
 
             super.destroy();
         }
