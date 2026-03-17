@@ -121,7 +121,11 @@ export class ExclusionUtils {
         }
 
         if (this._atspiListenerActive && this._atspiListener) {
-            this._atspiListener.deregister('object:state-changed:focused');
+            try {
+                this._atspiListener.deregister('object:state-changed:focused');
+            } catch {
+                // Silently ignore AT-SPI listener deregistration failures that are already detached or destroyed
+            }
             this._atspiListener = null;
             this._atspiListenerActive = false;
         }
@@ -211,11 +215,15 @@ export class ExclusionUtils {
 
         try {
             this._atspiListener = Atspi.EventListener.new((event) => {
-                if (!event || !event.source || !this._cachedExclusions.length) return;
+                try {
+                    if (!event || !event.source || !this._cachedExclusions.length) return;
 
-                this._pendingFocusSource = event.source;
+                    this._pendingFocusSource = event.source;
 
-                this._processFocusDebouncer.trigger();
+                    this._processFocusDebouncer.trigger();
+                } catch {
+                    // Silently ignore AT-SPI errors from rapidly disappearing event sources
+                }
             });
 
             this._atspiListener.register('object:state-changed:focused');
@@ -236,8 +244,13 @@ export class ExclusionUtils {
             this._processFocusDebouncer.cancel();
         }
 
-        this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
-        this._pendingFocusSource = null;
+        try {
+            this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
+        } catch {
+            // Silently catch AT-SPI evaluate errors, typically missing objects
+        } finally {
+            this._pendingFocusSource = null;
+        }
     }
 
     /**
@@ -248,20 +261,24 @@ export class ExclusionUtils {
      */
     _getAncestorNamesFromSource(source) {
         const names = [];
-        let current = source;
+        try {
+            let current = source;
 
-        for (let depth = 0; depth < ATSPI_PARENT_DEPTH && current; depth++) {
-            const name = current.get_name();
-            if (name) names.push(name.toLowerCase());
-            current = current.get_parent();
-        }
+            for (let depth = 0; depth < ATSPI_PARENT_DEPTH && current; depth++) {
+                const name = current.get_name();
+                if (name) names.push(name.toLowerCase());
+                current = current.get_parent();
+            }
 
-        const app = source.get_application();
-        if (app) {
-            const appName = app.get_name();
-            if (appName) names.push(appName.toLowerCase());
-            const appDesc = app.get_description();
-            if (appDesc) names.push(appDesc.toLowerCase());
+            const app = source.get_application();
+            if (app) {
+                const appName = app.get_name();
+                if (appName) names.push(appName.toLowerCase());
+                const appDesc = app.get_description();
+                if (appDesc) names.push(appDesc.toLowerCase());
+            }
+        } catch {
+            // Silently catch AT-SPI D-Bus timeout errors as they are common when windows are closing or uncooperative
         }
         return names;
     }
