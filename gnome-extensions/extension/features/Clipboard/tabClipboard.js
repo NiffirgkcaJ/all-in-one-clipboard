@@ -648,6 +648,7 @@ export const ClipboardTabContent = GObject.registerClass(
         onTabSelected() {
             this._syncSelectionBarVisibility();
             this._redraw();
+            this._manager?.scheduleImagePreviewWarmup?.();
             if (this._focusIdleId) {
                 GLib.source_remove(this._focusIdleId);
                 this._focusIdleId = 0;

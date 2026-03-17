@@ -1,6 +1,7 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
+import { FilePath } from '../../../shared/constants/storagePaths.js';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
@@ -93,7 +94,7 @@ export class GifDownloadService {
                     success = true;
                 } else {
                     const filename = `${GLib.uuid_string_random()}.gif`;
-                    const path = GLib.build_filenamev([clipboardManager.imagesDir, filename]);
+                    const path = GLib.build_filenamev([FilePath.IMAGES, filename]);
 
                     const bytes = await this.downloadAndSave(gifObject.full_url, path);
 

@@ -1,14 +1,13 @@
 import Clutter from 'gi://Clutter';
 import GdkPixbuf from 'gi://GdkPixbuf';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
 import { ClipboardBaseView } from './clipboardBaseView.js';
-import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
+import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 
 /**
  * ClipboardGridView
@@ -31,10 +30,9 @@ export const ClipboardGridView = GObject.registerClass(
                 style_class: 'clipboard-grid-view',
             });
 
-            this._pendingRenderTimeoutId = null;
+            // Note: Dimension loading is now intentionally synchronous to prevent massive
+            // masonry layout shifts. get_file_info is extremely fast as it only reads the header.
             this._dimensionCache = new Map();
-            this._pendingLoads = new Set();
-            this._dimensionRerenderTimeoutId = null;
 
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
@@ -84,15 +82,26 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Render items into the grid view.
+         * Intercepts the call to asynchronously resolve image dimensions in the background
+         * before passing the items to the masonry layout to avoid layout jitter.
          * @param {Object[]} pinnedItems Array of pinned items
          * @param {Object[]} historyItems Array of history items
          * @param {boolean} isSearching Whether a search filter is active
          * @override
          */
-        render(pinnedItems, historyItems, isSearching) {
-            this._cancelPendingRender();
+        async render(pinnedItems, historyItems, isSearching) {
             this._gridPinnedItems = pinnedItems;
             this._gridHistoryItems = historyItems;
+
+            // Pre-resolve dimensions for the initial viewport batch (all pinned + first history batch)
+            const initialHistoryBatch = historyItems.slice(0, this._batchSize);
+            const initialItems = [...pinnedItems, ...initialHistoryBatch];
+
+            await this._prepareBatchAsync(initialItems);
+
+            // Double check we haven't been destroyed while waiting
+            if (!this._dimensionCache) return;
+
             super.render(pinnedItems, historyItems, isSearching);
         }
 
@@ -177,6 +186,7 @@ export const ClipboardGridView = GObject.registerClass(
             return {
                 isPinned: isPinned,
                 imagesDir: this._manager._imagesDir,
+                imagePreviewsDir: this._manager._imagePreviewsDir,
                 linkPreviewsDir: this._manager._linkPreviewsDir,
                 imagePreviewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
@@ -205,7 +215,7 @@ export const ClipboardGridView = GObject.registerClass(
                     const minHeight = width * (9 / 16);
                     height = Math.max(item.height, minHeight);
                 } else {
-                    const dims = this._getImageDimensions(item.image_filename);
+                    const dims = this._dimensionCache.get(item.image_filename);
                     if (dims) {
                         width = dims.width;
                         const minHeight = width * (9 / 16);
@@ -246,129 +256,58 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         /**
-         * Get cached dimensions for an image file.
-         * If not cached, triggers async load and returns null.
+         * Fetch image dimensions asynchronously in the background.
+         * Allows the main thread to stay responsive without triggering massive layout recalculations.
          * @param {string} filename The image filename
-         * @returns {Object|null} { width, height } or null
+         * @returns {Promise<void>} Resolves when cached
          * @private
          */
-        _getImageDimensions(filename) {
-            if (this._dimensionCache.has(filename)) {
-                return this._dimensionCache.get(filename);
-            }
+        _resolveImageDimensionsAsync(filename) {
+            return new Promise((resolve) => {
+                if (this._dimensionCache.has(filename)) {
+                    resolve();
+                    return;
+                }
 
-            if (this._dimensionCache.get(filename) === undefined) {
-                this._loadDimensionsAsync(filename);
-            }
-
-            return null;
-        }
-
-        /**
-         * Asynchronously load image dimensions using PixbufLoader.
-         * @param {string} filename The image filename
-         * @private
-         */
-        async _loadDimensionsAsync(filename) {
-            if (!this._pendingLoads) this._pendingLoads = new Set();
-            if (this._pendingLoads.has(filename)) return;
-
-            this._pendingLoads.add(filename);
-
-            try {
-                const filePath = GLib.build_filenamev([this._manager._imagesDir, filename]);
-                const file = Gio.File.new_for_path(filePath);
-                const loader = new GdkPixbuf.PixbufLoader();
-                let gotDimensions = false;
-
-                const sizePreparedId = loader.connect('size-prepared', (_loader, width, height) => {
-                    gotDimensions = true;
-                    this._dimensionCache.set(filename, { width, height });
-                    loader.close();
-                });
-
-                try {
-                    const stream = await file.read_async(GLib.PRIORITY_DEFAULT, null);
-                    const buffer = new Uint8Array(4096);
-
-                    const pumpStream = async () => {
-                        const bytesRead = await stream.read_async(buffer, GLib.PRIORITY_DEFAULT, null);
-                        if (bytesRead === 0) return;
-                        loader.write(buffer.slice(0, bytesRead));
-                        if (!gotDimensions) await pumpStream();
-                    };
-
-                    await pumpStream();
-                } catch (e) {
-                    if (!gotDimensions) {
-                        console.warn(`[AIO-Clipboard] Failed to load dimensions for ${filename}: ${e.message}`);
+                GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                    if (!this._dimensionCache) {
+                        resolve();
+                        return GLib.SOURCE_REMOVE;
                     }
-                } finally {
-                    if (sizePreparedId) loader.disconnect(sizePreparedId);
+
                     try {
-                        loader.close();
-                    } catch {
-                        // Ignore
+                        const filePath = GLib.build_filenamev([this._manager._imagesDir, filename]);
+                        const [format, width, height] = GdkPixbuf.Pixbuf.get_file_info(filePath);
+
+                        if (format) {
+                            this._dimensionCache.set(filename, { width, height });
+                        } else {
+                            this._dimensionCache.set(filename, null);
+                        }
+                    } catch (e) {
+                        console.warn(`[AIO-Clipboard] Failed to read dimensions for ${filename}: ${e.message}`);
+                        this._dimensionCache.set(filename, null);
                     }
-                }
-
-                if (gotDimensions) {
-                    if (this._pendingLoads) {
-                        this._scheduleRerender();
-                    }
-                } else {
-                    this._dimensionCache.set(filename, null);
-                }
-            } catch (e) {
-                console.warn(`[AIO-Clipboard] General error loading ${filename}: ${e.message}`);
-                this._dimensionCache.set(filename, null);
-            } finally {
-                this._pendingLoads?.delete(filename);
-            }
-        }
-
-        /**
-         * Schedule a debounced re-render after async dimension loads.
-         * @private
-         */
-        _scheduleRerender() {
-            if (this._dimensionRerenderTimeoutId) {
-                GLib.source_remove(this._dimensionRerenderTimeoutId);
-            }
-
-            this._dimensionRerenderTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
-                this._dimensionRerenderTimeoutId = null;
-                this._doRenderPreservingState();
-                return GLib.SOURCE_REMOVE;
+                    resolve();
+                    return GLib.SOURCE_REMOVE;
+                });
             });
         }
 
         /**
-         * Re-render while preserving current pagination state.
-         * Used after async dimension loads to update layouts with correct sizes.
-         * @private
+         * Hook for BaseView to resolve metrics before feeding masonry layout.
+         * @param {Array} batch The batch of items to prepare
+         * @returns {Promise<void>}
+         * @protected
+         * @override
          */
-        _doRenderPreservingState() {
-            const focusState = this._captureFocusState();
+        async _prepareBatchAsync(batch) {
+            const imagesToResolve = batch.filter((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache.has(item.image_filename));
 
-            const pinnedItems = this._gridPinnedItems || [];
-            const historyItems = this._gridHistoryItems || [];
+            if (imagesToResolve.length === 0) return;
 
-            if (pinnedItems.length > 0) {
-                this._updatePinnedItems(pinnedItems);
-            }
-
-            if (historyItems.length > 0) {
-                const previouslyDisplayedCount = this._historyContainer?.getItemCount() || 0;
-                if (previouslyDisplayedCount > 0) {
-                    const itemsToRestore = historyItems.slice(0, previouslyDisplayedCount);
-                    this._updateHistoryItems(itemsToRestore);
-                }
-            }
-
-            if (focusState && focusState.itemId) {
-                this._restoreFocusState(focusState);
-            }
+            const promises = imagesToResolve.map((item) => this._resolveImageDimensionsAsync(item.image_filename));
+            await Promise.all(promises);
         }
 
         /**
@@ -376,14 +315,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _cancelPendingRender() {
-            if (this._pendingRenderTimeoutId) {
-                GLib.source_remove(this._pendingRenderTimeoutId);
-                this._pendingRenderTimeoutId = null;
-            }
-            if (this._dimensionRerenderTimeoutId) {
-                GLib.source_remove(this._dimensionRerenderTimeoutId);
-                this._dimensionRerenderTimeoutId = null;
-            }
+            // No pending render tasks after removing async dimension loading
         }
 
         // ========================================================================
@@ -453,14 +385,9 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         clear() {
-            this._cancelPendingRender();
-            if (this._dimensionRerenderTimeoutId) {
-                GLib.source_remove(this._dimensionRerenderTimeoutId);
-                this._dimensionRerenderTimeoutId = null;
-            }
-            this._dimensionCache.clear();
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
+            this._dimensionCache.clear();
             super.clear();
         }
 
@@ -473,7 +400,6 @@ export const ClipboardGridView = GObject.registerClass(
             this._gridPinnedItems = null;
             this._gridHistoryItems = null;
             this._dimensionCache.clear();
-            this._pendingLoads.clear();
             if (this._gridColumnSignalIds.length > 0 && this._settings) {
                 this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
                 this._gridColumnSignalIds = [];

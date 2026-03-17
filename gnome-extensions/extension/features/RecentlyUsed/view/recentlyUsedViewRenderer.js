@@ -63,6 +63,7 @@ export function createFullWidthListItem(itemData, isPinned, feature, context) {
         const config = ClipboardListItemFactory.getItemViewConfig(itemData, context.clipboardManager._imagesDir, context.clipboardManager._linkPreviewsDir);
         const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
             imagesDir: context.clipboardManager._imagesDir,
+            imagePreviewsDir: context.clipboardManager._imagePreviewsDir,
             imagePreviewSize: context.imagePreviewSize,
         });
 

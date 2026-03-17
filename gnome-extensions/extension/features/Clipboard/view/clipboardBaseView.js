@@ -167,7 +167,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 const countToRender = Math.max(this._batchSize, currentCount);
                 const firstBatch = historyItems.slice(0, countToRender);
 
-                this._updateHistoryItems(firstBatch);
+                this._renderInitialHistoryAsync(firstBatch);
             } else {
                 this._historyHeader.hide();
                 this._clearHistoryContainer();
@@ -176,6 +176,39 @@ export const ClipboardBaseView = GObject.registerClass(
 
             this._rebuildCheckboxMap();
             this._restoreFocusState(focusState);
+        }
+
+        /**
+         * Renders the initial history batch in chunks to avoid blocking the UI.
+         * @param {Array} firstBatch
+         * @private
+         */
+        async _renderInitialHistoryAsync(firstBatch) {
+            const SUBC_SIZE = 6;
+            const initial = firstBatch.slice(0, SUBC_SIZE);
+            if (!this._historyContainer) return;
+            this._updateHistoryItems(initial);
+
+            const processSubBatches = async (startIndex) => {
+                if (startIndex >= firstBatch.length || !this._historyContainer) return;
+
+                const subBatch = firstBatch.slice(startIndex, startIndex + SUBC_SIZE);
+
+                // Yield frame to prevent UI freeze during heavy renders
+                await new Promise((resolve) => {
+                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        resolve();
+                        return GLib.SOURCE_REMOVE;
+                    });
+                });
+
+                if (!this._historyContainer) return;
+                this._appendHistoryBatch(subBatch);
+
+                await processSubBatches(startIndex + SUBC_SIZE);
+            };
+
+            await processSubBatches(SUBC_SIZE);
         }
 
         /**
@@ -477,7 +510,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * Load next batch of history items.
          * @private
          */
-        _loadNextHistoryBatch() {
+        async _loadNextHistoryBatch() {
             const historyItems = this._pendingHistoryItems || [];
             const actualRenderedCount = this._getHistoryItemCount();
 
@@ -488,16 +521,49 @@ export const ClipboardBaseView = GObject.registerClass(
             this._isLoadingMore = true;
 
             try {
-                // Subclasses can implement hooks to validate before loading
                 if (this._shouldDeferLoading()) return;
 
                 const batch = historyItems.slice(actualRenderedCount, actualRenderedCount + this._batchSize);
                 if (batch.length === 0) return;
 
-                this._appendHistoryBatch(batch);
+                const SUBC_SIZE = 6;
+                const processSubBatches = async (startIndex) => {
+                    if (startIndex >= batch.length || !this._historyContainer) return;
+
+                    const subBatch = batch.slice(startIndex, startIndex + SUBC_SIZE);
+                    await this._prepareBatchAsync(subBatch);
+
+                    if (!this._historyContainer) return;
+
+                    // Yield frame to prevent UI freeze during heavy renders
+                    await new Promise((resolve) => {
+                        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            resolve();
+                            return GLib.SOURCE_REMOVE;
+                        });
+                    });
+
+                    if (!this._historyContainer) return;
+                    this._appendHistoryBatch(subBatch);
+
+                    await processSubBatches(startIndex + SUBC_SIZE);
+                };
+
+                await processSubBatches(0);
             } finally {
                 this._isLoadingMore = false;
             }
+        }
+
+        /**
+         * Hook for subclasses to prepare items asynchronously before rendering.
+         * Default implementation is a no-op.
+         * @param {Array} _batch The batch to prepare
+         * @returns {Promise<void>}
+         * @protected
+         */
+        async _prepareBatchAsync(_batch) {
+            // No-op in base class
         }
 
         /**

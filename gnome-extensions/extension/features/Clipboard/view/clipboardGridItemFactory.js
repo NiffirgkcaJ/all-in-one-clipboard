@@ -29,11 +29,12 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Create a complete grid item (card) with content and overlayed action buttons.
+     * Create a complete grid item with content and overlayed action buttons.
      *
      * @param {Object} itemData The item data with _isPinned flag
      * @param {Object} options Options for rendering
      * @param {string} options.imagesDir Directory where images are stored
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored
      * @param {string} options.linkPreviewsDir Directory where link previews are stored
      * @param {number} options.imagePreviewSize Size for image preview
      * @param {Function} options.onItemCopy Callback when card is clicked
@@ -41,6 +42,7 @@ export class ClipboardGridItemFactory {
      * @param {Set} options.selectedIds Set of selected item IDs
      * @param {Function} options.onSelectionChanged Callback when selection changes
      * @param {Map} options.checkboxIconsMap Map to register checkbox icons
+     * @param {Object} options.settings Extension settings
      * @returns {St.Widget} The complete card widget
      */
     static createItem(itemData, options) {
@@ -75,6 +77,7 @@ export class ClipboardGridItemFactory {
 
         const contentWidget = ClipboardGridItemFactory.createGridContent(config, itemData, {
             imagesDir: options.imagesDir,
+            imagePreviewsDir: options.imagePreviewsDir,
             imagePreviewSize: options.imagePreviewSize,
         });
         contentWrapper.set_child(contentWidget);
@@ -198,6 +201,10 @@ export class ClipboardGridItemFactory {
      * @param {St.Widget} itemWidget The existing widget
      * @param {Object} newItemData The new item data
      * @param {Object} options Options for rendering
+     * @param {string} options.imagesDir Directory where images are stored
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored
+     * @param {string} options.linkPreviewsDir Directory where link previews are stored
+     * @param {number} options.imagePreviewSize Size for image preview
      */
     static updateItem(itemWidget, newItemData, options) {
         if (!itemWidget || !newItemData) return;
@@ -205,18 +212,16 @@ export class ClipboardGridItemFactory {
 
         const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
 
-        // Optimization for if the configuration hasn't changed, then skip DOM rebuild
         if (itemWidget._viewConfig && JSON.stringify(itemWidget._viewConfig) === JSON.stringify(config)) {
             return;
         }
 
         itemWidget._viewConfig = config;
-
-        // Update Content
         const contentWrapper = itemWidget._contentWrapper;
         if (contentWrapper) {
             const newContentWidget = ClipboardGridItemFactory.createGridContent(config, newItemData, {
                 imagesDir: options.imagesDir,
+                imagePreviewsDir: options.imagePreviewsDir,
                 imagePreviewSize: options.imagePreviewSize,
             });
             contentWrapper.set_child(newContentWidget);
@@ -229,16 +234,13 @@ export class ClipboardGridItemFactory {
             }
         }
 
-        // Update Type Badge
         const cardStack = itemWidget._cardStack;
         if (cardStack) {
-            // Remove old badge
             if (itemWidget._typeBadge) {
                 itemWidget._typeBadge.destroy();
                 itemWidget._typeBadge = null;
             }
 
-            // Create new badge
             if (config.icon) {
                 const typeBadge = new St.BoxLayout({
                     style_class: 'clipboard-grid-type-badge',
@@ -279,161 +281,227 @@ export class ClipboardGridItemFactory {
      * @param {Object} itemData The raw item data
      * @param {Object} options Display options
      * @param {string} options.imagesDir Directory where images are stored
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored
      * @param {number} options.imagePreviewSize Size of image preview
      * @returns {St.Widget} The content widget
      */
     static createGridContent(config, itemData, options) {
-        let contentWidget;
-
         if (config.layoutMode === 'image') {
-            const imagePath = GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
-
-            const imageWrapper = new St.BoxLayout({
-                style_class: 'clipboard-grid-image-content',
-                x_expand: true,
-                y_expand: true,
-            });
-
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (imageWrapper.get_stage()) {
-                    imageWrapper.set_style(`background-image: url('file://${imagePath}'); background-size: cover;`);
-                }
-                return GLib.SOURCE_REMOVE;
-            });
-
-            contentWidget = imageWrapper;
+            return ClipboardGridItemFactory._createImageGridContent(config, itemData, options);
         } else if (config.layoutMode === 'rich') {
-            contentWidget = new St.BoxLayout({
-                vertical: true,
-                style_class: 'clipboard-grid-rich-container',
-                x_expand: true,
-                y_expand: true,
-            });
-
-            const hasIcon = [ClipboardType.URL, ClipboardType.CONTACT].includes(itemData.type);
-
-            if (hasIcon) {
-                const visualWrapper = new St.Bin({
-                    x_expand: true,
-                    y_expand: true,
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-
-                let icon;
-                if (config.gicon) {
-                    icon = new St.Icon({
-                        icon_size: IconSizes.GRID_RICH_ICON,
-                        gicon: config.gicon,
-                    });
-                } else if (config.flagPath) {
-                    const file = Gio.File.new_for_uri(config.flagPath);
-                    icon = new St.Icon({
-                        icon_size: IconSizes.GRID_RICH_ICON,
-                        gicon: new Gio.FileIcon({ file: file }),
-                    });
-                } else {
-                    icon = createStaticIcon(config, {
-                        iconSize: IconSizes.GRID_RICH_ICON,
-                    });
-                }
-                visualWrapper.set_child(icon);
-
-                contentWidget.add_child(visualWrapper);
-            } else {
-                const spacer = new St.Widget({
-                    y_expand: true,
-                });
-                contentWidget.add_child(spacer);
-            }
-
-            const labelsContainer = new St.BoxLayout({
-                vertical: true,
-                style_class: 'clipboard-grid-rich-labels',
-                x_expand: true,
-                y_expand: true,
-            });
-
-            const titleLabel = new St.Label({
-                text: config.title || '',
-                style_class: 'clipboard-grid-title',
-                x_expand: true,
-            });
-            titleLabel.get_clutter_text().set_line_wrap(false);
-            titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            labelsContainer.add_child(titleLabel);
-
-            const subLabel = new St.Label({
-                text: config.subtitle || '',
-                style_class: 'clipboard-grid-subtitle',
-                x_expand: true,
-            });
-            subLabel.get_clutter_text().set_line_wrap(false);
-            subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
-            labelsContainer.add_child(subLabel);
-
-            contentWidget.add_child(labelsContainer);
+            return ClipboardGridItemFactory._createRichGridContent(config, itemData, options);
         } else if (config.layoutMode === 'color') {
-            contentWidget = new St.BoxLayout({
-                vertical: true,
-                style_class: 'clipboard-grid-color-container',
-                x_expand: true,
-                y_expand: true,
-            });
-
-            let colorStyle = '';
-            if (itemData.gradient_filename && options.imagesDir) {
-                const gradientPath = GLib.build_filenamev([options.imagesDir, itemData.gradient_filename]);
-                colorStyle = `background-image: url('file://${gradientPath}'); background-size: contain; background-repeat: repeat;`;
-            } else if (config.cssColor) {
-                colorStyle = `background-color: ${config.cssColor};`;
-            }
-            contentWidget.set_style(colorStyle);
-
-            const spacer = new St.Widget({ y_expand: true });
-            contentWidget.add_child(spacer);
-
-            const labelOverlay = new St.BoxLayout({
-                vertical: true,
-                style_class: 'clipboard-grid-color-card',
-                x_expand: true,
-                y_expand: true,
-            });
-
-            const colorLabel = new St.Label({
-                text: config.title || '',
-                style_class: 'clipboard-grid-color-label',
-                x_expand: true,
-                y_expand: true,
-            });
-            colorLabel.get_clutter_text().set_line_wrap(false);
-            colorLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            labelOverlay.add_child(colorLabel);
-
-            contentWidget.add_child(labelOverlay);
+            return ClipboardGridItemFactory._createColorGridContent(config, itemData, options);
         } else if (config.layoutMode === 'code') {
-            const safeText = config.text || '';
-            contentWidget = new St.Label({
-                text: safeText,
-                style_class: 'clipboard-grid-code-content',
+            return ClipboardGridItemFactory._createCodeGridContent(config, itemData, options);
+        }
+
+        return ClipboardGridItemFactory._createTextGridContent(config, itemData, options);
+    }
+
+    /**
+     * Create image content for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} itemData The raw item data
+     * @param {Object} options Display options
+     * @returns {St.Widget} The image content widget
+     */
+    static _createImageGridContent(config, itemData, options) {
+        const previewPath = ClipboardBaseItemConfig.resolveImagePreviewPath(itemData, options.imagePreviewsDir);
+        const imagePath = previewPath || GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
+
+        const imageWrapper = new St.BoxLayout({
+            style_class: 'clipboard-grid-image-content',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            if (imageWrapper.get_stage()) {
+                imageWrapper.set_style(`background-image: url('file://${imagePath}'); background-size: cover;`);
+            }
+            return GLib.SOURCE_REMOVE;
+        });
+
+        return imageWrapper;
+    }
+
+    /**
+     * Create rich content with icons and text for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} itemData The raw item data
+     * @param {Object} _options Unused options kept for signature consistency
+     * @returns {St.Widget} The rich content widget
+     */
+    static _createRichGridContent(config, itemData, _options) {
+        const contentWidget = new St.BoxLayout({
+            vertical: true,
+            style_class: 'clipboard-grid-rich-container',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        const hasIcon = [ClipboardType.URL, ClipboardType.CONTACT].includes(itemData.type);
+
+        if (hasIcon) {
+            const visualWrapper = new St.Bin({
                 x_expand: true,
-            });
-            contentWidget.get_clutter_text().set_use_markup(true);
-            contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-            contentWidget.get_clutter_text().set_line_wrap(true);
-            contentWidget.get_clutter_text().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
-        } else {
-            const safeText = config.text || '';
-            contentWidget = new St.Label({
-                text: safeText,
-                style_class: 'clipboard-grid-text-label',
-                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
             });
-            contentWidget.get_clutter_text().set_line_wrap(true);
-            contentWidget.get_clutter_text().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
-            contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+
+            let icon;
+            if (config.gicon) {
+                icon = new St.Icon({
+                    icon_size: IconSizes.GRID_RICH_ICON,
+                    gicon: config.gicon,
+                });
+            } else if (config.flagPath) {
+                const file = Gio.File.new_for_uri(config.flagPath);
+                icon = new St.Icon({
+                    icon_size: IconSizes.GRID_RICH_ICON,
+                    gicon: new Gio.FileIcon({ file: file }),
+                });
+            } else {
+                icon = createStaticIcon(config, {
+                    iconSize: IconSizes.GRID_RICH_ICON,
+                });
+            }
+            visualWrapper.set_child(icon);
+
+            contentWidget.add_child(visualWrapper);
+        } else {
+            const spacer = new St.Widget({
+                y_expand: true,
+            });
+            contentWidget.add_child(spacer);
         }
+
+        const labelsContainer = new St.BoxLayout({
+            vertical: true,
+            style_class: 'clipboard-grid-rich-labels',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        const titleLabel = new St.Label({
+            text: config.title || '',
+            style_class: 'clipboard-grid-title',
+            x_expand: true,
+        });
+        titleLabel.get_clutter_text().set_line_wrap(false);
+        titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+        labelsContainer.add_child(titleLabel);
+
+        const subLabel = new St.Label({
+            text: config.subtitle || '',
+            style_class: 'clipboard-grid-subtitle',
+            x_expand: true,
+        });
+        subLabel.get_clutter_text().set_line_wrap(false);
+        subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
+        labelsContainer.add_child(subLabel);
+
+        contentWidget.add_child(labelsContainer);
+
+        return contentWidget;
+    }
+
+    /**
+     * Create color block content for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} itemData The raw item data
+     * @param {Object} options Display options
+     * @returns {St.Widget} The color content widget
+     */
+    static _createColorGridContent(config, itemData, options) {
+        const contentWidget = new St.BoxLayout({
+            vertical: true,
+            style_class: 'clipboard-grid-color-container',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        let colorStyle = '';
+        if (itemData.gradient_filename && options.imagesDir) {
+            const gradientPath = GLib.build_filenamev([options.imagesDir, itemData.gradient_filename]);
+            colorStyle = `background-image: url('file://${gradientPath}'); background-size: contain; background-repeat: repeat;`;
+        } else if (config.cssColor) {
+            colorStyle = `background-color: ${config.cssColor};`;
+        }
+        contentWidget.set_style(colorStyle);
+
+        const spacer = new St.Widget({ y_expand: true });
+        contentWidget.add_child(spacer);
+
+        const labelOverlay = new St.BoxLayout({
+            vertical: true,
+            style_class: 'clipboard-grid-color-card',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        const colorLabel = new St.Label({
+            text: config.title || '',
+            style_class: 'clipboard-grid-color-label',
+            x_expand: true,
+            y_expand: true,
+        });
+        colorLabel.get_clutter_text().set_line_wrap(false);
+        colorLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+        labelOverlay.add_child(colorLabel);
+
+        contentWidget.add_child(labelOverlay);
+
+        return contentWidget;
+    }
+
+    /**
+     * Create a structured code preview for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} _itemData Unused raw item data kept for signature consistency
+     * @param {Object} _options Unused options kept for signature consistency
+     * @returns {St.Widget} The code content widget
+     */
+    static _createCodeGridContent(config, _itemData, _options) {
+        const safeText = config.text || '';
+        const contentWidget = new St.Label({
+            text: safeText,
+            style_class: 'clipboard-grid-code-content',
+            x_expand: true,
+        });
+        contentWidget.get_clutter_text().set_use_markup(true);
+        contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+        contentWidget.get_clutter_text().set_line_wrap(true);
+        contentWidget.get_clutter_text().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
+
+        return contentWidget;
+    }
+
+    /**
+     * Create standard text content for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} _itemData Unused raw item data kept for signature consistency
+     * @param {Object} _options Unused options kept for signature consistency
+     * @returns {St.Widget} The text content widget
+     */
+    static _createTextGridContent(config, _itemData, _options) {
+        const safeText = config.text || '';
+        const contentWidget = new St.Label({
+            text: safeText,
+            style_class: 'clipboard-grid-text-label',
+            x_expand: true,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        contentWidget.get_clutter_text().set_line_wrap(true);
+        contentWidget.get_clutter_text().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
+        contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
 
         return contentWidget;
     }

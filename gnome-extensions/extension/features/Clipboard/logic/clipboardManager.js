@@ -62,11 +62,8 @@ export const ClipboardManager = GObject.registerClass(
 
             this._linkPreviewsDir = FilePath.LINK_PREVIEWS;
             this._imagesDir = FilePath.IMAGES;
+            this._imagePreviewsDir = FilePath.IMAGE_PREVIEWS;
             this._textsDir = FilePath.TEXTS;
-
-            this.imagesDir = this._imagesDir;
-
-            // File paths for history and pinned items
             this._historyFilePath = FileItem.CLIPBOARD_HISTORY;
             this._pinnedFilePath = FileItem.CLIPBOARD_PINNED;
 
@@ -80,6 +77,8 @@ export const ClipboardManager = GObject.registerClass(
             this._processClipboardTimeoutId = 0;
             this._retryTimeoutId = 0;
             this._settingsSignalIds = [];
+            this._previewWarmupId = 0;
+            this._previewWarmupQueue = null;
 
             // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
             this._blockedContentHashes = new Map();
@@ -152,7 +151,7 @@ export const ClipboardManager = GObject.registerClass(
          * @private
          */
         _ensureDirectories() {
-            [this._imagesDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
+            [this._imagesDir, this._imagePreviewsDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
                 IOFile.mkdir(path);
             });
         }
@@ -526,7 +525,8 @@ export const ClipboardManager = GObject.registerClass(
                 return;
             }
 
-            const newItem = await ProcessorClass.save(extraction, storageDir, forceFileSave);
+            const newItem =
+                ProcessorClass === ImageProcessor ? await ProcessorClass.save(extraction, storageDir, this._imagePreviewsDir) : await ProcessorClass.save(extraction, storageDir, forceFileSave);
             if (newItem) {
                 this._history.unshift(newItem);
                 this._pruneHistory();
@@ -683,7 +683,10 @@ export const ClipboardManager = GObject.registerClass(
                 for (const item of batch) {
                     if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                     if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                    if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
+                    if (item.type === ClipboardType.IMAGE) {
+                        this._deleteImageFile(item.image_filename);
+                        this._deleteImagePreviewFile(item.preview_filename);
+                    }
                     if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
                 }
 
@@ -877,7 +880,10 @@ export const ClipboardManager = GObject.registerClass(
 
                     if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                     if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                    if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
+                    if (item.type === ClipboardType.IMAGE) {
+                        this._deleteImageFile(item.image_filename);
+                        this._deleteImagePreviewFile(item.preview_filename);
+                    }
                     if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
                     wasDeleted = true;
                 }
@@ -900,7 +906,10 @@ export const ClipboardManager = GObject.registerClass(
             this._history.forEach((item) => {
                 if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                 if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
+                if (item.type === ClipboardType.IMAGE) {
+                    this._deleteImageFile(item.image_filename);
+                    this._deleteImagePreviewFile(item.preview_filename);
+                }
                 if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
             });
             this._history = [];
@@ -916,7 +925,10 @@ export const ClipboardManager = GObject.registerClass(
             this._pinned.forEach((item) => {
                 if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
                 if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                if (item.type === ClipboardType.IMAGE) this._deleteImageFile(item.image_filename);
+                if (item.type === ClipboardType.IMAGE) {
+                    this._deleteImageFile(item.image_filename);
+                    this._deleteImagePreviewFile(item.preview_filename);
+                }
                 if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
             });
             this._pinned = [];
@@ -950,6 +962,17 @@ export const ClipboardManager = GObject.registerClass(
         _deleteImageFile(filename) {
             if (!filename) return;
             this._deleteFile(this._imagesDir, filename);
+        }
+
+        /**
+         * Delete an image preview file from disk
+         *
+         * @param {string} filename - Preview filename to delete
+         * @private
+         */
+        _deleteImagePreviewFile(filename) {
+            if (!filename) return;
+            this._deleteFile(this._imagePreviewsDir, filename);
         }
 
         /**
@@ -988,18 +1011,27 @@ export const ClipboardManager = GObject.registerClass(
             if (item.type !== ClipboardType.IMAGE || !item.image_filename) return false;
 
             const missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
-            if (!missingFile) return false;
+            if (!missingFile) {
+                if (!this._imagePreviewsDir) return false;
+
+                if (item.preview_filename) {
+                    const previewMissing = !this._checkFileExists(this._imagePreviewsDir, item.preview_filename);
+                    if (!previewMissing) return false;
+                }
+
+                return ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
+            }
 
             // Try healing from local file first
             if (item.file_uri) {
                 const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
                 if (item.file_uri !== cacheUri) {
-                    return ImageProcessor.regenerateThumbnail(item, this._imagesDir);
+                    return ImageProcessor.regenerateThumbnail(item, this._imagesDir, this._imagePreviewsDir);
                 }
             }
             // If still missing and has source URL, try downloading
             if (item.source_url) {
-                return ImageProcessor.regenerateFromUrl(this._httpSession, item, this._imagesDir);
+                return ImageProcessor.regenerateFromUrl(this._httpSession, item, this._imagesDir, this._imagePreviewsDir);
             }
             return false;
         }
@@ -1034,6 +1066,44 @@ export const ClipboardManager = GObject.registerClass(
                 return this._healIconFile(item, this._linkPreviewsDir);
             }
             return false;
+        }
+
+        /**
+         * Gradually generate missing image previews in the background.
+         * Intended to reduce UI jank by using cached thumbnails for image-heavy histories.
+         */
+        scheduleImagePreviewWarmup() {
+            if (!this._imagePreviewsDir || this._previewWarmupId) return;
+
+            const queue = [...this._pinned, ...this._history].filter((item) => item.type === ClipboardType.IMAGE && item.image_filename);
+            if (queue.length === 0) return;
+
+            this._previewWarmupQueue = queue;
+            let didUpdate = false;
+            const batchSize = 1;
+
+            this._previewWarmupId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                let processed = 0;
+                while (this._previewWarmupQueue.length > 0 && processed < batchSize) {
+                    const item = this._previewWarmupQueue.shift();
+                    processed += 1;
+                    if (!item) continue;
+
+                    const updated = ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
+                    if (updated) didUpdate = true;
+                }
+
+                if (this._previewWarmupQueue.length === 0) {
+                    if (didUpdate) {
+                        this._saveAll();
+                    }
+                    this._previewWarmupQueue = null;
+                    this._previewWarmupId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                return GLib.SOURCE_CONTINUE;
+            });
         }
 
         /**
@@ -1171,10 +1241,12 @@ export const ClipboardManager = GObject.registerClass(
                 const validImages = new Set();
                 const validTexts = new Set();
                 const validLinks = new Set();
+                const validImagePreviews = new Set();
 
                 const collect = (list) => {
                     list.forEach((item) => {
                         if (item.type === ClipboardType.IMAGE) validImages.add(item.image_filename);
+                        if (item.type === ClipboardType.IMAGE && item.preview_filename) validImagePreviews.add(item.preview_filename);
                         if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) {
                             validTexts.add(`${item.id}.txt`);
                         }
@@ -1199,7 +1271,12 @@ export const ClipboardManager = GObject.registerClass(
                     await Promise.all(deletePromises);
                 };
 
-                await Promise.all([cleanDir(this._imagesDir, validImages), cleanDir(this._textsDir, validTexts), cleanDir(this._linkPreviewsDir, validLinks)]);
+                await Promise.all([
+                    cleanDir(this._imagesDir, validImages),
+                    cleanDir(this._imagePreviewsDir, validImagePreviews),
+                    cleanDir(this._textsDir, validTexts),
+                    cleanDir(this._linkPreviewsDir, validLinks),
+                ]);
             } catch (e) {
                 console.error(`[AIO-Clipboard] GC Error: ${e.message}`);
             }
@@ -1231,6 +1308,12 @@ export const ClipboardManager = GObject.registerClass(
                 GLib.source_remove(this._retryTimeoutId);
                 this._retryTimeoutId = 0;
             }
+
+            if (this._previewWarmupId) {
+                GLib.source_remove(this._previewWarmupId);
+                this._previewWarmupId = 0;
+            }
+            this._previewWarmupQueue = null;
 
             if (this._selectionOwnerChangedId) {
                 this._selection.disconnect(this._selectionOwnerChangedId);

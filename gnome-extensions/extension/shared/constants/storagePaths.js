@@ -58,6 +58,7 @@ function _initFilePaths(uuid = 'default') {
     };
     FilePath.IMAGES = `${FilePath.DATA}/images`;
     FilePath.TEXTS = `${FilePath.DATA}/texts`;
+    FilePath.IMAGE_PREVIEWS = `${FilePath.CACHE}/image-previews`;
     FilePath.LINK_PREVIEWS = `${FilePath.CACHE}/link-previews`;
     FilePath.GIF_PREVIEWS = `${FilePath.CACHE}/gif-previews`;
     FilePath.uri = buildFileUri;

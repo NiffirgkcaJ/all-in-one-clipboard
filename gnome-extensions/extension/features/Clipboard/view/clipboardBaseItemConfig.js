@@ -1,6 +1,7 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardType, ClipboardStyling, ClipboardIcons } from '../constants/clipboardConstants.js';
@@ -149,5 +150,22 @@ export class ClipboardBaseItemConfig {
      */
     static _configureTextItem(config, item) {
         config.text = item.preview || item.text || '';
+    }
+
+    /**
+     * Resolve an image preview path if available on disk.
+     * @param {Object} itemData Clipboard item data
+     * @param {string} imagePreviewsDir Directory where image previews are stored
+     * @returns {string|null} Resolved path, or null if it doesn't exist
+     */
+    static resolveImagePreviewPath(itemData, imagePreviewsDir) {
+        if (!imagePreviewsDir || !itemData?.image_filename) return null;
+
+        const base = itemData.image_filename.replace(/\.[^/.]+$/, '');
+        const fallbackPreviewName = `preview_${base}.png`;
+        const previewName = itemData.preview_filename || fallbackPreviewName;
+        const previewPath = GLib.build_filenamev([imagePreviewsDir, previewName]);
+
+        return IOFile.existsSync(previewPath) ? previewPath : null;
     }
 }
