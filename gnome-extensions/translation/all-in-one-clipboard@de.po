@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-17 07:23+0000\n"
+"POT-Creation-Date: 2026-03-17 08:22+0100\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -73,15 +73,15 @@ msgstr "Allgemein"
 
 #: gnome-extensions/extension/prefs.js:108
 msgid "Extension Dimensions"
-msgstr ""
+msgstr "Erweiterungsdimensionen"
 
 #: gnome-extensions/extension/prefs.js:109
 msgid "Set custom width and height for the extension menu."
-msgstr ""
+msgstr "Benutzerdefinierte Breite und Höhe für das Erweiterungsmenü setzen."
 
 #: gnome-extensions/extension/prefs.js:119
 msgid "Width"
-msgstr ""
+msgstr "Breite"
 
 #: gnome-extensions/extension/prefs.js:120
 #: gnome-extensions/extension/prefs.js:137
@@ -92,9 +92,8 @@ msgid "Range: %d-%d. Default: %d."
 msgstr "Bereich: %d–%d. Standard: %d."
 
 #: gnome-extensions/extension/prefs.js:136
-#, fuzzy
 msgid "Height"
-msgstr "Heller"
+msgstr "Höhe"
 
 #: gnome-extensions/extension/prefs.js:149
 msgid "Hide Panel Icon"
@@ -393,24 +392,24 @@ msgstr "Vom Zwischenablageverlauf automatisch einfügen"
 
 #: gnome-extensions/extension/prefs.js:792
 msgid "Grid Columns"
-msgstr ""
+msgstr "Rasterspalten"
 
 #: gnome-extensions/extension/prefs.js:793
 msgid "Control column counts for grid and masonry views. Turn off for automatic sizing."
-msgstr ""
+msgstr "Die Anzahl Spalten für die Raster- und Masonryansicht einstellen. Ausschalten, um die Größe automatisch anzupassen."
 
 #: gnome-extensions/extension/prefs.js:807
 #, javascript-format
 msgid "%s Columns"
-msgstr ""
+msgstr "%s-Spalten"
 
 #: gnome-extensions/extension/prefs.js:808
 msgid "Automatic when off."
-msgstr ""
+msgstr "Automatisch wenn aus."
 
 #: gnome-extensions/extension/prefs.js:818
 msgid "Maximum Columns"
-msgstr ""
+msgstr "Maximale Spalten"
 
 #: gnome-extensions/extension/prefs.js:845
 msgid "Clipboard Settings"
@@ -447,24 +446,23 @@ msgstr "Aktionsleiste der Zwischenablage anzeigen"
 
 #: gnome-extensions/extension/prefs.js:886
 msgid "Show the toolbar above the clipboard list."
-msgstr ""
+msgstr "Toolbar über der Zwischenablageliste einblenden."
 
 #: gnome-extensions/extension/prefs.js:893
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 #: gnome-extensions/extension/prefs.js:894
 msgid "Grid"
-msgstr ""
+msgstr "Raster"
 
 #: gnome-extensions/extension/prefs.js:898
-#, fuzzy
 msgid "Clipboard Layout"
-msgstr "Zwischenablagedaten"
+msgstr "Zwischenablage-Layout"
 
 #: gnome-extensions/extension/prefs.js:899
 msgid "Display clipboard history as a list or a grid."
-msgstr ""
+msgstr "Zwischenablageverlauf als Liste oder Raster anzeigen."
 
 #: gnome-extensions/extension/prefs.js:932
 msgid "Image Preview Size"
@@ -533,7 +531,7 @@ msgstr "GIF-Einstellungen"
 
 #: gnome-extensions/extension/prefs.js:1035
 msgid "To search for GIFs, you must select a provider and provide your own API key."
-msgstr "Um nach GIFs zu suchen, müssen sie einen Anbieter wählen und Ihren eigenenAPI-Schlüssel angeben."
+msgstr "Um nach GIFs zu suchen, müssen Sie einen Anbieter wählen und Ihren eigenen API-Schlüssel angeben."
 
 #: gnome-extensions/extension/prefs.js:1060
 msgid "GIF Provider"
@@ -544,25 +542,24 @@ msgid "Select the service to use for fetching GIFs."
 msgstr "Wählen Sie den Dienst zum Laden von GIFs aus."
 
 #: gnome-extensions/extension/prefs.js:1084
-#, fuzzy
 msgid "API Key"
-msgstr "Tenor API-Schlüssel"
+msgstr "API-Schlüssel"
 
 #: gnome-extensions/extension/prefs.js:1101
 msgid "API Key (Optional)"
-msgstr ""
+msgstr " API-Schlüssel (Optional)"
 
 #: gnome-extensions/extension/prefs.js:1102
 msgid "Leave blank to use the built-in default key."
-msgstr ""
+msgstr "Leer lassen, um den eingebauten Standardschküssel zu nutzen."
 
 #: gnome-extensions/extension/prefs.js:1104
 msgid "API Key (Required)"
-msgstr ""
+msgstr "API-Schlüssel (Erforderlich)"
 
 #: gnome-extensions/extension/prefs.js:1105
 msgid "You must provide an API key to use this provider."
-msgstr ""
+msgstr "Sie müssen einen API-Schlüssel angeben, um diesen Anbieter zu nutzen."
 
 #: gnome-extensions/extension/prefs.js:1114
 msgid "Paste Behavior"
@@ -599,19 +596,19 @@ msgstr "Bereich: %d–%d MB. Standard: %d MB"
 
 #: gnome-extensions/extension/prefs.js:1235
 msgid "Excluded Applications"
-msgstr "Ausschließlich Anwendungen"
+msgstr "Ausgenommene Anwendungen"
 
 #: gnome-extensions/extension/prefs.js:1236
 msgid "Manage applications that should be ignored by the clipboard manager."
-msgstr "Verwaltung von Anwendungen, die vom Zwischenablageverwaltung ignoriert werden sollen."
+msgstr "Verwaltung von Anwendungen, die von der Zwischenablageverwaltung ignoriert werden sollen."
 
 #: gnome-extensions/extension/prefs.js:1242
 msgid "Enhanced Exclusion Detection"
-msgstr ""
+msgstr "Verbesserte Ausnahmeerkennung"
 
 #: gnome-extensions/extension/prefs.js:1243
 msgid "Detects excluded applications inside browser windows and enables the system accessibility service if needed."
-msgstr ""
+msgstr "Erkennt ausgenommene Anwendungen in Browserfenstern und aktiviert den Barrierefreiheits-Service des Systems, wenn nötig."
 
 #: gnome-extensions/extension/prefs.js:1255
 msgid "Ignored Applications"
@@ -623,7 +620,7 @@ msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverl
 
 #: gnome-extensions/extension/prefs.js:1301
 msgid "Add New Exclusion"
-msgstr "Neu ausgeschlossen hinzufügen"
+msgstr "Neue Ausnahme hinzufügen"
 
 #: gnome-extensions/extension/prefs.js:1305
 msgid "Application Name or ID"
@@ -837,14 +834,13 @@ msgid "History"
 msgstr "Geschichte"
 
 #: gnome-extensions/extension/features/GIF/tabGIF.js:139
-#, fuzzy
 msgid "Search"
-msgstr "Suche..."
+msgstr "Suche"
 
 #: gnome-extensions/extension/features/GIF/tabGIF.js:145
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Search %s..."
-msgstr "Suche..."
+msgstr "Suche %s..."
 
 #: gnome-extensions/extension/features/GIF/tabGIF.js:145
 #: gnome-extensions/extension/shared/utilities/utilitySearch.js:40
