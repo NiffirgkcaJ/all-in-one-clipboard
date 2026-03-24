@@ -4,6 +4,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { ClipboardConfig } from '../constants/clipboardConstants.js';
+
 /**
  * Abstract base class for clipboard views.
  *
@@ -51,7 +53,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
             this._allItems = [];
             this._pendingHistoryItems = [];
-            this._batchSize = 15; // Default batch size
+            this._batchSize = ClipboardConfig.HISTORY_BATCH_SIZE;
             this._isLoadingMore = false;
             this._restoreFocusTimeoutId = 0;
             this._scrollIdleId = 0;
@@ -176,6 +178,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 this._showHistoryContainer(false);
             }
 
+            this._syncVirtualizedViewports();
             this._rebuildCheckboxMap();
             this._restoreFocusState(focusState);
             this._onSelectionChanged?.();
@@ -363,6 +366,7 @@ export const ClipboardBaseView = GObject.registerClass(
          */
         _appendHistoryBatch(newBatch) {
             this._historyContainer.addItems(newBatch);
+            this._syncVirtualizedViewports();
         }
 
         /**
@@ -435,6 +439,10 @@ export const ClipboardBaseView = GObject.registerClass(
                         return true;
                     }
                 }
+
+                if (this._pinnedContainer?.focusByItemId?.(focusState.itemId)) return true;
+                if (this._historyContainer?.focusByItemId?.(focusState.itemId)) return true;
+
                 return false;
             };
 
@@ -452,7 +460,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 }
 
                 let attempts = 0;
-                this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
+                this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ClipboardConfig.FOCUS_RESTORE_INTERVAL_MS, () => {
                     attempts++;
 
                     if (performFocus()) {
@@ -460,7 +468,7 @@ export const ClipboardBaseView = GObject.registerClass(
                         return GLib.SOURCE_REMOVE;
                     }
 
-                    if (attempts > 10) {
+                    if (attempts > ClipboardConfig.FOCUS_RESTORE_MAX_ATTEMPTS) {
                         const stillPending = (this._pinnedContainer?.hasPendingItems?.() ?? false) || (this._historyContainer?.hasPendingItems?.() ?? false);
                         if (!stillPending) {
                             this.emit('navigate-up');
@@ -559,6 +567,8 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _onScroll(vadjustment) {
+            this._syncVirtualizedViewports(vadjustment);
+
             const historyItems = this._pendingHistoryItems || [];
             const actualRenderedCount = this._getHistoryItemCount();
 
@@ -576,6 +586,24 @@ export const ClipboardBaseView = GObject.registerClass(
                     return GLib.SOURCE_REMOVE;
                 });
             }
+        }
+
+        /**
+         * Sync viewport metrics to virtualized containers.
+         * @param {St.Adjustment} [vadjustment] Optional explicit adjustment
+         * @private
+         */
+        _syncVirtualizedViewports(vadjustment = null) {
+            const adjustment = vadjustment || this._scrollView?.vadjustment;
+            if (!adjustment) return;
+
+            const syncContainerViewport = (container) => {
+                if (!container || typeof container.setViewport !== 'function') return;
+                container.setViewport(adjustment.value, adjustment.page_size);
+            };
+
+            syncContainerViewport(this._pinnedContainer);
+            syncContainerViewport(this._historyContainer);
         }
 
         // ========================================================================

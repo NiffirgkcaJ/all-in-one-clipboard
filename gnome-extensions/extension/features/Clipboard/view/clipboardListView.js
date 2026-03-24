@@ -5,7 +5,7 @@ import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
 
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
-
+import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 /**
  * ClipboardListView
  * Stack layout for clipboard items.
@@ -41,6 +41,10 @@ export const ClipboardListView = GObject.registerClass(
             return new StackLayout({
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
+                virtualization: true,
+                virtualMinItems: ListVirtualization.PINNED_MIN_ITEMS,
+                virtualEstimatedItemHeight: ListVirtualization.ESTIMATED_ITEM_HEIGHT,
+                virtualOverscanItems: ListVirtualization.OVERSCAN_ITEMS,
                 renderItemFn: (item) => this._createItemWidget(item, true),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
             });
@@ -55,6 +59,10 @@ export const ClipboardListView = GObject.registerClass(
             return new StackLayout({
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
+                virtualization: true,
+                virtualMinItems: ListVirtualization.HISTORY_MIN_ITEMS,
+                virtualEstimatedItemHeight: ListVirtualization.ESTIMATED_ITEM_HEIGHT,
+                virtualOverscanItems: ListVirtualization.OVERSCAN_ITEMS,
                 renderItemFn: (item) => this._createItemWidget(item, false),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
             });
@@ -102,8 +110,8 @@ export const ClipboardListView = GObject.registerClass(
          * @override
          */
         getFocusables() {
-            const pinned = this._pinnedContainer ? this._pinnedContainer.get_children() : [];
-            const history = this._historyContainer ? this._historyContainer.get_children() : [];
+            const pinned = this._pinnedContainer ? this._pinnedContainer.get_children().filter((w) => w._itemId && w.can_focus) : [];
+            const history = this._historyContainer ? this._historyContainer.get_children().filter((w) => w._itemId && w.can_focus) : [];
             return [...pinned, ...history];
         }
 

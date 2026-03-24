@@ -6,6 +6,8 @@ import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardType, ClipboardStyling, ClipboardIcons } from '../constants/clipboardConstants.js';
 
+const EXISTING_PREVIEW_PATH_CACHE = new Set();
+
 /**
  * Shared configuration utilities for clipboard items.
  * Maps raw item data to view configurations used by both list and grid factories.
@@ -74,7 +76,33 @@ export class ClipboardBaseItemConfig {
             config.subtitle = 'Cannot be recovered';
         }
 
+        config._fingerprint = ClipboardBaseItemConfig._buildConfigFingerprint(config);
         return config;
+    }
+
+    /**
+     * Build a lightweight stable fingerprint used by item update fast-path checks.
+     * @param {Object} config Item view config
+     * @returns {string}
+     * @private
+     */
+    static _buildConfigFingerprint(config) {
+        const iconOptions = config.iconOptions;
+        const iconOptionsFingerprint = iconOptions ? `${iconOptions.color || ''}:${iconOptions.styleClass || ''}` : '';
+
+        return [
+            config.layoutMode || '',
+            config.icon || '',
+            config.title || '',
+            config.subtitle || '',
+            config.text || '',
+            config.cssColor || '',
+            config.rawLines || 0,
+            config.previewLinesCount || 0,
+            config.flagPath || '',
+            config.giconPath || '',
+            iconOptionsFingerprint,
+        ].join('|');
     }
 
     /**
@@ -95,6 +123,7 @@ export class ClipboardBaseItemConfig {
         config.subtitle = item.url;
         if (item.icon_filename && linkPreviewsDir) {
             const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+            config.giconPath = iconPath;
             config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
         }
     }
@@ -112,6 +141,7 @@ export class ClipboardBaseItemConfig {
 
         if (item.subtype === 'email' && item.icon_filename && linkPreviewsDir) {
             const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+            config.giconPath = iconPath;
             config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
         }
 
@@ -166,6 +196,15 @@ export class ClipboardBaseItemConfig {
         const previewName = itemData.preview_filename || fallbackPreviewName;
         const previewPath = GLib.build_filenamev([imagePreviewsDir, previewName]);
 
-        return IOFile.existsSync(previewPath) ? previewPath : null;
+        if (EXISTING_PREVIEW_PATH_CACHE.has(previewPath)) {
+            return previewPath;
+        }
+
+        if (IOFile.existsSync(previewPath)) {
+            EXISTING_PREVIEW_PATH_CACHE.add(previewPath);
+            return previewPath;
+        }
+
+        return null;
     }
 }

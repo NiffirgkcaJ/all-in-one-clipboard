@@ -10,3 +10,16 @@ export const GridMetrics = {
         TINY: { height: 0.7 },
     },
 };
+
+export const GridVirtualization = {
+    HISTORY_MIN_ITEMS: 120,
+    PINNED_MIN_ITEMS: 300,
+    OVERSCAN_PX: 1400,
+};
+
+export const ListVirtualization = {
+    HISTORY_MIN_ITEMS: 120,
+    PINNED_MIN_ITEMS: 300,
+    ESTIMATED_ITEM_HEIGHT: 84,
+    OVERSCAN_ITEMS: 24,
+};

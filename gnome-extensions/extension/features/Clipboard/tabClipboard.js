@@ -8,11 +8,12 @@ import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
+import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 
 import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
-import { ClipboardIcons } from './constants/clipboardConstants.js';
+import { ClipboardIcons, ClipboardConfig } from './constants/clipboardConstants.js';
 
 /**
  * ClipboardTabContent
@@ -74,6 +75,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectionBar = null;
             this._redrawIdleId = 0;
             this._focusIdleId = 0;
+            this._searchDebouncer = new Debouncer(() => this._redraw(), ClipboardConfig.SEARCH_DEBOUNCE_MS);
 
             this._mainBox = new St.BoxLayout({
                 vertical: true,
@@ -99,7 +101,14 @@ export const ClipboardTabContent = GObject.registerClass(
         _buildSearchComponent() {
             this._searchComponent = new SearchComponent((searchText) => {
                 this._currentSearchText = searchText.toLowerCase().trim();
-                this._redraw();
+
+                // Strict trailing debounce: redraw only after typing pauses.
+                if (this._redrawIdleId) {
+                    GLib.source_remove(this._redrawIdleId);
+                    this._redrawIdleId = 0;
+                }
+                this._redrawScheduled = false;
+                this._searchDebouncer?.trigger();
             });
 
             const searchWidget = this._searchComponent.getWidget();
@@ -677,6 +686,8 @@ export const ClipboardTabContent = GObject.registerClass(
                 GLib.source_remove(this._focusIdleId);
                 this._focusIdleId = 0;
             }
+            this._searchDebouncer?.destroy();
+            this._searchDebouncer = null;
 
             // Tell it to stop listening for our image size setting changes
             if (this._settings && this._settingSignalId > 0) {

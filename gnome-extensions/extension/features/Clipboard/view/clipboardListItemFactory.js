@@ -174,8 +174,9 @@ export class ClipboardListItemFactory {
         itemWidget._itemId = newItemData.id;
 
         const config = ClipboardListItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
-
-        if (itemWidget._viewConfig && JSON.stringify(itemWidget._viewConfig) === JSON.stringify(config)) {
+        const previousFingerprint = itemWidget._viewConfig?._fingerprint || '';
+        const nextFingerprint = config._fingerprint || '';
+        if (previousFingerprint && previousFingerprint === nextFingerprint) {
             return;
         }
 

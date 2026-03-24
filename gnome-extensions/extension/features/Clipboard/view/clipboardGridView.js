@@ -8,8 +8,7 @@ import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
-import { GridMetrics } from '../constants/clipboardLayoutConstants.js';
-
+import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutConstants.js';
 /**
  * ClipboardGridView
  * Masonry grid layout for clipboard items.
@@ -56,6 +55,9 @@ export const ClipboardGridView = GObject.registerClass(
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
                 maxColumns: this._getMaxColumnsSetting(),
+                virtualization: true,
+                virtualMinItems: GridVirtualization.PINNED_MIN_ITEMS,
+                virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, true),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
@@ -73,6 +75,9 @@ export const ClipboardGridView = GObject.registerClass(
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: 8,
                 maxColumns: this._getMaxColumnsSetting(),
+                virtualization: true,
+                virtualMinItems: GridVirtualization.HISTORY_MIN_ITEMS,
+                virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, false),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
@@ -155,8 +160,8 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         getFocusables() {
-            const pinnedFocusables = this._pinnedContainer?.get_children().filter((w) => w.can_focus) || [];
-            const historyFocusables = this._historyContainer?.get_children().filter((w) => w.can_focus) || [];
+            const pinnedFocusables = this._pinnedContainer?.get_children().filter((w) => w._itemId && w.can_focus) || [];
+            const historyFocusables = this._historyContainer?.get_children().filter((w) => w._itemId && w.can_focus) || [];
             return [...pinnedFocusables, ...historyFocusables];
         }
 

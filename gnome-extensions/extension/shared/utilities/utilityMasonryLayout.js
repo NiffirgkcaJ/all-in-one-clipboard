@@ -26,6 +26,12 @@ const MasonryNavigation = {
     HORIZONTAL_WEIGHT: 5,
 };
 
+const MasonryVirtualization = {
+    MIN_ITEMS: 120,
+    OVERSCAN_PX: 1200,
+    FALLBACK_VIEWPORT_HEIGHT: 700,
+};
+
 /**
  * MasonryLayout
  * A self navigating Pinterest style masonry layout widget.
@@ -55,7 +61,19 @@ export const MasonryLayout = GObject.registerClass(
         constructor(params) {
             super({ x_expand: true });
 
-            const { columns = MasonryDefaults.COLUMNS, maxColumns = null, targetItemWidth, spacing = MasonryDefaults.SPACING, renderItemFn, updateItemFn, prepareItemFn, scrollView } = params;
+            const {
+                columns = MasonryDefaults.COLUMNS,
+                maxColumns = null,
+                targetItemWidth,
+                spacing = MasonryDefaults.SPACING,
+                renderItemFn,
+                updateItemFn,
+                prepareItemFn,
+                scrollView,
+                virtualization = false,
+                virtualMinItems = MasonryVirtualization.MIN_ITEMS,
+                virtualOverscanPx = MasonryVirtualization.OVERSCAN_PX,
+            } = params;
 
             this._columns = columns;
             this._maxColumns = typeof maxColumns === 'number' && maxColumns > 0 ? maxColumns : null;
@@ -67,6 +85,8 @@ export const MasonryLayout = GObject.registerClass(
             this._scrollView = scrollView || null;
             this._columnHeights = new Array(this._columns).fill(0);
             this._items = [];
+            this._layoutEntries = [];
+            this._lastRenderSession = null;
             this._lastLayoutWidth = -1;
             this._lockedColumnWidth = -1;
             this._pendingRelayout = false;
@@ -78,6 +98,12 @@ export const MasonryLayout = GObject.registerClass(
             this._pendingItems = [];
             this._focusTimeoutId = 0;
             this._pendingRelayoutOnMap = false;
+            this._virtualizationEnabled = Boolean(virtualization);
+            this._virtualMinItems = Math.max(1, virtualMinItems);
+            this._virtualOverscanPx = Math.max(0, virtualOverscanPx);
+            this._virtualizationActive = false;
+            this._virtualViewportTop = 0;
+            this._virtualViewportHeight = 0;
 
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
@@ -108,6 +134,10 @@ export const MasonryLayout = GObject.registerClass(
             for (const child of this.get_children()) {
                 const layout = child._masonryData;
                 if (layout) {
+                    if (this._virtualizationActive && !child.visible) {
+                        continue;
+                    }
+
                     let easingSaved = false;
                     if (child._shouldAnimate) {
                         child._shouldAnimate = false;
@@ -179,6 +209,13 @@ export const MasonryLayout = GObject.registerClass(
                 return;
             }
 
+            const nextCount = this._items.length + items.length;
+            if (this._shouldVirtualize(nextCount)) {
+                const mergedItems = [...this._items, ...items];
+                this.reconcile(mergedItems, renderSession);
+                return;
+            }
+
             const effectiveWidth = this._calculateEffectiveWidth();
             if (!this._isValidEffectiveWidth(effectiveWidth)) {
                 return;
@@ -202,9 +239,11 @@ export const MasonryLayout = GObject.registerClass(
                 return;
             }
 
+            this._lastRenderSession = renderSession;
             this._renderItems(items, columnWidth, renderSession);
             this._updateContainerHeight();
             this._markSpatialMapDirty();
+            this._applyViewportCulling(false);
         }
 
         /**
@@ -225,9 +264,11 @@ export const MasonryLayout = GObject.registerClass(
             const columnWidth = this._calculateColumnWidth(effectiveWidth);
             if (!this._isValidColumnWidth(columnWidth)) return;
 
+            this._lastRenderSession = renderSession;
             const newCols = this._calculateColumns(effectiveWidth);
             this._columns = newCols;
             this._lockedColumnWidth = columnWidth;
+            const useVirtualization = this._shouldVirtualize(items.length);
 
             const existingWidgets = new Map();
             for (const child of this.get_children()) {
@@ -239,59 +280,108 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             this._items = [];
+            this._layoutEntries = [];
             this._columnHeights = new Array(this._columns).fill(0);
             this._spatialMap = [];
 
             const paddingLeft = MasonryDimensions.PADDING;
 
             for (let itemData of items) {
-                itemData = this._prepareItemFn(itemData);
-                this._items.push(itemData);
-                if (!this._hasValidDimensions(itemData)) continue;
-
-                const itemHeight = this._calculateItemHeight(itemData, columnWidth);
-                if (!this._isValidItemHeight(itemHeight)) continue;
-
-                const shortestColumnIndex = this._findShortestColumn();
-                const x = paddingLeft + shortestColumnIndex * (columnWidth + this._spacing);
-                const y = this._columnHeights[shortestColumnIndex];
-
-                let itemWidget = existingWidgets.get(itemData.id);
-                if (itemWidget) {
-                    existingWidgets.delete(itemData.id);
-                    let structureChanged = false;
-                    if (this._updateItemFn) {
-                        structureChanged = this._updateItemFn(itemWidget, itemData, renderSession);
-                    }
-                    const oldData = itemWidget._masonryData;
-                    const positionChanged = oldData && (oldData.x !== x || oldData.y !== y || oldData.width !== columnWidth || oldData.height !== itemHeight);
-
-                    // Delete old layout data to force a clean allocation pass if inner contents were completely rebuilt.
-                    if (structureChanged) {
-                        itemWidget._masonryData = null;
-                        itemWidget.queue_relayout();
-                    }
-
-                    itemWidget._masonryData = { x, y, width: columnWidth, height: itemHeight };
-                    if (positionChanged || structureChanged) itemWidget._shouldAnimate = true;
-                } else {
-                    itemWidget = this._renderItemFn(itemData, renderSession);
-                    if (!itemWidget) continue;
-                    itemWidget._itemId = itemData.id;
-                    itemWidget._masonryData = { x, y, width: columnWidth, height: itemHeight };
-                    this.add_child(itemWidget);
-                }
-
-                this._updateColumnHeight(shortestColumnIndex, itemHeight);
+                this._layoutReconcileItem(itemData, {
+                    columnWidth,
+                    paddingLeft,
+                    existingWidgets,
+                    useVirtualization,
+                    renderSession,
+                });
             }
 
-            for (const widget of existingWidgets.values()) {
-                widget.destroy();
+            if (useVirtualization) {
+                this._virtualizationActive = true;
+                this._realizeVirtualWindow(existingWidgets, renderSession, true, true);
+            } else {
+                this._virtualizationActive = false;
+                for (const widget of existingWidgets.values()) {
+                    widget.destroy();
+                }
             }
 
             this._updateContainerHeight();
             this._markSpatialMapDirty();
+            this._applyViewportCulling(true);
             this.queue_relayout();
+        }
+
+        /**
+         * Reconcile a single item and optionally upsert its widget.
+         * @param {object} itemData Raw item data
+         * @param {object} options Reconciliation options
+         * @private
+         */
+        _layoutReconcileItem(itemData, options) {
+            const { columnWidth, paddingLeft, existingWidgets, useVirtualization, renderSession } = options;
+
+            itemData = this._prepareItemFn(itemData);
+            this._items.push(itemData);
+            if (!this._hasValidDimensions(itemData)) return;
+
+            const itemHeight = this._calculateItemHeight(itemData, columnWidth);
+            if (!this._isValidItemHeight(itemHeight)) return;
+
+            const shortestColumnIndex = this._findShortestColumn();
+            const x = paddingLeft + shortestColumnIndex * (columnWidth + this._spacing);
+            const y = this._columnHeights[shortestColumnIndex];
+            const layoutData = { x, y, width: columnWidth, height: itemHeight };
+
+            this._layoutEntries.push({
+                itemId: itemData.id,
+                itemData,
+                layoutData,
+            });
+
+            if (!useVirtualization) {
+                this._upsertReconciledWidget(itemData, layoutData, existingWidgets, renderSession);
+            }
+
+            this._updateColumnHeight(shortestColumnIndex, itemHeight);
+        }
+
+        /**
+         * Update or create a masonry widget for a reconciled item.
+         * @param {object} itemData Prepared item data
+         * @param {object} layoutData Masonry layout data
+         * @param {Map<string,St.Widget>} existingWidgets Existing widgets by id
+         * @param {object} renderSession Render session object
+         * @private
+         */
+        _upsertReconciledWidget(itemData, layoutData, existingWidgets, renderSession) {
+            let itemWidget = existingWidgets.get(itemData.id);
+            if (itemWidget) {
+                existingWidgets.delete(itemData.id);
+                let structureChanged = false;
+                if (this._updateItemFn) {
+                    structureChanged = this._updateItemFn(itemWidget, itemData, renderSession);
+                }
+
+                const oldData = itemWidget._masonryData;
+                const positionChanged = oldData && (oldData.x !== layoutData.x || oldData.y !== layoutData.y || oldData.width !== layoutData.width || oldData.height !== layoutData.height);
+
+                // Delete old layout data to force a clean allocation pass if inner contents were completely rebuilt.
+                if (structureChanged) {
+                    itemWidget._masonryData = null;
+                    itemWidget.queue_relayout();
+                }
+
+                itemWidget._masonryData = layoutData;
+                if (positionChanged || structureChanged) itemWidget._shouldAnimate = true;
+                return;
+            }
+
+            itemWidget = this._renderItemFn(itemData, renderSession);
+            if (!itemWidget) return;
+            itemWidget._itemId = itemData.id;
+            itemWidget._masonryData = layoutData;
+            this.add_child(itemWidget);
         }
 
         /**
@@ -338,11 +428,48 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Update viewport metrics used for masonry viewport culling.
+         * @param {number} scrollTop Current vertical scroll offset
+         * @param {number} viewportHeight Current viewport height
+         */
+        setViewport(scrollTop, viewportHeight) {
+            if (!this._virtualizationEnabled) return;
+
+            this._virtualViewportTop = Math.max(0, scrollTop || 0);
+            this._virtualViewportHeight = Math.max(0, viewportHeight || 0);
+            this._applyViewportCulling(false);
+        }
+
+        /**
+         * Focus an item by id, making it visible first if viewport culling is active.
+         * @param {string} itemId Item id to focus
+         * @returns {boolean} True if item was found and focused
+         */
+        focusByItemId(itemId) {
+            if (!itemId) return false;
+
+            let target = this.get_children().find((child) => child._itemId === itemId);
+            if (!target && this._virtualizationActive) {
+                const entry = this._layoutEntries.find((candidate) => candidate.itemId === itemId);
+                if (!entry) return false;
+
+                const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+                this._virtualViewportTop = Math.max(0, entry.layoutData.y - viewportHeight * 0.4);
+                this._applyViewportCulling(true);
+                target = this.get_children().find((child) => child._itemId === itemId);
+            }
+
+            if (!target) return false;
+            this.focusItem(target);
+            return true;
+        }
+
+        /**
          * Focus the first item in the masonry layout.
          * @param {number} [targetCenterX] X position to find item in same column
          */
         focusFirst(targetCenterX) {
-            const children = this.get_children().filter((w) => w._masonryData);
+            const children = this._getMasonryItemChildren(true);
             if (children.length === 0) return;
 
             let target = children[0];
@@ -372,7 +499,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {number} [targetCenterX] X position to find item in same column
          */
         focusLast(targetCenterX) {
-            const children = this.get_children().filter((w) => w._masonryData);
+            const children = this._getMasonryItemChildren(true);
             if (children.length === 0) return;
 
             let target = children[children.length - 1];
@@ -545,7 +672,7 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _buildSpatialMap() {
-            const widgets = this.get_children();
+            const widgets = this._getMasonryItemChildren(true);
             if (widgets.length === 0) {
                 this._spatialMap = [];
                 this._spatialMapDirty = false;
@@ -593,6 +720,112 @@ export const MasonryLayout = GObject.registerClass(
                 isRightEdge: item.x2 >= maxX - tolerance,
             }));
             this._spatialMapDirty = false;
+        }
+
+        /**
+         * Return masonry item children, optionally only those currently visible.
+         * @param {boolean} visibleOnly
+         * @returns {Array<St.Widget>}
+         * @private
+         */
+        _getMasonryItemChildren(visibleOnly = false) {
+            const children = this.get_children().filter((widget) => widget._masonryData);
+            if (!visibleOnly) return children;
+            return children.filter((widget) => widget.visible);
+        }
+
+        /**
+         * Determine whether viewport culling should be active.
+         * @returns {boolean}
+         * @private
+         */
+        _shouldVirtualize(count = this._items.length) {
+            return this._virtualizationEnabled && count >= this._virtualMinItems;
+        }
+
+        /**
+         * Realize only items near the viewport to reduce actor count and allocation work.
+         * @param {boolean} force Whether to force relayout marking even when visibility set is unchanged
+         * @private
+         */
+        _applyViewportCulling(force) {
+            if (!this._virtualizationEnabled) return;
+
+            if (!this._shouldVirtualize()) {
+                this._virtualizationActive = false;
+                return;
+            }
+
+            this._virtualizationActive = true;
+            this._realizeVirtualWindow(null, this._lastRenderSession, force, false);
+        }
+
+        /**
+         * Realize the current viewport window and destroy non-visible widgets.
+         * @param {Map<string,St.Widget>|null} existingWidgets Optional existing widget map from caller
+         * @param {object} renderSession Render session object
+         * @param {boolean} force Force spatial map/layout refresh
+         * @param {boolean} updateExisting Whether to run updateItemFn on existing widgets
+         * @private
+         */
+        _realizeVirtualWindow(existingWidgets, renderSession, force, updateExisting) {
+            const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+            const minY = Math.max(0, this._virtualViewportTop - this._virtualOverscanPx);
+            const maxY = this._virtualViewportTop + viewportHeight + this._virtualOverscanPx;
+
+            const widgetsById =
+                existingWidgets ||
+                new Map(
+                    this._getMasonryItemChildren(false).map((widget) => {
+                        return [widget._itemId, widget];
+                    }),
+                );
+
+            let changed = false;
+            for (const entry of this._layoutEntries) {
+                const { itemId, itemData, layoutData } = entry;
+                const itemTop = layoutData.y;
+                const itemBottom = layoutData.y + layoutData.height;
+                const inViewport = itemBottom >= minY && itemTop <= maxY;
+                if (!inViewport) continue;
+
+                let widget = widgetsById.get(itemId);
+                if (widget) {
+                    widgetsById.delete(itemId);
+                    const previousLayout = widget._masonryData;
+                    const positionChanged =
+                        previousLayout &&
+                        (previousLayout.x !== layoutData.x || previousLayout.y !== layoutData.y || previousLayout.width !== layoutData.width || previousLayout.height !== layoutData.height);
+
+                    if (updateExisting && this._updateItemFn) {
+                        const structureChanged = this._updateItemFn(widget, itemData, renderSession);
+                        if (structureChanged) {
+                            widget._masonryData = null;
+                            widget.queue_relayout();
+                        }
+                        if (positionChanged || structureChanged) widget._shouldAnimate = true;
+                    }
+
+                    widget._masonryData = layoutData;
+                } else {
+                    widget = this._renderItemFn(itemData, renderSession);
+                    if (!widget) continue;
+                    widget._itemId = itemId;
+                    widget._masonryData = layoutData;
+                    this.add_child(widget);
+                    changed = true;
+                }
+            }
+
+            widgetsById.forEach((widget) => {
+                widget.destroy();
+                changed = true;
+            });
+
+            if (changed || force) {
+                this._markSpatialMapDirty();
+                this.queue_relayout();
+            }
         }
 
         /**
@@ -974,6 +1207,8 @@ export const MasonryLayout = GObject.registerClass(
             this._renderGeneration = (this._renderGeneration || 0) + 1;
 
             this._items = [];
+            this._layoutEntries = [];
+            this._lastRenderSession = null;
             this._pendingItems = [];
             this._spatialMap = [];
             this._spatialMapDirty = false;
@@ -981,6 +1216,9 @@ export const MasonryLayout = GObject.registerClass(
             this._lockedColumnWidth = -1;
             this._pendingRelayout = false;
             this._pendingRelayoutOnMap = false;
+            this._virtualizationActive = false;
+            this._virtualViewportTop = 0;
+            this._virtualViewportHeight = 0;
 
             this.destroy_all_children();
             this.height = 0;

@@ -138,7 +138,11 @@ export const IconSizes = {
 // Interaction & System Configuration
 export const ClipboardConfig = {
     DIMENSION_DEBOUNCE_MS: 200,
+    SEARCH_DEBOUNCE_MS: 250,
     TARGET_ITEM_WIDTH: 100,
+    HISTORY_BATCH_SIZE: 15,
+    FOCUS_RESTORE_INTERVAL_MS: 50,
+    FOCUS_RESTORE_MAX_ATTEMPTS: 10,
 };
 
 // GSettings Keys
