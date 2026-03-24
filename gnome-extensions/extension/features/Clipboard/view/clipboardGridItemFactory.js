@@ -207,15 +207,16 @@ export class ClipboardGridItemFactory {
      * @param {number} options.imagePreviewSize Size for image preview
      */
     static updateItem(itemWidget, newItemData, options) {
-        if (!itemWidget || !newItemData) return;
+        if (!itemWidget || !newItemData) return false;
         itemWidget._itemId = newItemData.id;
 
         const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
 
         if (itemWidget._viewConfig && JSON.stringify(itemWidget._viewConfig) === JSON.stringify(config)) {
-            return;
+            return false;
         }
 
+        let structureChanged = true;
         itemWidget._viewConfig = config;
         const contentWrapper = itemWidget._contentWrapper;
         if (contentWrapper) {
@@ -272,6 +273,8 @@ export class ClipboardGridItemFactory {
                 }
             }
         }
+
+        return structureChanged;
     }
 
     /**
@@ -328,58 +331,36 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Create rich content with icons and text for the grid.
+     * Helper to create a rich icon for grid cards.
      *
      * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The rich content widget
+     * @returns {St.Widget} The configured icon widget
      */
-    static _createRichGridContent(config, itemData, _options) {
-        const contentWidget = new St.BoxLayout({
-            vertical: true,
-            style_class: 'clipboard-grid-rich-container',
-            x_expand: true,
-            y_expand: true,
-        });
-
-        const hasIcon = [ClipboardType.URL, ClipboardType.CONTACT].includes(itemData.type);
-
-        if (hasIcon) {
-            const visualWrapper = new St.Bin({
-                x_expand: true,
-                y_expand: true,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
+    static _createRichIcon(config) {
+        if (config.gicon) {
+            return new St.Icon({
+                icon_size: IconSizes.GRID_RICH_ICON,
+                gicon: config.gicon,
             });
-
-            let icon;
-            if (config.gicon) {
-                icon = new St.Icon({
-                    icon_size: IconSizes.GRID_RICH_ICON,
-                    gicon: config.gicon,
-                });
-            } else if (config.flagPath) {
-                const file = Gio.File.new_for_uri(config.flagPath);
-                icon = new St.Icon({
-                    icon_size: IconSizes.GRID_RICH_ICON,
-                    gicon: new Gio.FileIcon({ file: file }),
-                });
-            } else {
-                icon = createStaticIcon(config, {
-                    iconSize: IconSizes.GRID_RICH_ICON,
-                });
-            }
-            visualWrapper.set_child(icon);
-
-            contentWidget.add_child(visualWrapper);
-        } else {
-            const spacer = new St.Widget({
-                y_expand: true,
+        } else if (config.flagPath) {
+            const file = Gio.File.new_for_uri(config.flagPath);
+            return new St.Icon({
+                icon_size: IconSizes.GRID_RICH_ICON,
+                gicon: new Gio.FileIcon({ file: file }),
             });
-            contentWidget.add_child(spacer);
         }
+        return createStaticIcon(config, {
+            iconSize: IconSizes.GRID_RICH_ICON,
+        });
+    }
 
+    /**
+     * Helper to create a text column for grid cards.
+     *
+     * @param {Object} config The view configuration
+     * @returns {St.Widget} The vertically stacked text box
+     */
+    static _createRichTextColumn(config) {
         const labelsContainer = new St.BoxLayout({
             vertical: true,
             style_class: 'clipboard-grid-rich-labels',
@@ -405,7 +386,45 @@ export class ClipboardGridItemFactory {
         subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
         labelsContainer.add_child(subLabel);
 
-        contentWidget.add_child(labelsContainer);
+        return labelsContainer;
+    }
+
+    /**
+     * Create rich content with icons and text for the grid.
+     *
+     * @param {Object} config The view configuration
+     * @param {Object} itemData The raw item data
+     * @param {Object} _options Unused options kept for signature consistency
+     * @returns {St.Widget} The rich content widget
+     */
+    static _createRichGridContent(config, itemData, _options) {
+        const contentWidget = new St.BoxLayout({
+            vertical: true,
+            style_class: 'clipboard-grid-rich-container',
+            x_expand: true,
+            y_expand: true,
+        });
+
+        const hasIcon = [ClipboardType.URL, ClipboardType.CONTACT].includes(itemData.type);
+
+        if (hasIcon) {
+            const visualWrapper = new St.Bin({
+                x_expand: true,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            visualWrapper.set_child(ClipboardGridItemFactory._createRichIcon(config));
+            contentWidget.add_child(visualWrapper);
+        } else {
+            const spacer = new St.Widget({
+                y_expand: true,
+            });
+            contentWidget.add_child(spacer);
+        }
+
+        contentWidget.add_child(ClipboardGridItemFactory._createRichTextColumn(config));
 
         return contentWidget;
     }

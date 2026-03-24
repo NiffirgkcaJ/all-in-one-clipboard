@@ -8,6 +8,7 @@ import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
+import { GridMetrics } from '../constants/clipboardLayoutConstants.js';
 
 /**
  * ClipboardGridView
@@ -30,8 +31,7 @@ export const ClipboardGridView = GObject.registerClass(
                 style_class: 'clipboard-grid-view',
             });
 
-            // Note: Dimension loading is now intentionally synchronous to prevent massive
-            // masonry layout shifts. get_file_info is extremely fast as it only reads the header.
+            // Dimensions are cached incrementally and refined in the background as real image sizes arrive.
             this._dimensionCache = new Map();
 
             this._gridPinnedItems = [];
@@ -81,28 +81,72 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         /**
+         * Get the item factory class.
+         * @returns {Class} ClipboardGridItemFactory
+         * @override
+         */
+        _getItemFactory() {
+            return ClipboardGridItemFactory;
+        }
+
+        /**
+         * Get item options.
+         * @param {boolean} isPinned
+         * @returns {Object}
+         * @override
+         */
+        _getItemOptions(isPinned) {
+            return {
+                isPinned: isPinned,
+                imagesDir: this._manager._imagesDir,
+                imagePreviewsDir: this._manager._imagePreviewsDir,
+                linkPreviewsDir: this._manager._linkPreviewsDir,
+                imagePreviewSize: this._imagePreviewSize * 2,
+                onItemCopy: this._onItemCopy,
+                manager: this._manager,
+                selectedIds: this._selectedIds,
+                onSelectionChanged: this._onSelectionChanged,
+                checkboxIconsMap: this._checkboxIconsMap,
+                settings: this._settings,
+            };
+        }
+
+        // ========================================================================
+        // Overrides
+        // ========================================================================
+
+        /**
          * Render items into the grid view.
-         * Intercepts the call to asynchronously resolve image dimensions in the background
-         * before passing the items to the masonry layout to avoid layout jitter.
+         * Paint immediately using estimated dimensions, then refine the first viewport
+         * asynchronously once image metadata is available.
          * @param {Object[]} pinnedItems Array of pinned items
          * @param {Object[]} historyItems Array of history items
          * @param {boolean} isSearching Whether a search filter is active
          * @override
          */
-        async render(pinnedItems, historyItems, isSearching) {
+        render(pinnedItems, historyItems, isSearching) {
+            this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
+            const currentGeneration = this._gridRenderGeneration;
+
             this._gridPinnedItems = pinnedItems;
             this._gridHistoryItems = historyItems;
-
-            // Pre-resolve dimensions for the initial viewport batch (all pinned + first history batch)
-            const initialHistoryBatch = historyItems.slice(0, this._batchSize);
-            const initialItems = [...pinnedItems, ...initialHistoryBatch];
-
-            await this._prepareBatchAsync(initialItems);
-
-            // Double check we haven't been destroyed while waiting
-            if (!this._dimensionCache) return;
+            this._gridIsSearching = isSearching;
 
             super.render(pinnedItems, historyItems, isSearching);
+
+            const initialHistoryBatch = historyItems.slice(0, GridMetrics.FAST_PAINT_BATCH_SIZE);
+            const initialItems = [...pinnedItems.slice(0, GridMetrics.FAST_PAINT_BATCH_SIZE), ...initialHistoryBatch];
+
+            const hasUncachedImage = initialItems.some((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache?.has(item.image_filename));
+            if (!hasUncachedImage) return;
+
+            this._prepareBatchAsync(initialItems).then(() => {
+                // Prevent race conditions if the view was reset during async loading.
+                if (!this._dimensionCache) return;
+                if (this._gridRenderGeneration !== currentGeneration) return;
+
+                super.render(this._gridPinnedItems || [], this._gridHistoryItems || [], this._gridIsSearching || false);
+            });
         }
 
         /**
@@ -114,6 +158,22 @@ export const ClipboardGridView = GObject.registerClass(
             const pinnedFocusables = this._pinnedContainer?.get_children().filter((w) => w.can_focus) || [];
             const historyFocusables = this._historyContainer?.get_children().filter((w) => w.can_focus) || [];
             return [...pinnedFocusables, ...historyFocusables];
+        }
+
+        /**
+         * Hook for BaseView to resolve metrics before feeding masonry layout.
+         * @param {Array} batch The batch of items to prepare
+         * @returns {Promise<void>}
+         * @protected
+         * @override
+         */
+        async _prepareBatchAsync(batch) {
+            const imagesToResolve = batch.filter((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache.has(item.image_filename));
+
+            if (imagesToResolve.length === 0) return;
+
+            const promises = imagesToResolve.map((item) => this._resolveImageDimensionsAsync(item.image_filename));
+            await Promise.all(promises);
         }
 
         // ========================================================================
@@ -168,37 +228,6 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         /**
-         * Get the item factory class.
-         * @returns {Class} ClipboardGridItemFactory
-         * @override
-         */
-        _getItemFactory() {
-            return ClipboardGridItemFactory;
-        }
-
-        /**
-         * Get item options.
-         * @param {boolean} isPinned
-         * @returns {Object}
-         * @override
-         */
-        _getItemOptions(isPinned) {
-            return {
-                isPinned: isPinned,
-                imagesDir: this._manager._imagesDir,
-                imagePreviewsDir: this._manager._imagePreviewsDir,
-                linkPreviewsDir: this._manager._linkPreviewsDir,
-                imagePreviewSize: this._imagePreviewSize * 2,
-                onItemCopy: this._onItemCopy,
-                manager: this._manager,
-                selectedIds: this._selectedIds,
-                onSelectionChanged: this._onSelectionChanged,
-                checkboxIconsMap: this._checkboxIconsMap,
-                settings: this._settings,
-            };
-        }
-
-        /**
          * Calculate dimensions and prepare a single item for the masonry grid.
          * @param {Object} item Item to process
          * @param {boolean} isPinned Whether this item is pinned
@@ -212,13 +241,13 @@ export const ClipboardGridView = GObject.registerClass(
             if (item.type === 'image' && item.image_filename) {
                 if (item.width && item.height) {
                     width = item.width;
-                    const minHeight = width * (9 / 16);
+                    const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
                     height = Math.max(item.height, minHeight);
                 } else {
                     const dims = this._dimensionCache.get(item.image_filename);
                     if (dims) {
                         width = dims.width;
-                        const minHeight = width * (9 / 16);
+                        const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
                         height = Math.max(dims.height, minHeight);
                     }
                 }
@@ -241,17 +270,17 @@ export const ClipboardGridView = GObject.registerClass(
         _estimateCardHeight(item) {
             switch (item.type) {
                 case 'image':
-                    return 1.5;
+                    return GridMetrics.HEIGHT_IMAGE;
                 case 'text':
                 case 'code': {
                     const len = item.preview?.length || 0;
-                    if (len > 200) return 1.5;
-                    if (len > 100) return 1.2;
-                    if (len > 50) return 0.9;
-                    return 0.7;
+                    if (len > GridMetrics.TEXT_WEIGHTS.LONG.threshold) return GridMetrics.TEXT_WEIGHTS.LONG.height;
+                    if (len > GridMetrics.TEXT_WEIGHTS.MEDIUM.threshold) return GridMetrics.TEXT_WEIGHTS.MEDIUM.height;
+                    if (len > GridMetrics.TEXT_WEIGHTS.SHORT.threshold) return GridMetrics.TEXT_WEIGHTS.SHORT.height;
+                    return GridMetrics.TEXT_WEIGHTS.TINY.height;
                 }
                 default:
-                    return 1.0;
+                    return GridMetrics.HEIGHT_DEFAULT;
             }
         }
 
@@ -264,12 +293,12 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _resolveImageDimensionsAsync(filename) {
             return new Promise((resolve) => {
-                if (this._dimensionCache.has(filename)) {
+                if (!this._dimensionCache || this._dimensionCache.has(filename)) {
                     resolve();
                     return;
                 }
 
-                GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     if (!this._dimensionCache) {
                         resolve();
                         return GLib.SOURCE_REMOVE;
@@ -295,28 +324,10 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         /**
-         * Hook for BaseView to resolve metrics before feeding masonry layout.
-         * @param {Array} batch The batch of items to prepare
-         * @returns {Promise<void>}
-         * @protected
-         * @override
-         */
-        async _prepareBatchAsync(batch) {
-            const imagesToResolve = batch.filter((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache.has(item.image_filename));
-
-            if (imagesToResolve.length === 0) return;
-
-            const promises = imagesToResolve.map((item) => this._resolveImageDimensionsAsync(item.image_filename));
-            await Promise.all(promises);
-        }
-
-        /**
          * Cancel any pending render tasks.
          * @private
          */
-        _cancelPendingRender() {
-            // No pending render tasks after removing async dimension loading
-        }
+        _cancelPendingRender() {}
 
         // ========================================================================
         // Event Handlers
@@ -385,9 +396,11 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         clear() {
+            this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
-            this._dimensionCache.clear();
+            this._gridIsSearching = false;
+            this._dimensionCache?.clear();
             super.clear();
         }
 
@@ -397,9 +410,12 @@ export const ClipboardGridView = GObject.registerClass(
          */
         destroy() {
             this._cancelPendingRender();
+            this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
             this._gridPinnedItems = null;
             this._gridHistoryItems = null;
-            this._dimensionCache.clear();
+            this._gridIsSearching = false;
+            this._dimensionCache?.clear();
+            this._dimensionCache = null;
             if (this._gridColumnSignalIds.length > 0 && this._settings) {
                 this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
                 this._gridColumnSignalIds = [];

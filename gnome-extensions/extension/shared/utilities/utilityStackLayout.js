@@ -5,7 +5,8 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 /**
- * StackLayout - A vertical list container that supports atomic reconciliation.
+ * StackLayout
+ * A vertical list container that supports atomic reconciliation.
  * Items are rendered sequentially in a vertical column.
  * List items are focused using arrow keys.
  * @example

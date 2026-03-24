@@ -61,34 +61,6 @@ export const ClipboardListView = GObject.registerClass(
         }
 
         /**
-         * Get all focusable items in the list.
-         * Used by parent container for navigation.
-         * @returns {Array<St.Widget>} Array of focusable widgets
-         * @override
-         */
-        getFocusables() {
-            const pinned = this._pinnedContainer ? this._pinnedContainer.get_children() : [];
-            const history = this._historyContainer ? this._historyContainer.get_children() : [];
-            return [...pinned, ...history];
-        }
-
-        // ========================================================================
-        // Private Helpers
-        // ========================================================================
-
-        /**
-         * Create a single widget for the list.
-         * @param {Object} itemData The item data
-         * @param {boolean} isPinned Whether this item is pinned
-         * @returns {St.Widget} The created widget
-         * @private
-         */
-        _createItemWidget(itemData, isPinned) {
-            const options = this._getItemOptions(isPinned);
-            return ClipboardListItemFactory.createItem(itemData, options);
-        }
-
-        /**
          * Get the item factory class.
          * @returns {Class} BillboardListItemFactory
          * @override
@@ -117,6 +89,37 @@ export const ClipboardListView = GObject.registerClass(
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
             };
+        }
+
+        // ========================================================================
+        // Overrides
+        // ========================================================================
+
+        /**
+         * Get all focusable items in the list.
+         * Used by parent container for navigation.
+         * @returns {Array<St.Widget>} Array of focusable widgets
+         * @override
+         */
+        getFocusables() {
+            const pinned = this._pinnedContainer ? this._pinnedContainer.get_children() : [];
+            const history = this._historyContainer ? this._historyContainer.get_children() : [];
+            return [...pinned, ...history];
+        }
+
+        // ========================================================================
+        // Private Helpers
+        // ========================================================================
+        /**
+         * Create a single widget for the list.
+         * @param {Object} itemData The item data
+         * @param {boolean} isPinned Whether this item is pinned
+         * @returns {St.Widget} The created widget
+         * @private
+         */
+        _createItemWidget(itemData, isPinned) {
+            const options = this._getItemOptions(isPinned);
+            return ClipboardListItemFactory.createItem(itemData, options);
         }
 
         // ========================================================================
@@ -192,17 +195,15 @@ export const ClipboardListView = GObject.registerClass(
 
             if (!itemWidget) return undefined;
 
-            // Determine which type of widget is focused
             const isCheckbox = currentFocus === itemWidget._itemCheckbox;
             const isPin = currentFocus === itemWidget._pinButton;
             const isDelete = currentFocus === itemWidget._deleteButton;
 
-            // Return a function that finds the same type in the target item
             return (targetItemWidget) => {
                 if (isCheckbox) return targetItemWidget._itemCheckbox;
                 if (isPin) return targetItemWidget._pinButton;
                 if (isDelete) return targetItemWidget._deleteButton;
-                return targetItemWidget; // Fallback to item itself
+                return targetItemWidget;
             };
         }
 

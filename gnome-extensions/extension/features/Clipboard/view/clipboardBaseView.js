@@ -130,6 +130,8 @@ export const ClipboardBaseView = GObject.registerClass(
         render(pinnedItems, historyItems, isSearching) {
             const focusState = this._captureFocusState();
 
+            this._renderSession = {};
+
             this._allItems = [...pinnedItems, ...historyItems];
             this._pendingHistoryItems = historyItems;
             this._checkboxIconsMap.clear();
@@ -167,7 +169,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 const countToRender = Math.max(this._batchSize, currentCount);
                 const firstBatch = historyItems.slice(0, countToRender);
 
-                this._renderInitialHistoryAsync(firstBatch);
+                this._updateHistoryItems(firstBatch);
             } else {
                 this._historyHeader.hide();
                 this._clearHistoryContainer();
@@ -176,39 +178,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
             this._rebuildCheckboxMap();
             this._restoreFocusState(focusState);
-        }
-
-        /**
-         * Renders the initial history batch in chunks to avoid blocking the UI.
-         * @param {Array} firstBatch
-         * @private
-         */
-        async _renderInitialHistoryAsync(firstBatch) {
-            const SUBC_SIZE = 6;
-            const initial = firstBatch.slice(0, SUBC_SIZE);
-            if (!this._historyContainer) return;
-            this._updateHistoryItems(initial);
-
-            const processSubBatches = async (startIndex) => {
-                if (startIndex >= firstBatch.length || !this._historyContainer) return;
-
-                const subBatch = firstBatch.slice(startIndex, startIndex + SUBC_SIZE);
-
-                // Yield frame to prevent UI freeze during heavy renders
-                await new Promise((resolve) => {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        resolve();
-                        return GLib.SOURCE_REMOVE;
-                    });
-                });
-
-                if (!this._historyContainer) return;
-                this._appendHistoryBatch(subBatch);
-
-                await processSubBatches(startIndex + SUBC_SIZE);
-            };
-
-            await processSubBatches(SUBC_SIZE);
+            this._onSelectionChanged?.();
         }
 
         /**
@@ -519,6 +489,7 @@ export const ClipboardBaseView = GObject.registerClass(
             }
 
             this._isLoadingMore = true;
+            const currentSession = this._renderSession;
 
             try {
                 if (this._shouldDeferLoading()) return;
@@ -528,11 +499,13 @@ export const ClipboardBaseView = GObject.registerClass(
 
                 const SUBC_SIZE = 6;
                 const processSubBatches = async (startIndex) => {
+                    if (this._renderSession !== currentSession) return;
                     if (startIndex >= batch.length || !this._historyContainer) return;
 
                     const subBatch = batch.slice(startIndex, startIndex + SUBC_SIZE);
                     await this._prepareBatchAsync(subBatch);
 
+                    if (this._renderSession !== currentSession) return;
                     if (!this._historyContainer) return;
 
                     // Yield frame to prevent UI freeze during heavy renders
@@ -543,6 +516,7 @@ export const ClipboardBaseView = GObject.registerClass(
                         });
                     });
 
+                    if (this._renderSession !== currentSession) return;
                     if (!this._historyContainer) return;
                     this._appendHistoryBatch(subBatch);
 
@@ -609,6 +583,18 @@ export const ClipboardBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Clear the view and reset pagination properties before a structural redraw.
+         */
+        resetScrollAndPagination() {
+            if (this._scrollView) {
+                this._scrollView.vadjustment.value = 0;
+            }
+            this._isLoadingMore = false;
+            if (this._pinnedContainer) this._pinnedContainer.clear();
+            if (this._historyContainer) this._historyContainer.clear();
+        }
+
+        /**
          * Clear all items and reset state.
          */
         clear() {
@@ -626,6 +612,8 @@ export const ClipboardBaseView = GObject.registerClass(
          * Destroy the view and clean up resources.
          */
         destroy() {
+            this._renderSession = {}; // invalidate session instantly
+
             if (this._restoreFocusTimeoutId) {
                 GLib.source_remove(this._restoreFocusTimeoutId);
                 this._restoreFocusTimeoutId = 0;
@@ -649,7 +637,61 @@ export const ClipboardBaseView = GObject.registerClass(
             }
             this._scrollView = null;
 
+            // Detach heavy containers to prevent synchronous recursive destruction
+            const pinnedContainer = this._pinnedContainer;
+            const historyContainer = this._historyContainer;
+
+            this._pinnedContainer = null;
+            this._historyContainer = null;
+
+            if (pinnedContainer) {
+                const parent = pinnedContainer.get_parent();
+                if (parent) parent.remove_child(pinnedContainer);
+            }
+            if (historyContainer) {
+                const parent = historyContainer.get_parent();
+                if (parent) parent.remove_child(historyContainer);
+            }
+
             super.destroy();
+
+            // Destroy detached containers asynchronously in chunks
+            const destroyAsync = (container) => {
+                if (!container) return;
+
+                // Cancel all pending layout work before async teardown
+                container.clear();
+
+                const children = container.get_children();
+                if (children.length === 0) {
+                    container.destroy();
+                    return;
+                }
+
+                let i = 0;
+                const CHUNK_SIZE = 15;
+
+                GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                    const chunk = children.slice(i, i + CHUNK_SIZE);
+                    chunk.forEach((c) => {
+                        if (c) c.destroy();
+                    });
+
+                    i += CHUNK_SIZE;
+                    if (i >= children.length) {
+                        try {
+                            container.destroy();
+                        } catch {
+                            // Already destroyed or invalid
+                        }
+                        return GLib.SOURCE_REMOVE;
+                    }
+                    return GLib.SOURCE_CONTINUE;
+                });
+            };
+
+            destroyAsync(pinnedContainer);
+            destroyAsync(historyContainer);
         }
     },
 );

@@ -4,7 +4,6 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
@@ -13,7 +12,7 @@ import { createStaticIconButton, createDynamicIconButton } from '../../shared/ut
 import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
-import { ClipboardIcons, ClipboardConfig } from './constants/clipboardConstants.js';
+import { ClipboardIcons } from './constants/clipboardConstants.js';
 
 /**
  * ClipboardTabContent
@@ -57,12 +56,14 @@ export const ClipboardTabContent = GObject.registerClass(
             this._layoutSettingSignalId = this._settings.connect('changed::clipboard-layout-mode', () => {
                 this._applyLayoutMode(this._settings.get_string('clipboard-layout-mode') || 'list');
             });
-            this._dimensionDebouncer = new Debouncer(() => this._scheduleRedraw(), ClipboardConfig.DIMENSION_DEBOUNCE_MS);
             this._dimensionWidthSignalId = this._settings.connect('changed::extension-width', () => {
-                this._dimensionDebouncer.trigger();
+                if (this._currentView && typeof this._currentView.resetScrollAndPagination === 'function') {
+                    this._currentView.resetScrollAndPagination();
+                }
+                this._scheduleRedraw();
             });
             this._dimensionHeightSignalId = this._settings.connect('changed::extension-height', () => {
-                this._dimensionDebouncer.trigger();
+                this._scheduleRedraw();
             });
 
             this._selectedIds = new Set();
@@ -321,6 +322,11 @@ export const ClipboardTabContent = GObject.registerClass(
             // Update button state and tooltip
             this._layoutToggleButton.child.state = this._layoutMode;
             this._layoutToggleButton.tooltip_text = this._layoutMode === 'list' ? _('Switch to Grid View') : _('Switch to List View');
+
+            // Reset scroll view before recreating it so it doesn't carry over
+            if (this._scrollView && this._scrollView.vadjustment) {
+                this._scrollView.vadjustment.value = 0;
+            }
 
             // Recreate view and redraw
             this._createView(this._layoutMode);
@@ -605,15 +611,6 @@ export const ClipboardTabContent = GObject.registerClass(
          * Redraw the entire clipboard list
          */
         _redraw() {
-            // Check if grid view focus is on a card before render destroys them
-            const isGridView = this._layoutMode === 'grid';
-            let hadGridFocus = false;
-            if (isGridView && this._currentView) {
-                const currentFocus = global.stage.get_key_focus();
-                const focusables = this._currentView.getFocusables?.() || [];
-                hadGridFocus = focusables.includes(currentFocus);
-            }
-
             // Get items from manager
             let pinnedItems = this._manager.getPinnedItems();
             let historyItems = this._manager.getHistoryItems();
@@ -626,16 +623,8 @@ export const ClipboardTabContent = GObject.registerClass(
                 historyItems = historyItems.filter(filterFn);
             }
 
-            // Delegate rendering to the list view
+            // Delegate rendering to the view
             this._currentView.render(pinnedItems, historyItems, isSearching);
-
-            // Update selection state based on new items
-            this._updateSelectionState();
-
-            // If grid view had card focus, fall back to search field
-            if (hadGridFocus) {
-                this._searchComponent?.grabFocus();
-            }
         }
 
         // ========================================================================
@@ -646,6 +635,9 @@ export const ClipboardTabContent = GObject.registerClass(
          * Called when the tab is selected/activated
          */
         onTabSelected() {
+            if (this._currentView && typeof this._currentView.resetScrollAndPagination === 'function') {
+                this._currentView.resetScrollAndPagination();
+            }
             this._syncSelectionBarVisibility();
             this._redraw();
             this._manager?.scheduleImagePreviewWarmup?.();
@@ -665,6 +657,10 @@ export const ClipboardTabContent = GObject.registerClass(
          * Resets the tab's state, such as clearing the search field.
          */
         onMenuClosed() {
+            if (this._currentView && typeof this._currentView.resetScrollAndPagination === 'function') {
+                this._currentView.resetScrollAndPagination();
+            }
+
             // Clear search text and redraw the list without the filter
             this._searchComponent?.clearSearch();
         }
@@ -681,7 +677,6 @@ export const ClipboardTabContent = GObject.registerClass(
                 GLib.source_remove(this._focusIdleId);
                 this._focusIdleId = 0;
             }
-            this._dimensionDebouncer?.destroy();
 
             // Tell it to stop listening for our image size setting changes
             if (this._settings && this._settingSignalId > 0) {
