@@ -30,6 +30,8 @@ const MasonryVirtualization = {
     MIN_ITEMS: 120,
     OVERSCAN_PX: 1200,
     FALLBACK_VIEWPORT_HEIGHT: 700,
+    WIDGET_CACHE_LIMIT: 480,
+    NAV_PREFETCH_RADIUS: 4,
 };
 
 /**
@@ -86,6 +88,9 @@ export const MasonryLayout = GObject.registerClass(
             this._columnHeights = new Array(this._columns).fill(0);
             this._items = [];
             this._layoutEntries = [];
+            this._layoutEntryById = new Map();
+            this._itemIds = [];
+            this._itemIndexById = new Map();
             this._lastRenderSession = null;
             this._lastLayoutWidth = -1;
             this._lockedColumnWidth = -1;
@@ -104,6 +109,8 @@ export const MasonryLayout = GObject.registerClass(
             this._virtualizationActive = false;
             this._virtualViewportTop = 0;
             this._virtualViewportHeight = 0;
+            this._virtualWidgetCache = new Map();
+            this._virtualWidgetCacheLimit = MasonryVirtualization.WIDGET_CACHE_LIMIT;
 
             this.reactive = true;
             this.connect('key-press-event', this.handleKeyPress.bind(this));
@@ -269,6 +276,7 @@ export const MasonryLayout = GObject.registerClass(
             this._columns = newCols;
             this._lockedColumnWidth = columnWidth;
             const useVirtualization = this._shouldVirtualize(items.length);
+            this._clearVirtualWidgetCache();
 
             const existingWidgets = new Map();
             for (const child of this.get_children()) {
@@ -281,6 +289,9 @@ export const MasonryLayout = GObject.registerClass(
 
             this._items = [];
             this._layoutEntries = [];
+            this._layoutEntryById = new Map();
+            this._itemIds = [];
+            this._itemIndexById = new Map();
             this._columnHeights = new Array(this._columns).fill(0);
             this._spatialMap = [];
 
@@ -298,7 +309,7 @@ export const MasonryLayout = GObject.registerClass(
 
             if (useVirtualization) {
                 this._virtualizationActive = true;
-                this._realizeVirtualWindow(existingWidgets, renderSession, true, true);
+                this._reconcileVirtualWindow(existingWidgets, renderSession, true, true);
             } else {
                 this._virtualizationActive = false;
                 for (const widget of existingWidgets.values()) {
@@ -333,11 +344,15 @@ export const MasonryLayout = GObject.registerClass(
             const y = this._columnHeights[shortestColumnIndex];
             const layoutData = { x, y, width: columnWidth, height: itemHeight };
 
-            this._layoutEntries.push({
+            const entry = {
                 itemId: itemData.id,
                 itemData,
                 layoutData,
-            });
+            };
+            this._layoutEntries.push(entry);
+            this._layoutEntryById.set(itemData.id, entry);
+            this._itemIndexById.set(itemData.id, this._itemIds.length);
+            this._itemIds.push(itemData.id);
 
             if (!useVirtualization) {
                 this._upsertReconciledWidget(itemData, layoutData, existingWidgets, renderSession);
@@ -435,9 +450,34 @@ export const MasonryLayout = GObject.registerClass(
         setViewport(scrollTop, viewportHeight) {
             if (!this._virtualizationEnabled) return;
 
-            this._virtualViewportTop = Math.max(0, scrollTop || 0);
+            this._virtualViewportTop = this._resolveLocalViewportTop(scrollTop);
             this._virtualViewportHeight = Math.max(0, viewportHeight || 0);
             this._applyViewportCulling(false);
+        }
+
+        /**
+         * Refresh virtual viewport values from the owning scroll adjustment.
+         * @private
+         */
+        _refreshViewportFromScrollView() {
+            const adjustment = this._scrollView?.vadjustment;
+            if (!adjustment) return;
+
+            this._virtualViewportTop = this._resolveLocalViewportTop(adjustment.value);
+            this._virtualViewportHeight = Math.max(0, adjustment.page_size || 0);
+        }
+
+        /**
+         * Convert global scroll offset into this layout's local coordinate space.
+         * @param {number} scrollTop Global scroll offset
+         * @returns {number} Local viewport top offset
+         * @private
+         */
+        _resolveLocalViewportTop(scrollTop) {
+            const globalTop = Math.max(0, scrollTop || 0);
+            const allocation = this.get_allocation_box?.();
+            if (!allocation) return globalTop;
+            return Math.max(0, globalTop - allocation.y1);
         }
 
         /**
@@ -450,7 +490,7 @@ export const MasonryLayout = GObject.registerClass(
 
             let target = this.get_children().find((child) => child._itemId === itemId);
             if (!target && this._virtualizationActive) {
-                const entry = this._layoutEntries.find((candidate) => candidate.itemId === itemId);
+                const entry = this._layoutEntryById.get(itemId);
                 if (!entry) return false;
 
                 const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
@@ -469,7 +509,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {number} [targetCenterX] X position to find item in same column
          */
         focusFirst(targetCenterX) {
-            const children = this._getMasonryItemChildren(true);
+            const children = this._getItemChildren(true);
             if (children.length === 0) return;
 
             let target = children[0];
@@ -499,7 +539,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {number} [targetCenterX] X position to find item in same column
          */
         focusLast(targetCenterX) {
-            const children = this._getMasonryItemChildren(true);
+            const children = this._getItemChildren(true);
             if (children.length === 0) return;
 
             let target = children[children.length - 1];
@@ -574,19 +614,31 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             const currentFocus = global.stage.get_key_focus();
-            const currentItem = this._spatialMap.find((item) => item.widget === currentFocus);
+            let currentWidget = currentFocus;
+            while (currentWidget && !currentWidget._itemId) {
+                currentWidget = currentWidget.get_parent?.();
+            }
+
+            if (!currentWidget || !this.contains(currentWidget)) return Clutter.EVENT_PROPAGATE;
+
+            const currentItem = this._spatialMap.find((item) => item.widget === currentWidget);
 
             if (!currentItem) return Clutter.EVENT_PROPAGATE;
 
-            const nextWidget = this._findClosestInDirection(currentFocus, direction);
+            const nextWidget = this._findClosestInDirection(currentWidget, direction);
 
             if (!nextWidget) {
+                if (this._tryVirtualVerticalFallback(currentWidget, direction)) {
+                    return Clutter.EVENT_STOP;
+                }
+
                 if (direction === 'up' || direction === 'down') {
                     return Clutter.EVENT_PROPAGATE;
                 }
                 return Clutter.EVENT_STOP;
             }
 
+            // Masonry cells are single focus without subtargets so direct grab_key_focus is sufficient.
             nextWidget.grab_key_focus();
 
             if (this._scrollView) {
@@ -594,238 +646,6 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             return Clutter.EVENT_STOP;
-        }
-
-        /**
-         * Mark the spatial map as dirty so it can be rebuilt on demand.
-         * @private
-         */
-        _markSpatialMapDirty() {
-            this._spatialMapDirty = true;
-        }
-
-        /**
-         * Check if this actor and its parents are visible.
-         * @returns {boolean}
-         * @private
-         */
-        _isEffectivelyVisible() {
-            let actor = this;
-            while (actor) {
-                if (actor.visible === false) return false;
-                actor = actor.get_parent?.();
-            }
-            return true;
-        }
-
-        /**
-         * Check if the widget is mapped and ready for relayout.
-         * @returns {boolean}
-         * @private
-         */
-        _canRelayoutNow() {
-            return this.mapped && this.get_stage() && this._isEffectivelyVisible();
-        }
-
-        /**
-         * Schedule a relayout if mapped, otherwise defer until mapped.
-         * @private
-         */
-        _scheduleRelayout() {
-            if (!this._items.length) return;
-
-            if (!this._canRelayoutNow()) {
-                this._pendingRelayoutOnMap = true;
-                return;
-            }
-
-            this._cancelScheduledRelayout();
-            this._relayoutTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MasonryTiming.RELAYOUT_DEBOUNCE_MS, () => {
-                this._relayoutTimeoutId = 0;
-
-                if (!this._items.length) {
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                if (!this._canRelayoutNow()) {
-                    this._pendingRelayoutOnMap = true;
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                this._relayout();
-                return GLib.SOURCE_REMOVE;
-            });
-        }
-
-        /**
-         * Flush any pending relayout when the widget becomes mapped.
-         * @private
-         */
-        _flushPendingRelayoutOnMap() {
-            if (!this._pendingRelayoutOnMap || !this._canRelayoutNow()) return;
-            this._pendingRelayoutOnMap = false;
-            this._scheduleRelayout();
-        }
-
-        /**
-         * Builds a cache of item positions for keyboard navigation.
-         * @private
-         */
-        _buildSpatialMap() {
-            const widgets = this._getMasonryItemChildren(true);
-            if (widgets.length === 0) {
-                this._spatialMap = [];
-                this._spatialMapDirty = false;
-                return;
-            }
-
-            let minY = Infinity,
-                minX = Infinity,
-                maxX = -Infinity,
-                maxY = -Infinity;
-
-            const mapData = widgets
-                .filter((widget) => widget._masonryData)
-                .map((widget) => {
-                    const data = widget._masonryData;
-                    const x1 = data.x;
-                    const y1 = data.y;
-                    const width = data.width;
-                    const height = data.height;
-                    const x2 = x1 + width;
-                    const y2 = y1 + height;
-
-                    if (y1 < minY) minY = y1;
-                    if (x1 < minX) minX = x1;
-                    if (x2 > maxX) maxX = x2;
-                    if (y2 > maxY) maxY = y2;
-
-                    return {
-                        widget,
-                        centerX: x1 + width / 2,
-                        centerY: y1 + height / 2,
-                        y1,
-                        x1,
-                        x2,
-                        y2,
-                    };
-                });
-
-            const tolerance = MasonryNavigation.EDGE_TOLERANCE;
-            this._spatialMap = mapData.map((item) => ({
-                ...item,
-                isTopEdge: item.y1 <= minY + tolerance,
-                isBottomEdge: item.y2 >= maxY - tolerance,
-                isLeftEdge: item.x1 <= minX + tolerance,
-                isRightEdge: item.x2 >= maxX - tolerance,
-            }));
-            this._spatialMapDirty = false;
-        }
-
-        /**
-         * Return masonry item children, optionally only those currently visible.
-         * @param {boolean} visibleOnly
-         * @returns {Array<St.Widget>}
-         * @private
-         */
-        _getMasonryItemChildren(visibleOnly = false) {
-            const children = this.get_children().filter((widget) => widget._masonryData);
-            if (!visibleOnly) return children;
-            return children.filter((widget) => widget.visible);
-        }
-
-        /**
-         * Determine whether viewport culling should be active.
-         * @returns {boolean}
-         * @private
-         */
-        _shouldVirtualize(count = this._items.length) {
-            return this._virtualizationEnabled && count >= this._virtualMinItems;
-        }
-
-        /**
-         * Realize only items near the viewport to reduce actor count and allocation work.
-         * @param {boolean} force Whether to force relayout marking even when visibility set is unchanged
-         * @private
-         */
-        _applyViewportCulling(force) {
-            if (!this._virtualizationEnabled) return;
-
-            if (!this._shouldVirtualize()) {
-                this._virtualizationActive = false;
-                return;
-            }
-
-            this._virtualizationActive = true;
-            this._realizeVirtualWindow(null, this._lastRenderSession, force, false);
-        }
-
-        /**
-         * Realize the current viewport window and destroy non-visible widgets.
-         * @param {Map<string,St.Widget>|null} existingWidgets Optional existing widget map from caller
-         * @param {object} renderSession Render session object
-         * @param {boolean} force Force spatial map/layout refresh
-         * @param {boolean} updateExisting Whether to run updateItemFn on existing widgets
-         * @private
-         */
-        _realizeVirtualWindow(existingWidgets, renderSession, force, updateExisting) {
-            const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
-            const minY = Math.max(0, this._virtualViewportTop - this._virtualOverscanPx);
-            const maxY = this._virtualViewportTop + viewportHeight + this._virtualOverscanPx;
-
-            const widgetsById =
-                existingWidgets ||
-                new Map(
-                    this._getMasonryItemChildren(false).map((widget) => {
-                        return [widget._itemId, widget];
-                    }),
-                );
-
-            let changed = false;
-            for (const entry of this._layoutEntries) {
-                const { itemId, itemData, layoutData } = entry;
-                const itemTop = layoutData.y;
-                const itemBottom = layoutData.y + layoutData.height;
-                const inViewport = itemBottom >= minY && itemTop <= maxY;
-                if (!inViewport) continue;
-
-                let widget = widgetsById.get(itemId);
-                if (widget) {
-                    widgetsById.delete(itemId);
-                    const previousLayout = widget._masonryData;
-                    const positionChanged =
-                        previousLayout &&
-                        (previousLayout.x !== layoutData.x || previousLayout.y !== layoutData.y || previousLayout.width !== layoutData.width || previousLayout.height !== layoutData.height);
-
-                    if (updateExisting && this._updateItemFn) {
-                        const structureChanged = this._updateItemFn(widget, itemData, renderSession);
-                        if (structureChanged) {
-                            widget._masonryData = null;
-                            widget.queue_relayout();
-                        }
-                        if (positionChanged || structureChanged) widget._shouldAnimate = true;
-                    }
-
-                    widget._masonryData = layoutData;
-                } else {
-                    widget = this._renderItemFn(itemData, renderSession);
-                    if (!widget) continue;
-                    widget._itemId = itemId;
-                    widget._masonryData = layoutData;
-                    this.add_child(widget);
-                    changed = true;
-                }
-            }
-
-            widgetsById.forEach((widget) => {
-                widget.destroy();
-                changed = true;
-            });
-
-            if (changed || force) {
-                this._markSpatialMapDirty();
-                this.queue_relayout();
-            }
         }
 
         /**
@@ -940,6 +760,456 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Handle vertical navigation misses when virtualization is active.
+         * Masonry needs this wrapper because spatial navigation may fail to find a
+         * physical neighbor even when logical neighbors exist outside the realized window.
+         * @param {St.Widget} itemWidget Current item widget
+         * @param {string} direction Navigation direction
+         * @returns {boolean} True if handled
+         * @private
+         */
+        _tryVirtualVerticalFallback(itemWidget, direction) {
+            if ((direction !== 'up' && direction !== 'down') || !this._virtualizationActive) return false;
+            if (this._tryVirtualVerticalNavigation(itemWidget, direction)) return true;
+            return this._hasVirtualNeighbor(itemWidget, direction);
+        }
+
+        /**
+         * Try virtualized up/down movement by global index and realize target if needed.
+         * @param {St.Widget} itemWidget Current item widget
+         * @param {'up'|'down'} direction Vertical direction
+         * @returns {boolean} True if focus moved
+         * @private
+         */
+        _tryVirtualVerticalNavigation(itemWidget, direction) {
+            const currentItemId = itemWidget?._itemId;
+            if (!currentItemId) return false;
+
+            const currentIndex = this._itemIndexById.get(currentItemId);
+            if (currentIndex === undefined) return false;
+
+            const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+            if (nextIndex < 0 || nextIndex >= this._itemIds.length) return false;
+
+            const nextItemId = this._itemIds[nextIndex];
+            if (!nextItemId) return false;
+
+            let nextWidget = this.get_children().find((child) => child._itemId === nextItemId);
+            if (!nextWidget) {
+                this._ensureRealizedNeighborhood(nextIndex);
+                nextWidget = this.get_children().find((child) => child._itemId === nextItemId);
+            }
+
+            if (!nextWidget) {
+                const entry = this._layoutEntryById.get(nextItemId);
+                if (!entry) return false;
+                const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+                this._virtualViewportTop = Math.max(0, entry.layoutData.y - viewportHeight * 0.4);
+                this._applyViewportCulling(false);
+                nextWidget = this.get_children().find((child) => child._itemId === nextItemId);
+                if (!nextWidget) {
+                    this._applyViewportCulling(true);
+                    nextWidget = this.get_children().find((child) => child._itemId === nextItemId);
+                }
+            }
+
+            if (!nextWidget) {
+                return this.focusByItemId(currentItemId);
+            }
+
+            nextWidget.grab_key_focus();
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, nextWidget);
+            }
+            return true;
+        }
+
+        /**
+         * Check whether there is still a logical item above or below this widget.
+         * @param {St.Widget} itemWidget Current item widget
+         * @param {'up'|'down'} direction Vertical direction
+         * @returns {boolean}
+         * @private
+         */
+        _hasVirtualNeighbor(itemWidget, direction) {
+            const currentItemId = itemWidget?._itemId;
+            if (!currentItemId) return false;
+            const currentIndex = this._itemIndexById.get(currentItemId);
+            if (currentIndex === undefined) return false;
+            if (direction === 'up') return currentIndex > 0;
+            return currentIndex < this._itemIds.length - 1;
+        }
+
+        /**
+         * Resolve focused item id within this layout.
+         * @returns {string|null}
+         * @private
+         */
+        _getFocusedItemId() {
+            let focused = global.stage.get_key_focus();
+            while (focused && !focused._itemId) {
+                focused = focused.get_parent?.();
+            }
+            if (!focused || !this.contains(focused)) return null;
+            return focused._itemId || null;
+        }
+
+        /**
+         * Cache an off-window widget for potential reuse on reverse scrolling.
+         * @param {string} itemId Item id key
+         * @param {St.Widget} widget Widget to cache
+         * @private
+         */
+        _cacheVirtualWidget(itemId, widget) {
+            if (!itemId || !widget) return;
+            if (widget.get_parent() === this) {
+                this.remove_child(widget);
+            }
+
+            this._virtualWidgetCache.set(itemId, widget);
+            while (this._virtualWidgetCache.size > this._virtualWidgetCacheLimit) {
+                const oldest = this._virtualWidgetCache.entries().next().value;
+                if (!oldest) break;
+                const [oldestId, oldestWidget] = oldest;
+                this._virtualWidgetCache.delete(oldestId);
+                oldestWidget.destroy();
+            }
+        }
+
+        /**
+         * Destroy all cached off-window widgets.
+         * @private
+         */
+        _clearVirtualWidgetCache() {
+            this._virtualWidgetCache.forEach((widget) => {
+                widget.destroy();
+            });
+            this._virtualWidgetCache.clear();
+        }
+
+        /**
+         * Mark the spatial map as dirty so it can be rebuilt on demand.
+         * @private
+         */
+        _markSpatialMapDirty() {
+            this._spatialMapDirty = true;
+        }
+
+        /**
+         * Builds a cache of item positions for keyboard navigation.
+         * @private
+         */
+        _buildSpatialMap() {
+            const widgets = this._getItemChildren(true);
+            if (widgets.length === 0) {
+                this._spatialMap = [];
+                this._spatialMapDirty = false;
+                return;
+            }
+
+            let minY = Infinity,
+                minX = Infinity,
+                maxX = -Infinity,
+                maxY = -Infinity;
+
+            const mapData = widgets
+                .filter((widget) => widget._masonryData)
+                .map((widget) => {
+                    const data = widget._masonryData;
+                    const x1 = data.x;
+                    const y1 = data.y;
+                    const width = data.width;
+                    const height = data.height;
+                    const x2 = x1 + width;
+                    const y2 = y1 + height;
+
+                    if (y1 < minY) minY = y1;
+                    if (x1 < minX) minX = x1;
+                    if (x2 > maxX) maxX = x2;
+                    if (y2 > maxY) maxY = y2;
+
+                    return {
+                        widget,
+                        centerX: x1 + width / 2,
+                        centerY: y1 + height / 2,
+                        y1,
+                        x1,
+                        x2,
+                        y2,
+                    };
+                });
+
+            const tolerance = MasonryNavigation.EDGE_TOLERANCE;
+            this._spatialMap = mapData.map((item) => ({
+                ...item,
+                isTopEdge: item.y1 <= minY + tolerance,
+                isBottomEdge: item.y2 >= maxY - tolerance,
+                isLeftEdge: item.x1 <= minX + tolerance,
+                isRightEdge: item.x2 >= maxX - tolerance,
+            }));
+            this._spatialMapDirty = false;
+        }
+
+        /**
+         * Check if this actor and its parents are visible.
+         * @returns {boolean}
+         * @private
+         */
+        _isEffectivelyVisible() {
+            let actor = this;
+            while (actor) {
+                if (actor.visible === false) return false;
+                actor = actor.get_parent?.();
+            }
+            return true;
+        }
+
+        /**
+         * Check if the widget is mapped and ready for relayout.
+         * @returns {boolean}
+         * @private
+         */
+        _canRelayoutNow() {
+            return this.mapped && this.get_stage() && this._isEffectivelyVisible();
+        }
+
+        /**
+         * Schedule a relayout if mapped, otherwise defer until mapped.
+         * @private
+         */
+        _scheduleRelayout() {
+            if (!this._items.length) return;
+
+            if (!this._canRelayoutNow()) {
+                this._pendingRelayoutOnMap = true;
+                return;
+            }
+
+            this._cancelScheduledRelayout();
+            this._relayoutTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, MasonryTiming.RELAYOUT_DEBOUNCE_MS, () => {
+                this._relayoutTimeoutId = 0;
+
+                if (!this._items.length) {
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                if (!this._canRelayoutNow()) {
+                    this._pendingRelayoutOnMap = true;
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                this._relayout();
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        /**
+         * Flush any pending relayout when the widget becomes mapped.
+         * @private
+         */
+        _flushPendingRelayoutOnMap() {
+            if (!this._pendingRelayoutOnMap || !this._canRelayoutNow()) return;
+            this._pendingRelayoutOnMap = false;
+            this._scheduleRelayout();
+        }
+
+        /**
+         * Return only item children, optionally only those currently visible.
+         * @param {boolean} visibleOnly
+         * @returns {Array<St.Widget>}
+         * @private
+         */
+        _getItemChildren(visibleOnly = false) {
+            const children = this.get_children().filter((widget) => widget._masonryData);
+            if (!visibleOnly) return children;
+            return children.filter((widget) => widget.visible);
+        }
+
+        /**
+         * Determine whether viewport culling should be active.
+         * @returns {boolean}
+         * @private
+         */
+        _shouldVirtualize(count = this._items.length) {
+            return this._virtualizationEnabled && count >= this._virtualMinItems;
+        }
+
+        /**
+         * Realize only items near the viewport to reduce actor count and allocation work.
+         * @param {boolean} force Whether to force relayout marking even when visibility set is unchanged
+         * @private
+         */
+        _applyViewportCulling(force) {
+            if (!this._virtualizationEnabled) return;
+
+            if (!this._shouldVirtualize()) {
+                this._virtualizationActive = false;
+                this._clearVirtualWidgetCache();
+                return;
+            }
+
+            this._virtualizationActive = true;
+            this._reconcileVirtualWindow(null, this._lastRenderSession, force, false);
+        }
+
+        /**
+         * Reconcile only the currently visible virtualized window.
+         * @param {Map<string,St.Widget>|null} existingWidgets Optional existing widget map from caller
+         * @param {object} renderSession Render session object
+         * @param {boolean} force Force spatial map/layout refresh
+         * @param {boolean} updateExisting Whether to run updateItemFn on existing widgets
+         * @private
+         */
+        _reconcileVirtualWindow(existingWidgets, renderSession, force, updateExisting) {
+            this._refreshViewportFromScrollView();
+            const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+            const minY = Math.max(0, this._virtualViewportTop - this._virtualOverscanPx);
+            const maxY = this._virtualViewportTop + viewportHeight + this._virtualOverscanPx;
+            const focusedItemId = this._getFocusedItemId();
+
+            const widgetsById =
+                existingWidgets ||
+                new Map(
+                    this._getItemChildren(false).map((widget) => {
+                        return [widget._itemId, widget];
+                    }),
+                );
+
+            let changed = false;
+            for (const entry of this._layoutEntries) {
+                const { itemId, itemData, layoutData } = entry;
+                const itemTop = layoutData.y;
+                const itemBottom = layoutData.y + layoutData.height;
+
+                // Pixel based culling preserves the focused item inline because Masonry can simply include it in the viewport check.
+                const inViewport = itemId === focusedItemId || (itemBottom >= minY && itemTop <= maxY);
+                if (!inViewport) continue;
+
+                let widget = widgetsById.get(itemId);
+                if (widget) {
+                    widgetsById.delete(itemId);
+                    this._updateRealizedWidget(widget, itemData, layoutData, renderSession, updateExisting);
+                } else {
+                    widget = this._obtainRealizedWidget(itemId, itemData, layoutData, renderSession);
+                    if (!widget) continue;
+                    changed = true;
+                }
+            }
+
+            if (this._evictOffWindowWidgets(widgetsById, focusedItemId)) {
+                changed = true;
+            }
+
+            if (changed || force) {
+                this._markSpatialMapDirty();
+                this.queue_relayout();
+            }
+        }
+
+        /**
+         * Obtain a realized widget from cache or renderer and attach it to the layout.
+         * @param {string} itemId Item id
+         * @param {object} itemData Item data
+         * @param {object} layoutData Layout data
+         * @param {object} renderSession Render session
+         * @returns {St.Widget|null}
+         * @private
+         */
+        _obtainRealizedWidget(itemId, itemData, layoutData, renderSession) {
+            let widget = this._virtualWidgetCache.get(itemId);
+            if (widget) {
+                this._virtualWidgetCache.delete(itemId);
+            } else {
+                widget = this._renderItemFn(itemData, renderSession);
+                if (!widget) return null;
+            }
+
+            widget._itemId = itemId;
+            widget._masonryData = layoutData;
+            this.add_child(widget);
+            return widget;
+        }
+
+        /**
+         * Pre-realize a small neighborhood around the target index to smooth held-arrow traversal.
+         * @param {number} centerIndex Center index in navigable ids
+         * @private
+         */
+        _ensureRealizedNeighborhood(centerIndex) {
+            const radius = MasonryVirtualization.NAV_PREFETCH_RADIUS;
+            const start = Math.max(0, centerIndex - radius);
+            const end = Math.min(this._itemIds.length, centerIndex + radius + 1);
+            let changed = false;
+
+            for (let i = start; i < end; i++) {
+                const itemId = this._itemIds[i];
+                if (!itemId) continue;
+
+                const alreadyRealized = this.get_children().some((child) => child._itemId === itemId);
+                if (alreadyRealized) continue;
+
+                const entry = this._layoutEntryById.get(itemId);
+                if (!entry) continue;
+
+                const widget = this._obtainRealizedWidget(itemId, entry.itemData, entry.layoutData, this._lastRenderSession);
+                if (!widget) continue;
+                changed = true;
+            }
+
+            if (changed) {
+                this._markSpatialMapDirty();
+                this.queue_relayout();
+            }
+        }
+
+        /**
+         * Update a realized widget with new data/layout and animation flags.
+         * @param {St.Widget} widget Existing widget
+         * @param {object} itemData Item data
+         * @param {object} layoutData Layout data
+         * @param {object} renderSession Render session
+         * @param {boolean} updateExisting Whether to run updateItemFn
+         * @private
+         */
+        _updateRealizedWidget(widget, itemData, layoutData, renderSession, updateExisting) {
+            const previousLayout = widget._masonryData;
+            const positionChanged =
+                previousLayout && (previousLayout.x !== layoutData.x || previousLayout.y !== layoutData.y || previousLayout.width !== layoutData.width || previousLayout.height !== layoutData.height);
+
+            if (updateExisting && this._updateItemFn) {
+                const structureChanged = this._updateItemFn(widget, itemData, renderSession);
+                if (structureChanged) {
+                    widget._masonryData = null;
+                    widget.queue_relayout();
+                }
+                if (positionChanged || structureChanged) widget._shouldAnimate = true;
+            }
+
+            widget._masonryData = layoutData;
+        }
+
+        /**
+         * Remove or cache off-window widgets.
+         * @param {Map<string,St.Widget>} widgetsById Existing widgets map
+         * @param {string|null} focusedItemId Focused item id to preserve
+         * @returns {boolean} True if anything changed
+         * @private
+         */
+        _evictOffWindowWidgets(widgetsById, focusedItemId) {
+            let changed = false;
+            widgetsById.forEach((widget, itemId) => {
+                if (focusedItemId && itemId === focusedItemId) return;
+                if (this._virtualizationActive) {
+                    this._cacheVirtualWidget(itemId, widget);
+                } else {
+                    widget.destroy();
+                }
+                changed = true;
+            });
+            return changed;
+        }
+
+        /**
          * Defer rendering until a valid width is available.
          * @param {Array<object>} items Items to render
          * @param {object} renderSession Render session object
@@ -989,7 +1259,7 @@ export const MasonryLayout = GObject.registerClass(
                 try {
                     this.disconnect(this._pendingAllocationId);
                 } catch {
-                    // Object may already be disposing
+                    // Object may already be disposing.
                 }
                 this._pendingAllocationId = null;
             }
@@ -1208,6 +1478,9 @@ export const MasonryLayout = GObject.registerClass(
 
             this._items = [];
             this._layoutEntries = [];
+            this._layoutEntryById = new Map();
+            this._itemIds = [];
+            this._itemIndexById = new Map();
             this._lastRenderSession = null;
             this._pendingItems = [];
             this._spatialMap = [];
@@ -1219,6 +1492,7 @@ export const MasonryLayout = GObject.registerClass(
             this._virtualizationActive = false;
             this._virtualViewportTop = 0;
             this._virtualViewportHeight = 0;
+            this._clearVirtualWidgetCache();
 
             this.destroy_all_children();
             this.height = 0;
@@ -1235,6 +1509,7 @@ export const MasonryLayout = GObject.registerClass(
             this._cleanupPendingCallbacks();
             this._cancelScheduledRelayout();
             this._pendingRelayoutOnMap = false;
+            this._clearVirtualWidgetCache();
 
             super.destroy();
         }

@@ -57,6 +57,7 @@ export const ClipboardBaseView = GObject.registerClass(
             this._isLoadingMore = false;
             this._restoreFocusTimeoutId = 0;
             this._scrollIdleId = 0;
+            this._scrollSignalIds = [];
             this._checkboxIconsMap = new Map();
 
             this._buildCommonUI();
@@ -312,10 +313,12 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _setupScrollListener() {
-            if (this._scrollView) {
-                const vadjustment = this._scrollView.vadjustment;
-                this._scrollId = vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
-            }
+            const vadjustment = this._scrollView?.vadjustment;
+            if (!vadjustment) return;
+
+            this._scrollSignalIds.push(vadjustment.connect('notify::value', () => this._onScroll(vadjustment)));
+            this._scrollSignalIds.push(vadjustment.connect('notify::page-size', () => this._syncVirtualizedViewports(vadjustment)));
+            this._scrollSignalIds.push(vadjustment.connect('notify::upper', () => this._syncVirtualizedViewports(vadjustment)));
         }
 
         /**
@@ -574,6 +577,122 @@ export const ClipboardBaseView = GObject.registerClass(
             return this._historyContainer?.shouldDeferLoading?.() ?? false;
         }
 
+        /**
+         * Handle shared up/down navigation contract across pinned/history sections.
+         * Invariants:
+         * - Containers own intra-section movement and return STOP when moved.
+         * - Base view owns section handoff and pagination back-pressure.
+         * - Down is consumed while history pagination is still catching up.
+         * @param {Clutter.Event} event Key event
+         * @param {object} options Navigation adapters
+         * @param {Function} options.createTransferToken Build a transfer token from current focus
+         * @param {Function} options.focusHistoryFromPinned Focus history entry from pinned section
+         * @param {Function} options.focusPinnedFromHistory Focus pinned entry from history section
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @protected
+         */
+        _handleArrowNavigation(event, options) {
+            const symbol = event.get_key_symbol();
+            if (!this._isArrowKey(symbol)) return Clutter.EVENT_PROPAGATE;
+
+            const currentFocus = global.stage.get_key_focus();
+            const context = {
+                symbol,
+                event,
+                currentFocus,
+                pinnedHasItems: this._pinnedContainer && this._pinnedContainer.getItemCount() > 0,
+                historyHasItems: this._historyContainer && this._historyContainer.getItemCount() > 0,
+                createTransferToken: options?.createTransferToken || (() => undefined),
+                focusHistoryFromPinned: options?.focusHistoryFromPinned,
+                focusPinnedFromHistory: options?.focusPinnedFromHistory,
+            };
+
+            const pinnedResult = this._handlePinnedArrowNavigation(context);
+            if (pinnedResult !== null) return pinnedResult;
+
+            const historyResult = this._handleHistoryArrowNavigation(context);
+            if (historyResult !== null) return historyResult;
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Shared arrow-key predicate.
+         * @param {number} symbol Key symbol
+         * @returns {boolean}
+         * @private
+         */
+        _isArrowKey(symbol) {
+            return [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
+        }
+
+        /**
+         * Handle arrow navigation while focus is inside pinned section.
+         * @param {object} context Navigation context
+         * @returns {number|null} Event result, or null when not in pinned section
+         * @private
+         */
+        _handlePinnedArrowNavigation(context) {
+            const { currentFocus, symbol, event, historyHasItems, createTransferToken, focusHistoryFromPinned } = context;
+            if (!context.pinnedHasItems || !this._pinnedContainer.contains(currentFocus)) return null;
+
+            const result = this._pinnedContainer.handleKeyPress(this._pinnedContainer, event);
+            if (result === Clutter.EVENT_STOP) return result;
+
+            if (symbol === Clutter.KEY_Down && historyHasItems) {
+                focusHistoryFromPinned?.(createTransferToken(currentFocus));
+                return Clutter.EVENT_STOP;
+            }
+
+            if (symbol === Clutter.KEY_Up) {
+                this.emit('navigate-up');
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Handle arrow navigation while focus is inside history section.
+         * @param {object} context Navigation context
+         * @returns {number|null} Event result, or null when not in history section
+         * @private
+         */
+        _handleHistoryArrowNavigation(context) {
+            const { currentFocus, symbol, event, pinnedHasItems, createTransferToken, focusPinnedFromHistory } = context;
+            if (!context.historyHasItems || !this._historyContainer.contains(currentFocus)) return null;
+
+            const result = this._historyContainer.handleKeyPress(this._historyContainer, event);
+            if (result === Clutter.EVENT_STOP) return result;
+
+            if (symbol === Clutter.KEY_Down && this._consumeDownForHistoryPagination()) {
+                return Clutter.EVENT_STOP;
+            }
+
+            if (symbol === Clutter.KEY_Up) {
+                if (pinnedHasItems) {
+                    focusPinnedFromHistory?.(createTransferToken(currentFocus));
+                } else {
+                    this.emit('navigate-up');
+                }
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Consume Down key while there are unloaded history entries.
+         * @returns {boolean} True when down should be consumed
+         * @private
+         */
+        _consumeDownForHistoryPagination() {
+            const hasMoreHistory = this._getHistoryItemCount() < (this._pendingHistoryItems?.length || 0);
+            if (!hasMoreHistory && !this._isLoadingMore) return false;
+            this._loadNextHistoryBatch();
+            return true;
+        }
+
         // ========================================================================
         // Event Handlers
         // ========================================================================
@@ -676,11 +795,19 @@ export const ClipboardBaseView = GObject.registerClass(
             this._selectedIds = null;
             this._checkboxIconsMap.clear();
 
-            if (this._scrollView && this._scrollId) {
-                this._scrollView.vadjustment.disconnect(this._scrollId);
-                this._scrollId = null;
+            if (this._scrollView && this._scrollSignalIds.length > 0) {
+                const vadjustment = this._scrollView.vadjustment;
+                this._scrollSignalIds.forEach((signalId) => {
+                    try {
+                        vadjustment.disconnect(signalId);
+                    } catch {
+                        // Adjustment may already be finalized.
+                    }
+                });
+                this._scrollSignalIds = [];
             }
             this._scrollView = null;
+            this._scrollSignalIds = [];
 
             // Detach heavy containers to prevent synchronous recursive destruction
             const pinnedContainer = this._pinnedContainer;

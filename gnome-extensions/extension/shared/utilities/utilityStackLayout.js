@@ -54,6 +54,7 @@ export const StackLayout = GObject.registerClass(
             this._updateItemFn = updateItemFn;
             this._scrollView = scrollView;
             this._items = [];
+            this._itemIndexById = new Map();
             this._checkboxIconsMap = new Map();
             this._focusTimeoutId = 0;
             this._lastRenderSession = null;
@@ -78,6 +79,7 @@ export const StackLayout = GObject.registerClass(
          */
         addItems(newItems, renderSession) {
             this._items = [...this._items, ...newItems];
+            this._rebuildItemIndexMap();
             this._lastRenderSession = renderSession;
 
             if (this._shouldVirtualize(this._items.length)) {
@@ -101,6 +103,7 @@ export const StackLayout = GObject.registerClass(
          */
         reconcile(items, renderSession) {
             this._items = items;
+            this._rebuildItemIndexMap();
             this._lastRenderSession = renderSession;
 
             if (this._shouldVirtualize(items.length)) {
@@ -163,48 +166,6 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Update viewport metrics used by virtualized rendering.
-         * @param {number} scrollTop Current vertical scroll offset
-         * @param {number} viewportHeight Current viewport height
-         */
-        setViewport(scrollTop, viewportHeight) {
-            if (!this._virtualizationEnabled) return;
-
-            this._virtualViewportTop = Math.max(0, scrollTop || 0);
-            this._virtualViewportHeight = Math.max(0, viewportHeight || 0);
-
-            if (this._virtualizationActive) {
-                this._reconcileVirtualWindow(this._items, this._lastRenderSession, false);
-            }
-        }
-
-        /**
-         * Focus a widget by item id. If virtualized and off-window, first shift the window.
-         * @param {string} itemId Item id to focus
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if the item was found and focused
-         */
-        focusByItemId(itemId, targetFinder) {
-            if (!itemId) return false;
-
-            if (this._virtualizationActive) {
-                const index = this._items.findIndex((item) => item.id === itemId);
-                if (index >= 0) {
-                    const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : StackVirtualization.FALLBACK_VIEWPORT_HEIGHT;
-                    const visibleCount = Math.max(1, Math.ceil(viewportHeight / this._virtualEstimatedItemHeight));
-                    const targetStart = Math.max(0, index - Math.floor(visibleCount / 2));
-                    this._virtualViewportTop = targetStart * this._virtualEstimatedItemHeight;
-                    this._reconcileVirtualWindow(this._items, this._lastRenderSession, true);
-                }
-            }
-
-            const widget = this._getItemChildren().find((child) => child._itemId === itemId);
-            if (!widget) return false;
-            this.focusItem(widget, targetFinder);
-            return true;
-        }
-
-        /**
          * Get the number of items currently in the layout.
          * @returns {number} Item count
          */
@@ -226,6 +187,73 @@ export const StackLayout = GObject.registerClass(
          */
         shouldDeferLoading() {
             return false;
+        }
+
+        /**
+         * Update viewport metrics used by virtualized rendering.
+         * @param {number} scrollTop Current vertical scroll offset
+         * @param {number} viewportHeight Current viewport height
+         */
+        setViewport(scrollTop, viewportHeight) {
+            if (!this._virtualizationEnabled) return;
+
+            this._virtualViewportTop = this._resolveLocalViewportTop(scrollTop);
+            this._virtualViewportHeight = Math.max(0, viewportHeight || 0);
+
+            if (this._virtualizationActive) {
+                this._reconcileVirtualWindow(this._items, this._lastRenderSession, false);
+            }
+        }
+
+        /**
+         * Refresh virtual viewport values from the owning scroll adjustment.
+         * @private
+         */
+        _refreshViewportFromScrollView() {
+            const adjustment = this._scrollView?.vadjustment;
+            if (!adjustment) return;
+
+            this._virtualViewportTop = this._resolveLocalViewportTop(adjustment.value);
+            this._virtualViewportHeight = Math.max(0, adjustment.page_size || 0);
+        }
+
+        /**
+         * Convert global scroll offset into this layout's local coordinate space.
+         * @param {number} scrollTop Global scroll offset
+         * @returns {number} Local viewport top offset
+         * @private
+         */
+        _resolveLocalViewportTop(scrollTop) {
+            const globalTop = Math.max(0, scrollTop || 0);
+            const allocation = this.get_allocation_box?.();
+            if (!allocation) return globalTop;
+            return Math.max(0, globalTop - allocation.y1);
+        }
+
+        /**
+         * Focus a widget by item id. If virtualized and off-window, first shift the window.
+         * @param {string} itemId Item id to focus
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus
+         * @returns {boolean} True if the item was found and focused
+         */
+        focusByItemId(itemId, targetFinder) {
+            if (!itemId) return false;
+
+            if (this._virtualizationActive) {
+                const index = this._itemIndexById.get(itemId) ?? -1;
+                if (index >= 0) {
+                    const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : StackVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+                    const visibleCount = Math.max(1, Math.ceil(viewportHeight / this._virtualEstimatedItemHeight));
+                    const targetStart = Math.max(0, index - Math.floor(visibleCount / 2));
+                    this._virtualViewportTop = targetStart * this._virtualEstimatedItemHeight;
+                    this._reconcileVirtualWindow(this._items, this._lastRenderSession, true);
+                }
+            }
+
+            const widget = this._getItemChildren().find((child) => child._itemId === itemId);
+            if (!widget) return false;
+            this.focusItem(widget, targetFinder);
+            return true;
         }
 
         /**
@@ -359,6 +387,10 @@ export const StackLayout = GObject.registerClass(
          * @private
          */
         _handleVerticalNavigation(symbol, currentFocus, itemWidget) {
+            if (this._virtualizationActive && this._tryVirtualVerticalNavigation(symbol, currentFocus, itemWidget)) {
+                return Clutter.EVENT_STOP;
+            }
+
             const siblings = this._getItemChildren();
             const currentRowIndex = siblings.indexOf(itemWidget);
 
@@ -369,39 +401,156 @@ export const StackLayout = GObject.registerClass(
                 if (currentRowIndex > 0) {
                     nextRow = siblings[currentRowIndex - 1];
                 } else {
+                    if (this._virtualizationActive && this._hasVirtualNeighbor(itemWidget, 'up')) {
+                        return Clutter.EVENT_STOP;
+                    }
                     return Clutter.EVENT_PROPAGATE;
                 }
             } else {
                 if (currentRowIndex < siblings.length - 1) {
                     nextRow = siblings[currentRowIndex + 1];
                 } else {
+                    if (this._virtualizationActive && this._hasVirtualNeighbor(itemWidget, 'down')) {
+                        return Clutter.EVENT_STOP;
+                    }
                     return Clutter.EVENT_PROPAGATE;
                 }
             }
 
             if (nextRow) {
-                let targetButton = nextRow;
-
-                if (currentFocus === itemWidget._itemCheckbox) targetButton = nextRow._itemCheckbox;
-                else if (currentFocus === itemWidget._pinButton) targetButton = nextRow._pinButton;
-                else if (currentFocus === itemWidget._deleteButton) targetButton = nextRow._deleteButton;
-
-                if (targetButton && targetButton.visible && targetButton.mapped) {
-                    targetButton.grab_key_focus();
-                } else {
-                    nextRow.grab_key_focus();
-                }
-
-                if (this._scrollView) {
-                    ensureActorVisibleInScrollView(this._scrollView, nextRow);
-                }
+                this._focusVerticalTargetRow(currentFocus, itemWidget, nextRow);
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
         }
 
         /**
-         * Return only item children (excludes virtualization spacers).
+         * Try virtualized up/down movement by global index and realize target if needed.
+         * @param {number} symbol Key symbol
+         * @param {Clutter.Actor} currentFocus Currently focused actor
+         * @param {St.Widget} itemWidget Current item widget
+         * @returns {boolean} True if focus moved
+         * @private
+         */
+        _tryVirtualVerticalNavigation(symbol, currentFocus, itemWidget) {
+            const currentGlobalIndex = this._itemIndexById.get(itemWidget?._itemId) ?? -1;
+            if (currentGlobalIndex === -1) return false;
+
+            const nextGlobalIndex = symbol === Clutter.KEY_Up ? currentGlobalIndex - 1 : currentGlobalIndex + 1;
+            if (nextGlobalIndex < 0 || nextGlobalIndex >= this._items.length) return false;
+
+            const nextItemId = this._items[nextGlobalIndex]?.id;
+            let nextRow = this._getItemChildren().find((child) => child._itemId === nextItemId);
+
+            if (!nextRow) {
+                const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : StackVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+                const visibleCount = Math.max(1, Math.ceil(viewportHeight / this._virtualEstimatedItemHeight));
+                const targetStart = Math.max(0, nextGlobalIndex - Math.floor(visibleCount / 2));
+                this._virtualViewportTop = targetStart * this._virtualEstimatedItemHeight;
+                this._reconcileVirtualWindow(this._items, this._lastRenderSession, true);
+                nextRow = this._getItemChildren().find((child) => child._itemId === nextItemId);
+            }
+
+            if (!nextRow) return false;
+            this._focusVerticalTargetRow(currentFocus, itemWidget, nextRow);
+            return true;
+        }
+
+        /**
+         * Check whether there is still a logical item above or below the current row in virtual mode.
+         * @param {St.Widget} itemWidget Current item widget
+         * @param {'up'|'down'} direction Vertical direction
+         * @returns {boolean}
+         * @private
+         */
+        _hasVirtualNeighbor(itemWidget, direction) {
+            const index = this._itemIndexById.get(itemWidget?._itemId) ?? -1;
+            if (index === -1) return false;
+            if (direction === 'up') return index > 0;
+            return index < this._items.length - 1;
+        }
+
+        /**
+         * Focus matching control in the target row while preserving scroll visibility.
+         * @param {Clutter.Actor} currentFocus Currently focused actor
+         * @param {St.Widget} currentRow Source row
+         * @param {St.Widget} targetRow Destination row
+         * @private
+         */
+        _focusVerticalTargetRow(currentFocus, currentRow, targetRow) {
+            let targetButton = targetRow;
+            if (currentFocus === currentRow._itemCheckbox) targetButton = targetRow._itemCheckbox;
+            else if (currentFocus === currentRow._pinButton) targetButton = targetRow._pinButton;
+            else if (currentFocus === currentRow._deleteButton) targetButton = targetRow._deleteButton;
+
+            if (targetButton && targetButton.visible && targetButton.mapped) {
+                targetButton.grab_key_focus();
+            } else {
+                targetRow.grab_key_focus();
+            }
+
+            if (this._scrollView) {
+                ensureActorVisibleInScrollView(this._scrollView, targetRow);
+            }
+        }
+
+        /**
+         * Keep the currently focused row inside the realized window to avoid focus loss during virtual shifts.
+         * @param {{start:number,end:number,topPad:number,bottomPad:number}} window Proposed window
+         * @param {Array<Object>} items Full item array
+         * @returns {{start:number,end:number,topPad:number,bottomPad:number}}
+         * @private
+         */
+        _ensureWindowContainsFocusedItem(window, items) {
+            const focusedItemId = this._getFocusedItemId();
+            if (!focusedItemId) return window;
+
+            const focusedIndex = this._itemIndexById.get(focusedItemId) ?? -1;
+            if (focusedIndex < 0) return window;
+            if (focusedIndex >= window.start && focusedIndex < window.end) return window;
+
+            const span = Math.max(1, window.end - window.start);
+            let start = Math.max(0, focusedIndex - Math.floor(span / 2));
+            start = Math.min(start, Math.max(0, items.length - span));
+            const end = Math.min(items.length, start + span);
+            const estimatedHeight = Math.max(1, this._virtualEstimatedItemHeight);
+
+            return {
+                start,
+                end,
+                topPad: start * estimatedHeight,
+                bottomPad: Math.max(0, (items.length - end) * estimatedHeight),
+            };
+        }
+
+        /**
+         * Resolve focused item id within this container.
+         * @returns {string|null}
+         * @private
+         */
+        _getFocusedItemId() {
+            let focused = global.stage.get_key_focus();
+            while (focused && !focused._itemId) {
+                focused = focused.get_parent?.();
+            }
+            if (!focused || !this.contains(focused)) return null;
+            return focused._itemId || null;
+        }
+
+        /**
+         * Rebuild the identifier to index map used by deterministic navigation paths.
+         * @private
+         */
+        _rebuildItemIndexMap() {
+            this._itemIndexById.clear();
+            this._items.forEach((item, index) => {
+                if (!item?.id) return;
+                this._itemIndexById.set(item.id, index);
+            });
+        }
+
+        /**
+         * Return only item children which excludes virtualization spacers.
          * @returns {Array<St.Widget>}
          * @private
          */
@@ -429,6 +578,7 @@ export const StackLayout = GObject.registerClass(
         _reconcileVirtualWindow(items, renderSession, force) {
             this._virtualizationActive = true;
             this._ensureVirtualSpacers();
+            this._refreshViewportFromScrollView();
 
             if (items.length === 0) {
                 this._virtualWindowStart = 0;
@@ -438,7 +588,8 @@ export const StackLayout = GObject.registerClass(
                 return;
             }
 
-            const window = this._calculateVirtualWindow(items.length);
+            let window = this._calculateVirtualWindow(items.length);
+            window = this._ensureWindowContainsFocusedItem(window, items);
             if (!force && this._virtualWindowStart === window.start && this._virtualWindowEnd === window.end) {
                 this._setSpacerHeights(window.topPad, window.bottomPad);
                 return;
@@ -459,7 +610,7 @@ export const StackLayout = GObject.registerClass(
                     if (this._updateItemFn) {
                         this._updateItemFn(widget, item, renderSession);
                     }
-                    const targetIndex = visibleIndex + 1; // after top spacer
+                    const targetIndex = visibleIndex + 1;
                     if (this.get_child_at_index(targetIndex) !== widget) {
                         this.set_child_at_index(widget, targetIndex);
                     }
@@ -473,6 +624,7 @@ export const StackLayout = GObject.registerClass(
                 visibleIndex++;
             }
 
+            // Extraneous widgets are destroyed directly because list rows are easy to compute unlike MasonryLayout caching
             existingWidgets.forEach((widget) => widget.destroy());
             this._placeVirtualSpacersAtEdges();
             this._setSpacerHeights(window.topPad, window.bottomPad);
@@ -624,6 +776,7 @@ export const StackLayout = GObject.registerClass(
          */
         clear() {
             this._items = [];
+            this._itemIndexById.clear();
             this._lastRenderSession = null;
             this._virtualizationActive = false;
             this._virtualWindowStart = 0;

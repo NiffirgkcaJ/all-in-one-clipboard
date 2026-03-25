@@ -1,4 +1,3 @@
-import Clutter from 'gi://Clutter';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
@@ -9,6 +8,7 @@ import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutConstants.js';
+
 /**
  * ClipboardGridView
  * Masonry grid layout for clipboard items.
@@ -186,7 +186,7 @@ export const ClipboardGridView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Render a single card widget for the masonry layout.
+         * Create a single item widget for the masonry layout.
          * @param {Object} itemData The item data with _isPinned flag
          * @param {Object} _session Render session is unused
          * @returns {St.Widget} The card widget
@@ -346,50 +346,29 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _onKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
-            const currentFocus = global.stage.get_key_focus();
-            const pinnedHasItems = this._pinnedContainer && this._pinnedContainer.getItemCount() > 0;
-            const historyHasItems = this._historyContainer && this._historyContainer.getItemCount() > 0;
-            const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
-            if (!isArrowKey) return Clutter.EVENT_PROPAGATE;
+            return this._handleArrowNavigation(event, {
+                createTransferToken: (currentFocus) => this._createTransferToken(currentFocus),
+                focusHistoryFromPinned: (centerX) => this._historyContainer?.focusFirst(centerX),
+                focusPinnedFromHistory: (centerX) => this._pinnedContainer?.focusLast(centerX),
+            });
+        }
 
-            const getCurrentCenterX = () => {
-                if (!currentFocus?._masonryData) return undefined;
-                const data = currentFocus._masonryData;
-                return data.x + data.width / 2;
-            };
-
-            if (pinnedHasItems && this._pinnedContainer.contains(currentFocus)) {
-                const result = this._pinnedContainer.handleKeyPress(this._pinnedContainer, event);
-                if (result === Clutter.EVENT_STOP) return result;
-
-                if (symbol === Clutter.KEY_Down && historyHasItems) {
-                    this._historyContainer.focusFirst(getCurrentCenterX());
-                    return Clutter.EVENT_STOP;
-                }
-                if (symbol === Clutter.KEY_Up) {
-                    this.emit('navigate-up');
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
+        /**
+         * Create a transfer token for cross-section grid navigation.
+         * @param {Clutter.Actor} currentFocus The currently focused actor
+         * @returns {number|undefined} Horizontal center position
+         * @private
+         */
+        _createTransferToken(currentFocus) {
+            let itemWidget = currentFocus;
+            while (itemWidget && !itemWidget._masonryData && !itemWidget._itemId) {
+                itemWidget = itemWidget.get_parent?.();
             }
 
-            if (historyHasItems && this._historyContainer.contains(currentFocus)) {
-                const result = this._historyContainer.handleKeyPress(this._historyContainer, event);
-                if (result === Clutter.EVENT_STOP) return result;
+            const layoutData = itemWidget?._masonryData;
+            if (!layoutData) return undefined;
 
-                if (symbol === Clutter.KEY_Up && pinnedHasItems) {
-                    this._pinnedContainer.focusLast(getCurrentCenterX());
-                    return Clutter.EVENT_STOP;
-                }
-                if (symbol === Clutter.KEY_Up) {
-                    this.emit('navigate-up');
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
+            return layoutData.x + layoutData.width / 2;
         }
 
         // ========================================================================

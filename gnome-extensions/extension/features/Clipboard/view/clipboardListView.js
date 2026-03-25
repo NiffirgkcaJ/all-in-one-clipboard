@@ -1,4 +1,3 @@
-import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 
 import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
@@ -6,6 +5,7 @@ import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
+
 /**
  * ClipboardListView
  * Stack layout for clipboard items.
@@ -104,8 +104,7 @@ export const ClipboardListView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Get all focusable items in the list.
-         * Used by parent container for navigation.
+         * Get all focusable items.
          * @returns {Array<St.Widget>} Array of focusable widgets
          * @override
          */
@@ -119,7 +118,7 @@ export const ClipboardListView = GObject.registerClass(
         // Private Helpers
         // ========================================================================
         /**
-         * Create a single widget for the list.
+         * Create a single item widget for the stack layout.
          * @param {Object} itemData The item data
          * @param {boolean} isPinned Whether this item is pinned
          * @returns {St.Widget} The created widget
@@ -142,60 +141,20 @@ export const ClipboardListView = GObject.registerClass(
          * @private
          */
         _onKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
-            const isArrowKey = [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
-            if (!isArrowKey) return Clutter.EVENT_PROPAGATE;
-
-            const currentFocus = global.stage.get_key_focus();
-            const pinnedHasItems = this._pinnedContainer && this._pinnedContainer.getItemCount() > 0;
-            const historyHasItems = this._historyContainer && this._historyContainer.getItemCount() > 0;
-
-            if (pinnedHasItems && this._pinnedContainer.contains(currentFocus)) {
-                const result = this._pinnedContainer.handleKeyPress(this._pinnedContainer, event);
-                if (result === Clutter.EVENT_STOP) return result;
-
-                if (symbol === Clutter.KEY_Down && historyHasItems) {
-                    const finder = this._createFocusFinder(currentFocus);
-                    this._historyContainer.focusFirst(finder);
-                    return Clutter.EVENT_STOP;
-                }
-                if (symbol === Clutter.KEY_Up) {
-                    this.emit('navigate-up');
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            if (historyHasItems && this._historyContainer.contains(currentFocus)) {
-                const result = this._historyContainer.handleKeyPress(this._historyContainer, event);
-                if (result === Clutter.EVENT_STOP) return result;
-
-                if (symbol === Clutter.KEY_Up) {
-                    if (pinnedHasItems) {
-                        const finder = this._createFocusFinder(currentFocus);
-                        this._pinnedContainer.focusLast(finder);
-                    } else {
-                        this.emit('navigate-up');
-                    }
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
+            return this._handleArrowNavigation(event, {
+                createTransferToken: (currentFocus) => this._createTransferToken(currentFocus),
+                focusHistoryFromPinned: (finder) => this._historyContainer?.focusFirst(finder),
+                focusPinnedFromHistory: (finder) => this._pinnedContainer?.focusLast(finder),
+            });
         }
 
         /**
-         * Create a finder function that locates the equivalent widget in a target item.
-         * Usage:
-         *   const finder = this._createFocusFinder(currentFocus);
-         *   otherContainer.focusFirst(finder);
-         *
+         * Create a transfer token for cross-section list navigation.
          * @param {Clutter.Actor} currentFocus The currently focused actor
-         * @returns {Function|undefined} A function (itemWidget) => childWidget, or undefined
+         * @returns {Function|undefined} A function that locates the equivalent widget in a target item
          * @private
          */
-        _createFocusFinder(currentFocus) {
+        _createTransferToken(currentFocus) {
             let itemWidget = currentFocus;
             while (itemWidget && !itemWidget._itemId) {
                 itemWidget = itemWidget.get_parent();
