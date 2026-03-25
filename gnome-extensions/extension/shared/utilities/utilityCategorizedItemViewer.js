@@ -265,7 +265,17 @@ export const CategorizedItemViewer = GObject.registerClass(
             this.connect('captured-event', this._onGlobalKeyPress.bind(this));
             this.set_reactive(true);
 
-            this._searchComponent = new SearchComponent((searchText) => this._onSearchTextChanged(searchText));
+            this._searchComponent = new SearchComponent((searchText) => this._onSearchTextChanged(searchText), {
+                onNavigateDown: () => this._focusFirstGridItem(),
+                onNavigateUp: () => {
+                    const focusables = this._getHeaderFocusables();
+                    if (focusables.length > 0) {
+                        focusables[0].grab_key_focus();
+                        return true;
+                    }
+                    return false;
+                },
+            });
             this.add_child(this._searchComponent.getWidget());
 
             this._contentArea = new St.BoxLayout({
@@ -410,6 +420,23 @@ export const CategorizedItemViewer = GObject.registerClass(
                     return undefined;
                 },
             });
+        }
+
+        /**
+         * Focuses the first grid item and ensures it's visible in the scroll view.
+         * Used by the search bar's Down key handler to deterministically route focus.
+         * @private
+         */
+        _focusFirstGridItem() {
+            if (!this._gridAllButtons || this._gridAllButtons.length === 0) return false;
+
+            const firstButton = this._gridAllButtons[0];
+            firstButton.grab_key_focus();
+            const scrollView = this._contentArea.get_first_child();
+            if (scrollView instanceof St.ScrollView) {
+                ensureActorVisibleInScrollView(scrollView, firstButton);
+            }
+            return true;
         }
 
         /**

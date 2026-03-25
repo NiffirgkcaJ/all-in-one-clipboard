@@ -21,12 +21,18 @@ const SearchIcons = {
 export const SearchComponent = GObject.registerClass(
     class SearchComponent extends GObject.Object {
         /**
-         * @param {Function} onSearchChangedCallback - A function that will be called
-         *   with the new search text whenever it changes.
+         * Initialize the search component.
+         *
+         * @param {Function} onSearchChangedCallback A function that will be called with the new search text whenever it changes.
+         * @param {Object} [options] Optional configuration
+         * @param {Function} [options.onNavigateDown] Callback when down navigation is requested
+         * @param {Function} [options.onNavigateUp] Callback when up navigation is requested
          */
-        constructor(onSearchChangedCallback) {
+        constructor(onSearchChangedCallback, { onNavigateDown, onNavigateUp } = {}) {
             super();
             this._onSearchChangedCallback = onSearchChangedCallback;
+            this._onNavigateDown = onNavigateDown ?? null;
+            this._onNavigateUp = onNavigateUp ?? null;
 
             this.actor = new St.BoxLayout({
                 style_class: 'aio-search-bar-container',
@@ -108,6 +114,19 @@ export const SearchComponent = GObject.registerClass(
                 if (symbol === Clutter.KEY_Left) {
                     this._entry.grab_key_focus();
                     return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (symbol === Clutter.KEY_Down) {
+                if (this._onNavigateDown) {
+                    return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+            if (symbol === Clutter.KEY_Up) {
+                if (this._onNavigateUp) {
+                    return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
                 }
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -229,6 +248,8 @@ export const SearchComponent = GObject.registerClass(
             this._clearButton = null;
             this.actor = null;
             this._onSearchChangedCallback = null;
+            this._onNavigateDown = null;
+            this._onNavigateUp = null;
         }
     },
 );

@@ -270,12 +270,21 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _buildSearchBar() {
-            this._searchComponent = new SearchComponent((searchText) => {
-                this._onSearch(searchText);
-            });
-
-            const clutterText = this._searchComponent._entry.get_clutter_text();
-            clutterText.connect('key-press-event', this._onSearchKeyPress.bind(this));
+            this._searchComponent = new SearchComponent(
+                (searchText) => {
+                    this._onSearch(searchText);
+                },
+                {
+                    onNavigateDown: () => this._focusFirstGifResult(),
+                    onNavigateUp: () => {
+                        if (this._headerFocusables.length > 0) {
+                            this._headerFocusables[0].grab_key_focus();
+                            return true;
+                        }
+                        return false;
+                    },
+                },
+            );
 
             const searchWidget = this._searchComponent.getWidget();
             searchWidget.x_expand = true;
@@ -725,9 +734,23 @@ export const GIFTabContent = GObject.registerClass(
 
             if (searchWidget.visible) {
                 this._searchComponent.grabFocus();
-            } else if (this._gridAllButtons.length > 0) {
-                this._gridAllButtons[0].grab_key_focus();
+            } else {
+                this._focusFirstGifResult();
             }
+        }
+
+        /**
+         * Focus the first GIF result using the masonry layout's focus API.
+         *
+         * @returns {boolean} True if focus was moved and false if no items
+         * @private
+         */
+        _focusFirstGifResult() {
+            if (!this._masonryView || this._masonryView.getItemCount() === 0) {
+                return false;
+            }
+            this._masonryView.focusFirst();
+            return true;
         }
 
         /**
@@ -759,37 +782,6 @@ export const GIFTabContent = GObject.registerClass(
 
             if (symbol === Clutter.KEY_Up) {
                 this._focusNextElementUp();
-                return Clutter.EVENT_STOP;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        /**
-         * Handle keyboard navigation in the search bar.
-         *
-         * @param {St.Widget} actor - The actor that received the event
-         * @param {Clutter.Event} event - The key press event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
-         * @private
-         */
-        _onSearchKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-
-            if (symbol === Clutter.KEY_Up) {
-                if (this._headerFocusables.length > 0) {
-                    this._headerFocusables[0].grab_key_focus();
-                }
-                return Clutter.EVENT_STOP;
-            }
-
-            if (symbol === Clutter.KEY_Down) {
-                if (this._gridAllButtons.length > 0) {
-                    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        this._gridAllButtons[0].grab_key_focus();
-                        return GLib.SOURCE_REMOVE;
-                    });
-                }
                 return Clutter.EVENT_STOP;
             }
 
@@ -884,10 +876,10 @@ export const GIFTabContent = GObject.registerClass(
 
                 if (searchWidget && searchWidget.visible) {
                     this._searchComponent.grabFocus();
-                } else if (this._gridAllButtons.length > 0) {
-                    this._gridAllButtons[0].grab_key_focus();
-                } else if (this._headerFocusables.length > 0) {
-                    this._headerFocusables[0].grab_key_focus();
+                } else if (!this._focusFirstGifResult()) {
+                    if (this._headerFocusables.length > 0) {
+                        this._headerFocusables[0].grab_key_focus();
+                    }
                 }
 
                 return GLib.SOURCE_REMOVE;

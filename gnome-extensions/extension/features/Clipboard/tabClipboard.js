@@ -99,17 +99,28 @@ export const ClipboardTabContent = GObject.registerClass(
          * Build and add the search component to the UI
          */
         _buildSearchComponent() {
-            this._searchComponent = new SearchComponent((searchText) => {
-                this._currentSearchText = searchText.toLowerCase().trim();
+            this._searchComponent = new SearchComponent(
+                (searchText) => {
+                    this._currentSearchText = searchText.toLowerCase().trim();
 
-                // Strict trailing debounce: redraw only after typing pauses.
-                if (this._redrawIdleId) {
-                    GLib.source_remove(this._redrawIdleId);
-                    this._redrawIdleId = 0;
-                }
-                this._redrawScheduled = false;
-                this._searchDebouncer?.trigger();
-            });
+                    // Redraw only after typing pauses
+                    if (this._redrawIdleId) {
+                        GLib.source_remove(this._redrawIdleId);
+                        this._redrawIdleId = 0;
+                    }
+                    this._redrawScheduled = false;
+                    this._searchDebouncer?.trigger();
+                },
+                {
+                    onNavigateDown: () => {
+                        if (this._selectionBar?.visible) {
+                            this._selectAllButton.grab_key_focus();
+                            return true;
+                        }
+                        return this._focusFirstContentItem();
+                    },
+                },
+            );
 
             const searchWidget = this._searchComponent.getWidget();
             searchWidget.x_expand = true;
@@ -440,11 +451,8 @@ export const ClipboardTabContent = GObject.registerClass(
                 return FocusUtils.handleLinearNavigation(event, headerButtons, currentIndex);
             }
             if (symbol === Clutter.KEY_Down) {
-                const viewFocusables = this._currentView?.getFocusables() || [];
-                if (viewFocusables.length > 0) {
-                    viewFocusables[0].grab_key_focus();
-                    return Clutter.EVENT_STOP;
-                }
+                this._focusFirstContentItem();
+                return Clutter.EVENT_STOP;
             }
             if (symbol === Clutter.KEY_Up) {
                 this._searchComponent?.grabFocus();
@@ -452,6 +460,16 @@ export const ClipboardTabContent = GObject.registerClass(
             }
 
             return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Focus the first content item using the view's public API.
+         *
+         * @returns {boolean} True if focus was moved
+         * @private
+         */
+        _focusFirstContentItem() {
+            return this._currentView?.focusFirstContentItem?.() ?? false;
         }
 
         // ========================================================================

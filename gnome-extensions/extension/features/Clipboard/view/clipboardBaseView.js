@@ -228,6 +228,23 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
+         * Focus the first content item using the container's focus API.
+         *
+         * @returns {boolean} True if focus was moved
+         */
+        focusFirstContentItem() {
+            if (this._pinnedContainer && this._pinnedContainer.getItemCount() > 0) {
+                this._pinnedContainer.focusFirst();
+                return true;
+            }
+            if (this._historyContainer && this._historyContainer.getItemCount() > 0) {
+                this._historyContainer.focusFirst();
+                return true;
+            }
+            return false;
+        }
+
+        /**
          * Get checkbox icons map.
          */
         getCheckboxIconsMap() {
