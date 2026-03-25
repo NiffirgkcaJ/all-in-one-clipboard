@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-25 02:14+0000\n"
+"POT-Creation-Date: 2026-03-25 10:19+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -817,19 +817,19 @@ msgstr "Ausgewählte anheften"
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:143
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:144
 msgid "No results found."
 msgstr "Keine Resultate gefunden."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:143
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:144
 msgid "Clipboard history is empty."
 msgstr "Zwischenablageverlauf ist leer."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:272
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:273
 msgid "Pinned"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:289
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:290
 msgid "History"
 msgstr "Geschichte"
 
