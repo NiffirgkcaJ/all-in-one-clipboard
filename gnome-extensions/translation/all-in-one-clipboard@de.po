@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-25 10:19+0000\n"
+"POT-Creation-Date: 2026-03-26 07:22+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -27,34 +27,34 @@ msgid "Recently Used"
 msgstr "Zuletzt genutzt"
 
 #: gnome-extensions/extension/extension.js:36
-#: gnome-extensions/extension/extension.js:1065
+#: gnome-extensions/extension/extension.js:1069
 #: gnome-extensions/extension/prefs.js:798
 msgid "Emoji"
 msgstr "Emoji"
 
 #: gnome-extensions/extension/extension.js:37
 #: gnome-extensions/extension/extension.js:651
-#: gnome-extensions/extension/extension.js:1066
+#: gnome-extensions/extension/extension.js:1070
 #: gnome-extensions/extension/prefs.js:799
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "GIF"
 msgstr "GIF"
 
 #: gnome-extensions/extension/extension.js:38
-#: gnome-extensions/extension/extension.js:1067
+#: gnome-extensions/extension/extension.js:1071
 #: gnome-extensions/extension/prefs.js:800
 msgid "Kaomoji"
 msgstr "Kaomoji"
 
 #: gnome-extensions/extension/extension.js:39
-#: gnome-extensions/extension/extension.js:1068
+#: gnome-extensions/extension/extension.js:1072
 #: gnome-extensions/extension/prefs.js:801
 msgid "Symbols"
 msgstr "Symbole"
 
 #: gnome-extensions/extension/extension.js:40
 #: gnome-extensions/extension/extension.js:651
-#: gnome-extensions/extension/extension.js:1064
+#: gnome-extensions/extension/extension.js:1068
 #: gnome-extensions/extension/prefs.js:802
 msgid "Clipboard"
 msgstr "Zwischenablage"
