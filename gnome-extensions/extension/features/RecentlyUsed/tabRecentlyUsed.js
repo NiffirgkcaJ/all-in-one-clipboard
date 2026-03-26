@@ -314,7 +314,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 pinnedScrollView.set_child(container);
                 sectionData.bodyContainer.set_child(pinnedScrollView);
 
-                sectionData.showAllBtn.connect('key-focus-in', () => {
+                if (this._pinnedShowAllFocusSignalId) {
+                    sectionData.showAllBtn.disconnect(this._pinnedShowAllFocusSignalId);
+                    this._pinnedShowAllFocusSignalId = 0;
+                }
+
+                this._pinnedShowAllFocusSignalId = sectionData.showAllBtn.connect('key-focus-in', () => {
                     this._unlockOuterScroll();
 
                     pinnedWidgets.add(sectionData.showAllBtn);
