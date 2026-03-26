@@ -1237,6 +1237,16 @@ export const GIFTabContent = GObject.registerClass(
         }
 
         /**
+         * Called when the main extension menu is closed.
+         * Clears any active search to prevent search state from bleeding across sessions.
+         */
+        onMenuClosed() {
+            if (this._currentSearchQuery) {
+                this._searchComponent?.clearSearch();
+            }
+        }
+
+        /**
          * Clean up all resources.
          */
         destroy() {
@@ -1291,6 +1301,7 @@ export const GIFTabContent = GObject.registerClass(
 
             this._searchComponent?.destroy();
             this._itemFactory?.destroy();
+            this._gifManager?.destroy();
             this._masonryView = null;
             this._spinner = null;
 

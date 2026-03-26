@@ -28,7 +28,7 @@ export const GifManager = GObject.registerClass(
 
             this._loadActiveProvider();
 
-            this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
+            this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
                 this._loadActiveProvider();
             });
         }
@@ -151,6 +151,11 @@ export const GifManager = GObject.registerClass(
          * Clean up resources
          */
         destroy() {
+            if (this._providerChangedSignalId) {
+                this._settings.disconnect(this._providerChangedSignalId);
+                this._providerChangedSignalId = 0;
+            }
+
             if (this._httpSession) {
                 this._httpSession.abort();
                 this._httpSession = null;

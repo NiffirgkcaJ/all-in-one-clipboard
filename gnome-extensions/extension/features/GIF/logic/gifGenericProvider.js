@@ -185,6 +185,10 @@ export class GifGenericProvider {
         try {
             return await this._fetchOnce(url, cancellable);
         } catch (e) {
+            if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                throw e;
+            }
+
             const isRetryable = e.details?.status >= GifProvider.SERVER_ERROR_THRESHOLD || !e.details?.status;
 
             if (!isRetryable || attempt >= maxRetries) throw e;
