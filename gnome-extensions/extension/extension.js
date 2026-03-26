@@ -861,6 +861,10 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                 GLib.source_remove(this._menuOpenIdleId);
                 this._menuOpenIdleId = 0;
             }
+            if (this._menuPositionIdleId) {
+                GLib.source_remove(this._menuPositionIdleId);
+                this._menuPositionIdleId = 0;
+            }
             if (this._currentTabActor) {
                 this._disconnectTabSignals(this._currentTabActor);
             }
@@ -1016,10 +1020,10 @@ export default class AllInOneClipboardExtension extends Extension {
 
             // Define and clear all other recent item types if enabled
             const recentsToClear = [
-                { setting: 'clear-recent-emojis-at-login', file: 'recent_emojis.json' },
-                { setting: 'clear-recent-gifs-at-login', file: 'recent_gifs.json' },
-                { setting: 'clear-recent-kaomojis-at-login', file: 'recent_kaomojis.json' },
-                { setting: 'clear-recent-symbols-at-login', file: 'recent_symbols.json' },
+                { setting: 'clear-recent-emojis-at-login', file: FileItem.RECENT_EMOJI },
+                { setting: 'clear-recent-gifs-at-login', file: FileItem.RECENT_GIFS },
+                { setting: 'clear-recent-kaomojis-at-login', file: FileItem.RECENT_KAOMOJI },
+                { setting: 'clear-recent-symbols-at-login', file: FileItem.RECENT_SYMBOLS },
             ];
 
             for (const item of recentsToClear) {
@@ -1130,11 +1134,6 @@ export default class AllInOneClipboardExtension extends Extension {
             }
         });
         this._settingsSignalIds = [];
-
-        if (this._menuPositionIdleId) {
-            GLib.source_remove(this._menuPositionIdleId);
-            this._menuPositionIdleId = 0;
-        }
 
         // Destroy singleton managers
         destroyAutoPaster();
