@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-26 07:22+0000\n"
+"POT-Creation-Date: 2026-03-28 08:34+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -771,49 +771,49 @@ msgstr "GIF-Vorschau-Zwischenspeicher"
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:151
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:606
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:612
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:165
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:710
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:716
 msgid "Select All"
 msgstr "Alle auswählen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:175
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:344
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:189
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:358
 msgid "Switch to Grid View"
 msgstr "Zu Rasteransicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:175
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:344
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:189
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:358
 msgid "Switch to List View"
 msgstr "Zu Listenansicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:190
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:486
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:204
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:590
 msgid "Start Private Mode (Pause Recording)"
 msgstr "Privater Modus starten (Aufnahme pausieren)"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:200
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:627
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:214
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:731
 msgid "Pin/Unpin Selected"
 msgstr "Ausgewählte an-/abheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:208
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:222
 msgid "Delete Selected"
 msgstr "Ausgewählte löschen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:486
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:590
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:609
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:713
 msgid "Deselect All"
 msgstr "Alle abwählen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:634
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:738
 msgid "Pin Selected"
 msgstr "Ausgewählte anheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:634
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:738
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
