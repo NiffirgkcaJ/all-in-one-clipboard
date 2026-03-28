@@ -495,35 +495,6 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Keep the currently focused row inside the realized window to avoid focus loss during virtual shifts.
-         * @param {{start:number,end:number,topPad:number,bottomPad:number}} window Proposed window
-         * @param {Array<Object>} items Full item array
-         * @returns {{start:number,end:number,topPad:number,bottomPad:number}}
-         * @private
-         */
-        _ensureWindowContainsFocusedItem(window, items) {
-            const focusedItemId = this._getFocusedItemId();
-            if (!focusedItemId) return window;
-
-            const focusedIndex = this._itemIndexById.get(focusedItemId) ?? -1;
-            if (focusedIndex < 0) return window;
-            if (focusedIndex >= window.start && focusedIndex < window.end) return window;
-
-            const span = Math.max(1, window.end - window.start);
-            let start = Math.max(0, focusedIndex - Math.floor(span / 2));
-            start = Math.min(start, Math.max(0, items.length - span));
-            const end = Math.min(items.length, start + span);
-            const estimatedHeight = Math.max(1, this._virtualEstimatedItemHeight);
-
-            return {
-                start,
-                end,
-                topPad: start * estimatedHeight,
-                bottomPad: Math.max(0, (items.length - end) * estimatedHeight),
-            };
-        }
-
-        /**
          * Resolve focused item id within this container.
          * @returns {string|null}
          * @private
@@ -742,6 +713,35 @@ export const StackLayout = GObject.registerClass(
             const bottomPad = Math.max(0, (totalItems - end) * estimatedHeight);
 
             return { start, end, topPad, bottomPad };
+        }
+
+        /**
+         * Keep the currently focused row inside the realized window to avoid focus loss during virtual shifts.
+         * @param {{start:number,end:number,topPad:number,bottomPad:number}} window Proposed window
+         * @param {Array<Object>} items Full item array
+         * @returns {{start:number,end:number,topPad:number,bottomPad:number}}
+         * @private
+         */
+        _ensureWindowContainsFocusedItem(window, items) {
+            const focusedItemId = this._getFocusedItemId();
+            if (!focusedItemId) return window;
+
+            const focusedIndex = this._itemIndexById.get(focusedItemId) ?? -1;
+            if (focusedIndex < 0) return window;
+            if (focusedIndex >= window.start && focusedIndex < window.end) return window;
+
+            const span = Math.max(1, window.end - window.start);
+            let start = Math.max(0, focusedIndex - Math.floor(span / 2));
+            start = Math.min(start, Math.max(0, items.length - span));
+            const end = Math.min(items.length, start + span);
+            const estimatedHeight = Math.max(1, this._virtualEstimatedItemHeight);
+
+            return {
+                start,
+                end,
+                topPad: start * estimatedHeight,
+                bottomPad: Math.max(0, (items.length - end) * estimatedHeight),
+            };
         }
 
         /**

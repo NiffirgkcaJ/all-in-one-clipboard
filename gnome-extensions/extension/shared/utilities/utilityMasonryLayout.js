@@ -97,6 +97,7 @@ export const MasonryLayout = GObject.registerClass(
             this._pendingRelayout = false;
             this._pendingAllocationId = null;
             this._pendingTimeoutId = null;
+            this._pendingRenderSession = null;
             this._relayoutTimeoutId = 0;
             this._spatialMap = [];
             this._spatialMapDirty = false;
@@ -123,20 +124,23 @@ export const MasonryLayout = GObject.registerClass(
          * @param {Clutter.ActorBox} box The allocation box
          */
         vfunc_allocate(box) {
-            this.set_allocation(box);
             const newWidth = box.get_width();
+            const oldWidth = this._lastLayoutWidth;
 
-            if (this._lastLayoutWidth !== newWidth && this._lastLayoutWidth > 0) {
+            // Update width before set_allocation so notify::width validation uses the current value.
+            this._lastLayoutWidth = newWidth;
+
+            this.set_allocation(box);
+
+            if (oldWidth !== newWidth && oldWidth > 0) {
                 if (this._items.length > 0) {
                     if (this._lockedColumnWidth > 0) {
                         this._lockedColumnWidth = -1;
                         this._pendingRelayout = false;
                     }
-                    this._lastLayoutWidth = newWidth;
                     this._scheduleRelayout();
                 }
             }
-            this._lastLayoutWidth = newWidth;
 
             for (const child of this.get_children()) {
                 const layout = child._masonryData;
@@ -260,8 +264,8 @@ export const MasonryLayout = GObject.registerClass(
          */
         reconcile(items, renderSession) {
             if (!this._isValidWidth()) {
-                this.clear();
-                this._deferRender(items, renderSession);
+                // Keep current children alive until width is valid, then swap in the latest snapshot.
+                this._deferRender(items, renderSession, { replacePending: true });
                 return;
             }
 
@@ -855,39 +859,6 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Cache an off-window widget for potential reuse on reverse scrolling.
-         * @param {string} itemId Item id key
-         * @param {St.Widget} widget Widget to cache
-         * @private
-         */
-        _cacheVirtualWidget(itemId, widget) {
-            if (!itemId || !widget) return;
-            if (widget.get_parent() === this) {
-                this.remove_child(widget);
-            }
-
-            this._virtualWidgetCache.set(itemId, widget);
-            while (this._virtualWidgetCache.size > this._virtualWidgetCacheLimit) {
-                const oldest = this._virtualWidgetCache.entries().next().value;
-                if (!oldest) break;
-                const [oldestId, oldestWidget] = oldest;
-                this._virtualWidgetCache.delete(oldestId);
-                oldestWidget.destroy();
-            }
-        }
-
-        /**
-         * Destroy all cached off-window widgets.
-         * @private
-         */
-        _clearVirtualWidgetCache() {
-            this._virtualWidgetCache.forEach((widget) => {
-                widget.destroy();
-            });
-            this._virtualWidgetCache.clear();
-        }
-
-        /**
          * Mark the spatial map as dirty so it can be rebuilt on demand.
          * @private
          */
@@ -1210,13 +1181,55 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Cache an off-window widget for potential reuse on reverse scrolling.
+         * @param {string} itemId Item id key
+         * @param {St.Widget} widget Widget to cache
+         * @private
+         */
+        _cacheVirtualWidget(itemId, widget) {
+            if (!itemId || !widget) return;
+            if (widget.get_parent() === this) {
+                this.remove_child(widget);
+            }
+
+            this._virtualWidgetCache.set(itemId, widget);
+            while (this._virtualWidgetCache.size > this._virtualWidgetCacheLimit) {
+                const oldest = this._virtualWidgetCache.entries().next().value;
+                if (!oldest) break;
+                const [oldestId, oldestWidget] = oldest;
+                this._virtualWidgetCache.delete(oldestId);
+                oldestWidget.destroy();
+            }
+        }
+
+        /**
+         * Destroy all cached off-window widgets.
+         * @private
+         */
+        _clearVirtualWidgetCache() {
+            this._virtualWidgetCache.forEach((widget) => {
+                widget.destroy();
+            });
+            this._virtualWidgetCache.clear();
+        }
+
+        /**
          * Defer rendering until a valid width is available.
          * @param {Array<object>} items Items to render
          * @param {object} renderSession Render session object
+         * @param {{replacePending?: boolean}} [options] Replace queued items instead of appending
          * @private
          */
-        _deferRender(items, renderSession) {
-            this._pendingItems.push(...items);
+        _deferRender(items, renderSession, options = {}) {
+            const replacePending = options.replacePending === true;
+
+            if (replacePending) {
+                this._pendingItems = [...items];
+            } else {
+                this._pendingItems.push(...items);
+            }
+
+            this._pendingRenderSession = renderSession;
 
             if (this._pendingAllocationId || this._pendingTimeoutId) {
                 return;
@@ -1226,14 +1239,22 @@ export const MasonryLayout = GObject.registerClass(
             const myGeneration = this._renderGeneration;
 
             const tryRender = () => {
-                this._cleanupPendingCallbacks();
-                if (myGeneration !== this._renderGeneration) return;
-
-                if (this._isValidWidth() && this._pendingItems.length > 0) {
-                    const itemsToRender = this._pendingItems;
-                    this._pendingItems = [];
-                    this.addItems(itemsToRender, renderSession);
+                if (myGeneration !== this._renderGeneration) {
+                    this._cleanupPendingCallbacks();
+                    return;
                 }
+
+                // Keep waiting for allocation until width becomes valid.
+                if (!this._isValidWidth() || this._pendingItems.length === 0) {
+                    return;
+                }
+
+                const itemsToRender = this._pendingItems;
+                const pendingSession = this._pendingRenderSession;
+                this._pendingItems = [];
+                this._pendingRenderSession = null;
+                this._cleanupPendingCallbacks();
+                this.addItems(itemsToRender, pendingSession);
             };
 
             this._pendingAllocationId = this.connect('notify::width', tryRender);
@@ -1483,6 +1504,7 @@ export const MasonryLayout = GObject.registerClass(
             this._itemIndexById = new Map();
             this._lastRenderSession = null;
             this._pendingItems = [];
+            this._pendingRenderSession = null;
             this._spatialMap = [];
             this._spatialMapDirty = false;
             this._columnHeights = new Array(this._columns).fill(0);
