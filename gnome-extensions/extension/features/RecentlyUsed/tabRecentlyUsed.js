@@ -14,6 +14,7 @@ import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPas
 
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
+import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScrollView.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
@@ -305,7 +306,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             let pinnedScrollView = null;
 
             if (useNestedScroll) {
-                pinnedScrollView = new St.ScrollView({
+                pinnedScrollView = new PinnedNestedScrollView({
                     hscrollbar_policy: St.PolicyType.NEVER,
                     vscrollbar_policy: St.PolicyType.AUTOMATIC,
                     overlay_scrollbars: true,
@@ -315,6 +316,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
                 pinnedScrollView.set_child(container);
                 sectionData.bodyContainer.set_child(pinnedScrollView);
+                this._configurePinnedScrollHandoff(pinnedScrollView);
 
                 this._pinnedWidgets.add(sectionData.showAllBtn);
             }
@@ -394,6 +396,23 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             if (!useNestedScroll) {
                 sectionData.bodyContainer.set_child(container);
             }
+        }
+
+        /**
+         * Wire nested pinned scroll handoff callbacks for parent lock behavior.
+         *
+         * @param {PinnedNestedScrollView} pinnedScrollView Nested pinned list scroll view
+         * @private
+         */
+        _configurePinnedScrollHandoff(pinnedScrollView) {
+            pinnedScrollView.setHandoffCallbacks({
+                onInnerScroll: () => {
+                    this._lockOuterScroll();
+                },
+                onBoundaryHandoff: () => {
+                    this._unlockOuterScroll();
+                },
+            });
         }
 
         /**
@@ -924,7 +943,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 GLib.source_remove(this._scrollIntoViewIdleId);
                 this._scrollIntoViewIdleId = 0;
             }
-
             if (this._httpSession) {
                 this._httpSession.abort();
                 this._httpSession = null;
