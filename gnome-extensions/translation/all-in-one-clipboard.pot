@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-28 08:34+0000\n"
+"POT-Creation-Date: 2026-03-29 17:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,7 +36,7 @@ msgstr ""
 #: gnome-extensions/extension/extension.js:651
 #: gnome-extensions/extension/extension.js:1070
 #: gnome-extensions/extension/prefs.js:799
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:138
 msgid "GIF"
 msgstr ""
 
@@ -686,7 +686,7 @@ msgid "Clear lists of recently used items."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1425
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:26
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:27
 msgid "Recent Emojis"
 msgstr ""
 
@@ -695,7 +695,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1430
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:33
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:34
 msgid "Recent GIFs"
 msgstr ""
 
@@ -704,7 +704,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1435
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
 msgid "Recent Kaomojis"
 msgstr ""
 
@@ -713,7 +713,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1440
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:47
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:48
 msgid "Recent Symbols"
 msgstr ""
 
@@ -889,20 +889,20 @@ msgid ""
 "Please check your API key and network connection."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:18
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:19
 msgid "Pinned Clipboard"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:54
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:55
 msgid "Recent Clipboard History"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:135
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:136
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:816
 msgid "No recent items yet."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:136
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:137
 msgid "Show All"
 msgstr ""
 
