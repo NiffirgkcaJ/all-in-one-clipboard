@@ -189,7 +189,12 @@ export class GifGenericProvider {
                 throw e;
             }
 
-            const isRetryable = e.details?.status >= GifProvider.SERVER_ERROR_THRESHOLD || !e.details?.status;
+            const status = e.details?.status;
+            const isTransientIoError = Object.keys(GifProvider.RETRY_TRANSIENT_IO_ERROR_NAMES).some((errorName) => {
+                const errorCode = Gio.IOErrorEnum[errorName];
+                return typeof errorCode === 'number' && e.matches?.(Gio.IOErrorEnum, errorCode);
+            });
+            const isRetryable = (typeof status === 'number' && status >= GifProvider.SERVER_ERROR_THRESHOLD) || isTransientIoError;
 
             if (!isRetryable || attempt >= maxRetries) throw e;
 

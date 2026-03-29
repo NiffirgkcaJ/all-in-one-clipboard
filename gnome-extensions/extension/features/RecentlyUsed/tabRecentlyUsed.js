@@ -74,6 +74,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._outerScrollLocked = false;
             this._lockedScrollValue = 0;
             this._scrollLockHandler = null;
+            this._pinnedWidgets = new Set();
             this._previousFocus = null;
             this._lockTimeoutId = null;
 
@@ -172,6 +173,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             });
 
             showAllBtn.connect('key-focus-in', () => {
+                this._unlockOuterScroll();
                 this._previousFocus = showAllBtn;
 
                 if (this._scrollIntoViewIdleId) {
@@ -288,6 +290,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const sectionData = this._sections['pinned'];
             const items = this._clipboardManager.getPinnedItems();
 
+            this._pinnedWidgets = new Set();
+
             if (items.length === 0) {
                 sectionData.section.hide();
                 return;
@@ -299,8 +303,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const container = new St.BoxLayout({ vertical: true, x_expand: true });
             const useNestedScroll = items.length > RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT;
             let pinnedScrollView = null;
-
-            const pinnedWidgets = new Set();
 
             if (useNestedScroll) {
                 pinnedScrollView = new St.ScrollView({
@@ -314,40 +316,18 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 pinnedScrollView.set_child(container);
                 sectionData.bodyContainer.set_child(pinnedScrollView);
 
-                if (this._pinnedShowAllFocusSignalId) {
-                    sectionData.showAllBtn.disconnect(this._pinnedShowAllFocusSignalId);
-                    this._pinnedShowAllFocusSignalId = 0;
-                }
-
-                this._pinnedShowAllFocusSignalId = sectionData.showAllBtn.connect('key-focus-in', () => {
-                    this._unlockOuterScroll();
-
-                    pinnedWidgets.add(sectionData.showAllBtn);
-                    this._previousFocus = sectionData.showAllBtn;
-
-                    if (this._scrollIntoViewIdleId) {
-                        GLib.source_remove(this._scrollIntoViewIdleId);
-                        this._scrollIntoViewIdleId = 0;
-                    }
-                    this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                        this._scrollIntoViewIdleId = 0;
-                        if (sectionData.section.get_stage()) {
-                            ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
-                        }
-                        return GLib.SOURCE_REMOVE;
-                    });
-                });
+                this._pinnedWidgets.add(sectionData.showAllBtn);
             }
 
             items.forEach((item) => {
                 const widget = this._createFullWidthClipboardItem(item, true);
                 container.add_child(widget);
 
-                pinnedWidgets.add(widget);
+                this._pinnedWidgets.add(widget);
 
                 if (useNestedScroll) {
                     widget.connect('key-focus-in', () => {
-                        const isEnteringFromOutside = !pinnedWidgets.has(this._previousFocus);
+                        const isEnteringFromOutside = !this._pinnedWidgets.has(this._previousFocus);
 
                         if (isEnteringFromOutside) {
                             this._unlockOuterScroll();
@@ -362,7 +342,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                                     ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
                                     ensureActorVisibleInScrollView(pinnedScrollView, widget);
 
-                                    this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+                                    this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
                                         this._lockTimeoutId = null;
                                         this._lockOuterScroll();
                                         return GLib.SOURCE_REMOVE;
@@ -971,6 +951,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             this._renderSession = null;
             this._mainContainer = null;
+            this._pinnedWidgets = null;
 
             super.destroy();
         }

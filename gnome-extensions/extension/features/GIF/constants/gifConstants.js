@@ -13,6 +13,14 @@ export const GifProvider = {
     RETRY_BASE_DELAY_MS: 500,
     HTTP_ERROR_THRESHOLD: 300,
     SERVER_ERROR_THRESHOLD: 500,
+    RETRY_TRANSIENT_IO_ERROR_NAMES: {
+        TIMED_OUT: true,
+        NETWORK_UNREACHABLE: true,
+        HOST_UNREACHABLE: true,
+        CONNECTION_REFUSED: true,
+        CONNECTION_CLOSED: true,
+        PROXY_FAILED: true,
+    },
 };
 
 // UI Configuration

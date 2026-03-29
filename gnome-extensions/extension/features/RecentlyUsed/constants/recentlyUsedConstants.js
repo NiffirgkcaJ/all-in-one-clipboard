@@ -6,6 +6,7 @@ import { FileItem } from '../../../shared/constants/storagePaths.js';
 export const RecentlyUsedUI = {
     PINNED_ITEM_HEIGHT: 48,
     MAX_PINNED_DISPLAY_COUNT: 5,
+    OUTER_SCROLL_LOCK_DELAY_MS: 150,
     GRID_COLUMN_SPACING: 4,
     SECTION_SPACING: 8,
     SECTION_ORDER: ['pinned', 'emoji', 'gif', 'kaomoji', 'symbols', 'clipboard'],
