@@ -214,8 +214,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             const features = [RecentlyUsedFeatures.EMOJI, RecentlyUsedFeatures.KAOMOJI, RecentlyUsedFeatures.SYMBOLS, RecentlyUsedFeatures.GIF];
 
             for (const feature of features) {
-                const absolutePath = feature.getPath(this._extension.uuid);
-                this._recentManagers[feature.id] = getRecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
+                try {
+                    const absolutePath = feature.getPath(this._extension.uuid);
+                    this._recentManagers[feature.id] = getRecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
+                } catch (e) {
+                    console.warn(`[AIO-Clipboard] Failed to initialize ${feature.id} recents manager: ${e}`);
+                }
             }
         }
 
@@ -430,6 +434,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             const settingKey = settingKeyMap[id];
             if (settingKey && !this._settings.get_boolean(settingKey)) {
+                sectionData.section.hide();
+                return;
+            }
+
+            if (id === 'kaomoji' && !this._recentManagers.kaomoji) {
                 sectionData.section.hide();
                 return;
             }
