@@ -647,7 +647,24 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 }
             }
 
-            this._extension._indicator.menu.close();
+            this._closeMenuSafely();
+        }
+
+        /**
+         * Close extension menu when available; safely no-op during teardown paths.
+         * @private
+         */
+        _closeMenuSafely() {
+            const menu = this._extension?._indicator?.menu;
+            if (!menu || typeof menu.close !== 'function') {
+                return;
+            }
+
+            try {
+                menu.close();
+            } catch {
+                // Menu actor can already be destroyed during extension reload/disable.
+            }
         }
 
         /**
