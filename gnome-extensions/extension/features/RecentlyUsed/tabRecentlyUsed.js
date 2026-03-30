@@ -6,16 +6,15 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
-import { getRecentItemsManager } from '../../shared/utilities/utilityRecents.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
+import { handleRecentlyUsedItemClick } from './utilities/recentlyUsedInteractions.js';
 import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScrollView.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
+import { createRecentManagers, connectRecentlyUsedSignals, disconnectTrackedSignalsSafely } from './utilities/recentlyUsedDataBinding.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
 // ============================================================================
@@ -213,14 +212,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         async _loadRecentManagers() {
             const features = [RecentlyUsedFeatures.EMOJI, RecentlyUsedFeatures.KAOMOJI, RecentlyUsedFeatures.SYMBOLS, RecentlyUsedFeatures.GIF];
 
-            for (const feature of features) {
-                try {
-                    const absolutePath = feature.getPath(this._extension.uuid);
-                    this._recentManagers[feature.id] = getRecentItemsManager(this._extension.uuid, this._settings, absolutePath, feature.maxItemsKey);
-                } catch (e) {
-                    console.warn(`[AIO-Clipboard] Failed to initialize ${feature.id} recents manager: ${e}`);
-                }
-            }
+            this._recentManagers = createRecentManagers({
+                extensionUuid: this._extension.uuid,
+                settings: this._settings,
+                features,
+            });
         }
 
         /**
@@ -228,20 +224,12 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _connectSignalsAndRender() {
-            this._signalIds.push({
-                obj: this._clipboardManager,
-                id: this._clipboardManager.connect('history-changed', () => this._renderAll()),
-            });
-            this._signalIds.push({
-                obj: this._clipboardManager,
-                id: this._clipboardManager.connect('pinned-list-changed', () => this._renderAll()),
-            });
-
-            Object.entries(this._recentManagers).forEach(([_feature, manager]) => {
-                this._signalIds.push({
-                    obj: manager,
-                    id: manager.connect('recents-changed', () => this._renderAll()),
-                });
+            this._signalIds = connectRecentlyUsedSignals({
+                clipboardManager: this._clipboardManager,
+                recentManagers: this._recentManagers,
+                onRender: () => {
+                    this._renderAll();
+                },
             });
 
             this.onTabSelected();
@@ -623,60 +611,15 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @async
          */
         async _onItemClicked(itemData, feature) {
-            const featureConfigs = {
-                emoji: RecentlyUsedFeatures.EMOJI,
-                gif: RecentlyUsedFeatures.GIF,
-                kaomoji: RecentlyUsedFeatures.KAOMOJI,
-                symbols: RecentlyUsedFeatures.SYMBOLS,
-            };
-            const featureConfig = featureConfigs[feature];
-            const autoPasteKey = featureConfig ? featureConfig.autoPasteKey : RecentlyUsedSettings.AUTO_PASTE_CLIPBOARD;
-
-            let copySuccess = false;
-
-            if (feature === 'clipboard') {
-                copySuccess = await this._clipboardManager.copyToSystemClipboard(itemData);
-            } else if (feature === 'gif') {
-                copySuccess = await this._gifDownloadService.copyToClipboard(itemData, this._settings, this._clipboardManager);
-            } else {
-                const contentToCopy = itemData.char || itemData.value || '';
-                if (contentToCopy) {
-                    clipboardSetText(contentToCopy);
-                    copySuccess = true;
-                }
-            }
-
-            if (copySuccess) {
-                if (feature === 'clipboard') {
-                    this._clipboardManager.promoteItemToTop(itemData.id);
-                } else if (featureConfig) {
-                    // Bump the item to the top of its home tab's recents list
-                    this._recentManagers[feature]?.addItem(itemData);
-                }
-
-                if (AutoPaster.shouldAutoPaste(this._settings, autoPasteKey)) {
-                    await getAutoPaster().trigger();
-                }
-            }
-
-            this._closeMenuSafely();
-        }
-
-        /**
-         * Close extension menu when available; safely no-op during teardown paths.
-         * @private
-         */
-        _closeMenuSafely() {
-            const menu = this._extension?._indicator?.menu;
-            if (!menu || typeof menu.close !== 'function') {
-                return;
-            }
-
-            try {
-                menu.close();
-            } catch {
-                // Menu actor can already be destroyed during extension reload/disable.
-            }
+            await handleRecentlyUsedItemClick({
+                itemData,
+                feature,
+                clipboardManager: this._clipboardManager,
+                gifDownloadService: this._gifDownloadService,
+                settings: this._settings,
+                recentManagers: this._recentManagers,
+                extension: this._extension,
+            });
         }
 
         /**
@@ -732,28 +675,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _disconnectTrackedSignalsSafely() {
-            if (!Array.isArray(this._signalIds) || this._signalIds.length === 0) {
-                return;
-            }
-
-            this._signalIds.forEach(({ obj, id }) => {
-                if (!obj || !id || typeof obj.disconnect !== 'function') {
-                    return;
-                }
-
-                try {
-                    if (typeof obj.signal_handler_is_connected === 'function') {
-                        if (!obj.signal_handler_is_connected(id)) {
-                            return;
-                        }
-                    }
-                    obj.disconnect(id);
-                } catch {
-                    // Ignore invalid or already-disconnected handlers during teardown.
-                }
-            });
-
-            this._signalIds = [];
+            this._signalIds = disconnectTrackedSignalsSafely(this._signalIds);
         }
 
         /**
