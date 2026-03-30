@@ -8,7 +8,6 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { FilePath } from '../../shared/constants/storagePaths.js';
 
-import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
 import { handleRecentlyUsedItemClick } from './utilities/recentlyUsedInteractions.js';
 import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScrollView.js';
@@ -16,6 +15,7 @@ import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { focusRecentlyUsedBestCandidate, handleRecentlyUsedKeyPress } from './utilities/recentlyUsedFocusNavigation.js';
 import { RecentlyUsedScrollLockController } from './utilities/recentlyUsedScrollLockController.js';
 import { createRecentManagers, connectRecentlyUsedSignals, disconnectTrackedSignalsSafely } from './utilities/recentlyUsedDataBinding.js';
+import { renderGridSection, renderListSection } from './utilities/recentlyUsedSectionRenderer.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
 // ============================================================================
@@ -407,43 +407,15 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _renderListSection(id) {
-            const sectionData = this._sections[id];
-            const settingKeyMap = {
-                kaomoji: RecentlyUsedSettings.ENABLE_KAOMOJI_TAB,
-                clipboard: RecentlyUsedSettings.ENABLE_CLIPBOARD_TAB,
-            };
-
-            const settingKey = settingKeyMap[id];
-            if (settingKey && !this._settings.get_boolean(settingKey)) {
-                sectionData.section.hide();
-                return;
-            }
-
-            if (id === 'kaomoji' && !this._recentManagers.kaomoji) {
-                sectionData.section.hide();
-                return;
-            }
-
-            const items = id === 'kaomoji' ? this._recentManagers.kaomoji.getRecents().slice(0, 5) : this._clipboardManager.getHistoryItems().slice(0, 5);
-
-            if (items.length === 0) {
-                sectionData.section.hide();
-                return;
-            }
-
-            sectionData.section.show();
-            this._focusGrid.push([sectionData.showAllBtn]);
-
-            const container = new St.BoxLayout({ vertical: true, x_expand: true });
-
-            items.forEach((item) => {
-                const itemData = id === 'kaomoji' ? { type: 'kaomoji', preview: item.value, rawItem: item } : item;
-                const widget = this._createFullWidthClipboardItem(itemData, false, id);
-                container.add_child(widget);
-                this._focusGrid.push([widget]);
+            renderListSection({
+                id,
+                sections: this._sections,
+                settings: this._settings,
+                recentManagers: this._recentManagers,
+                clipboardManager: this._clipboardManager,
+                focusGrid: this._focusGrid,
+                createFullWidthClipboardItem: this._createFullWidthClipboardItem.bind(this),
             });
-
-            sectionData.bodyContainer.set_child(container);
         }
 
         /**
@@ -453,68 +425,18 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _renderGridSection(id) {
-            const sectionData = this._sections[id];
-            const manager = this._recentManagers[id];
-            const settingKeyMap = {
-                emoji: RecentlyUsedSettings.ENABLE_EMOJI_TAB,
-                gif: RecentlyUsedSettings.ENABLE_GIF_TAB,
-                symbols: RecentlyUsedSettings.ENABLE_SYMBOLS_TAB,
-            };
-
-            const settingKey = settingKeyMap[id];
-            if (settingKey && !this._settings.get_boolean(settingKey)) {
-                sectionData.section.hide();
-                return;
-            }
-
-            if (!manager) {
-                sectionData.section.hide();
-                return;
-            }
-
-            const items = manager.getRecents().slice(0, 5);
-
-            if (items.length === 0) {
-                sectionData.section.hide();
-                return;
-            }
-
-            sectionData.section.show();
-            this._focusGrid.push([sectionData.showAllBtn]);
-
-            const grid = new St.Widget({
-                layout_manager: new Clutter.GridLayout({
-                    column_homogeneous: true,
-                    column_spacing: RecentlyUsedUI.GRID_COLUMN_SPACING,
-                }),
-                x_expand: true,
+            renderGridSection({
+                id,
+                sections: this._sections,
+                settings: this._settings,
+                recentManagers: this._recentManagers,
+                focusGrid: this._focusGrid,
+                createGridItem: this._createGridItem.bind(this),
+                renderSession: this._renderSession,
+                gifDownloadService: this._gifDownloadService,
+                gifCacheDir: this._gifCacheDir,
+                currentRenderSession: () => this._renderSession,
             });
-
-            const layout = grid.get_layout_manager();
-            const sectionFocusables = [];
-
-            items.forEach((item, index) => {
-                const widget = this._createGridItem(item, id);
-                layout.attach(widget, index, 0, 1, 1);
-                sectionFocusables.push(widget);
-
-                if (id === 'gif' && item.preview_url) {
-                    const context = {
-                        gifDownloadService: this._gifDownloadService,
-                        gifCacheDir: this._gifCacheDir,
-                        currentRenderSession: () => this._renderSession,
-                        getGifCacheManager,
-                    };
-                    RecentlyUsedViewRenderer.updateGifButtonWithPreview(widget, item.preview_url, this._renderSession, context).catch((e) => {
-                        if (!e.message.startsWith('Recently Used Tab')) {
-                            console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${e.message}`);
-                        }
-                    });
-                }
-            });
-
-            this._focusGrid.push(sectionFocusables);
-            sectionData.bodyContainer.set_child(grid);
         }
 
         // ========================================================================
