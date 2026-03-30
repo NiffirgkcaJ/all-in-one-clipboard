@@ -3,7 +3,6 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
-import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FilePath } from '../../shared/constants/storagePaths.js';
@@ -13,8 +12,11 @@ import { handleRecentlyUsedItemClick } from './utilities/recentlyUsedInteraction
 import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScrollView.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { focusRecentlyUsedBestCandidate, handleRecentlyUsedKeyPress } from './utilities/recentlyUsedFocusNavigation.js';
+import { createFullWidthClipboardButton, createGridButton } from './utilities/recentlyUsedItemWidgets.js';
 import { RecentlyUsedScrollLockController } from './utilities/recentlyUsedScrollLockController.js';
 import { createRecentManagers, connectRecentlyUsedSignals, disconnectTrackedSignalsSafely } from './utilities/recentlyUsedDataBinding.js';
+import { renderPinnedSection as renderPinnedClipboardSection } from './utilities/recentlyUsedPinnedSectionRenderer.js';
+import { buildRecentlyUsedSection } from './utilities/recentlyUsedSectionBuilder.js';
 import { renderGridSection, renderListSection } from './utilities/recentlyUsedSectionRenderer.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
@@ -158,46 +160,24 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _addSection(sectionConfig) {
-            const separator = RecentlyUsedViewRenderer.createSectionSeparator();
-            this._mainContainer.add_child(separator);
-
-            const section = new St.BoxLayout({
-                vertical: true,
-                style_class: RecentlyUsedStyles.SECTION,
-                x_expand: true,
+            this._sections[sectionConfig.id] = buildRecentlyUsedSection({
+                mainContainer: this._mainContainer,
+                sectionConfig,
+                scrollView: this._scrollView,
+                onNavigateToMainTab: (tabName) => {
+                    this.emit('navigate-to-main-tab', tabName);
+                },
+                onUnlockOuterScroll: () => {
+                    this._unlockOuterScroll();
+                },
+                getScrollIntoViewIdleId: () => this._scrollIntoViewIdleId,
+                setScrollIntoViewIdleId: (id) => {
+                    this._scrollIntoViewIdleId = id;
+                },
+                setPreviousFocus: (actor) => {
+                    this._previousFocus = actor;
+                },
             });
-
-            const { header, showAllBtn } = RecentlyUsedViewRenderer.createSectionHeader(sectionConfig.getTitle());
-            showAllBtn.connect('clicked', () => {
-                this.emit('navigate-to-main-tab', sectionConfig.targetTab);
-            });
-
-            showAllBtn.connect('key-focus-in', () => {
-                this._unlockOuterScroll();
-                this._previousFocus = showAllBtn;
-
-                if (this._scrollIntoViewIdleId) {
-                    GLib.source_remove(this._scrollIntoViewIdleId);
-                    this._scrollIntoViewIdleId = 0;
-                }
-                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    this._scrollIntoViewIdleId = 0;
-                    ensureActorVisibleInScrollView(this._scrollView, showAllBtn);
-                    return GLib.SOURCE_REMOVE;
-                });
-            });
-
-            section.add_child(header);
-
-            const bodyContainer = new St.Bin({
-                x_expand: true,
-                x_align: Clutter.ActorAlign.FILL,
-            });
-
-            section.add_child(bodyContainer);
-            this._mainContainer.add_child(section);
-
-            this._sections[sectionConfig.id] = { section, showAllBtn, bodyContainer, separator };
         }
 
         // ========================================================================
@@ -280,114 +260,41 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _renderPinnedSection() {
-            const sectionData = this._sections['pinned'];
-            const items = this._clipboardManager.getPinnedItems();
-
-            this._pinnedWidgets = new Set();
-
-            if (items.length === 0) {
-                sectionData.section.hide();
-                return;
-            }
-
-            sectionData.section.show();
-            this._focusGrid.push([sectionData.showAllBtn]);
-
-            const container = new St.BoxLayout({ vertical: true, x_expand: true });
-            const useNestedScroll = items.length > RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT;
-            let pinnedScrollView = null;
-
-            if (useNestedScroll) {
-                pinnedScrollView = new PinnedNestedScrollView({
-                    hscrollbar_policy: St.PolicyType.NEVER,
-                    vscrollbar_policy: St.PolicyType.AUTOMATIC,
-                    overlay_scrollbars: true,
-                    x_expand: true,
-                });
-                pinnedScrollView.style = `height: ${RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT * RecentlyUsedUI.PINNED_ITEM_HEIGHT}px;`;
-
-                pinnedScrollView.set_child(container);
-                sectionData.bodyContainer.set_child(pinnedScrollView);
-                this._configurePinnedScrollHandoff(pinnedScrollView);
-
-                this._pinnedWidgets.add(sectionData.showAllBtn);
-            }
-
-            items.forEach((item) => {
-                const widget = this._createFullWidthClipboardItem(item, true);
-                container.add_child(widget);
-
-                this._pinnedWidgets.add(widget);
-
-                if (useNestedScroll) {
-                    widget.connect('key-focus-in', () => {
-                        const isEnteringFromOutside = !this._pinnedWidgets.has(this._previousFocus);
-
-                        if (isEnteringFromOutside) {
-                            this._unlockOuterScroll();
-
-                            if (this._scrollIntoViewIdleId) {
-                                GLib.source_remove(this._scrollIntoViewIdleId);
-                                this._scrollIntoViewIdleId = 0;
-                            }
-                            this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                                this._scrollIntoViewIdleId = 0;
-                                if (widget.get_stage()) {
-                                    ensureActorVisibleInScrollView(this._scrollView, sectionData.showAllBtn);
-                                    ensureActorVisibleInScrollView(pinnedScrollView, widget);
-
-                                    this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
-                                        this._lockTimeoutId = null;
-                                        this._lockOuterScroll();
-                                        return GLib.SOURCE_REMOVE;
-                                    });
-                                }
-                                return GLib.SOURCE_REMOVE;
-                            });
-                        } else {
-                            this._lockOuterScroll();
-
-                            if (this._scrollIntoViewIdleId) {
-                                GLib.source_remove(this._scrollIntoViewIdleId);
-                                this._scrollIntoViewIdleId = 0;
-                            }
-                            this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                                this._scrollIntoViewIdleId = 0;
-                                if (widget.get_stage()) {
-                                    ensureActorVisibleInScrollView(pinnedScrollView, widget);
-                                }
-                                return GLib.SOURCE_REMOVE;
-                            });
-                        }
-
-                        this._previousFocus = widget;
-                    });
-                } else {
-                    widget.connect('key-focus-in', () => {
-                        this._unlockOuterScroll();
-
-                        if (this._scrollIntoViewIdleId) {
-                            GLib.source_remove(this._scrollIntoViewIdleId);
-                            this._scrollIntoViewIdleId = 0;
-                        }
-                        this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                            this._scrollIntoViewIdleId = 0;
-                            if (widget.get_stage()) {
-                                ensureActorVisibleInScrollView(this._scrollView, widget);
-                            }
-                            return GLib.SOURCE_REMOVE;
-                        });
-
-                        this._previousFocus = widget;
-                    });
-                }
-
-                this._focusGrid.push([widget]);
+            this._pinnedWidgets = renderPinnedClipboardSection({
+                sections: this._sections,
+                clipboardManager: this._clipboardManager,
+                focusGrid: this._focusGrid,
+                createFullWidthClipboardItem: this._createFullWidthClipboardItem.bind(this),
+                recentlyUsedUI: RecentlyUsedUI,
+                createPinnedNestedScrollView: () =>
+                    new PinnedNestedScrollView({
+                        hscrollbar_policy: St.PolicyType.NEVER,
+                        vscrollbar_policy: St.PolicyType.AUTOMATIC,
+                        overlay_scrollbars: true,
+                        x_expand: true,
+                    }),
+                configurePinnedScrollHandoff: (scrollView) => {
+                    this._configurePinnedScrollHandoff(scrollView);
+                },
+                unlockOuterScroll: () => {
+                    this._unlockOuterScroll();
+                },
+                lockOuterScroll: () => {
+                    this._lockOuterScroll();
+                },
+                scrollView: this._scrollView,
+                getPreviousFocus: () => this._previousFocus,
+                setPreviousFocus: (actor) => {
+                    this._previousFocus = actor;
+                },
+                getScrollIntoViewIdleId: () => this._scrollIntoViewIdleId,
+                setScrollIntoViewIdleId: (id) => {
+                    this._scrollIntoViewIdleId = id;
+                },
+                setLockTimeoutId: (id) => {
+                    this._lockTimeoutId = id;
+                },
             });
-
-            if (!useNestedScroll) {
-                sectionData.bodyContainer.set_child(container);
-            }
         }
 
         /**
@@ -453,34 +360,24 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _createFullWidthClipboardItem(itemData, isPinned, feature = 'clipboard') {
-            const context = {
+            return createFullWidthClipboardButton({
+                itemData,
+                isPinned,
+                feature,
                 clipboardManager: this._clipboardManager,
                 imagePreviewSize: this._imagePreviewSize,
-            };
-
-            const button = RecentlyUsedViewRenderer.createFullWidthListItem(itemData, isPinned, feature, context);
-
-            button.connect('clicked', () => {
-                this._onItemClicked(itemData.type === 'kaomoji' ? itemData.rawItem : itemData, feature);
+                onItemClicked: (payload, clickedFeature) => {
+                    this._onItemClicked(payload, clickedFeature);
+                },
+                unlockOuterScroll: () => {
+                    this._unlockOuterScroll();
+                },
+                scrollView: this._scrollView,
+                getScrollIntoViewIdleId: () => this._scrollIntoViewIdleId,
+                setScrollIntoViewIdleId: (id) => {
+                    this._scrollIntoViewIdleId = id;
+                },
             });
-
-            button.connect('key-focus-in', () => {
-                this._unlockOuterScroll();
-
-                if (this._scrollIntoViewIdleId) {
-                    GLib.source_remove(this._scrollIntoViewIdleId);
-                    this._scrollIntoViewIdleId = 0;
-                }
-                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    this._scrollIntoViewIdleId = 0;
-                    if (button.get_stage()) {
-                        ensureActorVisibleInScrollView(this._scrollView, button);
-                    }
-                    return GLib.SOURCE_REMOVE;
-                });
-            });
-
-            return button;
         }
 
         /**
@@ -492,25 +389,21 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _createGridItem(itemData, feature) {
-            const button = RecentlyUsedViewRenderer.createGridItem(itemData, feature);
-
-            button.connect('clicked', () => this._onItemClicked(itemData, feature));
-
-            button.connect('key-focus-in', () => {
-                this._unlockOuterScroll();
-
-                if (this._scrollIntoViewIdleId) {
-                    GLib.source_remove(this._scrollIntoViewIdleId);
-                    this._scrollIntoViewIdleId = 0;
-                }
-                this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    this._scrollIntoViewIdleId = 0;
-                    ensureActorVisibleInScrollView(this._scrollView, button);
-                    return GLib.SOURCE_REMOVE;
-                });
+            return createGridButton({
+                itemData,
+                feature,
+                onItemClicked: (payload, clickedFeature) => {
+                    this._onItemClicked(payload, clickedFeature);
+                },
+                unlockOuterScroll: () => {
+                    this._unlockOuterScroll();
+                },
+                scrollView: this._scrollView,
+                getScrollIntoViewIdleId: () => this._scrollIntoViewIdleId,
+                setScrollIntoViewIdleId: (id) => {
+                    this._scrollIntoViewIdleId = id;
+                },
             });
-
-            return button;
         }
 
         // ========================================================================
