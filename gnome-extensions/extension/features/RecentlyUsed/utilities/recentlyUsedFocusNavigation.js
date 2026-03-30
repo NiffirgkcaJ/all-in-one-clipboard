@@ -177,9 +177,9 @@ function tryFocusContentItem({ focusGrid, showAllButtons, settingsBtn }) {
 }
 
 /**
- * Attempts to focus any visible widget in the focus grid
- * @param {Array<Array<object>>} focusGrid - Focus matrix
- * @returns {boolean} True if an item was focused, false otherwise
+ * Attempts to focus a visible Show All button.
+ * @param {Set<object>} showAllButtons Set of Show All buttons
+ * @returns {boolean} True if a button was focused, false otherwise
  */
 function tryFocusShowAllButton(showAllButtons) {
     for (const button of showAllButtons) {
@@ -197,8 +197,8 @@ function tryFocusShowAllButton(showAllButtons) {
 }
 
 /**
- * Attempts to focus any visible widget in the focus grid
- * @param {Array<Array<object>>} focusGrid - Focus matrix
+ * Attempts to focus any visible widget in the focus grid.
+ * @param {Array<Array<object>>} focusGrid Focus matrix
  * @returns {boolean} True if an item was focused, false otherwise
  */
 function tryFocusAnyWidget(focusGrid) {

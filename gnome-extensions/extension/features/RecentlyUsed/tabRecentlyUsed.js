@@ -13,6 +13,7 @@ import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScro
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
 import { focusRecentlyUsedBestCandidate, handleRecentlyUsedKeyPress } from './utilities/recentlyUsedFocusNavigation.js';
 import { createFullWidthClipboardButton, createGridButton } from './utilities/recentlyUsedItemWidgets.js';
+import { renderRecentlyUsedSections } from './utilities/recentlyUsedRenderCoordinator.js';
 import { RecentlyUsedScrollLockController } from './utilities/recentlyUsedScrollLockController.js';
 import { createRecentManagers, connectRecentlyUsedSignals, disconnectTrackedSignalsSafely } from './utilities/recentlyUsedDataBinding.js';
 import { renderPinnedSection as renderPinnedClipboardSection } from './utilities/recentlyUsedPinnedSectionRenderer.js';
@@ -227,32 +228,23 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._renderSession = {};
             this._focusGrid = [];
 
-            for (const id in this._sections) {
-                this._sections[id].separator.visible = false;
-            }
-
-            this._renderPinnedSection();
-            this._renderGridSection('emoji');
-            this._renderGridSection('gif');
-            this._renderListSection('kaomoji');
-            this._renderGridSection('symbols');
-            this._renderListSection('clipboard');
-
-            const visibleSections = RecentlyUsedUI.SECTION_ORDER.map((id) => this._sections[id]).filter((s) => s && s.section.visible);
-
-            if (visibleSections.length === 0) {
-                this._scrollView.visible = false;
-                this._emptyView.visible = true;
-            } else {
-                this._scrollView.visible = true;
-                this._emptyView.visible = false;
-
-                for (let i = 1; i < visibleSections.length; i++) {
-                    visibleSections[i].separator.visible = true;
-                }
-            }
-
-            this._focusGrid.push([this._settingsBtn]);
+            renderRecentlyUsedSections({
+                sections: this._sections,
+                sectionOrder: RecentlyUsedUI.SECTION_ORDER,
+                scrollView: this._scrollView,
+                emptyView: this._emptyView,
+                settingsBtn: this._settingsBtn,
+                focusGrid: this._focusGrid,
+                renderPinnedSection: () => {
+                    this._renderPinnedSection();
+                },
+                renderGridSection: (id) => {
+                    this._renderGridSection(id);
+                },
+                renderListSection: (id) => {
+                    this._renderListSection(id);
+                },
+            });
         }
 
         /**
