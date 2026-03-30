@@ -7,13 +7,14 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FilePath } from '../../shared/constants/storagePaths.js';
-import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 
 import { getGifCacheManager } from '../GIF/logic/gifCacheManager.js';
 import { GifDownloadService } from '../GIF/logic/gifDownloadService.js';
 import { handleRecentlyUsedItemClick } from './utilities/recentlyUsedInteractions.js';
 import { PinnedNestedScrollView } from './utilities/recentlyUsedPinnedNestedScrollView.js';
 import { RecentlyUsedViewRenderer } from './view/recentlyUsedViewRenderer.js';
+import { focusRecentlyUsedBestCandidate, handleRecentlyUsedKeyPress } from './utilities/recentlyUsedFocusNavigation.js';
+import { RecentlyUsedScrollLockController } from './utilities/recentlyUsedScrollLockController.js';
 import { createRecentManagers, connectRecentlyUsedSignals, disconnectTrackedSignalsSafely } from './utilities/recentlyUsedDataBinding.js';
 import { RecentlyUsedUI, RecentlyUsedSections, RecentlyUsedSettings, RecentlyUsedFeatures, RecentlyUsedStyles } from './constants/recentlyUsedConstants.js';
 
@@ -71,9 +72,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
             this._sections = {};
             this._focusGrid = [];
             this._renderSession = null;
-            this._outerScrollLocked = false;
-            this._lockedScrollValue = 0;
-            this._scrollLockHandler = null;
+            this._scrollLockController = null;
             this._pinnedWidgets = new Set();
             this._previousFocus = null;
             this._lockTimeoutId = null;
@@ -113,6 +112,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 overlay_scrollbars: true,
                 visible: false,
             });
+            this._scrollLockController = new RecentlyUsedScrollLockController(this._scrollView);
 
             this._scrollView.connect('scroll-event', () => {
                 this._unlockOuterScroll();
@@ -397,14 +397,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _configurePinnedScrollHandoff(pinnedScrollView) {
-            pinnedScrollView.setHandoffCallbacks({
-                onInnerScroll: () => {
-                    this._lockOuterScroll();
-                },
-                onBoundaryHandoff: () => {
-                    this._unlockOuterScroll();
-                },
-            });
+            this._scrollLockController?.configurePinnedScrollHandoff(pinnedScrollView);
         }
 
         /**
@@ -632,20 +625,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._lockTimeoutId = null;
             }
 
-            if (this._outerScrollLocked) {
-                return;
-            }
-
-            this._lockedScrollValue = this._scrollView.vadjustment.value;
-            this._outerScrollLocked = true;
-
-            this._scrollLockHandler = this._scrollView.vadjustment.connect('notify::value', () => {
-                if (this._outerScrollLocked) {
-                    if (this._scrollView.vadjustment.value !== this._lockedScrollValue) {
-                        this._scrollView.vadjustment.set_value(this._lockedScrollValue);
-                    }
-                }
-            });
+            this._scrollLockController?.lock();
         }
 
         /**
@@ -658,16 +638,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._lockTimeoutId = null;
             }
 
-            if (!this._outerScrollLocked) {
-                return;
-            }
-
-            this._outerScrollLocked = false;
-
-            if (this._scrollLockHandler) {
-                this._scrollView.vadjustment.disconnect(this._scrollLockHandler);
-                this._scrollLockHandler = null;
-            }
+            this._scrollLockController?.unlock();
         }
 
         /**
@@ -687,89 +658,16 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _onKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-            const currentFocus = global.stage.get_key_focus();
-            const allFocusable = this._focusGrid.flat();
-
-            if (!allFocusable.includes(currentFocus)) {
-                if (symbol === Clutter.KEY_Down && this._focusGrid.length > 0) {
-                    this._focusGrid[0][0].grab_key_focus();
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            let rowIndex = -1,
-                colIndex = -1;
-            for (let r = 0; r < this._focusGrid.length; r++) {
-                let c = this._focusGrid[r].indexOf(currentFocus);
-                if (c !== -1) {
-                    rowIndex = r;
-                    colIndex = c;
-                    break;
-                }
-            }
-
-            if (rowIndex === -1) return Clutter.EVENT_PROPAGATE;
-
-            let nextRow = rowIndex,
-                nextCol = colIndex;
-
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
-                const currentRow = this._focusGrid[rowIndex];
-                const currentRowIndex = currentRow.indexOf(currentFocus);
-
-                if (currentRowIndex !== -1) {
-                    const result = FocusUtils.handleRowNavigation(event, currentRow, currentRowIndex, currentRow.length);
-                    if (result === Clutter.EVENT_STOP) {
-                        return Clutter.EVENT_STOP;
-                    }
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            if (symbol === Clutter.KEY_Up) {
-                if (rowIndex > 0) {
-                    nextRow--;
-                } else {
-                    this._unlockOuterScroll();
-                    return Clutter.EVENT_PROPAGATE;
-                }
-            } else if (symbol === Clutter.KEY_Down) {
-                if (rowIndex < this._focusGrid.length - 1) {
-                    nextRow++;
-                } else {
-                    return Clutter.EVENT_STOP;
-                }
-            } else {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            if (this._focusGrid[nextRow].length === 1) {
-                nextCol = 0;
-            } else {
-                nextCol = Math.min(nextCol, this._focusGrid[nextRow].length - 1);
-            }
-
-            const targetWidget = this._focusGrid[nextRow][nextCol];
-
-            if (targetWidget === this._settingsBtn) {
-                this._settingsBtn.can_focus = true;
-                this._settingsBtn.grab_key_focus();
-
-                if (this._settingsBtnFocusTimeoutId) {
-                    GLib.source_remove(this._settingsBtnFocusTimeoutId);
-                }
-                this._settingsBtnFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10, () => {
-                    this._settingsBtn.can_focus = false;
-                    this._settingsBtnFocusTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                });
-            } else {
-                targetWidget.grab_key_focus();
-            }
-
-            return Clutter.EVENT_STOP;
+            return handleRecentlyUsedKeyPress({
+                event,
+                focusGrid: this._focusGrid,
+                settingsBtn: this._settingsBtn,
+                onUnlockOuterScroll: () => this._unlockOuterScroll(),
+                settingsBtnFocusTimeoutId: this._settingsBtnFocusTimeoutId,
+                setSettingsBtnFocusTimeoutId: (id) => {
+                    this._settingsBtnFocusTimeoutId = id;
+                },
+            });
         }
 
         // ========================================================================
@@ -817,90 +715,14 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                     return GLib.SOURCE_REMOVE;
                 }
 
-                const showAllButtons = new Set();
-                for (const section of Object.values(this._sections)) {
-                    if (section.showAllBtn) {
-                        showAllButtons.add(section.showAllBtn);
-                    }
-                }
+                focusRecentlyUsedBestCandidate({
+                    focusGrid: this._focusGrid,
+                    sections: this._sections,
+                    settingsBtn: this._settingsBtn,
+                });
 
-                if (this._tryFocusShowAllButton(showAllButtons)) {
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                if (this._tryFocusContentItem(showAllButtons)) {
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                this._tryFocusAnyWidget();
                 return GLib.SOURCE_REMOVE;
             });
-        }
-
-        /**
-         * Try to focus the first content item, skipping Show All buttons and settings
-         * @param {Set} showAllButtons - Set of Show All buttons to skip
-         * @returns {boolean} True if successfully focused an item
-         * @private
-         */
-        _tryFocusContentItem(showAllButtons) {
-            for (let i = 0; i < this._focusGrid.length; i++) {
-                const row = this._focusGrid[i];
-                if (!row || row.length === 0) continue;
-
-                const firstItemInRow = row[0];
-                if (!firstItemInRow || !firstItemInRow.visible || !firstItemInRow.get_stage()) continue;
-                if (firstItemInRow === this._settingsBtn) continue;
-                if (showAllButtons.has(firstItemInRow)) continue;
-
-                try {
-                    firstItemInRow.grab_key_focus();
-                    return true;
-                } catch {
-                    continue;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Try to focus any Show All button that's visible
-         * @param {Set} showAllButtons - Set of Show All buttons
-         * @returns {boolean} True if successfully focused a button
-         * @private
-         */
-        _tryFocusShowAllButton(showAllButtons) {
-            for (const button of showAllButtons) {
-                if (button && button.visible && button.get_stage()) {
-                    try {
-                        button.grab_key_focus();
-                        return true;
-                    } catch {
-                        continue;
-                    }
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Last resort: try to focus any visible widget in the grid
-         * @private
-         */
-        _tryFocusAnyWidget() {
-            for (let i = 0; i < this._focusGrid.length; i++) {
-                if (this._focusGrid[i] && this._focusGrid[i][0]) {
-                    const widget = this._focusGrid[i][0];
-                    if (widget && widget.visible && widget.get_stage()) {
-                        try {
-                            widget.grab_key_focus();
-                            return;
-                        } catch {
-                            continue;
-                        }
-                    }
-                }
-            }
         }
 
         /**
@@ -930,6 +752,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
             if (this._gifDownloadService) {
                 this._gifDownloadService = null;
+            }
+
+            if (this._scrollLockController) {
+                this._scrollLockController.destroy();
+                this._scrollLockController = null;
             }
 
             this._disconnectTrackedSignalsSafely();
