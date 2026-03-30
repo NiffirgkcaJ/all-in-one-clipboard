@@ -183,7 +183,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 }
                 this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._scrollIntoViewIdleId = 0;
-                    ensureActorVisibleInScrollView(this._scrollView, section);
+                    ensureActorVisibleInScrollView(this._scrollView, showAllBtn);
                     return GLib.SOURCE_REMOVE;
                 });
             });
@@ -341,7 +341,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                             this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                                 this._scrollIntoViewIdleId = 0;
                                 if (widget.get_stage()) {
-                                    ensureActorVisibleInScrollView(this._scrollView, sectionData.section);
+                                    ensureActorVisibleInScrollView(this._scrollView, sectionData.showAllBtn);
                                     ensureActorVisibleInScrollView(pinnedScrollView, widget);
 
                                     this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
