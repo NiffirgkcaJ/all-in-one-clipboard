@@ -486,7 +486,10 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 return;
             }
 
-            if (!manager) return;
+            if (!manager) {
+                sectionData.section.hide();
+                return;
+            }
 
             const items = manager.getRecents().slice(0, 5);
 
