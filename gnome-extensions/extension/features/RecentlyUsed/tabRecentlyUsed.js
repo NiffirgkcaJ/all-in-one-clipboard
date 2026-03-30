@@ -728,6 +728,35 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         }
 
         /**
+         * Safely disconnect tracked signals, skipping invalid or stale handlers.
+         * @private
+         */
+        _disconnectTrackedSignalsSafely() {
+            if (!Array.isArray(this._signalIds) || this._signalIds.length === 0) {
+                return;
+            }
+
+            this._signalIds.forEach(({ obj, id }) => {
+                if (!obj || !id || typeof obj.disconnect !== 'function') {
+                    return;
+                }
+
+                try {
+                    if (typeof obj.signal_handler_is_connected === 'function') {
+                        if (!obj.signal_handler_is_connected(id)) {
+                            return;
+                        }
+                    }
+                    obj.disconnect(id);
+                } catch {
+                    // Ignore invalid or already-disconnected handlers during teardown.
+                }
+            });
+
+            this._signalIds = [];
+        }
+
+        /**
          * Handle keyboard navigation with arrow keys
          *
          * @param {Clutter.Actor} actor - The actor that received the key press
@@ -981,9 +1010,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._gifDownloadService = null;
             }
 
-            this._signalIds.forEach(({ obj, id }) => {
-                obj.disconnect(id);
-            });
+            this._disconnectTrackedSignalsSafely();
 
             if (this._tabVisCheckIdleId) {
                 GLib.source_remove(this._tabVisCheckIdleId);
