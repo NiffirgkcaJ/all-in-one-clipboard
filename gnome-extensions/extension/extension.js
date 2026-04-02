@@ -629,7 +629,7 @@ const AllInOneClipboardIndicator = GObject.registerClass(
             if (tabName === _('Recently Used')) {
                 const moduleUrl = `file://${this._extension.path}/features/RecentlyUsed/tabRecentlyUsed.js`;
                 const tabModule = await import(moduleUrl);
-                const newContentActor = new tabModule.RecentlyUsedTabContent(this._extension, this._settings, this._clipboardManager);
+                const newContentActor = new tabModule.RecentlyUsedTabContent(this._extension, this._settings);
 
                 // Wait for the tab's internal async loading to complete.
                 if (newContentActor.initializationPromise) {

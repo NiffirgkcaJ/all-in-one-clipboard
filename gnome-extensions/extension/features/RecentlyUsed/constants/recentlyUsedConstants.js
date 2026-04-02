@@ -1,105 +1,13 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { FileItem } from '../../../shared/constants/storagePaths.js';
-
 // UI Layout Configuration
 export const RecentlyUsedUI = {
-    PINNED_ITEM_HEIGHT: 48,
-    MAX_PINNED_DISPLAY_COUNT: 5,
+    NESTED_ITEM_HEIGHT: 48,
+    MAX_NESTED_DISPLAY_COUNT: 5,
+    MAX_SECTION_DISPLAY_COUNT: 5,
     OUTER_SCROLL_LOCK_DELAY_MS: 150,
     GRID_COLUMN_SPACING: 4,
     SECTION_SPACING: 8,
-    SECTION_ORDER: ['pinned', 'emoji', 'gif', 'kaomoji', 'symbols', 'clipboard'],
-};
-
-// Section Metadata Configuration
-export const RecentlyUsedSections = {
-    PINNED: {
-        id: 'pinned',
-        getTitle: () => _('Pinned Clipboard'),
-        targetTab: 'Clipboard',
-        layoutType: 'list',
-        maxDisplay: RecentlyUsedUI.MAX_PINNED_DISPLAY_COUNT,
-        hasNestedScroll: true,
-    },
-    EMOJI: {
-        id: 'emoji',
-        getTitle: () => _('Recent Emojis'),
-        targetTab: 'Emoji',
-        layoutType: 'grid',
-        maxDisplay: 5,
-    },
-    GIF: {
-        id: 'gif',
-        getTitle: () => _('Recent GIFs'),
-        targetTab: 'GIF',
-        layoutType: 'grid',
-        maxDisplay: 5,
-    },
-    KAOMOJI: {
-        id: 'kaomoji',
-        getTitle: () => _('Recent Kaomojis'),
-        targetTab: 'Kaomoji',
-        layoutType: 'list',
-        maxDisplay: 5,
-    },
-    SYMBOLS: {
-        id: 'symbols',
-        getTitle: () => _('Recent Symbols'),
-        targetTab: 'Symbols',
-        layoutType: 'grid',
-        maxDisplay: 5,
-    },
-    CLIPBOARD: {
-        id: 'clipboard',
-        getTitle: () => _('Recent Clipboard History'),
-        targetTab: 'Clipboard',
-        layoutType: 'list',
-        maxDisplay: 5,
-    },
-};
-
-// GSettings Keys
-export const RecentlyUsedSettings = {
-    ENABLE_EMOJI_TAB: 'enable-emoji-tab',
-    ENABLE_GIF_TAB: 'enable-gif-tab',
-    ENABLE_KAOMOJI_TAB: 'enable-kaomoji-tab',
-    ENABLE_SYMBOLS_TAB: 'enable-symbols-tab',
-    ENABLE_CLIPBOARD_TAB: 'enable-clipboard-tab',
-    AUTO_PASTE_EMOJI: 'auto-paste-emoji',
-    AUTO_PASTE_GIF: 'auto-paste-gif',
-    AUTO_PASTE_KAOMOJI: 'auto-paste-kaomoji',
-    AUTO_PASTE_SYMBOLS: 'auto-paste-symbols',
-    AUTO_PASTE_CLIPBOARD: 'auto-paste-clipboard',
-    CLIPBOARD_IMAGE_PREVIEW_SIZE: 'clipboard-image-preview-size',
-};
-
-// Feature Configuration
-export const RecentlyUsedFeatures = {
-    EMOJI: {
-        id: 'emoji',
-        getPath: () => FileItem.RECENT_EMOJI,
-        maxItemsKey: 'emoji-recents-max-items',
-        autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_EMOJI,
-    },
-    KAOMOJI: {
-        id: 'kaomoji',
-        getPath: () => FileItem.RECENT_KAOMOJI,
-        maxItemsKey: 'kaomoji-recents-max-items',
-        autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_KAOMOJI,
-    },
-    SYMBOLS: {
-        id: 'symbols',
-        getPath: () => FileItem.RECENT_SYMBOLS,
-        maxItemsKey: 'symbols-recents-max-items',
-        autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_SYMBOLS,
-    },
-    GIF: {
-        id: 'gif',
-        getPath: () => FileItem.RECENT_GIFS,
-        maxItemsKey: 'gif-recents-max-items',
-        autoPasteKey: RecentlyUsedSettings.AUTO_PASTE_GIF,
-    },
 };
 
 // UI Style Classes
@@ -116,7 +24,7 @@ export const RecentlyUsedStyles = {
     BOLD_ITEM: 'recently-used-bold-item',
     NORMAL_ITEM: 'recently-used-normal-item',
     GRID_ITEM: 'button recently-used-grid-item',
-    GIF_ICON: 'recently-used-gif-icon',
+    GRID_ICON: 'recently-used-grid-icon',
 };
 
 // Icon Definitions
@@ -125,15 +33,10 @@ export const RecentlyUsedIcons = {
         icon: 'recently-used-settings-symbolic.svg',
         iconSize: 16,
     },
-    GIF_PLACEHOLDER: {
-        icon: 'clipboard-type-image-symbolic.svg',
-        iconSize: 64,
-    },
 };
 
 // Messages
 export const RecentlyUsedMessages = {
     EMPTY_STATE: () => _('No recent items yet.'),
     SHOW_ALL: () => _('Show All'),
-    GIF_TOOLTIP_FALLBACK: () => _('GIF'),
 };

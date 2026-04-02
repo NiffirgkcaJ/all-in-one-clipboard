@@ -3,9 +3,10 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 /**
- * Get the vertical scroll intent from a scroll event
- * @param {Clutter.Event} event The scroll event
- * @returns {number} The scroll intent with -1 for up, 1 for down, and 0 for no scroll
+ * Converts a scroll event into a vertical scroll intent.
+ *
+ * @param {Clutter.Event} event Scroll event.
+ * @returns {number} -1 for up, 1 for down, 0 for no vertical intent.
  */
 function getVerticalScrollIntent(event) {
     const direction = event.get_scroll_direction();
@@ -30,10 +31,11 @@ function getVerticalScrollIntent(event) {
 }
 
 /**
- * Check if the scroll adjustment is at a boundary
- * @param {St.Adjustment} adjustment The scroll adjustment
- * @param {number} scrollIntent The scroll intent with -1 for up, 1 for down, and 0 for no scroll
- * @returns {boolean} True if the adjustment is at a boundary
+ * Checks whether an adjustment is at its boundary for a given intent.
+ *
+ * @param {St.Adjustment} adjustment Vertical adjustment.
+ * @param {number} scrollIntent Intended scroll direction.
+ * @returns {boolean} True when boundary is reached.
  */
 function isScrollAdjustmentAtBoundary(adjustment, scrollIntent) {
     const lower = adjustment.lower;
@@ -46,15 +48,14 @@ function isScrollAdjustmentAtBoundary(adjustment, scrollIntent) {
 }
 
 /**
- * A custom ScrollView that allows nested scrolling with pinned behavior.
- * It detects scroll direction and whether the scroll is at the boundary to determine when to hand off scrolling to an inner view or allow the outer view to scroll.
- * Used in the Recently Used extension to manage scrolling between the main list and pinned items.
+ * Scroll view that supports inner-scroll and boundary handoff callbacks.
  */
-export const PinnedNestedScrollView = GObject.registerClass(
-    class PinnedNestedScrollView extends St.ScrollView {
+export const RecentlyUsedNestedScrollView = GObject.registerClass(
+    class RecentlyUsedNestedScrollView extends St.ScrollView {
         /**
-         * Initialize the PinnedNestedScrollView
-         * @param {object} params The parameters for the ScrollView
+         * Creates a nested scroll view instance.
+         *
+         * @param {object} params Scroll view constructor params.
          */
         constructor(params = {}) {
             super(params);
@@ -63,10 +64,11 @@ export const PinnedNestedScrollView = GObject.registerClass(
         }
 
         /**
-         * Set the callbacks for handling scroll handoff
-         * @param {object} callbacks - The callbacks for inner scroll and boundary handoff
-         * @param {function} callbacks.onInnerScroll - The callback for inner scroll events
-         * @param {function} callbacks.onBoundaryHandoff - The callback for boundary handoff events
+         * Sets callbacks for inner scrolling and boundary handoff.
+         *
+         * @param {object} callbacks Callback object.
+         * @param {Function|null} callbacks.onInnerScroll Called during inner scroll.
+         * @param {Function|null} callbacks.onBoundaryHandoff Called on boundary handoff.
          */
         setHandoffCallbacks({ onInnerScroll = null, onBoundaryHandoff = null } = {}) {
             this._onInnerScroll = onInnerScroll;
@@ -74,9 +76,10 @@ export const PinnedNestedScrollView = GObject.registerClass(
         }
 
         /**
-         * Handle scroll events
-         * @param {Clutter.Event} event The scroll event
-         * @returns {Clutter.EventPropagation} The event propagation result
+         * Handles scroll events and delegates to callbacks when needed.
+         *
+         * @param {Clutter.Event} event Scroll event.
+         * @returns {boolean} Clutter event propagation status.
          */
         vfunc_scroll_event(event) {
             const scrollIntent = getVerticalScrollIntent(event);

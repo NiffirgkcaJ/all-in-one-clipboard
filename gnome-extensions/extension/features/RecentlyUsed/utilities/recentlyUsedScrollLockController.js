@@ -3,7 +3,9 @@
  */
 export class RecentlyUsedScrollLockController {
     /**
-     * @param {St.ScrollView} scrollView Outer scroll view to control
+     * Creates a scroll lock controller.
+     *
+     * @param {St.ScrollView} scrollView Outer scroll view to control.
      */
     constructor(scrollView) {
         this._scrollView = scrollView;
@@ -13,7 +15,7 @@ export class RecentlyUsedScrollLockController {
     }
 
     /**
-     * Lock the outer scroll view to prevent automatic focus tracking.
+     * Lock the outer scroll view to prevent automatic layout adjustments.
      */
     lock() {
         if (this._outerScrollLocked || !this._scrollView?.vadjustment) {
@@ -35,7 +37,7 @@ export class RecentlyUsedScrollLockController {
     }
 
     /**
-     * Unlock the outer scroll view to allow normal scrolling.
+     * Unlocks the outer scroll view.
      */
     unlock() {
         if (!this._outerScrollLocked) {
@@ -51,16 +53,16 @@ export class RecentlyUsedScrollLockController {
     }
 
     /**
-     * Wire nested pinned scroll handoff callbacks for parent lock behavior.
+     * Wire nested scroll handoff callbacks for parent lock behavior.
      *
-     * @param {object} pinnedScrollView Nested pinned list scroll view
+     * @param {object} nestedScrollView Nested section scroll view.
      */
-    configurePinnedScrollHandoff(pinnedScrollView) {
-        if (!pinnedScrollView || typeof pinnedScrollView.setHandoffCallbacks !== 'function') {
+    configureNestedScrollHandoff(nestedScrollView) {
+        if (!nestedScrollView || typeof nestedScrollView.setHandoffCallbacks !== 'function') {
             return;
         }
 
-        pinnedScrollView.setHandoffCallbacks({
+        nestedScrollView.setHandoffCallbacks({
             onInnerScroll: () => {
                 this.lock();
             },
@@ -71,7 +73,7 @@ export class RecentlyUsedScrollLockController {
     }
 
     /**
-     * Cleanup controller resources.
+     * Releases controller resources.
      */
     destroy() {
         this.unlock();
