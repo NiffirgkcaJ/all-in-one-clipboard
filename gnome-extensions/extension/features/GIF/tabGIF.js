@@ -17,6 +17,7 @@ import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPas
 import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
 import { FilePath, FileItem, ResourcePath } from '../../shared/constants/storagePaths.js';
 
+import { ensureGifSearchProviderRegistered } from './integrations/gifSearchProvider.js';
 import { GifDownloadService } from './logic/gifDownloadService.js';
 import { GifItemFactory } from './view/gifItemFactory.js';
 import { GifManager } from './logic/gifManager.js';
@@ -71,6 +72,12 @@ export const GIFTabContent = GObject.registerClass(
             this._gifManager = new GifManager(settings, extension.uuid, extension.path);
             this._downloadService = new GifDownloadService();
 
+            ensureGifSearchProviderRegistered({
+                settings,
+                extensionUuid: extension?.uuid,
+                extensionPath: extension?.path,
+            });
+
             this._providerChangedSignalId = 0;
             this._focusIdleId = 0;
             this._scrollHeaderIdleId = 0;
@@ -94,6 +101,7 @@ export const GIFTabContent = GObject.registerClass(
             this._currentSearchQuery = null;
             this._currentLoadingSession = null;
             this._currentCancellable = null;
+            this._suppressSearchInput = false;
             this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
             this._gridColumnSignalIds = [];
 
@@ -1027,6 +1035,10 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
+            if (this._suppressSearchInput) {
+                return;
+            }
+
             const query = searchText.trim();
 
             if (query.length >= 1) {
@@ -1229,11 +1241,61 @@ export const GIFTabContent = GObject.registerClass(
                 this._loadInitialData().catch((e) => {
                     this._renderErrorState(e.message);
                 });
-            } else if (this._activeCategory) {
+            } else if (this._activeCategory && !this._currentSearchQuery) {
                 this._setActiveCategory(this._activeCategory);
             }
 
             this._focusSearchOrFirstItem();
+        }
+
+        /**
+         * Applies an externally provided search query to this tab.
+         *
+         * @param {string} query Query text.
+         * @returns {Promise<boolean>} True when query was applied.
+         */
+        async applyExternalSearch(query) {
+            const searchWidget = this._searchComponent?.getWidget();
+            if (!searchWidget?.visible) {
+                return false;
+            }
+
+            const normalizedQuery = typeof query === 'string' ? query.trim() : '';
+            this._searchDebouncer?.cancel?.();
+            this._suppressSearchInput = true;
+            this._searchComponent?.setSearchText(normalizedQuery, { focus: false });
+            this._suppressSearchInput = false;
+
+            this._cancelCurrentRequests();
+            const sessionId = Symbol('external-search-session');
+            this._currentLoadingSession = sessionId;
+
+            if (normalizedQuery.length >= 1) {
+                this._currentSearchQuery = normalizedQuery;
+                await this._performSearch(normalizedQuery, null, sessionId);
+            } else {
+                this._currentSearchQuery = null;
+                if (this._activeCategory) {
+                    this._loadCategoryContent(this._activeCategory);
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Clears externally provided search state.
+         *
+         * @returns {Promise<boolean>} True when clear action was applied.
+         */
+        async clearExternalSearch() {
+            const searchWidget = this._searchComponent?.getWidget();
+            if (!searchWidget?.visible) {
+                return false;
+            }
+
+            this._searchComponent?.setSearchText('', { focus: false });
+            return true;
         }
 
         /**

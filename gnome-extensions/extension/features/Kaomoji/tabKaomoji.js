@@ -8,6 +8,7 @@ import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
+import { ensureKaomojiSearchProviderRegistered } from './integrations/kaomojiSearchProvider.js';
 import { KaomojiJsonParser } from './parsers/kaomojiJsonParser.js';
 import { KaomojiViewRenderer } from './view/kaomojiViewRenderer.js';
 import { KaomojiSettings, KaomojiUI } from './constants/kaomojiConstants.js';
@@ -40,6 +41,8 @@ export const KaomojiTabContent = GObject.registerClass(
 
             this._settings = settings;
             this._alwaysShowTabsSignalId = 0;
+
+            ensureKaomojiSearchProviderRegistered({ extensionUuid: extension?.uuid });
 
             this._viewRenderer = new KaomojiViewRenderer();
 
@@ -127,6 +130,22 @@ export const KaomojiTabContent = GObject.registerClass(
         onTabSelected() {
             this.emit('set-main-tab-bar-visibility', false);
             this._viewer?.onSelected();
+        }
+
+        /**
+         * Applies an externally provided search query to this tab.
+         *
+         * @param {string} query Query text.
+         */
+        async applyExternalSearch(query) {
+            this._viewer?.applyExternalSearch(query, { focus: false });
+        }
+
+        /**
+         * Clears externally provided search state.
+         */
+        async clearExternalSearch() {
+            this._viewer?.clearExternalSearch({ focus: false });
         }
 
         /**

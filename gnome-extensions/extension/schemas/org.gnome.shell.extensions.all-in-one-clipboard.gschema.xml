@@ -258,38 +258,11 @@
             <description>Maximum number of columns to show in the clipboard masonry grid when the limit is enabled.</description>
         </key>
 
-        <!-- Clipboard Settings -->
-        <key name="clipboard-history-max-items" type="i">
-            <default>50</default>
-            <range min="10" max="1000"/>
-            <summary>Maximum number of items in clipboard history</summary>
-            <description>The maximum number of unpinned items to store in the clipboard history.</description>
-        </key>
-        <key name="update-recency-on-copy" type="b">
+        <!-- Recently Used Settings -->
+        <key name="enable-recently-used-search" type="b">
             <default>true</default>
-            <summary>Move item to top on copy</summary>
-            <description>When an item is copied from the clipboard history, move it to the top of the list.</description>
-        </key>
-        <key name="unpin-on-paste" type="b">
-            <default>true</default>
-            <summary>Unpin item on paste</summary>
-            <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
-        </key>
-        <key name="clipboard-show-action-bar" type="b">
-            <default>true</default>
-            <summary>Show Clipboard Action Bar</summary>
-            <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
-        </key>
-        <key name="clipboard-layout-mode" type="s">
-            <default>'list'</default>
-            <summary>Clipboard Layout Mode</summary>
-            <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
-        </key>
-        <key name="clipboard-image-preview-size" type="i">
-            <default>48</default>
-            <range min="48" max="300"/>
-            <summary>Clipboard image preview size</summary>
-            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
+            <summary>Show search in Recently Used tab</summary>
+            <description>When enabled, displays a global search bar in the Recently Used tab to filter items across all visible sections.</description>
         </key>
 
         <!-- Emoji Settings -->
@@ -330,6 +303,40 @@
             <range min="0" max="1000"/>
             <summary>GIF Preview Cache Size Limit (MB)</summary>
             <description>The maximum size for the GIF preview cache in megabytes. Set to 0 for unlimited cache size.</description>
+        </key>
+
+        <!-- Clipboard Settings -->
+        <key name="clipboard-history-max-items" type="i">
+            <default>50</default>
+            <range min="10" max="1000"/>
+            <summary>Maximum number of items in clipboard history</summary>
+            <description>The maximum number of unpinned items to store in the clipboard history.</description>
+        </key>
+        <key name="update-recency-on-copy" type="b">
+            <default>true</default>
+            <summary>Move item to top on copy</summary>
+            <description>When an item is copied from the clipboard history, move it to the top of the list.</description>
+        </key>
+        <key name="unpin-on-paste" type="b">
+            <default>true</default>
+            <summary>Unpin item on paste</summary>
+            <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
+        </key>
+        <key name="clipboard-show-action-bar" type="b">
+            <default>true</default>
+            <summary>Show Clipboard Action Bar</summary>
+            <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
+        </key>
+        <key name="clipboard-layout-mode" type="s">
+            <default>'list'</default>
+            <summary>Clipboard Layout Mode</summary>
+            <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
+        </key>
+        <key name="clipboard-image-preview-size" type="i">
+            <default>48</default>
+            <range min="48" max="300"/>
+            <summary>Clipboard image preview size</summary>
+            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
         </key>
 
         <!-- Excluded Applications -->

@@ -1,10 +1,16 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 
+import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
+
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { getRecentlyUsedGifRuntime, destroyRecentlyUsedGifRuntime, copyRecentlyUsedGifToClipboard } from '../integrations/recentlyUsedIntegrationGif.js';
+
+import { ensureGifSearchProviderRegistered } from '../../GIF/integrations/gifSearchProvider.js';
+import { GifProvider } from '../../GIF/constants/gifConstants.js';
 
 const GIF_PLACEHOLDER = {
     icon: 'gif-missing-symbolic.svg',
@@ -43,10 +49,11 @@ export const RecentlyUsedDefinitionGif = {
      * @param {string} params.extensionUuid Extension UUID.
      * @param {object} params.settings Extension settings object.
      */
-    initialize: ({ extensionUuid, settings }) => {
+    initialize: ({ extensionUuid, extensionPath, settings }) => {
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_GIFS');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'gif-recents-max-items');
         getRecentlyUsedGifRuntime(); // Start HTTP session if needed
+        ensureGifSearchProviderRegistered({ settings, extensionUuid, extensionPath });
     },
 
     /**
@@ -55,6 +62,7 @@ export const RecentlyUsedDefinitionGif = {
     destroy: () => {
         _recentManager?.destroy();
         _recentManager = null;
+
         destroyRecentlyUsedGifRuntime();
     },
 
@@ -65,9 +73,18 @@ export const RecentlyUsedDefinitionGif = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ onRender }) => {
-        if (!_recentManager) return [];
-        return [{ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) }];
+    getSignals: ({ settings, onRender }) => {
+        const signals = [];
+
+        if (_recentManager) {
+            signals.push({ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) });
+        }
+
+        if (settings && typeof settings.connect === 'function') {
+            signals.push({ obj: settings, id: settings.connect('changed::gif-provider', onRender) });
+        }
+
+        return signals;
     },
 
     /**
@@ -91,18 +108,61 @@ export const RecentlyUsedDefinitionGif = {
     },
 
     /**
+     * Executes provider-level GIF search when a query is present.
+     *
+     * @param {object} params Search context.
+     * @param {string} params.query Normalized search query.
+     * @returns {Promise<Array<object>>} Provider search results.
+     */
+    searchItems: async ({ query }) => {
+        return searchViaProvider(GifProvider.SEARCH_PROVIDER_ID, { query });
+    },
+
+    /**
      * Maps a source item into the shared section payload format.
      *
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
     mapItem: (sourceItem) => {
+        const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
+
+        if (typeof normalizedItem.value !== 'string' || normalizedItem.value.length === 0) {
+            normalizedItem.value = normalizedItem.full_url || '';
+        }
+
         return {
-            ...(sourceItem && typeof sourceItem === 'object' ? sourceItem : { value: sourceItem }),
+            ...normalizedItem,
             __recentlyUsedListPresentation: RecentlyUsedDefinitionGif.listPresentation,
             __recentlyUsedGridPresentation: RecentlyUsedDefinitionGif.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
+    },
+
+    /**
+     * Matches GIF entries against global search query with GIF-specific priorities.
+     *
+     * @param {object} params Search context.
+     * @param {object} params.item Candidate item.
+     * @param {string} params.query Normalized search query.
+     * @param {Function} params.fallbackMatch Generic fallback matcher.
+     * @returns {boolean} True when the GIF matches search.
+     */
+    matchesSearch: ({ item, query, fallbackMatch }) => {
+        if (!query) {
+            return true;
+        }
+
+        try {
+            return matchesRecentlyUsedSearch({
+                item,
+                query,
+                preferredKeys: ['search_query', 'description', 'title', 'name', 'provider', 'id', 'value', 'full_url', 'preview_url'],
+                extraValues: [item?.search_query, item?.provider],
+            });
+        } catch {
+            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        }
     },
 
     /**

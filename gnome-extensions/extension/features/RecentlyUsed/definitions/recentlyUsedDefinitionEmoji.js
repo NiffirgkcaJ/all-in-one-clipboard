@@ -1,8 +1,15 @@
+import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
+
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
+import { EmojiProvider } from '../../Emoji/constants/emojiConstants.js';
+import { EmojiViewRenderer } from '../../Emoji/view/emojiViewRenderer.js';
+import { ensureEmojiSearchProviderRegistered } from '../../Emoji/integrations/emojiSearchProvider.js';
+
 let _recentManager = null;
+const _emojiSearchRenderer = new EmojiViewRenderer(null);
 
 /**
  * Section definition for recently used emoji items.
@@ -33,6 +40,7 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {object} params.settings Extension settings object.
      */
     initialize: ({ extensionUuid, settings }) => {
+        ensureEmojiSearchProviderRegistered({ extensionUuid });
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_EMOJI');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'emoji-recents-max-items');
     },
@@ -78,18 +86,55 @@ export const RecentlyUsedDefinitionEmoji = {
     },
 
     /**
+     * Searches the emoji catalog using the same filter behavior as the Emoji tab.
+     *
+     * @param {object} params Search context.
+     * @param {string} params.query Normalized search query.
+     * @returns {Promise<Array<object>>} Matching emoji entries.
+     */
+    searchItems: async ({ query }) => {
+        return searchViaProvider(EmojiProvider.SEARCH_PROVIDER_ID, { query });
+    },
+
+    /**
      * Maps a source item into the shared section payload format.
      *
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
     mapItem: (sourceItem) => {
+        const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
+        if (typeof normalizedItem.value !== 'string' || normalizedItem.value.length === 0) {
+            normalizedItem.value = normalizedItem.char || '';
+        }
+
         return {
-            ...(sourceItem && typeof sourceItem === 'object' ? sourceItem : { value: sourceItem }),
+            ...normalizedItem,
             __recentlyUsedListPresentation: RecentlyUsedDefinitionEmoji.listPresentation,
             __recentlyUsedGridPresentation: RecentlyUsedDefinitionEmoji.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
+    },
+
+    /**
+     * Matches emoji entries using Emoji tab search behavior.
+     *
+     * @param {object} params Search context.
+     * @param {object} params.item Candidate item.
+     * @param {string} params.query Normalized search query.
+     * @param {Function} params.fallbackMatch Generic fallback matcher.
+     * @returns {boolean} True when the emoji matches search.
+     */
+    matchesSearch: ({ item, query, fallbackMatch }) => {
+        if (!query) {
+            return true;
+        }
+
+        try {
+            return _emojiSearchRenderer.searchFilter(item || {}, query);
+        } catch {
+            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        }
     },
 
     /**
@@ -103,7 +148,7 @@ export const RecentlyUsedDefinitionEmoji = {
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem(itemData);
+        _recentManager?.addItem({ ...itemData, value: contentToCopy });
 
         if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionEmoji.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();

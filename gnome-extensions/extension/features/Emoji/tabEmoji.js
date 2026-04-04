@@ -10,9 +10,10 @@ import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
 import { EmojiModifier } from './logic/emojiModifier.js';
-import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
 import { EmojiViewRenderer } from './view/emojiViewRenderer.js';
+import { ensureEmojiSearchProviderRegistered } from './integrations/emojiSearchProvider.js';
 import { getSkinnableCharSet } from './logic/emojiDataCache.js';
+import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
 
 /**
  * A content widget for the "Emoji" tab.
@@ -46,6 +47,8 @@ export const EmojiTabContent = GObject.registerClass(
             this._skinToneSettingsSignalIds = [];
             this._alwaysShowTabsSignalId = 0;
             this._viewer = null;
+
+            ensureEmojiSearchProviderRegistered({ extensionUuid: extension?.uuid });
 
             this._setupPromise = this._setup(extension, settings);
             this._setupPromise.catch((e) => {
@@ -198,6 +201,24 @@ export const EmojiTabContent = GObject.registerClass(
             this.emit('set-main-tab-bar-visibility', false);
 
             this._viewer?.onSelected();
+        }
+
+        /**
+         * Applies an externally provided search query to this tab.
+         *
+         * @param {string} query Query text.
+         */
+        async applyExternalSearch(query) {
+            await this._setupPromise;
+            this._viewer?.applyExternalSearch(query, { focus: false });
+        }
+
+        /**
+         * Clears externally provided search state.
+         */
+        async clearExternalSearch() {
+            await this._setupPromise;
+            this._viewer?.clearExternalSearch({ focus: false });
         }
 
         /**

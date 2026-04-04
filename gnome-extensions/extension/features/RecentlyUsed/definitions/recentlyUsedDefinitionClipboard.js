@@ -1,5 +1,11 @@
+import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
+
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste, renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
+
+import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
+import { ClipboardSearchUtils } from '../../Clipboard/utilities/clipboardSearchUtils.js';
+import { ensureClipboardSearchProviderRegistered } from '../../Clipboard/integrations/clipboardSearchProvider.js';
 
 /**
  * Section definition for clipboard history items.
@@ -31,7 +37,9 @@ export const RecentlyUsedDefinitionClipboard = {
     /**
      * Initializes the clipboard section.
      */
-    initialize: () => {},
+    initialize: () => {
+        ensureClipboardSearchProviderRegistered();
+    },
 
     /**
      * Cleans up clipboard section resources.
@@ -76,6 +84,29 @@ export const RecentlyUsedDefinitionClipboard = {
     },
 
     /**
+     * Searches clipboard history through the shared Search Hub provider.
+     *
+     * @param {object} params Search context.
+     * @param {string} params.query Normalized search query.
+     * @param {object} params.runtimeContext Runtime context.
+     * @returns {Promise<Array<object>>} Matching clipboard history entries.
+     */
+    searchItems: async ({ query, runtimeContext }) => {
+        if (!query) {
+            return [];
+        }
+
+        const extension = runtimeContext?.extension;
+        const historyIds = new Set((extension?._clipboardManager?.getHistoryItems?.() || []).map((item) => item?.id));
+        const providerItems = await searchViaProvider(ClipboardProvider.SEARCH_PROVIDER_ID, {
+            query,
+            context: { extension },
+        });
+
+        return providerItems.filter((item) => historyIds.has(item?.id));
+    },
+
+    /**
      * Maps a source item into the shared section payload format.
      *
      * @param {object|string} sourceItem Source entry.
@@ -88,6 +119,27 @@ export const RecentlyUsedDefinitionClipboard = {
             __recentlyUsedGridPresentation: null,
             __recentlyUsedClickPayload: sourceItem,
         };
+    },
+
+    /**
+     * Matches clipboard entries using Clipboard tab search behavior.
+     *
+     * @param {object} params Search context.
+     * @param {object} params.item Candidate item.
+     * @param {string} params.query Normalized search query.
+     * @param {Function} params.fallbackMatch Generic fallback matcher.
+     * @returns {boolean} True when the clipboard item matches search.
+     */
+    matchesSearch: ({ item, query, fallbackMatch }) => {
+        if (!query) {
+            return true;
+        }
+
+        try {
+            return ClipboardSearchUtils.isMatch(item, query);
+        } catch {
+            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        }
     },
 
     /**

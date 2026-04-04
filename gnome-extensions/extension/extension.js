@@ -10,6 +10,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { applySearchHandoffToTab } from './shared/services/serviceSearchHub.js';
 import { createStaticIcon } from './shared/utilities/utilityIcon.js';
 import { eventMatchesShortcut } from './shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from './shared/utilities/utilityFocus.js';
@@ -565,6 +566,18 @@ const AllInOneClipboardIndicator = GObject.registerClass(
                     return;
                 }
 
+                // Apply search handoff if applicable before adding the new actor to the stage.
+                await applySearchHandoffToTab({
+                    targetTab: tabName,
+                    tabActor: newContentActor,
+                });
+
+                // If the active tab changed while applying handoff, abort this operation.
+                if (this._activeTabName !== tabName) {
+                    newContentActor?.destroy();
+                    return;
+                }
+
                 // Replace the old actor with the new one.
                 this._tabContentArea.set_child(newContentActor);
 
@@ -684,12 +697,18 @@ const AllInOneClipboardIndicator = GObject.registerClass(
          * Schedule the onTabSelected callback to run after a brief idle
          * @private
          */
-        _scheduleTabSelected() {
+        _scheduleTabSelected(afterTabSelected = null) {
             if (this._selectTabTimeoutId) {
                 GLib.source_remove(this._selectTabTimeoutId);
             }
             this._selectTabTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 10, () => {
-                this._currentTabActor?.onTabSelected?.();
+                const selectedActor = this._currentTabActor;
+                selectedActor?.onTabSelected?.();
+                if (typeof afterTabSelected === 'function') {
+                    Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
+                        console.error(`[AIO-Clipboard] Failed to apply tab post-selection hook: ${e?.message || e}`);
+                    });
+                }
                 this._selectTabTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
             });

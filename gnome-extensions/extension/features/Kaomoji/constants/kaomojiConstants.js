@@ -5,6 +5,11 @@ export const KaomojiSettings = {
     GRID_MAX_COLUMNS_KEY: 'kaomoji-grid-max-columns',
 };
 
+// Provider Configuration
+export const KaomojiProvider = {
+    SEARCH_PROVIDER_ID: 'kaomoji',
+};
+
 // UI Configuration
 export const KaomojiUI = {
     TARGET_ITEM_WIDTH: 100,

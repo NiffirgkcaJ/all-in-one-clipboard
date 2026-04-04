@@ -1,4 +1,5 @@
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { matchesRecentlyUsedSearch, normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
 import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionById, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
 
 /**
@@ -19,6 +20,8 @@ export class RecentlyUsedRuntimeService {
         this._onRender = typeof onRender === 'function' ? onRender : null;
         this._signalIds = [];
         this._started = false;
+        this._searchRequestSeq = 0;
+        this._sectionSearchState = new Map();
     }
 
     /**
@@ -87,12 +90,15 @@ export class RecentlyUsedRuntimeService {
             return null;
         }
 
+        const searchQuery = normalizeRecentlyUsedSearchQuery(viewRuntimeContext.searchQuery);
+
         const runtimeContext = {
             settings: this._settings,
             extension: this._extension,
             widgetFactory: viewRuntimeContext.widgetFactory,
             renderSession: viewRuntimeContext.renderSession,
             currentRenderSession: viewRuntimeContext.currentRenderSession,
+            searchQuery,
         };
 
         if (typeof sectionConfig.isEnabled === 'function' && !sectionConfig.isEnabled(runtimeContext)) {
@@ -104,7 +110,7 @@ export class RecentlyUsedRuntimeService {
             };
         }
 
-        const sourceItems = typeof sectionConfig.getItems === 'function' ? sectionConfig.getItems(runtimeContext) : [];
+        const sourceItems = this._resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery);
         if (!Array.isArray(sourceItems) || sourceItems.length === 0) {
             return {
                 visible: false,
@@ -116,9 +122,20 @@ export class RecentlyUsedRuntimeService {
 
         const mapItem = typeof sectionConfig.mapItem === 'function' ? sectionConfig.mapItem : (item) => item;
         const mappedItems = sourceItems.map((item) => mapItem(item));
-        const effectiveLayout = this._resolveEffectiveLayout(sectionConfig, mappedItems.length);
+        const filteredItems = searchQuery.length > 0 ? mappedItems.filter((item) => this._matchesSectionSearch(sectionConfig, item, searchQuery, runtimeContext)) : mappedItems;
+
+        if (filteredItems.length === 0) {
+            return {
+                visible: false,
+                effectiveLayout: sectionConfig.layoutType,
+                items: [],
+                nestedLayout: this._resolveNestedLayout(sectionConfig),
+            };
+        }
+
+        const effectiveLayout = this._resolveEffectiveLayout(sectionConfig, filteredItems.length);
         const maxDisplay = sectionConfig.source?.maxItems ?? RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT;
-        const items = effectiveLayout === 'nested' ? mappedItems : mappedItems.slice(0, maxDisplay);
+        const items = effectiveLayout === 'nested' ? filteredItems : filteredItems.slice(0, maxDisplay);
 
         return {
             visible: true,
@@ -187,7 +204,84 @@ export class RecentlyUsedRuntimeService {
         }
 
         this._disconnectSignals();
+        this._sectionSearchState.clear();
         this._started = false;
+    }
+
+    /**
+     * Resolves source items for a section using optional async query API.
+     *
+     * If a section provides `searchItems`, this method starts or reuses a search
+     * request for the active query, while returning local items as an immediate
+     * fallback until remote results arrive.
+     *
+     * @param {object} sectionConfig Section configuration.
+     * @param {object} runtimeContext Runtime context.
+     * @param {string} searchQuery Normalized query string.
+     * @returns {Array<object>} Source items for current render pass.
+     * @private
+     */
+    _resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery) {
+        const localItemsRaw = typeof sectionConfig.getItems === 'function' ? sectionConfig.getItems(runtimeContext) : [];
+        const localItems = Array.isArray(localItemsRaw) ? localItemsRaw : [];
+
+        if (!searchQuery || typeof sectionConfig.searchItems !== 'function' || !sectionConfig.id) {
+            return localItems;
+        }
+
+        const sectionId = sectionConfig.id;
+        const currentState = this._sectionSearchState.get(sectionId);
+
+        if (currentState?.query === searchQuery) {
+            if (currentState.status === 'ready') {
+                return currentState.items;
+            }
+
+            if (currentState.status === 'pending') {
+                return currentState.fallbackItems;
+            }
+        }
+
+        const requestId = ++this._searchRequestSeq;
+        this._sectionSearchState.set(sectionId, {
+            query: searchQuery,
+            requestId,
+            status: 'pending',
+            fallbackItems: localItems,
+            items: [],
+        });
+
+        Promise.resolve(sectionConfig.searchItems({ query: searchQuery, runtimeContext }))
+            .then((items) => {
+                const latestState = this._sectionSearchState.get(sectionId);
+                if (!latestState || latestState.requestId !== requestId) {
+                    return;
+                }
+
+                this._sectionSearchState.set(sectionId, {
+                    ...latestState,
+                    status: 'ready',
+                    items: Array.isArray(items) ? items : [],
+                });
+
+                this._onRender?.();
+            })
+            .catch(() => {
+                const latestState = this._sectionSearchState.get(sectionId);
+                if (!latestState || latestState.requestId !== requestId) {
+                    return;
+                }
+
+                this._sectionSearchState.set(sectionId, {
+                    ...latestState,
+                    status: 'ready',
+                    items: [],
+                });
+
+                this._onRender?.();
+            });
+
+        return localItems;
     }
 
     /**
@@ -207,6 +301,7 @@ export class RecentlyUsedRuntimeService {
                 try {
                     await section.initialize({
                         extensionUuid: this._extension.uuid,
+                        extensionPath: this._extension.path,
                         settings: this._settings,
                     });
                 } catch (e) {
@@ -233,6 +328,7 @@ export class RecentlyUsedRuntimeService {
             const signals =
                 section.getSignals({
                     extension: this._extension,
+                    settings: this._settings,
                     onRender: this._onRender,
                 }) || [];
             this._signalIds.push(...signals);
@@ -283,6 +379,35 @@ export class RecentlyUsedRuntimeService {
             maxVisible: sectionConfig?.layoutPolicy?.maxVisible ?? sectionConfig?.source?.maxItems ?? RecentlyUsedUI.MAX_NESTED_DISPLAY_COUNT,
             itemHeight: sectionConfig?.layoutPolicy?.itemHeight ?? RecentlyUsedUI.NESTED_ITEM_HEIGHT,
         };
+    }
+
+    /**
+     * Runs section-specific search when available, otherwise falls back to generic matching.
+     *
+     * @param {object} sectionConfig Section configuration.
+     * @param {object|string|number|null|undefined} item Candidate item.
+     * @param {string} query Normalized query string.
+     * @param {object} runtimeContext Runtime context.
+     * @returns {boolean} True when the item matches.
+     * @private
+     */
+    _matchesSectionSearch(sectionConfig, item, query, runtimeContext) {
+        if (typeof sectionConfig?.matchesSearch === 'function') {
+            try {
+                return Boolean(
+                    sectionConfig.matchesSearch({
+                        item,
+                        query,
+                        runtimeContext,
+                        fallbackMatch: (candidate) => matchesRecentlyUsedSearch({ item: candidate, query }),
+                    }),
+                );
+            } catch {
+                // Fall back to generic matching when a custom matcher fails.
+            }
+        }
+
+        return matchesRecentlyUsedSearch({ item, query });
     }
 
     /**

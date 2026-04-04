@@ -59,9 +59,10 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         this._addRecentItemsGroup(page, settings);
         this._addAutoPasteGroup(page, settings);
         this._addGridLayoutGroup(page, settings);
-        this._addClipboardSettingsGroup(page, settings);
+        this._addRecentlyUsedGroup(page, settings);
         this._addEmojiSettingsGroup(page, settings);
         this._addGifSettingsGroup(page, settings);
+        this._addClipboardSettingsGroup(page, settings);
         this._addExclusionsGroup(page, settings);
         this._addDataManagementGroup(page, settings, window);
     }
@@ -100,6 +101,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addGeneralGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
             title: _('General'),
+            description: _('General settings for the extension.'),
         });
         page.add(group);
 
@@ -742,6 +744,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     _addAutoPasteGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
             title: _('Auto-Paste Settings'),
+            description: _('Automatically paste selected items instead of just copying to clipboard.'),
         });
         page.add(group);
 
@@ -835,110 +838,24 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Add the "Clipboard Settings" preferences group to the page.
+     * Add the "Recently Used" preferences group to the page.
      *
      * @param {Adw.PreferencesPage} page - The preferences page to add the group to.
      * @param {Gio.Settings} settings - The Gio.Settings instance.
      */
-    _addClipboardSettingsGroup(page, settings) {
+    _addRecentlyUsedGroup(page, settings) {
         const group = new Adw.PreferencesGroup({
-            title: _('Clipboard Settings'),
+            title: _('Recently Used'),
+            description: _('Behavior settings for the Recently Used tab.'),
         });
         page.add(group);
 
-        // Get the default value dynamically from the GSettings schema.
-        const key = 'clipboard-history-max-items';
-        const historyDefault = settings.get_default_value(key).get_int32();
-        const historyRange = this._getRangeFromSchema(settings, key);
-        const HISTORY_INCREMENT_NUMBER = 5;
-
-        const maxItemsRow = new Adw.SpinRow({
-            title: _('Maximum Clipboard History'),
-            subtitle: _('Number of items to keep in history (%d-%d). Default: %d.').format(historyRange.min, historyRange.max, historyDefault),
-            adjustment: new Gtk.Adjustment({
-                lower: historyRange.min,
-                upper: historyRange.max,
-                step_increment: HISTORY_INCREMENT_NUMBER,
-            }),
+        const searchToggleRow = new Adw.SwitchRow({
+            title: _('Enable Search in Recently Used'),
+            subtitle: _('Show a global search bar to filter items across Recently Used sections.'),
         });
-        group.add(maxItemsRow);
-        settings.bind(key, maxItemsRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        // Move to top on copy
-        const updateRecencyRow = new Adw.SwitchRow({
-            title: _('Move Item to Top on Copy'),
-            subtitle: _('When copying an item from history, make it the most recent.'),
-        });
-        group.add(updateRecencyRow);
-        settings.bind('update-recency-on-copy', updateRecencyRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-        // Unpin on paste
-        const unpinOnPasteRow = new Adw.SwitchRow({
-            title: _('Unpin Item on Paste'),
-            subtitle: _('Automatically unpin an item when it is pasted.'),
-        });
-        group.add(unpinOnPasteRow);
-        settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-        // Show action bar
-        const showActionBarRow = new Adw.SwitchRow({
-            title: _('Show Clipboard Action Bar'),
-            subtitle: _('Show the toolbar above the clipboard list.'),
-        });
-        group.add(showActionBarRow);
-        settings.bind('clipboard-show-action-bar', showActionBarRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-        // Layout mode dropdown
-        const layoutModes = [
-            { id: 'list', label: _('List') },
-            { id: 'grid', label: _('Grid') },
-        ];
-
-        const layoutRow = new Adw.ComboRow({
-            title: _('Clipboard Layout'),
-            subtitle: _('Display clipboard history as a list or a grid.'),
-            model: new Gtk.StringList({ strings: layoutModes.map((m) => m.label) }),
-        });
-        group.add(layoutRow);
-
-        const currentLayout = settings.get_string('clipboard-layout-mode') || 'list';
-        const initialLayoutIndex = layoutModes.findIndex((m) => m.id === currentLayout);
-        layoutRow.set_selected(initialLayoutIndex > -1 ? initialLayoutIndex : 0);
-
-        layoutRow.connect('notify::selected', () => {
-            const index = layoutRow.get_selected();
-            if (index >= 0 && index < layoutModes.length) {
-                const newMode = layoutModes[index].id;
-                if (settings.get_string('clipboard-layout-mode') !== newMode) {
-                    settings.set_string('clipboard-layout-mode', newMode);
-                }
-            }
-        });
-
-        settings.connect('changed::clipboard-layout-mode', () => {
-            const newMode = settings.get_string('clipboard-layout-mode');
-            const newIndex = layoutModes.findIndex((m) => m.id === newMode);
-            if (newIndex > -1 && layoutRow.get_selected() !== newIndex) {
-                layoutRow.set_selected(newIndex);
-            }
-        });
-
-        // Clipboard image preview sizing
-        const previewKey = 'clipboard-image-preview-size';
-        const previewDefault = settings.get_default_value(previewKey).get_int32();
-        const previewRange = this._getRangeFromSchema(settings, previewKey);
-
-        const previewRow = new Adw.SpinRow({
-            title: _('Image Preview Size'),
-            subtitle: _('Pixel size for clipboard image thumbnails (%d-%d). Default: %d.').format(previewRange.min, previewRange.max, previewDefault),
-            adjustment: new Gtk.Adjustment({
-                lower: previewRange.min,
-                upper: previewRange.max,
-                step_increment: 8,
-            }),
-        });
-        group.add(previewRow);
-        settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        group.add(searchToggleRow);
+        settings.bind('enable-recently-used-search', searchToggleRow, 'active', Gio.SettingsBindFlags.DEFAULT);
     }
 
     /**
@@ -1222,6 +1139,114 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         // Set the initial UI state from settings.
         updateUIFromSettings();
+    }
+
+    /**
+     * Add the "Clipboard Settings" preferences group to the page.
+     *
+     * @param {Adw.PreferencesPage} page - The preferences page to add the group to.
+     * @param {Gio.Settings} settings - The Gio.Settings instance.
+     */
+    _addClipboardSettingsGroup(page, settings) {
+        const group = new Adw.PreferencesGroup({
+            title: _('Clipboard Settings'),
+            description: _('Settings for the clipboard feature.'),
+        });
+        page.add(group);
+
+        // Get the default value dynamically from the GSettings schema.
+        const key = 'clipboard-history-max-items';
+        const historyDefault = settings.get_default_value(key).get_int32();
+        const historyRange = this._getRangeFromSchema(settings, key);
+        const HISTORY_INCREMENT_NUMBER = 5;
+
+        const maxItemsRow = new Adw.SpinRow({
+            title: _('Maximum Clipboard History'),
+            subtitle: _('Number of items to keep in history (%d-%d). Default: %d.').format(historyRange.min, historyRange.max, historyDefault),
+            adjustment: new Gtk.Adjustment({
+                lower: historyRange.min,
+                upper: historyRange.max,
+                step_increment: HISTORY_INCREMENT_NUMBER,
+            }),
+        });
+        group.add(maxItemsRow);
+        settings.bind(key, maxItemsRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+        // Move to top on copy
+        const updateRecencyRow = new Adw.SwitchRow({
+            title: _('Move Item to Top on Copy'),
+            subtitle: _('When copying an item from history, make it the most recent.'),
+        });
+        group.add(updateRecencyRow);
+        settings.bind('update-recency-on-copy', updateRecencyRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        // Unpin on paste
+        const unpinOnPasteRow = new Adw.SwitchRow({
+            title: _('Unpin Item on Paste'),
+            subtitle: _('Automatically unpin an item when it is pasted.'),
+        });
+        group.add(unpinOnPasteRow);
+        settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        // Show action bar
+        const showActionBarRow = new Adw.SwitchRow({
+            title: _('Show Clipboard Action Bar'),
+            subtitle: _('Show the toolbar above the clipboard list.'),
+        });
+        group.add(showActionBarRow);
+        settings.bind('clipboard-show-action-bar', showActionBarRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        // Layout mode dropdown
+        const layoutModes = [
+            { id: 'list', label: _('List') },
+            { id: 'grid', label: _('Grid') },
+        ];
+
+        const layoutRow = new Adw.ComboRow({
+            title: _('Clipboard Layout'),
+            subtitle: _('Display clipboard history as a list or a grid.'),
+            model: new Gtk.StringList({ strings: layoutModes.map((m) => m.label) }),
+        });
+        group.add(layoutRow);
+
+        const currentLayout = settings.get_string('clipboard-layout-mode') || 'list';
+        const initialLayoutIndex = layoutModes.findIndex((m) => m.id === currentLayout);
+        layoutRow.set_selected(initialLayoutIndex > -1 ? initialLayoutIndex : 0);
+
+        layoutRow.connect('notify::selected', () => {
+            const index = layoutRow.get_selected();
+            if (index >= 0 && index < layoutModes.length) {
+                const newMode = layoutModes[index].id;
+                if (settings.get_string('clipboard-layout-mode') !== newMode) {
+                    settings.set_string('clipboard-layout-mode', newMode);
+                }
+            }
+        });
+
+        settings.connect('changed::clipboard-layout-mode', () => {
+            const newMode = settings.get_string('clipboard-layout-mode');
+            const newIndex = layoutModes.findIndex((m) => m.id === newMode);
+            if (newIndex > -1 && layoutRow.get_selected() !== newIndex) {
+                layoutRow.set_selected(newIndex);
+            }
+        });
+
+        // Clipboard image preview sizing
+        const previewKey = 'clipboard-image-preview-size';
+        const previewDefault = settings.get_default_value(previewKey).get_int32();
+        const previewRange = this._getRangeFromSchema(settings, previewKey);
+
+        const previewRow = new Adw.SpinRow({
+            title: _('Image Preview Size'),
+            subtitle: _('Pixel size for clipboard image thumbnails (%d-%d). Default: %d.').format(previewRange.min, previewRange.max, previewDefault),
+            adjustment: new Gtk.Adjustment({
+                lower: previewRange.min,
+                upper: previewRange.max,
+                step_increment: 8,
+            }),
+        });
+        group.add(previewRow);
+        settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 
     /**

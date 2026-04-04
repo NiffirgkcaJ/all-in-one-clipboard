@@ -4,15 +4,16 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
-import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 
 import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
+import { ensureClipboardSearchProviderRegistered } from './integrations/clipboardSearchProvider.js';
 import { ClipboardIcons, ClipboardConfig } from './constants/clipboardConstants.js';
 
 /**
@@ -41,6 +42,8 @@ export const ClipboardTabContent = GObject.registerClass(
             this._extension = extension;
             this._settings = settings;
             this._manager = manager;
+
+            ensureClipboardSearchProviderRegistered();
 
             this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
 
@@ -803,6 +806,33 @@ export const ClipboardTabContent = GObject.registerClass(
                 this._searchComponent?.grabFocus();
                 return GLib.SOURCE_REMOVE;
             });
+        }
+
+        /**
+         * Applies an externally provided search query to this tab.
+         *
+         * @param {string} query Query text.
+         * @returns {Promise<boolean>} True when query was applied.
+         */
+        async applyExternalSearch(query) {
+            const normalizedQuery = typeof query === 'string' ? query.trim() : '';
+            this._pendingSearchResetOnOpen = false;
+            this._searchDebouncer?.cancel?.();
+            this._suppressSearchChangeEffects = true;
+            this._searchComponent?.setSearchText(normalizedQuery, { focus: false });
+            this._suppressSearchChangeEffects = false;
+            this._currentSearchText = normalizedQuery.toLowerCase();
+            this._scheduleRedraw(true);
+            return true;
+        }
+
+        /**
+         * Clears externally provided search state.
+         *
+         * @returns {Promise<boolean>} True when clear action was applied.
+         */
+        async clearExternalSearch() {
+            return this.applyExternalSearch('');
         }
 
         /**

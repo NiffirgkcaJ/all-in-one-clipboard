@@ -155,9 +155,35 @@ export const SearchComponent = GObject.registerClass(
          * Clears the text in the search entry and restores focus to it.
          */
         clearSearch() {
-            if (this._entry.get_text() === '') return;
-            this._entry.set_text('');
-            this._entry.grab_key_focus();
+            this.setSearchText('', { focus: true });
+        }
+
+        /**
+         * Sets the current search text.
+         *
+         * @param {string} searchText Text to apply to the search field.
+         * @param {object} [options] Additional options.
+         * @param {boolean} [options.focus=false] Whether to focus the entry after update.
+         */
+        setSearchText(searchText, { focus = false } = {}) {
+            const normalizedText = typeof searchText === 'string' ? searchText : '';
+
+            if (this._entry.get_text() !== normalizedText) {
+                this._entry.set_text(normalizedText);
+            }
+
+            if (focus) {
+                this._entry.grab_key_focus();
+            }
+        }
+
+        /**
+         * Returns the current search text.
+         *
+         * @returns {string} Current entry text.
+         */
+        getSearchText() {
+            return this._entry?.get_text?.() || '';
         }
 
         /**

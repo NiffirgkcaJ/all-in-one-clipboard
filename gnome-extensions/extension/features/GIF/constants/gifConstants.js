@@ -8,6 +8,7 @@ export const GifSettings = {
 
 // Provider Configuration
 export const GifProvider = {
+    SEARCH_PROVIDER_ID: 'gif',
     DEFAULT_RESULT_LIMIT: 20,
     MAX_RETRIES: 2,
     RETRY_BASE_DELAY_MS: 500,

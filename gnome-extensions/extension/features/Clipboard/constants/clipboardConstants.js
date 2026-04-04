@@ -9,6 +9,11 @@ export const ClipboardType = {
     CONTACT: 'contact',
 };
 
+// Provider Configuration
+export const ClipboardProvider = {
+    SEARCH_PROVIDER_ID: 'clipboard',
+};
+
 // Content Styling
 export const ClipboardStyling = {
     [ClipboardType.IMAGE]: {

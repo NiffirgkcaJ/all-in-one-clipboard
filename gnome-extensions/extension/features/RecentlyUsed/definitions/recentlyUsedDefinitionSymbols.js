@@ -1,8 +1,15 @@
+import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
+
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
+import { ensureSymbolsSearchProviderRegistered } from '../../Symbols/integrations/symbolsSearchProvider.js';
+import { SymbolsProvider } from '../../Symbols/constants/symbolsConstants.js';
+import { SymbolsViewRenderer } from '../../Symbols/view/symbolsViewRenderer.js';
+
 let _recentManager = null;
+const _symbolsSearchRenderer = new SymbolsViewRenderer();
 
 /**
  * Section definition for recently used symbol items.
@@ -33,6 +40,7 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {object} params.settings Extension settings object.
      */
     initialize: ({ extensionUuid, settings }) => {
+        ensureSymbolsSearchProviderRegistered({ extensionUuid });
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_SYMBOLS');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'symbols-recents-max-items');
     },
@@ -78,18 +86,57 @@ export const RecentlyUsedDefinitionSymbols = {
     },
 
     /**
+     * Searches the symbols catalog using the same filter behavior as the Symbols tab.
+     *
+     * @param {object} params Search context.
+     * @param {string} params.query Normalized search query.
+     * @returns {Promise<Array<object>>} Matching symbol entries.
+     */
+    searchItems: async ({ query }) => {
+        return searchViaProvider(SymbolsProvider.SEARCH_PROVIDER_ID, { query });
+    },
+
+    /**
      * Maps a source item into the shared section payload format.
      *
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
     mapItem: (sourceItem) => {
+        const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
+        const normalizedValue = normalizedItem.value || normalizedItem.char || normalizedItem.symbol || '';
+        normalizedItem.value = typeof normalizedValue === 'string' ? normalizedValue : '';
+        if (!normalizedItem.char && typeof normalizedItem.symbol === 'string') {
+            normalizedItem.char = normalizedItem.symbol;
+        }
+
         return {
-            ...(sourceItem && typeof sourceItem === 'object' ? sourceItem : { value: sourceItem }),
+            ...normalizedItem,
             __recentlyUsedListPresentation: RecentlyUsedDefinitionSymbols.listPresentation,
             __recentlyUsedGridPresentation: RecentlyUsedDefinitionSymbols.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
+    },
+
+    /**
+     * Matches symbol entries using Symbols tab search behavior.
+     *
+     * @param {object} params Search context.
+     * @param {object} params.item Candidate item.
+     * @param {string} params.query Normalized search query.
+     * @param {Function} params.fallbackMatch Generic fallback matcher.
+     * @returns {boolean} True when the symbol matches search.
+     */
+    matchesSearch: ({ item, query, fallbackMatch }) => {
+        if (!query) {
+            return true;
+        }
+
+        try {
+            return _symbolsSearchRenderer.searchFilter(item || {}, query);
+        } catch {
+            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        }
     },
 
     /**
@@ -99,11 +146,11 @@ export const RecentlyUsedDefinitionSymbols = {
      * @returns {Promise<boolean>} True when copy succeeds.
      */
     onClick: async ({ itemData, settings }) => {
-        const contentToCopy = itemData?.char || itemData?.value || '';
+        const contentToCopy = itemData?.char || itemData?.value || itemData?.symbol || '';
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem(itemData);
+        _recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy });
 
         if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionSymbols.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();

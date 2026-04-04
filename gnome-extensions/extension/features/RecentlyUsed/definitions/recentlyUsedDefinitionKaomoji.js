@@ -1,8 +1,15 @@
+import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
+
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
+import { ensureKaomojiSearchProviderRegistered } from '../../Kaomoji/integrations/kaomojiSearchProvider.js';
+import { KaomojiProvider } from '../../Kaomoji/constants/kaomojiConstants.js';
+import { KaomojiViewRenderer } from '../../Kaomoji/view/kaomojiViewRenderer.js';
+
 let _recentManager = null;
+const _kaomojiSearchRenderer = new KaomojiViewRenderer();
 
 /**
  * Section definition for recently used kaomoji items.
@@ -39,6 +46,7 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {object} params.settings Extension settings object.
      */
     initialize: ({ extensionUuid, settings }) => {
+        ensureKaomojiSearchProviderRegistered({ extensionUuid });
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_KAOMOJI');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'kaomoji-recents-max-items');
     },
@@ -84,6 +92,17 @@ export const RecentlyUsedDefinitionKaomoji = {
     },
 
     /**
+     * Searches the kaomoji catalog using the same filter behavior as the Kaomoji tab.
+     *
+     * @param {object} params Search context.
+     * @param {string} params.query Normalized search query.
+     * @returns {Promise<Array<object>>} Matching kaomoji entries.
+     */
+    searchItems: async ({ query }) => {
+        return searchViaProvider(KaomojiProvider.SEARCH_PROVIDER_ID, { query });
+    },
+
+    /**
      * Maps a source item into the shared section payload format.
      *
      * @param {object|string} sourceItem Source entry.
@@ -96,9 +115,35 @@ export const RecentlyUsedDefinitionKaomoji = {
             __recentlyUsedGridPresentation: null,
             __recentlyUsedClickPayload: sourceItem,
         };
+        const normalizedValue = mapped.value || mapped.char || mapped.kaomoji || '';
+        mapped.value = typeof normalizedValue === 'string' ? normalizedValue : '';
+        if (!mapped.char && typeof mapped.kaomoji === 'string') {
+            mapped.char = mapped.kaomoji;
+        }
         // resolve preview from field 'value'
-        mapped.preview = sourceItem?.value || '';
+        mapped.preview = mapped.value || '';
         return mapped;
+    },
+
+    /**
+     * Matches kaomoji entries using Kaomoji tab search behavior.
+     *
+     * @param {object} params Search context.
+     * @param {object} params.item Candidate item.
+     * @param {string} params.query Normalized search query.
+     * @param {Function} params.fallbackMatch Generic fallback matcher.
+     * @returns {boolean} True when the kaomoji matches search.
+     */
+    matchesSearch: ({ item, query, fallbackMatch }) => {
+        if (!query) {
+            return true;
+        }
+
+        try {
+            return _kaomojiSearchRenderer.searchFilter(item || {}, query);
+        } catch {
+            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        }
     },
 
     /**
@@ -108,11 +153,11 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @returns {Promise<boolean>} True when copy succeeds.
      */
     onClick: async ({ itemData, settings }) => {
-        const contentToCopy = itemData?.value || itemData?.char || '';
+        const contentToCopy = itemData?.value || itemData?.char || itemData?.kaomoji || '';
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem(itemData);
+        _recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.kaomoji || contentToCopy });
 
         if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionKaomoji.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();

@@ -5,12 +5,14 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
 import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
 import { RecentlyUsedScrollLockController } from '../utilities/recentlyUsedScrollLockController.js';
 import { renderRecentlyUsedGridSection } from './recentlyUsedGridSectionView.js';
 import { renderRecentlyUsedListSection } from './recentlyUsedListSectionView.js';
 import { renderRecentlyUsedNestedSection } from './recentlyUsedNestedSectionView.js';
+import { queueSearchHandoff } from '../../../shared/services/serviceSearchHub.js';
 import { RecentlyUsedUI, RecentlyUsedStyles } from '../constants/recentlyUsedConstants.js';
 
 /**
@@ -68,6 +70,10 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._focusIdleId = 0;
             this._restoreFocusTimeoutId = 0;
             this._scrollLockController = null;
+            this._searchComponent = null;
+            this._searchQuery = '';
+            this._searchSettingsSignalId = 0;
+            this._ignoreSearchChange = false;
 
             this._buildUI();
         }
@@ -81,6 +87,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * Resolves visibility, recreates section layouts, and calculates the focus grid.
          */
         render() {
+            this._syncSearchVisibility();
+
             this._renderSession = {};
             this._focusGrid = [];
             this._nestedSectionWidgets.clear();
@@ -154,6 +162,12 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _buildUI() {
+            this._searchComponent = new SearchComponent((searchText) => this._onSearchChanged(searchText), {
+                onNavigateDown: () => this._focusFirstFocusableInGrid(),
+            });
+            this._searchComponent.getWidget().visible = this._isSearchEnabled();
+            this.add_child(this._searchComponent.getWidget());
+
             const wrapper = new St.Widget({
                 layout_manager: new Clutter.BinLayout(),
                 x_expand: true,
@@ -202,6 +216,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             this.reactive = true;
             this.connect('key-press-event', this._onKeyPress.bind(this));
+
+            this._connectSettingsSignals();
         }
 
         /**
@@ -222,7 +238,14 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             const { header, showAllBtn } = RecentlyUsedBaseWidgetFactory.createSectionHeader(sectionScaffold.title || '');
             showAllBtn.connect('clicked', () => {
-                this.emit('navigate-to-main-tab', sectionScaffold.targetTab || sectionScaffold.id);
+                const targetTab = sectionScaffold.targetTab || sectionScaffold.id;
+                queueSearchHandoff({
+                    targetTab,
+                    query: this._searchQuery,
+                    sourceTab: 'Recently Used',
+                    sourceSection: sectionScaffold.id,
+                });
+                this.emit('navigate-to-main-tab', targetTab);
             });
 
             showAllBtn.connect('key-focus-in', () => {
@@ -328,7 +351,114 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 widgetFactory: RecentlyUsedBaseWidgetFactory,
                 renderSession: this._renderSession,
                 currentRenderSession: () => this._renderSession,
+                searchQuery: this._searchQuery,
             };
+        }
+
+        /**
+         * Determines if global search should be shown for the Recently Used tab.
+         *
+         * @returns {boolean} True when search is enabled.
+         * @private
+         */
+        _isSearchEnabled() {
+            return this._settings?.get_boolean('enable-recently-used-search') ?? true;
+        }
+
+        /**
+         * Handles user search query changes and triggers a re-render.
+         *
+         * @param {string} searchText Search text entered by the user.
+         * @private
+         */
+        _onSearchChanged(searchText) {
+            if (this._ignoreSearchChange) {
+                return;
+            }
+
+            const normalizedQuery = typeof searchText === 'string' ? searchText.trim() : '';
+            if (normalizedQuery === this._searchQuery) {
+                return;
+            }
+
+            this._searchQuery = normalizedQuery;
+            this.render();
+        }
+
+        /**
+         * Syncs the search actor visibility with settings and clears stale query when disabled.
+         *
+         * @private
+         */
+        _syncSearchVisibility() {
+            const searchWidget = this._searchComponent?.getWidget();
+            if (!searchWidget) {
+                return;
+            }
+
+            const isSearchEnabled = this._isSearchEnabled();
+            searchWidget.visible = isSearchEnabled;
+
+            if (!isSearchEnabled && this._searchQuery.length > 0) {
+                this._searchQuery = '';
+                this._ignoreSearchChange = true;
+                this._searchComponent.clearSearch();
+                this._ignoreSearchChange = false;
+            }
+        }
+
+        /**
+         * Focuses the first available item in the internal focus grid.
+         *
+         * @returns {boolean} True when focus was moved.
+         * @private
+         */
+        _focusFirstFocusableInGrid() {
+            for (const row of this._focusGrid) {
+                if (!row || row.length === 0) {
+                    continue;
+                }
+
+                const target = row[0];
+                if (!target || !target.visible || !target.get_stage()) {
+                    continue;
+                }
+
+                target.grab_key_focus();
+                return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * Connects settings updates relevant to the Recently Used view.
+         *
+         * @private
+         */
+        _connectSettingsSignals() {
+            if (!this._settings || this._searchSettingsSignalId) {
+                return;
+            }
+
+            this._searchSettingsSignalId = this._settings.connect('changed::enable-recently-used-search', () => {
+                this._syncSearchVisibility();
+                this.render();
+            });
+        }
+
+        /**
+         * Disconnects settings updates previously connected for this view.
+         *
+         * @private
+         */
+        _disconnectSettingsSignals() {
+            if (!this._settings || !this._searchSettingsSignalId) {
+                return;
+            }
+
+            this._settings.disconnect(this._searchSettingsSignalId);
+            this._searchSettingsSignalId = 0;
         }
 
         /**
@@ -791,6 +921,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         destroy() {
+            this._disconnectSettingsSignals();
+
             if (this._settingsBtnFocusTimeoutId) {
                 GLib.source_remove(this._settingsBtnFocusTimeoutId);
                 this._settingsBtnFocusTimeoutId = 0;
@@ -815,6 +947,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             if (this._scrollLockController) {
                 this._scrollLockController.destroy();
                 this._scrollLockController = null;
+            }
+
+            if (this._searchComponent) {
+                this._searchComponent.destroy();
+                this._searchComponent = null;
             }
 
             this._renderSession = null;

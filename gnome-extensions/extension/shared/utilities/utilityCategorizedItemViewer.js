@@ -122,6 +122,8 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._tabScrollPolicyState = null;
             this._tabContainer = null;
             this._layoutSettingSignalIds = [];
+            this._pendingExternalSearchText = null;
+            this._suppressSearchTextChanged = false;
 
             this._buildUI();
 
@@ -456,6 +458,48 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
+         * Applies an externally provided query to the viewer search state.
+         *
+         * @param {string} query Query text to apply.
+         * @param {object} [options] Additional options.
+         * @param {boolean} [options.focus=false] Whether to focus the search entry.
+         */
+        applyExternalSearch(query, { focus = false } = {}) {
+            const normalizedQuery = typeof query === 'string' ? query.trim().toLowerCase() : '';
+
+            if (!this._isContentLoaded || !this._searchComponent) {
+                this._pendingExternalSearchText = normalizedQuery;
+                return;
+            }
+
+            const previousQuery = this._currentSearchText;
+            this._currentSearchText = normalizedQuery;
+
+            if (normalizedQuery.length > 0 && previousQuery.length === 0) {
+                this._lastActiveTabBeforeSearch = this._activeCategory;
+            } else if (normalizedQuery.length === 0 && previousQuery.length > 0) {
+                this._activeCategory = this._lastActiveTabBeforeSearch;
+            }
+
+            this._pendingExternalSearchText = null;
+            this._searchDebouncer?.cancel?.();
+            this._suppressSearchTextChanged = true;
+            this._searchComponent.setSearchText(normalizedQuery, { focus });
+            this._suppressSearchTextChanged = false;
+            this._applyFiltersAndRenderGrid();
+        }
+
+        /**
+         * Clears external search state.
+         *
+         * @param {object} [options] Additional options.
+         * @param {boolean} [options.focus=false] Whether to focus the search entry.
+         */
+        clearExternalSearch({ focus = false } = {}) {
+            this.applyExternalSearch('', { focus });
+        }
+
+        /**
          * Public method called by the parent when the main menu is closed.
          * Resets the state of the component, like clearing the search bar.
          */
@@ -534,6 +578,12 @@ export const CategorizedItemViewer = GObject.registerClass(
 
                 const targetCategory = this._allDisplayableTabs.includes(RECENTS_TAB_ID) ? RECENTS_TAB_ID : this._allDisplayableTabs[0] || null;
                 this._setActiveCategory(targetCategory);
+
+                if (typeof this._pendingExternalSearchText === 'string') {
+                    const pendingQuery = this._pendingExternalSearchText;
+                    this._pendingExternalSearchText = null;
+                    this.applyExternalSearch(pendingQuery, { focus: false });
+                }
             } catch (e) {
                 console.error(`[AIO-Clipboard] Critical error loading or parsing data in CategorizedItemViewer: ${e.message}`);
                 this._isContentLoaded = false;
@@ -549,6 +599,10 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _onSearchTextChanged(searchText) {
+            if (this._suppressSearchTextChanged) {
+                return;
+            }
+
             const newSearchText = searchText.toLowerCase().trim();
             if (this._currentSearchText === newSearchText) return;
 

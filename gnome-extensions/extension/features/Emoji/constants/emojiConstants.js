@@ -8,6 +8,11 @@ export const EmojiSettings = {
     GRID_MAX_COLUMNS_KEY: 'emoji-grid-max-columns',
 };
 
+// Provider Configuration
+export const EmojiProvider = {
+    SEARCH_PROVIDER_ID: 'emoji',
+};
+
 // UI Configuration
 export const EmojiUI = {
     TARGET_ITEM_WIDTH: 40,
