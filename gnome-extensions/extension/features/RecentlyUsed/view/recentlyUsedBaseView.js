@@ -420,12 +420,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 }
 
                 const target = row[0];
-                if (!target || !target.visible || !target.get_stage()) {
-                    continue;
+                if (this._focusWidgetSafely(target)) {
+                    return true;
                 }
-
-                target.grab_key_focus();
-                return true;
             }
 
             return false;
@@ -618,6 +615,47 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         }
 
         /**
+         * Focuses a widget while safely handling settings button focus toggling.
+         *
+         * @param {Clutter.Actor} widget Candidate focus target.
+         * @returns {boolean} True when focus succeeds.
+         * @private
+         */
+        _focusWidgetSafely(widget) {
+            if (!widget || !widget.visible || !widget.get_stage()) {
+                return false;
+            }
+
+            const isSettingsButtonFocus = widget === this._settingsBtn && this._settingsBtn?.can_focus === false;
+            if (isSettingsButtonFocus) {
+                this._settingsBtn.can_focus = true;
+            }
+
+            try {
+                widget.grab_key_focus();
+            } catch {
+                if (isSettingsButtonFocus) {
+                    this._settingsBtn.can_focus = false;
+                }
+                return false;
+            }
+
+            if (isSettingsButtonFocus) {
+                if (this._settingsBtnFocusTimeoutId) {
+                    GLib.source_remove(this._settingsBtnFocusTimeoutId);
+                }
+
+                this._settingsBtnFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10, () => {
+                    this._settingsBtn.can_focus = false;
+                    this._settingsBtnFocusTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                });
+            }
+
+            return true;
+        }
+
+        /**
          * Enforce basic outer scroll visibility ensuring the element centers into view on focus.
          *
          * @param {Clutter.Actor} widget The interacted control taking keyboard focus
@@ -658,6 +696,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                         if (widget.get_stage()) {
                             ensureActorVisibleInScrollView(this._scrollView, showAllBtn);
                             ensureActorVisibleInScrollView(nestedScrollView, widget);
+
+                            if (this._lockTimeoutId) {
+                                GLib.source_remove(this._lockTimeoutId);
+                                this._lockTimeoutId = null;
+                            }
 
                             this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
                                 this._lockTimeoutId = null;
@@ -713,13 +756,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         _tryFocusShowAllButton(showAllButtons) {
             for (const button of showAllButtons) {
-                if (button && button.visible && button.get_stage()) {
-                    try {
-                        button.grab_key_focus();
-                        return true;
-                    } catch {
-                        continue;
-                    }
+                if (this._focusWidgetSafely(button)) {
+                    return true;
                 }
             }
             return false;
@@ -741,11 +779,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 if (firstItem === this._settingsBtn) continue;
                 if (showAllButtons.has(firstItem)) continue;
 
-                try {
-                    firstItem.grab_key_focus();
+                if (this._focusWidgetSafely(firstItem)) {
                     return true;
-                } catch {
-                    continue;
                 }
             }
             return false;
@@ -759,13 +794,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         _tryFocusAnyWidget() {
             for (const row of this._focusGrid) {
-                if (row && row[0] && row[0].visible && row[0].get_stage()) {
-                    try {
-                        row[0].grab_key_focus();
-                        return true;
-                    } catch {
-                        continue;
-                    }
+                if (this._focusWidgetSafely(row?.[0])) {
+                    return true;
                 }
             }
             return false;
@@ -833,8 +863,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             if (!allFocusable.includes(currentFocus)) {
                 if (symbol === Clutter.KEY_Down && this._focusGrid.length > 0) {
-                    this._focusGrid[0][0].grab_key_focus();
-                    return Clutter.EVENT_STOP;
+                    if (this._focusWidgetSafely(this._focusGrid[0][0])) {
+                        return Clutter.EVENT_STOP;
+                    }
                 }
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -896,21 +927,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             const targetWidget = this._focusGrid[nextRow][nextCol];
 
-            if (targetWidget === this._settingsBtn) {
-                this._settingsBtn.can_focus = true;
-                this._settingsBtn.grab_key_focus();
-
-                if (this._settingsBtnFocusTimeoutId) {
-                    GLib.source_remove(this._settingsBtnFocusTimeoutId);
-                }
-
-                this._settingsBtnFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10, () => {
-                    this._settingsBtn.can_focus = false;
-                    this._settingsBtnFocusTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                });
-            } else {
-                targetWidget.grab_key_focus();
+            if (!this._focusWidgetSafely(targetWidget)) {
+                return Clutter.EVENT_PROPAGATE;
             }
 
             return Clutter.EVENT_STOP;

@@ -224,8 +224,12 @@ export class RecentlyUsedRuntimeService {
     _resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery) {
         const localItemsRaw = typeof sectionConfig.getItems === 'function' ? sectionConfig.getItems(runtimeContext) : [];
         const localItems = Array.isArray(localItemsRaw) ? localItemsRaw : [];
+        const localItemsSignature = this._createSectionItemsSignature(localItems);
 
         if (!searchQuery || typeof sectionConfig.searchItems !== 'function' || !sectionConfig.id) {
+            if (sectionConfig?.id) {
+                this._sectionSearchState.delete(sectionConfig.id);
+            }
             return localItems;
         }
 
@@ -233,11 +237,11 @@ export class RecentlyUsedRuntimeService {
         const currentState = this._sectionSearchState.get(sectionId);
 
         if (currentState?.query === searchQuery) {
-            if (currentState.status === 'ready') {
+            if (currentState.status === 'ready' && currentState.fallbackSignature === localItemsSignature) {
                 return currentState.items;
             }
 
-            if (currentState.status === 'pending') {
+            if (currentState.status === 'pending' && currentState.fallbackSignature === localItemsSignature) {
                 return currentState.fallbackItems;
             }
         }
@@ -248,6 +252,7 @@ export class RecentlyUsedRuntimeService {
             requestId,
             status: 'pending',
             fallbackItems: localItems,
+            fallbackSignature: localItemsSignature,
             items: [],
         });
 
@@ -282,6 +287,48 @@ export class RecentlyUsedRuntimeService {
             });
 
         return localItems;
+    }
+
+    /**
+     * Builds a lightweight signature for section source items.
+     *
+     * @param {Array<object>} items Section source items.
+     * @returns {string} Stable signature string for cache checks.
+     * @private
+     */
+    _createSectionItemsSignature(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+            return '0:';
+        }
+
+        const parts = [];
+        const sampleSize = Math.min(items.length, 25);
+
+        for (let i = 0; i < sampleSize; i++) {
+            const item = items[i];
+
+            if (!item || typeof item !== 'object') {
+                parts.push(String(item));
+                continue;
+            }
+
+            const signatureFields = {
+                id: item.id,
+                value: item.value,
+                char: item.char,
+                symbol: item.symbol,
+                kaomoji: item.kaomoji,
+                full_url: item.full_url,
+                preview_url: item.preview_url,
+                name: item.name,
+                description: item.description,
+            };
+            const value = Object.values(signatureFields).find((candidate) => candidate !== null && candidate !== undefined) ?? '';
+
+            parts.push(String(value));
+        }
+
+        return `${items.length}:${parts.join('|')}`;
     }
 
     /**
