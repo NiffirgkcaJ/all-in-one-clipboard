@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
@@ -71,9 +72,12 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._restoreFocusTimeoutId = 0;
             this._scrollLockController = null;
             this._searchComponent = null;
+            this._searchDebouncer = null;
             this._searchQuery = '';
             this._searchSettingsSignalId = 0;
             this._ignoreSearchChange = false;
+
+            this._searchDebouncer = new Debouncer(() => this.render(), RecentlyUsedUI.SEARCH_DEBOUNCE_MS);
 
             this._buildUI();
         }
@@ -382,7 +386,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             }
 
             this._searchQuery = normalizedQuery;
-            this.render();
+            this._searchDebouncer?.trigger();
         }
 
         /**
@@ -400,6 +404,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             searchWidget.visible = isSearchEnabled;
 
             if (!isSearchEnabled && this._searchQuery.length > 0) {
+                this._searchDebouncer?.cancel?.();
                 this._searchQuery = '';
                 this._ignoreSearchChange = true;
                 this._searchComponent.clearSearch();
@@ -970,6 +975,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             if (this._searchComponent) {
                 this._searchComponent.destroy();
                 this._searchComponent = null;
+            }
+
+            if (this._searchDebouncer) {
+                this._searchDebouncer.destroy();
+                this._searchDebouncer = null;
             }
 
             this._renderSession = null;
