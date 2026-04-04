@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 07:20+0000\n"
+"POT-Creation-Date: 2026-04-04 08:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -910,12 +910,12 @@ msgid ""
 "Please check your API key and network connection."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:870
 msgid "No recent items yet."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:42
 msgid "Show All"
 msgstr ""
 

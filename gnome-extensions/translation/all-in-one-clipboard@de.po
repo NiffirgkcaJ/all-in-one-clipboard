@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 04:22+0000\n"
+"POT-Creation-Date: 2026-04-04 08:43+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -917,12 +917,12 @@ msgstr ""
 "Fehler: %s\n"
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:870
 msgid "No recent items yet."
 msgstr "Bisher keine letzten Elemente."
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:42
 msgid "Show All"
 msgstr "Alle anzeigen"
 
