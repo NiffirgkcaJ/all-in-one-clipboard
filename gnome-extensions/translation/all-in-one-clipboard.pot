@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 08:43+0000\n"
+"POT-Creation-Date: 2026-04-06 03:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -707,7 +707,7 @@ msgid "Clear lists of recently used items."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1450
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:50
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:55
 msgid "Recent Emojis"
 msgstr ""
 
@@ -716,7 +716,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1455
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:56
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:65
 msgid "Recent GIFs"
 msgstr ""
 
@@ -725,7 +725,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1460
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:62
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:75
 msgid "Recent Kaomojis"
 msgstr ""
 
@@ -734,7 +734,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:1465
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:68
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:85
 msgid "Recent Symbols"
 msgstr ""
 
@@ -919,12 +919,36 @@ msgstr ""
 msgid "Show All"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:44
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:45
 msgid "Pinned Clipboard"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:74
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:46
+msgid "Pinned Matches"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:56
+msgid "Emoji Results"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:66
+msgid "GIF Results"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:76
+msgid "Kaomoji Results"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:86
+msgid "Symbol Results"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:95
 msgid "Recent Clipboard History"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:96
+msgid "Clipboard Matches"
 msgstr ""
 
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:90

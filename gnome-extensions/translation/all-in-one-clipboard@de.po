@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 08:43+0000\n"
+"POT-Creation-Date: 2026-04-06 03:10+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -712,7 +712,7 @@ msgid "Clear lists of recently used items."
 msgstr "Listen von zuletzt genutzten items löschen."
 
 #: gnome-extensions/extension/prefs.js:1450
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:50
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:55
 msgid "Recent Emojis"
 msgstr "Letzte Emojis"
 
@@ -721,7 +721,7 @@ msgid "Permanently clears the list of recent emojis."
 msgstr "Löscht die Liste zuletzt genutzter Emojis unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1455
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:56
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:65
 msgid "Recent GIFs"
 msgstr "Letzte GIFs"
 
@@ -730,7 +730,7 @@ msgid "Permanently clears the list of recent GIFs."
 msgstr "Löscht die Liste zuletzt genutzter GIFs unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1460
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:62
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:75
 msgid "Recent Kaomojis"
 msgstr "Letzte Kaomojis"
 
@@ -739,7 +739,7 @@ msgid "Permanently clears the list of recent kaomojis."
 msgstr "Löscht die Liste zuletzt genutzter Kaomojis unwiderruflich."
 
 #: gnome-extensions/extension/prefs.js:1465
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:68
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:85
 msgid "Recent Symbols"
 msgstr "Letzte Symbole"
 
@@ -926,13 +926,43 @@ msgstr "Bisher keine letzten Elemente."
 msgid "Show All"
 msgstr "Alle anzeigen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:44
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:45
 msgid "Pinned Clipboard"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:74
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:46
+#, fuzzy
+msgid "Pinned Matches"
+msgstr "Angeheftete Elemente"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:56
+#, fuzzy
+msgid "Emoji Results"
+msgstr "Emoji-Einstellungen"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:66
+#, fuzzy
+msgid "GIF Results"
+msgstr "GIF-Einstellungen"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:76
+#, fuzzy
+msgid "Kaomoji Results"
+msgstr "Kaomoji"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:86
+#, fuzzy
+msgid "Symbol Results"
+msgstr "Symbole"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:95
 msgid "Recent Clipboard History"
 msgstr "Zwischenablageverlauf"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:96
+#, fuzzy
+msgid "Clipboard Matches"
+msgstr "Zwischenablagedaten"
 
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:90
 msgid "Component configuration is invalid. Check logs."
