@@ -63,7 +63,7 @@ export class RecentlyUsedRuntimeService {
 
         return {
             id: sectionConfig.id,
-            title: this._resolveSectionTitle(sectionConfig),
+            title: this._resolveSectionBrowseTitle(sectionConfig),
             targetTab: sectionConfig.targetTab || sectionConfig.id,
         };
     }
@@ -90,6 +90,7 @@ export class RecentlyUsedRuntimeService {
             return null;
         }
 
+        const baseSectionTitle = this._resolveSectionBrowseTitle(sectionConfig);
         const searchQuery = normalizeRecentlyUsedSearchQuery(viewRuntimeContext.searchQuery);
 
         const runtimeContext = {
@@ -106,6 +107,8 @@ export class RecentlyUsedRuntimeService {
                 visible: false,
                 effectiveLayout: sectionConfig.layoutType,
                 items: [],
+                totalMatchCount: 0,
+                sectionTitle: baseSectionTitle,
                 nestedLayout: this._resolveNestedLayout(sectionConfig),
             };
         }
@@ -116,6 +119,8 @@ export class RecentlyUsedRuntimeService {
                 visible: false,
                 effectiveLayout: sectionConfig.layoutType,
                 items: [],
+                totalMatchCount: 0,
+                sectionTitle: baseSectionTitle,
                 nestedLayout: this._resolveNestedLayout(sectionConfig),
             };
         }
@@ -129,10 +134,13 @@ export class RecentlyUsedRuntimeService {
                 visible: false,
                 effectiveLayout: sectionConfig.layoutType,
                 items: [],
+                totalMatchCount: 0,
+                sectionTitle: baseSectionTitle,
                 nestedLayout: this._resolveNestedLayout(sectionConfig),
             };
         }
 
+        const totalMatchCount = filteredItems.length;
         const effectiveLayout = this._resolveEffectiveLayout(sectionConfig, filteredItems.length);
         const maxDisplay = sectionConfig.source?.maxItems ?? RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT;
         const items = effectiveLayout === 'nested' ? filteredItems : filteredItems.slice(0, maxDisplay);
@@ -141,6 +149,12 @@ export class RecentlyUsedRuntimeService {
             visible: true,
             effectiveLayout,
             items,
+            totalMatchCount,
+            sectionTitle: this._resolveSectionDisplayTitle(sectionConfig, {
+                searchQuery,
+                totalMatchCount,
+                baseTitle: baseSectionTitle,
+            }),
             nestedLayout: this._resolveNestedLayout(sectionConfig),
             listContentRenderer: typeof sectionConfig.renderListContent === 'function' ? (args) => sectionConfig.renderListContent(args) : null,
             gridIconResolver: typeof sectionConfig.resolveGridIcon === 'function' ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
@@ -400,18 +414,64 @@ export class RecentlyUsedRuntimeService {
     }
 
     /**
-     * Resolves the section display title.
+     * Resolves a section title for browse mode (no active search query).
      *
      * @param {object} sectionConfig Section configuration.
-     * @returns {string} Section title.
+     * @returns {string} Section browse title.
      * @private
      */
-    _resolveSectionTitle(sectionConfig) {
-        if (typeof sectionConfig?.resolveTitle === 'function') {
-            return sectionConfig.resolveTitle();
+    _resolveSectionBrowseTitle(sectionConfig) {
+        const browseTitleResolver = sectionConfig?.titlePolicy?.browseTitle;
+        if (typeof browseTitleResolver === 'function') {
+            return browseTitleResolver();
         }
 
-        return sectionConfig?.titleKey || sectionConfig?.id || '';
+        return this._resolveSectionDefaultTitle(sectionConfig);
+    }
+
+    /**
+     * Resolves a section title for search mode.
+     *
+     * @param {object} sectionConfig Section configuration.
+     * @param {string} fallbackTitle Fallback title when no search resolver is defined.
+     * @returns {string} Section search title.
+     * @private
+     */
+    _resolveSectionSearchTitle(sectionConfig, fallbackTitle) {
+        const searchTitleResolver = sectionConfig?.titlePolicy?.searchTitle;
+        if (typeof searchTitleResolver === 'function') {
+            return searchTitleResolver();
+        }
+
+        return fallbackTitle;
+    }
+
+    /**
+     * Resolves the section display title based on browse/search mode and count formatting policy.
+     *
+     * @param {object} sectionConfig Section configuration.
+     * @param {object} context Title resolution context.
+     * @param {string} context.searchQuery Normalized search query.
+     * @param {number} context.totalMatchCount Match count before display truncation.
+     * @param {string} context.baseTitle Browse-mode fallback title.
+     * @returns {string} Section display title.
+     * @private
+     */
+    _resolveSectionDisplayTitle(sectionConfig, { searchQuery, totalMatchCount, baseTitle }) {
+        const hasActiveSearch = typeof searchQuery === 'string' && searchQuery.length > 0;
+        if (!hasActiveSearch) {
+            return baseTitle;
+        }
+
+        const searchTitle = this._resolveSectionSearchTitle(sectionConfig, baseTitle);
+        const searchCountMode = sectionConfig?.titlePolicy?.searchCountMode || 'inline';
+
+        if (searchCountMode !== 'inline') {
+            return searchTitle;
+        }
+
+        const safeTotalMatchCount = Number.isFinite(totalMatchCount) && totalMatchCount >= 0 ? Math.floor(totalMatchCount) : 0;
+        return `${searchTitle} (${safeTotalMatchCount})`;
     }
 
     /**

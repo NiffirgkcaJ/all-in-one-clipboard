@@ -175,22 +175,22 @@ export class RecentlyUsedBaseWidgetFactory {
             x_expand: true,
         });
 
+        const titleLabel = new St.Label({
+            text: title,
+            style_class: RecentlyUsedStyles.TITLE,
+            x_expand: true,
+        });
+
         const showAllBtn = new St.Button({
             label: RecentlyUsedMessages.SHOW_ALL(),
             style_class: RecentlyUsedStyles.SHOW_ALL_BUTTON,
             can_focus: true,
         });
 
-        header.add_child(
-            new St.Label({
-                text: title,
-                style_class: RecentlyUsedStyles.TITLE,
-                x_expand: true,
-            }),
-        );
+        header.add_child(titleLabel);
         header.add_child(showAllBtn);
 
-        return { header, showAllBtn };
+        return { header, showAllBtn, titleLabel };
     }
 
     /**

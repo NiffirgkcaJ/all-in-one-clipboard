@@ -240,7 +240,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 x_expand: true,
             });
 
-            const { header, showAllBtn } = RecentlyUsedBaseWidgetFactory.createSectionHeader(sectionScaffold.title || '');
+            const baseTitle = sectionScaffold.title || '';
+            const { header, showAllBtn, titleLabel } = RecentlyUsedBaseWidgetFactory.createSectionHeader(baseTitle);
             showAllBtn.connect('clicked', () => {
                 const targetTab = sectionScaffold.targetTab || sectionScaffold.id;
                 queueSearchHandoff({
@@ -272,7 +273,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             section.add_child(bodyContainer);
             this._mainContainer.add_child(section);
 
-            this._sections[sectionScaffold.id] = { section, showAllBtn, bodyContainer, separator };
+            this._sections[sectionScaffold.id] = { section, showAllBtn, titleLabel, baseTitle, bodyContainer, separator };
         }
 
         // ========================================================================
@@ -293,6 +294,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             const sectionData = this._sections[id];
             const runtimeContext = this._createSectionRuntimeContext();
             const renderModel = this._getSectionRenderModel(id, runtimeContext);
+            this._updateSectionTitle(sectionData, renderModel);
 
             if (!renderModel?.visible) {
                 sectionData.section.hide();
@@ -340,6 +342,24 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 });
                 return;
             }
+        }
+
+        /**
+         * Updates a section header title based on active search context.
+         *
+         * @param {object} sectionData Internal section state.
+         * @param {object|null} renderModel Section render model.
+         * @private
+         */
+        _updateSectionTitle(sectionData, renderModel) {
+            const titleLabel = sectionData?.titleLabel;
+            if (!titleLabel) {
+                return;
+            }
+
+            const baseTitle = sectionData?.baseTitle || '';
+            const displayTitle = typeof renderModel?.sectionTitle === 'string' && renderModel.sectionTitle.length > 0 ? renderModel.sectionTitle : baseTitle;
+            titleLabel.text = displayTitle;
         }
 
         /**

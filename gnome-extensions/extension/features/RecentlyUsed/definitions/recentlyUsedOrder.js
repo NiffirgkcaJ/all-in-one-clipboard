@@ -41,36 +41,60 @@ export const RecentlyUsedOrder = [
         id: 'pinned',
         modulePath: '../definitions/recentlyUsedDefinitionPinned.js',
         exportName: 'RecentlyUsedDefinitionPinned',
-        resolveTitle: () => _('Pinned Clipboard'),
+        titlePolicy: {
+            browseTitle: () => _('Pinned Clipboard'),
+            searchTitle: () => _('Pinned Matches'),
+            searchCountMode: 'inline',
+        },
     },
     {
         id: 'emoji',
         modulePath: '../definitions/recentlyUsedDefinitionEmoji.js',
         exportName: 'RecentlyUsedDefinitionEmoji',
-        resolveTitle: () => _('Recent Emojis'),
+        titlePolicy: {
+            browseTitle: () => _('Recent Emojis'),
+            searchTitle: () => _('Emoji Results'),
+            searchCountMode: 'inline',
+        },
     },
     {
         id: 'gif',
         modulePath: '../definitions/recentlyUsedDefinitionGif.js',
         exportName: 'RecentlyUsedDefinitionGif',
-        resolveTitle: () => _('Recent GIFs'),
+        titlePolicy: {
+            browseTitle: () => _('Recent GIFs'),
+            searchTitle: () => _('GIF Results'),
+            searchCountMode: 'inline',
+        },
     },
     {
         id: 'kaomoji',
         modulePath: '../definitions/recentlyUsedDefinitionKaomoji.js',
         exportName: 'RecentlyUsedDefinitionKaomoji',
-        resolveTitle: () => _('Recent Kaomojis'),
+        titlePolicy: {
+            browseTitle: () => _('Recent Kaomojis'),
+            searchTitle: () => _('Kaomoji Results'),
+            searchCountMode: 'inline',
+        },
     },
     {
         id: 'symbols',
         modulePath: '../definitions/recentlyUsedDefinitionSymbols.js',
         exportName: 'RecentlyUsedDefinitionSymbols',
-        resolveTitle: () => _('Recent Symbols'),
+        titlePolicy: {
+            browseTitle: () => _('Recent Symbols'),
+            searchTitle: () => _('Symbol Results'),
+            searchCountMode: 'inline',
+        },
     },
     {
         id: 'clipboard',
         modulePath: '../definitions/recentlyUsedDefinitionClipboard.js',
         exportName: 'RecentlyUsedDefinitionClipboard',
-        resolveTitle: () => _('Recent Clipboard History'),
+        titlePolicy: {
+            browseTitle: () => _('Recent Clipboard History'),
+            searchTitle: () => _('Clipboard Matches'),
+            searchCountMode: 'inline',
+        },
     },
 ];
