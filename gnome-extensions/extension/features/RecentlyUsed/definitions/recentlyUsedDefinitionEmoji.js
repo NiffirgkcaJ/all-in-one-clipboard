@@ -41,6 +41,16 @@ export const RecentlyUsedDefinitionEmoji = {
      */
     initialize: ({ extensionUuid, settings }) => {
         ensureEmojiSearchProviderRegistered({ extensionUuid });
+
+        if (_recentManager) {
+            try {
+                _recentManager.destroy();
+            } catch {
+                // Ignore stale manager teardown errors before re-init.
+            }
+            _recentManager = null;
+        }
+
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_EMOJI');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'emoji-recents-max-items');
     },

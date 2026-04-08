@@ -2,6 +2,8 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import { RecentlyUsedNestedViewTuning } from '../constants/recentlyUsedViewConstants.js';
+
 // ========================================================================
 // Scroll Helpers
 // ========================================================================
@@ -44,7 +46,7 @@ function getVerticalScrollIntent(event) {
 function isScrollAdjustmentAtBoundary(adjustment, scrollIntent) {
     const lower = adjustment.lower;
     const upper = Math.max(adjustment.lower, adjustment.upper - adjustment.page_size);
-    const epsilon = 0.5;
+    const epsilon = RecentlyUsedNestedViewTuning.SCROLL_BOUNDARY_EPSILON;
     const atTop = adjustment.value <= lower + epsilon;
     const atBottom = adjustment.value >= upper - epsilon;
 

@@ -1,6 +1,7 @@
 // Shared nested-scroll behavior for list and grid nested views.
 export const RecentlyUsedNestedViewTuning = {
     VIEWPORT_HEIGHT_EPSILON: 2,
+    SCROLL_BOUNDARY_EPSILON: 0.5,
     BOTTOM_THRESHOLD_ITEM_HEIGHT_MULTIPLIER: 1.5,
     BOTTOM_THRESHOLD_MIN_PX: 96,
     MAX_SCROLL_APPEND_ITERATIONS: 16,

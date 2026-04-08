@@ -1,4 +1,5 @@
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
+import { RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
 
 /**
  * Coordinates section search state, async search requests, and fallback behavior.
@@ -150,18 +151,30 @@ export class RecentlyUsedSearchStateManager {
         }
 
         const parts = [];
-        const sampleSize = Math.min(items.length, 25);
+        const sampleSize = Math.min(items.length, RecentlyUsedSearchTuning.SECTION_SIGNATURE_MAX_SAMPLES);
+        const sampledIndexes = new Set();
 
-        for (let i = 0; i < sampleSize; i++) {
-            const item = items[i];
+        if (sampleSize === 1) {
+            sampledIndexes.add(0);
+        } else {
+            for (let i = 0; i < sampleSize; i++) {
+                const index = Math.round((i * (items.length - 1)) / (sampleSize - 1));
+                sampledIndexes.add(index);
+            }
+        }
+
+        for (const index of sampledIndexes) {
+            const item = items[index];
 
             if (!item || typeof item !== 'object') {
-                parts.push(String(item));
+                parts.push(`${index}:${String(item)}`);
                 continue;
             }
 
             const signatureFields = {
                 id: item.id,
+                timestamp: item.timestamp,
+                updatedAt: item.updatedAt,
                 value: item.value,
                 char: item.char,
                 symbol: item.symbol,
@@ -173,7 +186,7 @@ export class RecentlyUsedSearchStateManager {
             };
             const value = Object.values(signatureFields).find((candidate) => candidate !== null && candidate !== undefined) ?? '';
 
-            parts.push(String(value));
+            parts.push(`${index}:${String(value)}`);
         }
 
         return `${items.length}:${parts.join('|')}`;

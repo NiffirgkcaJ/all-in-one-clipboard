@@ -24,6 +24,28 @@ export class RecentlyUsedSignalManager {
     }
 
     /**
+     * Returns a sanitized signal descriptor or null when invalid.
+     *
+     * @param {object} descriptor Signal descriptor.
+     * @returns {object|null} Normalized descriptor.
+     * @private
+     */
+    _normalizeSignalDescriptor(descriptor) {
+        const obj = descriptor?.obj;
+        const id = descriptor?.id;
+
+        if (!obj || typeof obj.disconnect !== 'function') {
+            return null;
+        }
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return null;
+        }
+
+        return { obj, id };
+    }
+
+    /**
      * Connect all runtime signals.
      */
     connect() {
@@ -41,7 +63,17 @@ export class RecentlyUsedSignalManager {
                     settings: this._settings,
                     onRender: this._onRender,
                 }) || [];
-            this._signalIds.push(...signals);
+
+            if (!Array.isArray(signals)) {
+                continue;
+            }
+
+            signals.forEach((descriptor) => {
+                const normalized = this._normalizeSignalDescriptor(descriptor);
+                if (normalized) {
+                    this._signalIds.push(normalized);
+                }
+            });
         }
 
         if (this._settings && typeof this._settings.connect === 'function') {
@@ -50,10 +82,13 @@ export class RecentlyUsedSignalManager {
                     const signalId = this._settings.connect(`changed::${settingKey}`, () => {
                         this._onRender?.();
                     });
-                    this._signalIds.push({
+                    const normalized = this._normalizeSignalDescriptor({
                         obj: this._settings,
                         id: signalId,
                     });
+                    if (normalized) {
+                        this._signalIds.push(normalized);
+                    }
                 } catch {
                     // Ignore missing schema keys to keep runtime resilient.
                 }
@@ -70,10 +105,13 @@ export class RecentlyUsedSignalManager {
             return;
         }
 
-        this._signalIds.forEach(({ obj, id }) => {
-            if (!obj || !id || typeof obj.disconnect !== 'function') {
+        this._signalIds.forEach((descriptor) => {
+            const normalized = this._normalizeSignalDescriptor(descriptor);
+            if (!normalized) {
                 return;
             }
+
+            const { obj, id } = normalized;
 
             try {
                 if (typeof obj.signal_handler_is_connected === 'function' && !obj.signal_handler_is_connected(id)) {

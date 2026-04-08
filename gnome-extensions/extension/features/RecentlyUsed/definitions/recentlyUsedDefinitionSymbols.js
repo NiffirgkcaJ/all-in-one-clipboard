@@ -41,6 +41,16 @@ export const RecentlyUsedDefinitionSymbols = {
      */
     initialize: ({ extensionUuid, settings }) => {
         ensureSymbolsSearchProviderRegistered({ extensionUuid });
+
+        if (_recentManager) {
+            try {
+                _recentManager.destroy();
+            } catch {
+                // Ignore stale manager teardown errors before re-init.
+            }
+            _recentManager = null;
+        }
+
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_SYMBOLS');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'symbols-recents-max-items');
     },

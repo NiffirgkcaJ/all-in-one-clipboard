@@ -103,21 +103,33 @@ export async function initializeRecentlyUsedRegistry() {
 /**
  * Sets the section order used for registry initialization.
  *
- * @param {Array<string|object>} sectionIds Ordered section ids or entries.
+ * @param {Array<object>} sectionEntries Ordered section entries.
  */
-export function registerRecentlyUsedOrder(sectionIds = []) {
+export function registerRecentlyUsedOrder(sectionEntries = []) {
     initializeRecentlyUsedRegistryPromise = null;
     recentlyUsedOrderRegistry.length = 0;
 
-    sectionIds.forEach((entry) => {
-        if (typeof entry === 'string' && entry.length > 0) {
-            recentlyUsedOrderRegistry.push({ id: entry });
+    sectionEntries.forEach((entry) => {
+        if (typeof entry === 'string') {
+            console.warn(`[AIO-Clipboard] Ignoring Recently Used order string entry '${entry}'. Expected object with id/modulePath/exportName.`);
             return;
         }
 
-        if (entry?.id && typeof entry.id === 'string') {
-            recentlyUsedOrderRegistry.push(entry);
+        if (!entry || typeof entry !== 'object') {
+            return;
         }
+
+        const hasValidId = typeof entry.id === 'string' && entry.id.length > 0;
+        const hasValidModulePath = typeof entry.modulePath === 'string' && entry.modulePath.length > 0;
+        const hasValidExportName = typeof entry.exportName === 'string' && entry.exportName.length > 0;
+
+        if (!hasValidId || !hasValidModulePath || !hasValidExportName) {
+            const sectionId = hasValidId ? entry.id : '<unknown>';
+            console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used order entry '${sectionId}'. Required fields: id, modulePath, exportName.`);
+            return;
+        }
+
+        recentlyUsedOrderRegistry.push({ ...entry });
     });
 }
 

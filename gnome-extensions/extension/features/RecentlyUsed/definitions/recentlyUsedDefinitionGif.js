@@ -50,6 +50,15 @@ export const RecentlyUsedDefinitionGif = {
      * @param {object} params.settings Extension settings object.
      */
     initialize: ({ extensionUuid, extensionPath, settings }) => {
+        if (_recentManager) {
+            try {
+                _recentManager.destroy();
+            } catch {
+                // Ignore stale manager teardown errors before re-init.
+            }
+            _recentManager = null;
+        }
+
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_GIFS');
         _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'gif-recents-max-items');
         getRecentlyUsedGifRuntime(); // Start HTTP session if needed

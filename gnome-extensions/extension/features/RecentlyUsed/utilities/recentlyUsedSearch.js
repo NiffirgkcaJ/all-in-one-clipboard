@@ -1,7 +1,4 @@
-/**
- * Canonical keys often containing meaningful search text.
- */
-const DEFAULT_PREFERRED_KEYS = ['preview', 'value', 'char', 'name', 'description', 'title', 'subtitle', 'text', 'content', 'label'];
+import { RecentlyUsedSearchDefaults, RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
 
 // ========================================================================
 // Normalization
@@ -70,7 +67,7 @@ export function matchesRecentlyUsedSearch({ item, query, preferredKeys = [], ext
         }
     };
 
-    [...DEFAULT_PREFERRED_KEYS, ...preferredKeys].forEach((key) => {
+    [...RecentlyUsedSearchDefaults.PREFERRED_KEYS, ...preferredKeys].forEach((key) => {
         if (!item || typeof item !== 'object') {
             return;
         }
@@ -107,7 +104,7 @@ export function matchesRecentlyUsedSearch({ item, query, preferredKeys = [], ext
  * @param {Set<object>} [seen] Set of visited objects.
  */
 export function collectRecentlyUsedSearchValues(source, output, depth = 0, seen = new Set()) {
-    if (source === null || source === undefined || depth > 3) {
+    if (source === null || source === undefined || depth > RecentlyUsedSearchTuning.MAX_VALUE_COLLECTION_DEPTH) {
         return;
     }
 
@@ -117,7 +114,7 @@ export function collectRecentlyUsedSearchValues(source, output, depth = 0, seen 
     }
 
     if (Array.isArray(source)) {
-        source.slice(0, 50).forEach((entry) => {
+        source.slice(0, RecentlyUsedSearchTuning.MAX_ARRAY_ENTRIES_PER_LEVEL).forEach((entry) => {
             collectRecentlyUsedSearchValues(entry, output, depth + 1, seen);
         });
         return;
