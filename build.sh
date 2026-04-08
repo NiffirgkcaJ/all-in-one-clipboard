@@ -108,11 +108,15 @@ done
 
 # 4. Compile schemas only for the 'package' build
 if [ "$TARGET" == "package" ]; then
-    echo "Compiling GSettings schema for package build..."
-    glib-compile-schemas "$BUILD_DIR/schemas/"
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to compile schemas. Aborting." >&2
-        exit 1
+    if [ -d "$BUILD_DIR/schemas" ]; then
+        echo "Compiling GSettings schema for package build..."
+        glib-compile-schemas "$BUILD_DIR/schemas/"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to compile schemas. Aborting." >&2
+            exit 1
+        fi
+    else
+        echo "No schemas/ directory found. Skipping schema compilation."
     fi
 else
     echo "Skipping schema compilation for review build."

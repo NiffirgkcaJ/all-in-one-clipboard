@@ -27,10 +27,14 @@ echo "Copying source files..."
 cp -r gnome-extensions/extension/* "$INSTALL_DIR/"
 
 # 3. Compile the GSettings schema in the installation directory
-echo "Compiling GSettings schema..."
-glib-compile-schemas "$INSTALL_DIR/schemas/"
-if [ $? -ne 0 ]; then
-    echo "Warning: Schema compilation failed. Settings may not work correctly."
+if [ -d "$INSTALL_DIR/schemas" ]; then
+    echo "Compiling GSettings schema..."
+    glib-compile-schemas "$INSTALL_DIR/schemas/"
+    if [ $? -ne 0 ]; then
+        echo "Warning: Schema compilation failed. Settings may not work correctly."
+    fi
+else
+    echo "No schemas/ directory found. Skipping schema compilation."
 fi
 
 # 4. Compile GResource and clean up source assets
