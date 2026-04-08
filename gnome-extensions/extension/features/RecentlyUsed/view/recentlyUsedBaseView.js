@@ -9,10 +9,12 @@ import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
 import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
+import { RecentlyUsedBaseViewTiming } from '../constants/recentlyUsedViewConstants.js';
 import { RecentlyUsedScrollLockController } from '../utilities/recentlyUsedScrollLockController.js';
 import { renderRecentlyUsedGridSection } from './recentlyUsedGridSectionView.js';
 import { renderRecentlyUsedListSection } from './recentlyUsedListSectionView.js';
-import { renderRecentlyUsedNestedSection } from './recentlyUsedNestedSectionView.js';
+import { renderRecentlyUsedNestedGridSection } from './recentlyUsedNestedGridSectionView.js';
+import { renderRecentlyUsedNestedListSection } from './recentlyUsedNestedListSectionView.js';
 import { queueSearchHandoff } from '../../../shared/services/serviceSearchHub.js';
 import { RecentlyUsedUI, RecentlyUsedStyles } from '../constants/recentlyUsedConstants.js';
 
@@ -133,7 +135,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 GLib.source_remove(this._restoreFocusTimeoutId);
                 this._restoreFocusTimeoutId = 0;
             }
-            this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+            this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedBaseViewTiming.FOCUS_RESTORE_DELAY_MS, () => {
                 this._restoreFocus();
                 this._restoreFocusTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
@@ -304,14 +306,34 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             const effectiveLayout = renderModel.effectiveLayout;
             const items = renderModel.items;
 
-            if (effectiveLayout === 'nested') {
-                const result = renderRecentlyUsedNestedSection({
+            if (effectiveLayout === 'nested-list') {
+                const result = renderRecentlyUsedNestedListSection({
                     id,
                     nestedLayout: renderModel.nestedLayout,
+                    resolvedPolicy: renderModel.resolvedPolicy,
                     sections: this._sections,
                     items,
                     focusGrid: this._focusGrid,
                     createItemWidget: (itemData, sectionId = id) => this._createNestedItemWidget(itemData, sectionId, renderModel),
+                    scrollLockController: this._scrollLockController,
+                });
+
+                if (result) {
+                    this._bindNestedSectionFocus(result);
+                }
+                return;
+            }
+
+            if (effectiveLayout === 'nested-grid') {
+                const result = renderRecentlyUsedNestedGridSection({
+                    id,
+                    nestedLayout: renderModel.nestedLayout,
+                    resolvedPolicy: renderModel.resolvedPolicy,
+                    settings: this._settings,
+                    sections: this._sections,
+                    items,
+                    focusGrid: this._focusGrid,
+                    createItemWidget: (itemData, sectionId = id) => this._createGridItemWidget(itemData, sectionId, renderModel),
                     scrollLockController: this._scrollLockController,
                 });
 
@@ -326,6 +348,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     id,
                     sections: this._sections,
                     items,
+                    gridLayout: renderModel.gridLayout,
                     focusGrid: this._focusGrid,
                     createItemWidget: (itemData, sectionId = id) => this._createGridItemWidget(itemData, sectionId, renderModel),
                 });
@@ -670,7 +693,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     GLib.source_remove(this._settingsBtnFocusTimeoutId);
                 }
 
-                this._settingsBtnFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10, () => {
+                this._settingsBtnFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedBaseViewTiming.SETTINGS_BUTTON_FOCUS_RESET_DELAY_MS, () => {
                     this._settingsBtn.can_focus = false;
                     this._settingsBtnFocusTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;

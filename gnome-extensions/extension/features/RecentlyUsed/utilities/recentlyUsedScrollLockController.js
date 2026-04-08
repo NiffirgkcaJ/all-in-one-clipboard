@@ -2,6 +2,10 @@
  * Encapsulates outer scroll locking behavior for the Recently Used tab.
  */
 export class RecentlyUsedScrollLockController {
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
     /**
      * Creates a scroll lock controller.
      *
@@ -13,6 +17,10 @@ export class RecentlyUsedScrollLockController {
         this._lockedScrollValue = 0;
         this._scrollLockHandler = null;
     }
+
+    // ========================================================================
+    // Lock Controls
+    // ========================================================================
 
     /**
      * Lock the outer scroll view to prevent automatic layout adjustments.
@@ -52,6 +60,10 @@ export class RecentlyUsedScrollLockController {
         }
     }
 
+    // ========================================================================
+    // Nested Handoff Integration
+    // ========================================================================
+
     /**
      * Wire nested scroll handoff callbacks for parent lock behavior.
      *
@@ -71,6 +83,10 @@ export class RecentlyUsedScrollLockController {
             },
         });
     }
+
+    // ========================================================================
+    // Teardown
+    // ========================================================================
 
     /**
      * Releases controller resources.

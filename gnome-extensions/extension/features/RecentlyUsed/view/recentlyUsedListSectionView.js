@@ -1,7 +1,7 @@
 import St from 'gi://St';
 
 /**
- * Render a standard single-column list section.
+ * Render a flat list section with items in a single column.
  *
  * @param {object} params
  * @param {string} params.id Section id

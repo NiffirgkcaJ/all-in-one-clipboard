@@ -3,8 +3,8 @@ import St from 'gi://St';
 
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
-import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
+import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { getRecentlyUsedGifRuntime, destroyRecentlyUsedGifRuntime, copyRecentlyUsedGifToClipboard } from '../integrations/recentlyUsedIntegrationGif.js';
@@ -27,7 +27,7 @@ export const RecentlyUsedDefinitionGif = {
     targetTab: 'GIF',
     layoutType: 'grid',
     source: {
-        maxItems: RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT,
+        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
     },
     settings: {
         enabledSettingKey: 'enable-gif-tab',

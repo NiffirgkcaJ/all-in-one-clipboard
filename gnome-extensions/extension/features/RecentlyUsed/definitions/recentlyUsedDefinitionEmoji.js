@@ -1,6 +1,6 @@
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
-import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
@@ -19,7 +19,7 @@ export const RecentlyUsedDefinitionEmoji = {
     targetTab: 'Emoji',
     layoutType: 'grid',
     source: {
-        maxItems: RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT,
+        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
     },
     settings: {
         enabledSettingKey: 'enable-emoji-tab',

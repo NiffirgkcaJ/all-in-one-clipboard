@@ -8,6 +8,10 @@ import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
 
 import { RecentlyUsedStyles, RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 
+// ========================================================================
+// Clipboard and Auto-Paste Operations
+// ========================================================================
+
 /**
  * Writes text content to the system clipboard.
  *
@@ -36,6 +40,10 @@ export function shouldRecentlyUsedAutoPaste(settings, autoPasteKey) {
 export async function triggerRecentlyUsedAutoPaste() {
     await getAutoPaster().trigger();
 }
+
+// ========================================================================
+// Clipboard Item Rendering
+// ========================================================================
 
 /**
  * Renders rich clipboard list content when clipboard services are available.

@@ -1,6 +1,6 @@
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
-import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste, renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
@@ -15,7 +15,7 @@ export const RecentlyUsedDefinitionClipboard = {
     targetTab: 'Clipboard',
     layoutType: 'list',
     source: {
-        maxItems: RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT,
+        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
     },
     settings: {
         enabledSettingKey: 'enable-clipboard-tab',

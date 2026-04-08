@@ -264,6 +264,128 @@
             <summary>Show search in Recently Used tab</summary>
             <description>When enabled, displays a global search bar in the Recently Used tab to filter items across all visible sections.</description>
         </key>
+        <key name="recently-used-default-limit-mode" type="s">
+            <default>'limited'</default>
+            <choices>
+                <choice value='limited'/>
+                <choice value='unlimited'/>
+            </choices>
+            <summary>Default limit mode in Recently Used</summary>
+            <description>Default cap behavior used when custom limit policy by context is disabled.</description>
+        </key>
+        <key name="recently-used-enable-custom-limit-policy" type="b">
+            <default>true</default>
+            <summary>Enable custom limit policy by context</summary>
+            <description>When enabled, browse and search limit policies can be configured independently and override the global limit policy.</description>
+        </key>
+        <key name="recently-used-history-limit-mode" type="s">
+            <default>'limited'</default>
+            <choices>
+                <choice value='limited'/>
+                <choice value='unlimited'/>
+            </choices>
+            <summary>History limit mode in Recently Used</summary>
+            <description>Controls cap behavior for non-search browsing context in Recently Used.</description>
+        </key>
+        <key name="recently-used-search-limit-mode" type="s">
+            <default>'unlimited'</default>
+            <choices>
+                <choice value='limited'/>
+                <choice value='unlimited'/>
+            </choices>
+            <summary>Search limit mode in Recently Used</summary>
+            <description>Controls cap behavior for search context in Recently Used.</description>
+        </key>
+        <key name="recently-used-default-display-mode" type="s">
+            <default>'scroll-window'</default>
+            <choices>
+                <choice value='fixed-window'/>
+                <choice value='scroll-window'/>
+            </choices>
+            <summary>Default display mode in Recently Used</summary>
+            <description>Default display mode used by Recently Used policy resolution.</description>
+        </key>
+        <key name="recently-used-enable-custom-display-mode" type="b">
+            <default>false</default>
+            <summary>Enable custom display mode by view</summary>
+            <description>When enabled, list and grid display modes can be configured independently and override the global display mode.</description>
+        </key>
+        <key name="recently-used-list-display-mode" type="s">
+            <default>'scroll-window'</default>
+            <choices>
+                <choice value='fixed-window'/>
+                <choice value='scroll-window'/>
+            </choices>
+            <summary>List display mode in Recently Used</summary>
+            <description>Display mode applied to list view when custom display mode by view is enabled.</description>
+        </key>
+        <key name="recently-used-grid-display-mode" type="s">
+            <default>'scroll-window'</default>
+            <choices>
+                <choice value='fixed-window'/>
+                <choice value='scroll-window'/>
+            </choices>
+            <summary>Grid display mode in Recently Used</summary>
+            <description>Display mode applied to grid view when custom display mode by view is enabled.</description>
+        </key>
+        <key name="recently-used-global-visible-items" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>Global visible items in Recently Used</summary>
+            <description>Global visible-items cap used when custom per-view visible items are disabled.</description>
+        </key>
+        <key name="recently-used-enable-custom-visible-items" type="b">
+            <default>false</default>
+            <summary>Enable custom visible items by view</summary>
+            <description>When enabled, list and grid visible-items caps can be configured independently and override the global visible-items cap.</description>
+        </key>
+        <key name="recently-used-list-visible-items" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>List visible items in Recently Used</summary>
+            <description>Visible-items cap applied to list view when custom visible items by view is enabled.</description>
+        </key>
+        <key name="recently-used-grid-visible-items" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>Grid visible items in Recently Used</summary>
+            <description>Visible-items cap applied to grid view when custom visible items by view is enabled.</description>
+        </key>
+        <key name="recently-used-global-window-rows" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>Global window rows in Recently Used</summary>
+            <description>Global window-row limit used by list and grid when custom window limits by view are disabled.</description>
+        </key>
+        <key name="recently-used-enable-custom-window-limits" type="b">
+            <default>false</default>
+            <summary>Enable custom window limits by view</summary>
+            <description>When enabled, list and grid window limits can be configured independently and override global window rows.</description>
+        </key>
+        <key name="recently-used-list-window-rows" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>List window rows in Recently Used</summary>
+            <description>Window-row limit applied to list view when custom window limits by view is enabled.</description>
+        </key>
+        <key name="recently-used-grid-window-rows" type="i">
+            <default>5</default>
+            <range min="1" max="1000"/>
+            <summary>Grid window rows in Recently Used</summary>
+            <description>Window-row limit applied to grid view when custom window limits by view is enabled.</description>
+        </key>
+        <key name="recently-used-grid-window-columns" type="i">
+            <default>5</default>
+            <range min="1" max="10"/>
+            <summary>Grid window columns in Recently Used</summary>
+            <description>Window-column value applied to grid view when custom window limits by view is enabled.</description>
+        </key>
+        <key name="recently-used-unlimited-safety-cap" type="i">
+            <default>1000</default>
+            <range min="1" max="1000"/>
+            <summary>Unlimited safety cap in Recently Used</summary>
+            <description>Maximum number of items allowed in Recently Used when limit mode is unlimited.</description>
+        </key>
 
         <!-- Emoji Settings -->
         <key name="enable-custom-skin-tones" type="b">

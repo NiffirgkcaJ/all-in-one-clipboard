@@ -4,6 +4,7 @@ import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
+import { RecentlyUsedListViewTuning } from '../constants/recentlyUsedViewConstants.js';
 import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
 
 /**
@@ -11,6 +12,10 @@ import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../
  * Pure widget creation — no event wiring or state management.
  */
 export class RecentlyUsedBaseWidgetFactory {
+    // ========================================================================
+    // List Item Builders
+    // ========================================================================
+
     /**
      * Create a standard full-width list item widget.
      *
@@ -40,7 +45,7 @@ export class RecentlyUsedBaseWidgetFactory {
             y_align: Clutter.ActorAlign.CENTER,
             x_align: isCenteredText ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.FILL,
         });
-        box.spacing = 8;
+        box.spacing = RecentlyUsedListViewTuning.LIST_ITEM_CONTENT_SPACING;
         button.set_child(box);
 
         if (typeof context.renderListContent === 'function') {
@@ -87,6 +92,10 @@ export class RecentlyUsedBaseWidgetFactory {
 
         box.add_child(label);
     }
+
+    // ========================================================================
+    // Grid Item Builders
+    // ========================================================================
 
     /**
      * Create a compact square grid item corresponding to localized presentation logic.
@@ -162,6 +171,10 @@ export class RecentlyUsedBaseWidgetFactory {
         button.label = labelText;
         button.tooltip_text = tooltipMode === 'name-or-value' ? String(itemData.name || labelText) : labelText;
     }
+
+    // ========================================================================
+    // Shared Section Scaffolding
+    // ========================================================================
 
     /**
      * Create the structural heading for a layout block rendering section text and show all buttons.

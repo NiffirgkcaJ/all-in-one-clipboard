@@ -3,6 +3,10 @@
  */
 const DEFAULT_PREFERRED_KEYS = ['preview', 'value', 'char', 'name', 'description', 'title', 'subtitle', 'text', 'content', 'label'];
 
+// ========================================================================
+// Normalization
+// ========================================================================
+
 /**
  * Normalizes user-entered search query text.
  *
@@ -30,6 +34,10 @@ export function normalizeRecentlyUsedSearchText(rawText) {
         .replace(/[_./-]+/g, ' ')
         .replace(/\s+/g, ' ');
 }
+
+// ========================================================================
+// Matching
+// ========================================================================
 
 /**
  * Tests whether an item matches the query.
@@ -85,6 +93,10 @@ export function matchesRecentlyUsedSearch({ item, query, preferredKeys = [], ext
 
     return queryTokens.every((token) => haystack.includes(token));
 }
+
+// ========================================================================
+// Deep Value Collection
+// ========================================================================
 
 /**
  * Recursively collects primitive searchable values from an item.

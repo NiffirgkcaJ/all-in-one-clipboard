@@ -1,11 +1,30 @@
-import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
-import { matchesRecentlyUsedSearch, normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
+import { normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
+import { resolveRecentlyUsedSectionPolicy } from '../utilities/recentlyUsedDisplayPolicyResolver.js';
+import { RecentlyUsedDisplayMode } from '../constants/recentlyUsedPolicyConstants.js';
+import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolveRecentlyUsedSectionLayouts } from './recentlyUsedLayoutResolver.js';
+import { RecentlyUsedSearchStateManager } from './recentlyUsedSearchStateManager.js';
+import { RecentlyUsedSignalManager } from './recentlyUsedSignalManager.js';
 import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionById, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
+
+/**
+ * Normalizes a value to a positive integer, returning fallback when invalid.
+ *
+ * @param {*} value Input value.
+ * @param {number} fallback Fallback value.
+ * @returns {number} Positive integer or fallback.
+ */
+function resolvePositiveInt(value, fallback) {
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
 
 /**
  * Manages Recently Used section lifecycle, rendering data, and signal wiring.
  */
 export class RecentlyUsedRuntimeService {
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
     /**
      * Creates a runtime service instance.
      *
@@ -18,10 +37,16 @@ export class RecentlyUsedRuntimeService {
         this._extension = extension;
         this._settings = settings;
         this._onRender = typeof onRender === 'function' ? onRender : null;
-        this._signalIds = [];
         this._started = false;
-        this._searchRequestSeq = 0;
-        this._sectionSearchState = new Map();
+        this._searchStateManager = new RecentlyUsedSearchStateManager({
+            onRender: () => this._onRender?.(),
+        });
+        this._signalManager = new RecentlyUsedSignalManager({
+            getOrderedSections: () => this.getOrderedSections(),
+            extension: this._extension,
+            settings: this._settings,
+            onRender: () => this._onRender?.(),
+        });
     }
 
     /**
@@ -36,9 +61,62 @@ export class RecentlyUsedRuntimeService {
 
         await initializeRecentlyUsedRegistry();
         await this._initializePlugins();
-        this._connectSignals();
+        this._signalManager.connect();
         this._started = true;
     }
+
+    /**
+     * Stops the runtime service and disconnects resources.
+     */
+    stop() {
+        const sectionDefinitions = this.getOrderedSections();
+        for (const section of sectionDefinitions) {
+            if (typeof section.destroy !== 'function') {
+                continue;
+            }
+
+            try {
+                section.destroy();
+            } catch {
+                // ignore error during destroy
+            }
+        }
+
+        this._signalManager.disconnect();
+        this._searchStateManager.clear();
+        this._started = false;
+    }
+
+    /**
+     * Initializes all section plugins.
+     *
+     * @private
+     */
+    async _initializePlugins() {
+        const sectionDefinitions = this.getOrderedSections();
+
+        await Promise.all(
+            sectionDefinitions.map(async (section) => {
+                if (typeof section.initialize !== 'function') {
+                    return;
+                }
+
+                try {
+                    await section.initialize({
+                        extensionUuid: this._extension.uuid,
+                        extensionPath: this._extension.path,
+                        settings: this._settings,
+                    });
+                } catch (e) {
+                    console.error(`[AIO-Clipboard] Failed to initialize plugin ${section.id}:`, e);
+                }
+            }),
+        );
+    }
+
+    // ========================================================================
+    // Public API
+    // ========================================================================
 
     /**
      * Returns ordered section ids.
@@ -92,6 +170,8 @@ export class RecentlyUsedRuntimeService {
 
         const baseSectionTitle = this._resolveSectionBrowseTitle(sectionConfig);
         const searchQuery = normalizeRecentlyUsedSearchQuery(viewRuntimeContext.searchQuery);
+        const baseLayout = resolveRecentlyUsedBaseLayout(sectionConfig);
+        const invisibleModel = { visible: false, items: [], totalMatchCount: 0, sectionTitle: baseSectionTitle };
 
         const runtimeContext = {
             settings: this._settings,
@@ -103,73 +183,28 @@ export class RecentlyUsedRuntimeService {
         };
 
         if (typeof sectionConfig.isEnabled === 'function' && !sectionConfig.isEnabled(runtimeContext)) {
-            return {
-                visible: false,
-                effectiveLayout: sectionConfig.layoutType,
-                items: [],
-                totalMatchCount: 0,
-                sectionTitle: baseSectionTitle,
-                nestedLayout: this._resolveNestedLayout(sectionConfig),
-            };
+            return invisibleModel;
         }
 
-        const sourceItems = this._resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery);
+        const sourceItems = this._searchStateManager.resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery);
         if (!Array.isArray(sourceItems) || sourceItems.length === 0) {
-            return {
-                visible: false,
-                effectiveLayout: sectionConfig.layoutType,
-                items: [],
-                totalMatchCount: 0,
-                sectionTitle: baseSectionTitle,
-                nestedLayout: this._resolveNestedLayout(sectionConfig),
-            };
+            return invisibleModel;
         }
 
         const mapItem = typeof sectionConfig.mapItem === 'function' ? sectionConfig.mapItem : (item) => item;
         const mappedItems = sourceItems.map((item) => mapItem(item));
-        const filteredItems = searchQuery.length > 0 ? mappedItems.filter((item) => this._matchesSectionSearch(sectionConfig, item, searchQuery, runtimeContext)) : mappedItems;
+        const filteredItems = searchQuery.length > 0 ? mappedItems.filter((item) => this._searchStateManager.matchesSectionSearch(sectionConfig, item, searchQuery, runtimeContext)) : mappedItems;
 
         if (filteredItems.length === 0) {
-            return {
-                visible: false,
-                effectiveLayout: sectionConfig.layoutType,
-                items: [],
-                totalMatchCount: 0,
-                sectionTitle: baseSectionTitle,
-                nestedLayout: this._resolveNestedLayout(sectionConfig),
-            };
+            return invisibleModel;
         }
 
-        const totalMatchCount = filteredItems.length;
-        const effectiveLayout = this._resolveEffectiveLayout(sectionConfig, filteredItems.length);
-        const maxDisplay = sectionConfig.source?.maxItems ?? RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT;
-        const items = effectiveLayout === 'nested' ? filteredItems : filteredItems.slice(0, maxDisplay);
-
-        return {
-            visible: true,
-            effectiveLayout,
-            items,
-            totalMatchCount,
-            sectionTitle: this._resolveSectionDisplayTitle(sectionConfig, {
-                searchQuery,
-                totalMatchCount,
-                baseTitle: baseSectionTitle,
-            }),
-            nestedLayout: this._resolveNestedLayout(sectionConfig),
-            listContentRenderer: typeof sectionConfig.renderListContent === 'function' ? (args) => sectionConfig.renderListContent(args) : null,
-            gridIconResolver: typeof sectionConfig.resolveGridIcon === 'function' ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
-            onGridItemCreated:
-                typeof sectionConfig.onGridItemCreated === 'function'
-                    ? ({ item, widget }) =>
-                          sectionConfig.onGridItemCreated({
-                              item,
-                              widget,
-                              renderSession: viewRuntimeContext.renderSession,
-                              currentRenderSession: viewRuntimeContext.currentRenderSession,
-                              widgetFactory: viewRuntimeContext.widgetFactory,
-                          })
-                    : null,
-        };
+        return this._buildVisibleRenderModel(sectionConfig, filteredItems, {
+            searchQuery,
+            baseLayout,
+            baseSectionTitle,
+            viewRuntimeContext,
+        });
     }
 
     /**
@@ -200,218 +235,95 @@ export class RecentlyUsedRuntimeService {
         }
     }
 
-    /**
-     * Stops the runtime service and disconnects resources.
-     */
-    stop() {
-        const sectionDefinitions = this.getOrderedSections();
-        for (const section of sectionDefinitions) {
-            if (typeof section.destroy !== 'function') {
-                continue;
-            }
-
-            try {
-                section.destroy();
-            } catch {
-                // ignore error during destroy
-            }
-        }
-
-        this._disconnectSignals();
-        this._sectionSearchState.clear();
-        this._started = false;
-    }
+    // ========================================================================
+    // Render Model
+    // ========================================================================
 
     /**
-     * Resolves source items for a section using optional async query API.
-     *
-     * If a section provides `searchItems`, this method starts or reuses a search
-     * request for the active query, while returning local items as an immediate
-     * fallback until remote results arrive.
+     * Builds the visible render model after items have passed filtering.
      *
      * @param {object} sectionConfig Section configuration.
-     * @param {object} runtimeContext Runtime context.
-     * @param {string} searchQuery Normalized query string.
-     * @returns {Array<object>} Source items for current render pass.
+     * @param {Array<object>} filteredItems Items that passed search filtering.
+     * @param {object} context Build context.
+     * @param {string} context.searchQuery Normalized search query.
+     * @param {string} context.baseLayout Base layout type.
+     * @param {string} context.baseSectionTitle Browse-mode section title.
+     * @param {object} context.viewRuntimeContext Original view runtime context.
+     * @returns {object} Visible render model.
      * @private
      */
-    _resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery) {
-        const localItemsRaw = typeof sectionConfig.getItems === 'function' ? sectionConfig.getItems(runtimeContext) : [];
-        const localItems = Array.isArray(localItemsRaw) ? localItemsRaw : [];
-        const localItemsSignature = this._createSectionItemsSignature(localItems);
-
-        if (!searchQuery || typeof sectionConfig.searchItems !== 'function' || !sectionConfig.id) {
-            if (sectionConfig?.id) {
-                this._sectionSearchState.delete(sectionConfig.id);
-            }
-            return localItems;
-        }
-
-        const sectionId = sectionConfig.id;
-        const currentState = this._sectionSearchState.get(sectionId);
-
-        if (currentState?.query === searchQuery) {
-            if (currentState.status === 'ready' && currentState.fallbackSignature === localItemsSignature) {
-                return currentState.items;
-            }
-
-            if (currentState.status === 'pending' && currentState.fallbackSignature === localItemsSignature) {
-                return currentState.fallbackItems;
-            }
-        }
-
-        const requestId = ++this._searchRequestSeq;
-        this._sectionSearchState.set(sectionId, {
-            query: searchQuery,
-            requestId,
-            status: 'pending',
-            fallbackItems: localItems,
-            fallbackSignature: localItemsSignature,
-            items: [],
+    _buildVisibleRenderModel(sectionConfig, filteredItems, { searchQuery, baseLayout, baseSectionTitle, viewRuntimeContext }) {
+        const totalMatchCount = filteredItems.length;
+        const resolvedPolicy = this._resolveSectionPolicy(sectionConfig, {
+            searchQuery,
+            effectiveLayout: baseLayout,
         });
+        const effectiveLayout = resolveRecentlyUsedDisplayLayout(sectionConfig, baseLayout, resolvedPolicy);
+        const effectiveCap = resolvePositiveInt(resolvedPolicy?.limits?.effectiveCap, filteredItems.length);
+        const windowLimit = resolvePositiveInt(resolvedPolicy?.limits?.windowLimit, filteredItems.length);
+        const cappedItems = filteredItems.slice(0, effectiveCap);
+        const items = resolvedPolicy?.displayMode === RecentlyUsedDisplayMode.FIXED_WINDOW ? cappedItems.slice(0, windowLimit) : cappedItems;
+        const { listLayout, gridLayout, nestedLayout } = resolveRecentlyUsedSectionLayouts(sectionConfig, resolvedPolicy);
 
-        Promise.resolve(sectionConfig.searchItems({ query: searchQuery, runtimeContext }))
-            .then((items) => {
-                const latestState = this._sectionSearchState.get(sectionId);
-                if (!latestState || latestState.requestId !== requestId) {
-                    return;
-                }
-
-                this._sectionSearchState.set(sectionId, {
-                    ...latestState,
-                    status: 'ready',
-                    items: Array.isArray(items) ? items : [],
-                });
-
-                this._onRender?.();
-            })
-            .catch(() => {
-                const latestState = this._sectionSearchState.get(sectionId);
-                if (!latestState || latestState.requestId !== requestId) {
-                    return;
-                }
-
-                this._sectionSearchState.set(sectionId, {
-                    ...latestState,
-                    status: 'ready',
-                    items: [],
-                });
-
-                this._onRender?.();
-            });
-
-        return localItems;
-    }
-
-    /**
-     * Builds a lightweight signature for section source items.
-     *
-     * @param {Array<object>} items Section source items.
-     * @returns {string} Stable signature string for cache checks.
-     * @private
-     */
-    _createSectionItemsSignature(items) {
-        if (!Array.isArray(items) || items.length === 0) {
-            return '0:';
-        }
-
-        const parts = [];
-        const sampleSize = Math.min(items.length, 25);
-
-        for (let i = 0; i < sampleSize; i++) {
-            const item = items[i];
-
-            if (!item || typeof item !== 'object') {
-                parts.push(String(item));
-                continue;
-            }
-
-            const signatureFields = {
-                id: item.id,
-                value: item.value,
-                char: item.char,
-                symbol: item.symbol,
-                kaomoji: item.kaomoji,
-                full_url: item.full_url,
-                preview_url: item.preview_url,
-                name: item.name,
-                description: item.description,
-            };
-            const value = Object.values(signatureFields).find((candidate) => candidate !== null && candidate !== undefined) ?? '';
-
-            parts.push(String(value));
-        }
-
-        return `${items.length}:${parts.join('|')}`;
-    }
-
-    /**
-     * Initializes all section plugins.
-     *
-     * @private
-     */
-    async _initializePlugins() {
-        const sectionDefinitions = this.getOrderedSections();
-
-        await Promise.all(
-            sectionDefinitions.map(async (section) => {
-                if (typeof section.initialize !== 'function') {
-                    return;
-                }
-
-                try {
-                    await section.initialize({
-                        extensionUuid: this._extension.uuid,
-                        extensionPath: this._extension.path,
-                        settings: this._settings,
-                    });
-                } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to initialize plugin ${section.id}:`, e);
-                }
+        return {
+            visible: true,
+            effectiveLayout,
+            items,
+            totalMatchCount,
+            sectionTitle: this._resolveSectionDisplayTitle(sectionConfig, {
+                searchQuery,
+                totalMatchCount,
+                baseTitle: baseSectionTitle,
             }),
-        );
+            resolvedPolicy,
+            listLayout,
+            gridLayout,
+            nestedLayout,
+            listContentRenderer: typeof sectionConfig.renderListContent === 'function' ? (args) => sectionConfig.renderListContent(args) : null,
+            gridIconResolver: typeof sectionConfig.resolveGridIcon === 'function' ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
+            onGridItemCreated:
+                typeof sectionConfig.onGridItemCreated === 'function'
+                    ? ({ item, widget }) =>
+                          sectionConfig.onGridItemCreated({
+                              item,
+                              widget,
+                              renderSession: viewRuntimeContext.renderSession,
+                              currentRenderSession: viewRuntimeContext.currentRenderSession,
+                              widgetFactory: viewRuntimeContext.widgetFactory,
+                          })
+                    : null,
+        };
     }
 
-    /**
-     * Connects plugin-provided signals.
-     *
-     * @private
-     */
-    _connectSignals() {
-        this._disconnectSignals();
-
-        const sectionDefinitions = this.getOrderedSections();
-        for (const section of sectionDefinitions) {
-            if (typeof section.getSignals !== 'function') {
-                continue;
-            }
-
-            const signals =
-                section.getSignals({
-                    extension: this._extension,
-                    settings: this._settings,
-                    onRender: this._onRender,
-                }) || [];
-            this._signalIds.push(...signals);
-        }
-    }
+    // ========================================================================
+    // Policy Resolution
+    // ========================================================================
 
     /**
-     * Resolves effective layout using optional transition rules.
+     * Resolves policy for a section and context using the centralized resolver.
      *
      * @param {object} sectionConfig Section configuration.
-     * @param {number} itemCount Number of mapped items.
-     * @returns {string} Effective layout id.
+     * @param {object} context Resolver context.
+     * @param {string} context.searchQuery Normalized search query.
+     * @param {string} context.effectiveLayout Effective layout type.
+     * @returns {object} Resolved policy model.
      * @private
      */
-    _resolveEffectiveLayout(sectionConfig, itemCount) {
-        const transition = sectionConfig?.layoutTransition;
-        if (transition && transition.above && itemCount > transition.threshold) {
-            return transition.above;
-        }
+    _resolveSectionPolicy(sectionConfig, { searchQuery, effectiveLayout }) {
+        const contextMode = typeof searchQuery === 'string' && searchQuery.length > 0 ? 'search' : 'history';
 
-        return sectionConfig?.layoutType || 'list';
+        return resolveRecentlyUsedSectionPolicy({
+            settings: this._settings,
+            sectionId: sectionConfig?.id,
+            sectionConfig,
+            contextMode,
+            effectiveLayout,
+        });
     }
+
+    // ========================================================================
+    // Title Resolution
+    // ========================================================================
 
     /**
      * Resolves a section title for browse mode (no active search query).
@@ -426,7 +338,7 @@ export class RecentlyUsedRuntimeService {
             return browseTitleResolver();
         }
 
-        return this._resolveSectionDefaultTitle(sectionConfig);
+        return sectionConfig?.title || sectionConfig?.id || '';
     }
 
     /**
@@ -472,77 +384,5 @@ export class RecentlyUsedRuntimeService {
 
         const safeTotalMatchCount = Number.isFinite(totalMatchCount) && totalMatchCount >= 0 ? Math.floor(totalMatchCount) : 0;
         return `${searchTitle} (${safeTotalMatchCount})`;
-    }
-
-    /**
-     * Resolves nested layout settings for a section.
-     *
-     * @param {object} sectionConfig Section configuration.
-     * @returns {object} Nested layout settings.
-     * @private
-     */
-    _resolveNestedLayout(sectionConfig) {
-        return {
-            maxVisible: sectionConfig?.layoutPolicy?.maxVisible ?? sectionConfig?.source?.maxItems ?? RecentlyUsedUI.MAX_NESTED_DISPLAY_COUNT,
-            itemHeight: sectionConfig?.layoutPolicy?.itemHeight ?? RecentlyUsedUI.NESTED_ITEM_HEIGHT,
-        };
-    }
-
-    /**
-     * Runs section-specific search when available, otherwise falls back to generic matching.
-     *
-     * @param {object} sectionConfig Section configuration.
-     * @param {object|string|number|null|undefined} item Candidate item.
-     * @param {string} query Normalized query string.
-     * @param {object} runtimeContext Runtime context.
-     * @returns {boolean} True when the item matches.
-     * @private
-     */
-    _matchesSectionSearch(sectionConfig, item, query, runtimeContext) {
-        if (typeof sectionConfig?.matchesSearch === 'function') {
-            try {
-                return Boolean(
-                    sectionConfig.matchesSearch({
-                        item,
-                        query,
-                        runtimeContext,
-                        fallbackMatch: (candidate) => matchesRecentlyUsedSearch({ item: candidate, query }),
-                    }),
-                );
-            } catch {
-                // Fall back to generic matching when a custom matcher fails.
-            }
-        }
-
-        return matchesRecentlyUsedSearch({ item, query });
-    }
-
-    /**
-     * Disconnects all previously connected plugin signals.
-     *
-     * @private
-     */
-    _disconnectSignals() {
-        if (!Array.isArray(this._signalIds)) {
-            this._signalIds = [];
-            return;
-        }
-
-        this._signalIds.forEach(({ obj, id }) => {
-            if (!obj || !id || typeof obj.disconnect !== 'function') {
-                return;
-            }
-
-            try {
-                if (typeof obj.signal_handler_is_connected === 'function' && !obj.signal_handler_is_connected(id)) {
-                    return;
-                }
-                obj.disconnect(id);
-            } catch {
-                // ignore error during disconnect
-            }
-        });
-
-        this._signalIds = [];
     }
 }

@@ -1,5 +1,6 @@
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
+import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste, renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
@@ -15,11 +16,14 @@ export const RecentlyUsedDefinitionPinned = {
     targetTab: 'Clipboard',
     layoutType: 'list',
     source: {
-        maxItems: RecentlyUsedUI.MAX_SECTION_DISPLAY_COUNT,
+        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
     },
-    layoutTransition: { threshold: 5, above: 'nested' },
+    layoutTransition: {
+        threshold: 5,
+        above: 'nested-list',
+    },
     layoutPolicy: {
-        maxVisible: RecentlyUsedUI.MAX_NESTED_DISPLAY_COUNT,
+        maxVisible: RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS,
         itemHeight: RecentlyUsedUI.NESTED_ITEM_HEIGHT,
     },
     settings: {

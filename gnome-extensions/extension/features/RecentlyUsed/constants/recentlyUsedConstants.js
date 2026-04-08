@@ -3,12 +3,10 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 // UI Layout Configuration
 export const RecentlyUsedUI = {
     NESTED_ITEM_HEIGHT: 48,
-    MAX_NESTED_DISPLAY_COUNT: 5,
-    MAX_SECTION_DISPLAY_COUNT: 5,
     SEARCH_DEBOUNCE_MS: 250,
     OUTER_SCROLL_LOCK_DELAY_MS: 150,
     GRID_COLUMN_SPACING: 4,
-    SECTION_SPACING: 8,
+    GRID_ROW_SPACING: 4,
 };
 
 // UI Style Classes

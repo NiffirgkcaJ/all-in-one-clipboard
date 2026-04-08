@@ -4,6 +4,10 @@ const recentlyUsedRegistry = new Map();
 const recentlyUsedOrderRegistry = [];
 let initializeRecentlyUsedRegistryPromise = null;
 
+// ========================================================================
+// Internal Loaders
+// ========================================================================
+
 /**
  * Loads a section definition module and returns the configured export.
  *
@@ -29,8 +33,12 @@ async function loadSectionDefinition(orderEntry) {
     }
 }
 
+// ========================================================================
+// Registration
+// ========================================================================
+
 /**
- * Registers a single section definition by id.
+ * Registers a single section definition by ID.
  *
  * @param {object} sectionDefinition Section definition object.
  */
@@ -113,10 +121,14 @@ export function registerRecentlyUsedOrder(sectionIds = []) {
     });
 }
 
+// ========================================================================
+// Queries
+// ========================================================================
+
 /**
- * Returns a section definition by id.
+ * Returns a section definition by ID.
  *
- * @param {string} sectionId Section id.
+ * @param {string} sectionId Section ID.
  * @returns {object|null} Section definition or null.
  */
 export function getRecentlyUsedSectionById(sectionId) {

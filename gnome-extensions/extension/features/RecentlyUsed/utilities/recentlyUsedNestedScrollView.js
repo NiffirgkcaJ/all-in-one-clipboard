@@ -2,6 +2,10 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+// ========================================================================
+// Scroll Helpers
+// ========================================================================
+
 /**
  * Converts a scroll event into a vertical scroll intent.
  *
@@ -46,6 +50,10 @@ function isScrollAdjustmentAtBoundary(adjustment, scrollIntent) {
 
     return (scrollIntent < 0 && atTop) || (scrollIntent > 0 && atBottom);
 }
+
+// ========================================================================
+// Nested Scroll View
+// ========================================================================
 
 /**
  * Scroll view that supports inner-scroll and boundary handoff callbacks.

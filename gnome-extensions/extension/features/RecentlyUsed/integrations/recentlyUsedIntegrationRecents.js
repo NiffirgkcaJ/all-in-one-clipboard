@@ -1,6 +1,10 @@
 import { FileItem } from '../../../shared/constants/storagePaths.js';
 import { getRecentItemsManager } from '../../../shared/utilities/utilityRecents.js';
 
+// ========================================================================
+// Recents Storage Integration
+// ========================================================================
+
 /**
  * Resolves a storage file path from a file item key.
  *

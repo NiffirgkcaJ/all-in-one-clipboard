@@ -8,6 +8,10 @@ import { GifDownloadService } from '../../GIF/logic/gifDownloadService.js';
 let httpSession = null;
 let gifDownloadService = null;
 
+// ========================================================================
+// Runtime Lifecycle
+// ========================================================================
+
 /**
  * Returns the GIF runtime services, creating them when needed.
  *
@@ -40,6 +44,10 @@ export function destroyRecentlyUsedGifRuntime() {
 
     gifDownloadService = null;
 }
+
+// ========================================================================
+// Clipboard and Cache Access
+// ========================================================================
 
 /**
  * Copies GIF content to the system clipboard.
