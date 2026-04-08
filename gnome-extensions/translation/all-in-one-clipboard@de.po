@@ -72,9 +72,8 @@ msgid "General"
 msgstr "Allgemein"
 
 #: gnome-extensions/extension/prefs.js:104
-#, fuzzy
 msgid "General settings for the extension."
-msgstr "Benutzerdefinierte Breite und Höhe für das Erweiterungsmenü setzen."
+msgstr "Allgemeine Einstellungen für die Erweiterung."
 
 #: gnome-extensions/extension/prefs.js:110
 msgid "Extension Dimensions"
@@ -418,198 +417,189 @@ msgid "Maximum Columns"
 msgstr "Maximale Spalten"
 
 #: gnome-extensions/extension/prefs.js:849
-#, fuzzy
 msgid "Behavior settings for the Recently Used tab."
-msgstr "Listen von zuletzt genutzten items löschen."
+msgstr "Verhaltenseinstellungen für den zuletzt genutzten Reiter."
 
 #: gnome-extensions/extension/prefs.js:915
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "%s Range: %d-%d. Default: %d."
-msgstr "Bereich: %d–%d. Standard: %d."
+msgstr "%s-Bereich: %d–%d. Standard: %d."
 
 #: gnome-extensions/extension/prefs.js:939
-#, fuzzy
 msgid "Enable Search in Recently Used"
-msgstr "Zuletzt genutzt"
+msgstr "Suche in Zuletzt genutzt aktivieren"
 
 #: gnome-extensions/extension/prefs.js:940
 msgid "Show a global search bar to filter items across Recently Used sections."
-msgstr ""
+msgstr "Eine globale Suchleiste anzeigen, um Elemente in den Bereichen «Zuletzt genutzt» zu filtern."
 
 #: gnome-extensions/extension/prefs.js:947
 msgid "Global Limit Policy"
-msgstr ""
+msgstr "Regel zu globalen Limits"
 
 #: gnome-extensions/extension/prefs.js:948
 msgid "Used when custom limit policy by context is disabled."
-msgstr ""
+msgstr "Wird verwendet, wenn die benutzerdefinierte Limite nach Kontext deaktiviert ist."
 
 #: gnome-extensions/extension/prefs.js:950
 #: gnome-extensions/extension/prefs.js:970
 #: gnome-extensions/extension/prefs.js:981
 msgid "Limited"
-msgstr ""
+msgstr "Limitiert"
 
 #: gnome-extensions/extension/prefs.js:951
 #: gnome-extensions/extension/prefs.js:971
 #: gnome-extensions/extension/prefs.js:982
 msgid "Unlimited"
-msgstr ""
+msgstr "Unlimitiert"
 
 #: gnome-extensions/extension/prefs.js:957
 msgid "Customize Limit Policy by Context"
-msgstr ""
+msgstr "Limit-Regel nach Kontext anpassen"
 
 #: gnome-extensions/extension/prefs.js:958
 msgid "Configure browse and search limit policy independently."
-msgstr ""
+msgstr "Unabhängiges Konfigurieren von Limit-Regeln für Stöbern und Suchen."
 
 #: gnome-extensions/extension/prefs.js:967
 msgid "Browse Policy"
-msgstr ""
+msgstr "Regel für Stöbern"
 
 #: gnome-extensions/extension/prefs.js:968
 msgid "Policy applied while browsing (non-search)."
-msgstr ""
+msgstr "Regel wird angewendet beim Stöbern (ohne Suche)."
 
 #: gnome-extensions/extension/prefs.js:978
-#, fuzzy
 msgid "Search Policy"
-msgstr "Suche"
+msgstr "Regel für Suche"
 
 #: gnome-extensions/extension/prefs.js:979
-#, fuzzy
 msgid "Policy applied only when search is enabled."
-msgstr "Onlinesuche ist deaktiviert."
+msgstr "Regel wird nur angwendet, wenn die Suche aktiviert ist."
 
 #: gnome-extensions/extension/prefs.js:990
 msgid "Global Display Mode"
-msgstr ""
+msgstr "Globaler Anzeigemodus"
 
 #: gnome-extensions/extension/prefs.js:991
 msgid "Used when custom display mode by view is disabled."
-msgstr ""
+msgstr "Genutzt, wenn der benutzerdefinierte Anzeigemodus nach Ansicht deaktiviert ist."
 
 #: gnome-extensions/extension/prefs.js:993
 #: gnome-extensions/extension/prefs.js:1015
 #: gnome-extensions/extension/prefs.js:1027
-#, fuzzy
 msgid "Fixed Window"
-msgstr "Aktives Fenster"
+msgstr "Fixiertes Fenster"
 
 #: gnome-extensions/extension/prefs.js:994
 #: gnome-extensions/extension/prefs.js:1016
 #: gnome-extensions/extension/prefs.js:1028
-#, fuzzy
 msgid "Scroll Window"
-msgstr "Aktives Fenster"
+msgstr "Scrollbares Fenster"
 
 #: gnome-extensions/extension/prefs.js:1000
 msgid "Customize Display Mode by View"
-msgstr ""
+msgstr "Anzeigemodus nach Ansicht anpassen"
 
 #: gnome-extensions/extension/prefs.js:1001
 msgid "Configure list and grid display mode independently."
-msgstr ""
+msgstr "Unabhängiges Konfigurieren von Listen- und Rasteranzeigemodi."
 
 #: gnome-extensions/extension/prefs.js:1012
 msgid "List Display Mode"
-msgstr ""
+msgstr "Listenanzeigemodus"
 
 #: gnome-extensions/extension/prefs.js:1013
 msgid "Display mode for list view."
-msgstr ""
+msgstr "Anzeigemodus für die Listenansicht."
 
 #: gnome-extensions/extension/prefs.js:1024
 msgid "Grid Display Mode"
-msgstr ""
+msgstr "Rasteranzeigemodus"
 
 #: gnome-extensions/extension/prefs.js:1025
 msgid "Display mode for grid view."
-msgstr ""
+msgstr "Anzeigemodus für die Rasteransicht."
 
 #: gnome-extensions/extension/prefs.js:1035
 msgid "Global Visible Items"
-msgstr ""
+msgstr "Global sichtbare Elemente"
 
 #: gnome-extensions/extension/prefs.js:1036
 msgid "Global item cap for list and grid when custom visible-items by view is disabled."
-msgstr ""
+msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/prefs.js:1041
 msgid "Customize Visible Items by View"
-msgstr ""
+msgstr "Sichtbare Elemente nach Ansicht anpassen"
 
 #: gnome-extensions/extension/prefs.js:1042
 msgid "Configure list and grid item caps independently."
-msgstr ""
+msgstr "Unabhängiges Konfigurieren von Limiten für Listen- und Rasterelemente."
 
 #: gnome-extensions/extension/prefs.js:1053
-#, fuzzy
 msgid "List Visible Items"
-msgstr "Sichtbare Reiter"
+msgstr "Sichtbare Elemente in der Liste"
 
 #: gnome-extensions/extension/prefs.js:1054
 msgid "Item cap for list view."
-msgstr ""
+msgstr "Elementlimit für die Listenansicht."
 
 #: gnome-extensions/extension/prefs.js:1061
-#, fuzzy
 msgid "Grid Visible Items"
-msgstr "Sichtbare Reiter"
+msgstr "Sichtbare Elemente im Raster"
 
 #: gnome-extensions/extension/prefs.js:1062
 msgid "Item cap for grid view."
-msgstr ""
+msgstr "Elementlimit für die Rasteransicht."
 
 #: gnome-extensions/extension/prefs.js:1068
 msgid "Global Window Rows"
-msgstr ""
+msgstr "Globale Fensterzeilen"
 
 #: gnome-extensions/extension/prefs.js:1069
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
-msgstr ""
+msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/prefs.js:1074
 msgid "Customize Window Limits by View"
-msgstr ""
+msgstr "Fensterlimiten nach Ansicht anpassen"
 
 #: gnome-extensions/extension/prefs.js:1075
 msgid "Configure list and grid window rows and grid columns independently."
-msgstr ""
+msgstr "Unabhängiges Konfigurieren von Listen- und Rasterfensterzeilen und -Spalten."
 
 #: gnome-extensions/extension/prefs.js:1086
 msgid "List Window Rows"
-msgstr ""
+msgstr "Fensterzeilen in der Liste"
 
 #: gnome-extensions/extension/prefs.js:1087
 msgid "Row limit for list view window."
-msgstr ""
+msgstr "Zeilenlimite für das Listenansichtsfenster."
 
 #: gnome-extensions/extension/prefs.js:1094
 msgid "Grid Window Rows"
-msgstr ""
+msgstr "Fensterzeilen im Raster"
 
 #: gnome-extensions/extension/prefs.js:1095
 msgid "Row limit for grid view window."
-msgstr ""
+msgstr "Zeilenlimit für das Rasteransichtsfenster."
 
 #: gnome-extensions/extension/prefs.js:1102
-#, fuzzy
 msgid "Grid Window Columns"
-msgstr "Rasterspalten"
+msgstr "Rasterfensterspalten"
 
 #: gnome-extensions/extension/prefs.js:1103
 msgid "Column value for grid view window."
-msgstr ""
+msgstr "Spaltenwert für das Rasteransichtsfenster."
 
 #: gnome-extensions/extension/prefs.js:1110
 msgid "Unlimited Safety Cap"
-msgstr ""
+msgstr "Unlimitiertes Sicherheitslimit"
 
 #: gnome-extensions/extension/prefs.js:1111
 msgid "Hard cap for unlimited mode to protect shell responsiveness."
-msgstr ""
+msgstr "Hartes Limit für den unlimitierten Modus, um die Shell-Responsivität zu schützen."
 
 #: gnome-extensions/extension/prefs.js:1124
 msgid "Emoji Settings"
@@ -738,7 +728,7 @@ msgstr "Zwischenablageeinstellungen"
 
 #: gnome-extensions/extension/prefs.js:1408
 msgid "Settings for the clipboard feature."
-msgstr ""
+msgstr "Einstellungen für die Zwischenablagefunktion."
 
 #: gnome-extensions/extension/prefs.js:1419
 msgid "Maximum Clipboard History"
@@ -836,7 +826,7 @@ msgstr "Datenverwaltung"
 
 #: gnome-extensions/extension/prefs.js:1629
 msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
-msgstr "Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
+msgstr "Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatische Reinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
 
 #: gnome-extensions/extension/prefs.js:1635
 msgid "Clear Data at Login"
@@ -1108,41 +1098,35 @@ msgstr "Alle anzeigen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:10
 msgid "Pinned Clipboard"
-msgstr "Angeheftete Elemente"
+msgstr "Angeheftete Zwischenablage"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:11
-#, fuzzy
 msgid "Pinned Matches"
-msgstr "Angeheftete Elemente"
+msgstr "Angeheftete Übereinstimmungen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:21
-#, fuzzy
 msgid "Emoji Results"
-msgstr "Emoji-Einstellungen"
+msgstr "Emoji-Resultate"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:31
-#, fuzzy
 msgid "GIF Results"
-msgstr "GIF-Einstellungen"
+msgstr "GIF-Resultate"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:41
-#, fuzzy
 msgid "Kaomoji Results"
-msgstr "Kaomoji"
+msgstr "Kaomoji-Resultate"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:51
-#, fuzzy
 msgid "Symbol Results"
-msgstr "Symbole"
+msgstr "Symbol-Resultate"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:60
 msgid "Recent Clipboard History"
 msgstr "Zwischenablageverlauf"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:61
-#, fuzzy
 msgid "Clipboard Matches"
-msgstr "Zwischenablagedaten"
+msgstr "Zwischenablage-Übereinstimmungen"
 
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:90
 msgid "Component configuration is invalid. Check logs."
