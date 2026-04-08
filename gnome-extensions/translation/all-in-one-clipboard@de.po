@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-06 03:10+0000\n"
+"POT-Creation-Date: 2026-04-08 04:52+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -323,7 +323,7 @@ msgstr "Element löschen"
 #: gnome-extensions/extension/prefs.js:616
 #: gnome-extensions/extension/prefs.js:618
 #: gnome-extensions/extension/prefs.js:619
-#: gnome-extensions/extension/prefs.js:966
+#: gnome-extensions/extension/prefs.js:1221
 msgid "Disabled"
 msgstr "Deaktiviert"
 
@@ -422,376 +422,556 @@ msgstr "Maximale Spalten"
 msgid "Behavior settings for the Recently Used tab."
 msgstr "Listen von zuletzt genutzten items löschen."
 
-#: gnome-extensions/extension/prefs.js:854
+#: gnome-extensions/extension/prefs.js:915
+#, fuzzy, javascript-format
+msgid "%s Range: %d-%d. Default: %d."
+msgstr "Bereich: %d–%d. Standard: %d."
+
+#: gnome-extensions/extension/prefs.js:939
 #, fuzzy
 msgid "Enable Search in Recently Used"
 msgstr "Zuletzt genutzt"
 
-#: gnome-extensions/extension/prefs.js:855
+#: gnome-extensions/extension/prefs.js:940
 msgid "Show a global search bar to filter items across Recently Used sections."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:869
+#: gnome-extensions/extension/prefs.js:947
+msgid "Global Limit Policy"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:948
+msgid "Used when custom limit policy by context is disabled."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:950
+#: gnome-extensions/extension/prefs.js:970
+#: gnome-extensions/extension/prefs.js:981
+msgid "Limited"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:951
+#: gnome-extensions/extension/prefs.js:971
+#: gnome-extensions/extension/prefs.js:982
+msgid "Unlimited"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:957
+msgid "Customize Limit Policy by Context"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:958
+msgid "Configure browse and search limit policy independently."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:967
+msgid "Browse Policy"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:968
+msgid "Policy applied while browsing (non-search)."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:978
+#, fuzzy
+msgid "Search Policy"
+msgstr "Suche"
+
+#: gnome-extensions/extension/prefs.js:979
+#, fuzzy
+msgid "Policy applied only when search is enabled."
+msgstr "Onlinesuche ist deaktiviert."
+
+#: gnome-extensions/extension/prefs.js:990
+msgid "Global Display Mode"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:991
+msgid "Used when custom display mode by view is disabled."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:993
+#: gnome-extensions/extension/prefs.js:1015
+#: gnome-extensions/extension/prefs.js:1027
+#, fuzzy
+msgid "Fixed Window"
+msgstr "Aktives Fenster"
+
+#: gnome-extensions/extension/prefs.js:994
+#: gnome-extensions/extension/prefs.js:1016
+#: gnome-extensions/extension/prefs.js:1028
+#, fuzzy
+msgid "Scroll Window"
+msgstr "Aktives Fenster"
+
+#: gnome-extensions/extension/prefs.js:1000
+msgid "Customize Display Mode by View"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1001
+msgid "Configure list and grid display mode independently."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1012
+msgid "List Display Mode"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1013
+msgid "Display mode for list view."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1024
+msgid "Grid Display Mode"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1025
+msgid "Display mode for grid view."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1035
+msgid "Global Visible Items"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1036
+msgid "Global item cap for list and grid when custom visible-items by view is disabled."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1041
+msgid "Customize Visible Items by View"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1042
+msgid "Configure list and grid item caps independently."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1053
+#, fuzzy
+msgid "List Visible Items"
+msgstr "Sichtbare Reiter"
+
+#: gnome-extensions/extension/prefs.js:1054
+msgid "Item cap for list view."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1061
+#, fuzzy
+msgid "Grid Visible Items"
+msgstr "Sichtbare Reiter"
+
+#: gnome-extensions/extension/prefs.js:1062
+msgid "Item cap for grid view."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1068
+msgid "Global Window Rows"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1069
+msgid "Global row limit for list and grid when custom window limits by view is disabled."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1074
+msgid "Customize Window Limits by View"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1075
+msgid "Configure list and grid window rows and grid columns independently."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1086
+msgid "List Window Rows"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1087
+msgid "Row limit for list view window."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1094
+msgid "Grid Window Rows"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1095
+msgid "Row limit for grid view window."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1102
+#, fuzzy
+msgid "Grid Window Columns"
+msgstr "Rasterspalten"
+
+#: gnome-extensions/extension/prefs.js:1103
+msgid "Column value for grid view window."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1110
+msgid "Unlimited Safety Cap"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1111
+msgid "Hard cap for unlimited mode to protect shell responsiveness."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:1124
 msgid "Emoji Settings"
 msgstr "Emoji-Einstellungen"
 
-#: gnome-extensions/extension/prefs.js:870
+#: gnome-extensions/extension/prefs.js:1125
 msgid "Configure emoji appearance and behavior."
 msgstr "Emoji-Aussehen und -Verhalten anpassen."
 
-#: gnome-extensions/extension/prefs.js:875
+#: gnome-extensions/extension/prefs.js:1130
 msgid "Enable Custom Skin Tones"
 msgstr "Benutzerdefinierte Hauttöne aktivieren"
 
-#: gnome-extensions/extension/prefs.js:876
+#: gnome-extensions/extension/prefs.js:1131
 msgid "If off, skinnable emojis are neutral. If on, use the settings below."
 msgstr "Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutzeuntenstehende Einstellungen."
 
-#: gnome-extensions/extension/prefs.js:883
+#: gnome-extensions/extension/prefs.js:1138
 msgid "Light"
 msgstr "Heller"
 
-#: gnome-extensions/extension/prefs.js:884
+#: gnome-extensions/extension/prefs.js:1139
 msgid "Medium-Light"
 msgstr "Mittlerer-Licht"
 
-#: gnome-extensions/extension/prefs.js:885
+#: gnome-extensions/extension/prefs.js:1140
 msgid "Medium"
 msgstr "Mittlerer"
 
-#: gnome-extensions/extension/prefs.js:886
+#: gnome-extensions/extension/prefs.js:1141
 msgid "Medium-Dark"
 msgstr "Mittlerer-Dunkel"
 
-#: gnome-extensions/extension/prefs.js:887
+#: gnome-extensions/extension/prefs.js:1142
 msgid "Dark"
 msgstr "Dunkel"
 
-#: gnome-extensions/extension/prefs.js:893
+#: gnome-extensions/extension/prefs.js:1148
 msgid "Primary Tone / Single Emoji"
 msgstr "Primärer Farbton / Einzelnes Emoji"
 
-#: gnome-extensions/extension/prefs.js:894
+#: gnome-extensions/extension/prefs.js:1149
 msgid "For single emojis and the first person in pairs."
 msgstr "Für einzelne Emojis und die erste Person in Paaren."
 
-#: gnome-extensions/extension/prefs.js:900
+#: gnome-extensions/extension/prefs.js:1155
 msgid "Secondary Tone"
 msgstr "Sekundärer Farbton"
 
-#: gnome-extensions/extension/prefs.js:901
+#: gnome-extensions/extension/prefs.js:1156
 msgid "For the second person in pairs."
 msgstr "Für die zweite Person in Paaren."
 
-#: gnome-extensions/extension/prefs.js:951
+#: gnome-extensions/extension/prefs.js:1206
 msgid "GIF Settings"
 msgstr "GIF-Einstellungen"
 
-#: gnome-extensions/extension/prefs.js:952
+#: gnome-extensions/extension/prefs.js:1207
 msgid "To search for GIFs, you must select a provider and provide your own API key."
 msgstr "Um nach GIFs zu suchen, müssen Sie einen Anbieter wählen und Ihren eigenen API-Schlüssel angeben."
 
-#: gnome-extensions/extension/prefs.js:977
+#: gnome-extensions/extension/prefs.js:1232
 msgid "GIF Provider"
 msgstr "GIF-Anbieter"
 
-#: gnome-extensions/extension/prefs.js:978
+#: gnome-extensions/extension/prefs.js:1233
 msgid "Select the service to use for fetching GIFs."
 msgstr "Wählen Sie den Dienst zum Laden von GIFs aus."
 
-#: gnome-extensions/extension/prefs.js:1001
+#: gnome-extensions/extension/prefs.js:1256
 msgid "API Key"
 msgstr "API-Schlüssel"
 
-#: gnome-extensions/extension/prefs.js:1018
+#: gnome-extensions/extension/prefs.js:1273
 msgid "API Key (Optional)"
 msgstr " API-Schlüssel (Optional)"
 
-#: gnome-extensions/extension/prefs.js:1019
+#: gnome-extensions/extension/prefs.js:1274
 msgid "Leave blank to use the built-in default key."
 msgstr "Leer lassen, um den eingebauten Standardschküssel zu nutzen."
 
-#: gnome-extensions/extension/prefs.js:1021
+#: gnome-extensions/extension/prefs.js:1276
 msgid "API Key (Required)"
 msgstr "API-Schlüssel (Erforderlich)"
 
-#: gnome-extensions/extension/prefs.js:1022
+#: gnome-extensions/extension/prefs.js:1277
 msgid "You must provide an API key to use this provider."
 msgstr "Sie müssen einen API-Schlüssel angeben, um diesen Anbieter zu nutzen."
 
-#: gnome-extensions/extension/prefs.js:1031
+#: gnome-extensions/extension/prefs.js:1286
 msgid "Paste Behavior"
 msgstr "Verhalten beim Einfügen"
 
-#: gnome-extensions/extension/prefs.js:1032
+#: gnome-extensions/extension/prefs.js:1287
 msgid "Choose how GIFs are pasted."
 msgstr "Wählen, wie GIFs eingefügt werden."
 
-#: gnome-extensions/extension/prefs.js:1033
+#: gnome-extensions/extension/prefs.js:1288
 msgid "Paste Link"
 msgstr "Link einfügen"
 
-#: gnome-extensions/extension/prefs.js:1033
+#: gnome-extensions/extension/prefs.js:1288
 msgid "Paste Image"
 msgstr "Bild einfügen"
 
-#: gnome-extensions/extension/prefs.js:1043
+#: gnome-extensions/extension/prefs.js:1298
 msgid "Limit GIF Preview Cache Size"
 msgstr "Zwischenspeicher-Größe für GIF-Vorschau limitieren"
 
-#: gnome-extensions/extension/prefs.js:1044
+#: gnome-extensions/extension/prefs.js:1299
 msgid "Turn off for an unlimited cache size."
 msgstr "Ausschalten für eine unlimitierte Zwischenspeicher-Größe."
 
-#: gnome-extensions/extension/prefs.js:1058
+#: gnome-extensions/extension/prefs.js:1313
 msgid "Cache Size Limit (MB)"
 msgstr "Limit für Zwischenspeicher-Größe (MB)"
 
-#: gnome-extensions/extension/prefs.js:1059
+#: gnome-extensions/extension/prefs.js:1314
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr "Bereich: %d–%d MB. Standard: %d MB"
 
-#: gnome-extensions/extension/prefs.js:1152
+#: gnome-extensions/extension/prefs.js:1407
 msgid "Clipboard Settings"
 msgstr "Zwischenablageeinstellungen"
 
-#: gnome-extensions/extension/prefs.js:1153
+#: gnome-extensions/extension/prefs.js:1408
 msgid "Settings for the clipboard feature."
 msgstr ""
 
-#: gnome-extensions/extension/prefs.js:1164
+#: gnome-extensions/extension/prefs.js:1419
 msgid "Maximum Clipboard History"
 msgstr "Maximaler Zwischenablageverlauf"
 
-#: gnome-extensions/extension/prefs.js:1165
+#: gnome-extensions/extension/prefs.js:1420
 #, javascript-format
 msgid "Number of items to keep in history (%d-%d). Default: %d."
 msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
 
-#: gnome-extensions/extension/prefs.js:1177
+#: gnome-extensions/extension/prefs.js:1432
 msgid "Move Item to Top on Copy"
 msgstr "Element beim Kopieren nach oben verschieben"
 
-#: gnome-extensions/extension/prefs.js:1178
+#: gnome-extensions/extension/prefs.js:1433
 msgid "When copying an item from history, make it the most recent."
 msgstr "Beim Kopieren eines Elements vom Verlauf, es zum Neuesten machen."
 
-#: gnome-extensions/extension/prefs.js:1185
+#: gnome-extensions/extension/prefs.js:1440
 msgid "Unpin Item on Paste"
 msgstr "Element beim Kopieren abheften"
 
-#: gnome-extensions/extension/prefs.js:1186
+#: gnome-extensions/extension/prefs.js:1441
 msgid "Automatically unpin an item when it is pasted."
 msgstr "Ein Element beim Einfügen automatisch abheften."
 
-#: gnome-extensions/extension/prefs.js:1193
+#: gnome-extensions/extension/prefs.js:1448
 msgid "Show Clipboard Action Bar"
 msgstr "Aktionsleiste der Zwischenablage anzeigen"
 
-#: gnome-extensions/extension/prefs.js:1194
+#: gnome-extensions/extension/prefs.js:1449
 msgid "Show the toolbar above the clipboard list."
 msgstr "Toolbar über der Zwischenablageliste einblenden."
 
-#: gnome-extensions/extension/prefs.js:1201
+#: gnome-extensions/extension/prefs.js:1456
 msgid "List"
 msgstr "Liste"
 
-#: gnome-extensions/extension/prefs.js:1202
+#: gnome-extensions/extension/prefs.js:1457
 msgid "Grid"
 msgstr "Raster"
 
-#: gnome-extensions/extension/prefs.js:1206
+#: gnome-extensions/extension/prefs.js:1461
 msgid "Clipboard Layout"
 msgstr "Zwischenablage-Layout"
 
-#: gnome-extensions/extension/prefs.js:1207
+#: gnome-extensions/extension/prefs.js:1462
 msgid "Display clipboard history as a list or a grid."
 msgstr "Zwischenablageverlauf als Liste oder Raster anzeigen."
 
-#: gnome-extensions/extension/prefs.js:1240
+#: gnome-extensions/extension/prefs.js:1495
 msgid "Image Preview Size"
 msgstr "Bildvorschau-Größe"
 
-#: gnome-extensions/extension/prefs.js:1241
+#: gnome-extensions/extension/prefs.js:1496
 #, javascript-format
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr "Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
 
-#: gnome-extensions/extension/prefs.js:1260
+#: gnome-extensions/extension/prefs.js:1515
 msgid "Excluded Applications"
 msgstr "Ausgenommene Anwendungen"
 
-#: gnome-extensions/extension/prefs.js:1261
+#: gnome-extensions/extension/prefs.js:1516
 msgid "Manage applications that should be ignored by the clipboard manager."
 msgstr "Verwaltung von Anwendungen, die von der Zwischenablageverwaltung ignoriert werden sollen."
 
-#: gnome-extensions/extension/prefs.js:1267
+#: gnome-extensions/extension/prefs.js:1522
 msgid "Enhanced Exclusion Detection"
 msgstr "Verbesserte Ausnahmeerkennung"
 
-#: gnome-extensions/extension/prefs.js:1268
+#: gnome-extensions/extension/prefs.js:1523
 msgid "Detects excluded applications inside browser windows and enables the system accessibility service if needed."
 msgstr "Erkennt ausgenommene Anwendungen in Browserfenstern und aktiviert den Barrierefreiheits-Service des Systems, wenn nötig."
 
-#: gnome-extensions/extension/prefs.js:1280
+#: gnome-extensions/extension/prefs.js:1535
 msgid "Ignored Applications"
 msgstr "Ignorierte Anwendungen"
 
-#: gnome-extensions/extension/prefs.js:1281
+#: gnome-extensions/extension/prefs.js:1536
 msgid "Prevent specific applications from saving content to the clipboard history."
 msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
 
-#: gnome-extensions/extension/prefs.js:1326
+#: gnome-extensions/extension/prefs.js:1581
 msgid "Add New Exclusion"
 msgstr "Neue Ausnahme hinzufügen"
 
-#: gnome-extensions/extension/prefs.js:1330
+#: gnome-extensions/extension/prefs.js:1585
 msgid "Application Name or ID"
 msgstr "Anwendungsnamen oder ID"
 
-#: gnome-extensions/extension/prefs.js:1373
+#: gnome-extensions/extension/prefs.js:1628
 msgid "Data Management"
 msgstr "Datenverwaltung"
 
-#: gnome-extensions/extension/prefs.js:1374
+#: gnome-extensions/extension/prefs.js:1629
 msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
 msgstr "Verwalten Sie gespeicherte Daten und konfigurieren Sie die automatischeReinigung. Manuelle Aktionen können nicht rückgängig gemacht werden."
 
-#: gnome-extensions/extension/prefs.js:1380
+#: gnome-extensions/extension/prefs.js:1635
 msgid "Clear Data at Login"
 msgstr "Daten beim Anmelden löschen"
 
-#: gnome-extensions/extension/prefs.js:1381
+#: gnome-extensions/extension/prefs.js:1636
 msgid "Automatically clear selected data at every login."
 msgstr "Ausgewählte Daten bei jeder Anmeldung automatisch löschen"
 
-#: gnome-extensions/extension/prefs.js:1396
+#: gnome-extensions/extension/prefs.js:1651
 msgid "Clear Clipboard History"
 msgstr "Zwischenablageverlauf löschen"
 
-#: gnome-extensions/extension/prefs.js:1397
+#: gnome-extensions/extension/prefs.js:1652
 msgid "Clear Recent Emojis"
 msgstr "Letzte Emojis löschen"
 
-#: gnome-extensions/extension/prefs.js:1398
+#: gnome-extensions/extension/prefs.js:1653
 msgid "Clear Recent GIFs"
 msgstr "Letzte GIFs löschen"
 
-#: gnome-extensions/extension/prefs.js:1399
+#: gnome-extensions/extension/prefs.js:1654
 msgid "Clear Recent Kaomojis"
 msgstr "Letzte Kaomojis löschen"
 
-#: gnome-extensions/extension/prefs.js:1400
+#: gnome-extensions/extension/prefs.js:1655
 msgid "Clear Recent Symbols"
 msgstr "Letzte Symbole löschen"
 
-#: gnome-extensions/extension/prefs.js:1414
-#: gnome-extensions/extension/prefs.js:1426
+#: gnome-extensions/extension/prefs.js:1669
+#: gnome-extensions/extension/prefs.js:1681
 msgid "Clear"
 msgstr "Löschen"
 
-#: gnome-extensions/extension/prefs.js:1420
+#: gnome-extensions/extension/prefs.js:1675
 msgid "Are you sure?"
 msgstr "Sind Sie sicher?"
 
-#: gnome-extensions/extension/prefs.js:1421
+#: gnome-extensions/extension/prefs.js:1676
 msgid "The selected data will be permanently deleted."
 msgstr "Die ausgewählten Daten werden unwiderruflich gelöscht."
 
-#: gnome-extensions/extension/prefs.js:1425
+#: gnome-extensions/extension/prefs.js:1680
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: gnome-extensions/extension/prefs.js:1442
+#: gnome-extensions/extension/prefs.js:1697
 msgid "Recent Item History"
 msgstr "Verlauf letzter Elemente"
 
-#: gnome-extensions/extension/prefs.js:1443
+#: gnome-extensions/extension/prefs.js:1698
 msgid "Clear lists of recently used items."
 msgstr "Listen von zuletzt genutzten items löschen."
 
-#: gnome-extensions/extension/prefs.js:1450
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:55
+#: gnome-extensions/extension/prefs.js:1705
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:20
 msgid "Recent Emojis"
 msgstr "Letzte Emojis"
 
-#: gnome-extensions/extension/prefs.js:1451
+#: gnome-extensions/extension/prefs.js:1706
 msgid "Permanently clears the list of recent emojis."
 msgstr "Löscht die Liste zuletzt genutzter Emojis unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1455
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:65
+#: gnome-extensions/extension/prefs.js:1710
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:30
 msgid "Recent GIFs"
 msgstr "Letzte GIFs"
 
-#: gnome-extensions/extension/prefs.js:1456
+#: gnome-extensions/extension/prefs.js:1711
 msgid "Permanently clears the list of recent GIFs."
 msgstr "Löscht die Liste zuletzt genutzter GIFs unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1460
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:75
+#: gnome-extensions/extension/prefs.js:1715
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:40
 msgid "Recent Kaomojis"
 msgstr "Letzte Kaomojis"
 
-#: gnome-extensions/extension/prefs.js:1461
+#: gnome-extensions/extension/prefs.js:1716
 msgid "Permanently clears the list of recent kaomojis."
 msgstr "Löscht die Liste zuletzt genutzter Kaomojis unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1465
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:85
+#: gnome-extensions/extension/prefs.js:1720
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:50
 msgid "Recent Symbols"
 msgstr "Letzte Symbole"
 
-#: gnome-extensions/extension/prefs.js:1466
+#: gnome-extensions/extension/prefs.js:1721
 msgid "Permanently clears the list of recent symbols."
 msgstr "Löscht die Liste zuletzt genutzter Symbole unwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1475
+#: gnome-extensions/extension/prefs.js:1730
 msgid "All Recent Items"
 msgstr "Alle letzten Elemente"
 
-#: gnome-extensions/extension/prefs.js:1476
+#: gnome-extensions/extension/prefs.js:1731
 msgid "Permanently clears all of the above lists at once."
 msgstr "Löscht alle oben genannten Listen unwiderruflich auf ein Mal."
 
-#: gnome-extensions/extension/prefs.js:1483
+#: gnome-extensions/extension/prefs.js:1738
 msgid "Clipboard Data"
 msgstr "Zwischenablagedaten"
 
-#: gnome-extensions/extension/prefs.js:1484
+#: gnome-extensions/extension/prefs.js:1739
 msgid "Permanently delete your saved clipboard history and pinned items."
 msgstr "Ihren gespeicherten Zwischenablageverlauf und angehefteten Elementeunwiderruflich löschen."
 
-#: gnome-extensions/extension/prefs.js:1489
+#: gnome-extensions/extension/prefs.js:1744
 msgid "Clipboard History"
 msgstr "Zwischenablageverlauf"
 
-#: gnome-extensions/extension/prefs.js:1490
+#: gnome-extensions/extension/prefs.js:1745
 msgid "Permanently clears all saved unpinned clipboard items."
 msgstr "Löscht alle gespeicherten nicht angehefteten Zwischenablageelementeunwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1496
+#: gnome-extensions/extension/prefs.js:1751
 msgid "Pinned Items"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/prefs.js:1497
+#: gnome-extensions/extension/prefs.js:1752
 msgid "Permanently clears all saved pinned clipboard items."
 msgstr "Löscht alle gespeicherten angehefteten Zwischenablageelemente undwiderruflich."
 
-#: gnome-extensions/extension/prefs.js:1504
+#: gnome-extensions/extension/prefs.js:1759
 msgid "Performance Caches"
 msgstr "Performance-Zwischenspeicher"
 
-#: gnome-extensions/extension/prefs.js:1505
+#: gnome-extensions/extension/prefs.js:1760
 msgid "Clear temporary data used to improve loading speed."
 msgstr "Lösche temporäre Daten, die zur Verbesserung der Ladegeschwindigkeit genutzt werden."
 
-#: gnome-extensions/extension/prefs.js:1510
+#: gnome-extensions/extension/prefs.js:1765
 msgid "GIF Preview Cache"
 msgstr "GIF-Vorschau-Zwischenspeicher"
 
-#: gnome-extensions/extension/prefs.js:1511
+#: gnome-extensions/extension/prefs.js:1766
 msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
@@ -917,49 +1097,49 @@ msgstr ""
 "Fehler: %s\n"
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:870
 msgid "No recent items yet."
 msgstr "Bisher keine letzten Elemente."
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:42
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 msgid "Show All"
 msgstr "Alle anzeigen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:45
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:10
 msgid "Pinned Clipboard"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:46
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:11
 #, fuzzy
 msgid "Pinned Matches"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:56
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:21
 #, fuzzy
 msgid "Emoji Results"
 msgstr "Emoji-Einstellungen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:66
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:31
 #, fuzzy
 msgid "GIF Results"
 msgstr "GIF-Einstellungen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:76
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:41
 #, fuzzy
 msgid "Kaomoji Results"
 msgstr "Kaomoji"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:86
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:51
 #, fuzzy
 msgid "Symbol Results"
 msgstr "Symbole"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:95
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:60
 msgid "Recent Clipboard History"
 msgstr "Zwischenablageverlauf"
 
-#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:96
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:61
 #, fuzzy
 msgid "Clipboard Matches"
 msgstr "Zwischenablagedaten"
