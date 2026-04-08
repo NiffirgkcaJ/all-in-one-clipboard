@@ -184,7 +184,10 @@ export class RecentlyUsedSearchStateManager {
                 name: item.name,
                 description: item.description,
             };
-            const value = Object.values(signatureFields).find((candidate) => candidate !== null && candidate !== undefined) ?? '';
+            const value = Object.values(signatureFields)
+                .filter((candidate) => candidate !== null && candidate !== undefined)
+                .map((candidate) => String(candidate))
+                .join('::');
 
             parts.push(`${index}:${String(value)}`);
         }

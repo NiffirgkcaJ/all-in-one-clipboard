@@ -8,29 +8,34 @@ import { EmojiProvider } from '../../Emoji/constants/emojiConstants.js';
 import { EmojiViewRenderer } from '../../Emoji/view/emojiViewRenderer.js';
 import { ensureEmojiSearchProviderRegistered } from '../../Emoji/integrations/emojiSearchProvider.js';
 
-let _recentManager = null;
 const _emojiSearchRenderer = new EmojiViewRenderer(null);
 
 /**
- * Section definition for recently used emoji items.
+ * Creates a runtime-scoped emoji section definition.
+ *
+ * @returns {object} Emoji section definition instance.
  */
-export const RecentlyUsedDefinitionEmoji = {
-    id: 'emoji',
-    targetTab: 'Emoji',
-    layoutType: 'grid',
-    source: {
-        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
-    },
-    settings: {
-        enabledSettingKey: 'enable-emoji-tab',
-        autoPasteSettingKey: 'auto-paste-emoji',
-    },
-    gridPresentation: {
-        contentMode: 'char-or-value-text',
-        tooltipMode: 'name-or-value',
-        icon: null,
-    },
-    listPresentation: null,
+function createRecentlyUsedDefinitionEmojiInstance() {
+    let recentManager = null;
+
+    const definition = {
+        id: 'emoji',
+        targetTab: 'Emoji',
+        layoutType: 'grid',
+        source: {
+            maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
+        },
+        settings: {
+            enabledSettingKey: 'enable-emoji-tab',
+            autoPasteSettingKey: 'auto-paste-emoji',
+        },
+        gridPresentation: {
+            contentMode: 'char-or-value-text',
+            tooltipMode: 'name-or-value',
+            icon: null,
+        },
+        listPresentation: null,
+    };
 
     /**
      * Initializes the emoji recents manager.
@@ -39,29 +44,29 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {string} params.extensionUuid Extension UUID.
      * @param {object} params.settings Extension settings object.
      */
-    initialize: ({ extensionUuid, settings }) => {
+    definition.initialize = ({ extensionUuid, settings }) => {
         ensureEmojiSearchProviderRegistered({ extensionUuid });
 
-        if (_recentManager) {
+        if (recentManager) {
             try {
-                _recentManager.destroy();
+                recentManager.destroy();
             } catch {
                 // Ignore stale manager teardown errors before re-init.
             }
-            _recentManager = null;
+            recentManager = null;
         }
 
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_EMOJI');
-        _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'emoji-recents-max-items');
-    },
+        recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'emoji-recents-max-items');
+    };
 
     /**
      * Cleans up emoji recents resources.
      */
-    destroy: () => {
-        _recentManager?.destroy();
-        _recentManager = null;
-    },
+    definition.destroy = () => {
+        recentManager?.destroy();
+        recentManager = null;
+    };
 
     /**
      * Returns signals that trigger emoji section updates.
@@ -70,10 +75,10 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ onRender }) => {
-        if (!_recentManager) return [];
-        return [{ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) }];
-    },
+    definition.getSignals = ({ onRender }) => {
+        if (!recentManager) return [];
+        return [{ obj: recentManager, id: recentManager.connect('recents-changed', onRender) }];
+    };
 
     /**
      * Indicates whether the emoji section is enabled.
@@ -82,18 +87,18 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {object} params.settings Extension settings object.
      * @returns {boolean} True when enabled.
      */
-    isEnabled: ({ settings }) => {
-        return settings?.get_boolean(RecentlyUsedDefinitionEmoji.settings.enabledSettingKey) ?? true;
-    },
+    definition.isEnabled = ({ settings }) => {
+        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+    };
 
     /**
      * Returns emoji recents.
      *
      * @returns {Array<object>} Emoji items.
      */
-    getItems: () => {
-        return _recentManager?.getRecents?.() || [];
-    },
+    definition.getItems = () => {
+        return recentManager?.getRecents?.() || [];
+    };
 
     /**
      * Searches the emoji catalog using the same filter behavior as the Emoji tab.
@@ -102,9 +107,9 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {string} params.query Normalized search query.
      * @returns {Promise<Array<object>>} Matching emoji entries.
      */
-    searchItems: async ({ query }) => {
+    definition.searchItems = async ({ query }) => {
         return searchViaProvider(EmojiProvider.SEARCH_PROVIDER_ID, { query });
-    },
+    };
 
     /**
      * Maps a source item into the shared section payload format.
@@ -112,7 +117,7 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
-    mapItem: (sourceItem) => {
+    definition.mapItem = (sourceItem) => {
         const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
         if (typeof normalizedItem.value !== 'string' || normalizedItem.value.length === 0) {
             normalizedItem.value = normalizedItem.char || '';
@@ -120,11 +125,11 @@ export const RecentlyUsedDefinitionEmoji = {
 
         return {
             ...normalizedItem,
-            __recentlyUsedListPresentation: RecentlyUsedDefinitionEmoji.listPresentation,
-            __recentlyUsedGridPresentation: RecentlyUsedDefinitionEmoji.gridPresentation,
+            __recentlyUsedListPresentation: definition.listPresentation,
+            __recentlyUsedGridPresentation: definition.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
-    },
+    };
 
     /**
      * Matches emoji entries using Emoji tab search behavior.
@@ -135,7 +140,7 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {Function} params.fallbackMatch Generic fallback matcher.
      * @returns {boolean} True when the emoji matches search.
      */
-    matchesSearch: ({ item, query, fallbackMatch }) => {
+    definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
             return true;
         }
@@ -145,7 +150,7 @@ export const RecentlyUsedDefinitionEmoji = {
         } catch {
             return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
         }
-    },
+    };
 
     /**
      * Handles clicks by copying emoji content and updating recents.
@@ -153,17 +158,26 @@ export const RecentlyUsedDefinitionEmoji = {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    onClick: async ({ itemData, settings }) => {
+    definition.onClick = async ({ itemData, settings }) => {
         const contentToCopy = itemData?.char || itemData?.value || '';
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem({ ...itemData, value: contentToCopy });
+        recentManager?.addItem({ ...itemData, value: contentToCopy });
 
-        if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionEmoji.settings.autoPasteSettingKey)) {
+        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();
         }
 
         return true;
-    },
-};
+    };
+
+    definition.createInstance = () => createRecentlyUsedDefinitionEmojiInstance();
+
+    return definition;
+}
+
+/**
+ * Section definition template for recently used emoji items.
+ */
+export const RecentlyUsedDefinitionEmoji = createRecentlyUsedDefinitionEmojiInstance();

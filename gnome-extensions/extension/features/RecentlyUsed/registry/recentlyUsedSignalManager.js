@@ -27,18 +27,28 @@ export class RecentlyUsedSignalManager {
      * Returns a sanitized signal descriptor or null when invalid.
      *
      * @param {object} descriptor Signal descriptor.
+     * @param {object} [options] Normalization options.
+     * @param {boolean} [options.warn=false] Whether to emit warnings for invalid descriptors.
+     * @param {string} [options.context=''] Context label for warning logs.
      * @returns {object|null} Normalized descriptor.
      * @private
      */
-    _normalizeSignalDescriptor(descriptor) {
+    _normalizeSignalDescriptor(descriptor, { warn = false, context = '' } = {}) {
         const obj = descriptor?.obj;
         const id = descriptor?.id;
+        const contextSuffix = context ? ` (${context})` : '';
 
         if (!obj || typeof obj.disconnect !== 'function') {
+            if (warn) {
+                console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used signal descriptor${contextSuffix}: missing disconnect-capable object.`);
+            }
             return null;
         }
 
         if (!Number.isInteger(id) || id <= 0) {
+            if (warn) {
+                console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used signal descriptor${contextSuffix}: invalid signal id '${id}'.`);
+            }
             return null;
         }
 
@@ -57,19 +67,32 @@ export class RecentlyUsedSignalManager {
                 continue;
             }
 
-            const signals =
-                section.getSignals({
-                    extension: this._extension,
-                    settings: this._settings,
-                    onRender: this._onRender,
-                }) || [];
+            const sectionId = typeof section?.id === 'string' && section.id.length > 0 ? section.id : '<unknown>';
+            let signals = [];
 
-            if (!Array.isArray(signals)) {
+            try {
+                signals =
+                    section.getSignals({
+                        extension: this._extension,
+                        settings: this._settings,
+                        onRender: this._onRender,
+                    }) || [];
+            } catch (e) {
+                const message = e?.message ?? String(e);
+                console.warn(`[AIO-Clipboard] Recently Used section '${sectionId}' failed to provide signals: ${message}`);
                 continue;
             }
 
-            signals.forEach((descriptor) => {
-                const normalized = this._normalizeSignalDescriptor(descriptor);
+            if (!Array.isArray(signals)) {
+                console.warn(`[AIO-Clipboard] Recently Used section '${sectionId}' returned a non-array getSignals() result. Expected Array<{obj,id}>.`);
+                continue;
+            }
+
+            signals.forEach((descriptor, index) => {
+                const normalized = this._normalizeSignalDescriptor(descriptor, {
+                    warn: true,
+                    context: `section '${sectionId}' signal[${index}]`,
+                });
                 if (normalized) {
                     this._signalIds.push(normalized);
                 }
@@ -82,10 +105,16 @@ export class RecentlyUsedSignalManager {
                     const signalId = this._settings.connect(`changed::${settingKey}`, () => {
                         this._onRender?.();
                     });
-                    const normalized = this._normalizeSignalDescriptor({
-                        obj: this._settings,
-                        id: signalId,
-                    });
+                    const normalized = this._normalizeSignalDescriptor(
+                        {
+                            obj: this._settings,
+                            id: signalId,
+                        },
+                        {
+                            warn: true,
+                            context: `settings changed::${settingKey}`,
+                        },
+                    );
                     if (normalized) {
                         this._signalIds.push(normalized);
                     }

@@ -4,7 +4,7 @@ import { RecentlyUsedDisplayMode } from '../constants/recentlyUsedPolicyConstant
 import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolveRecentlyUsedSectionLayouts } from './recentlyUsedLayoutResolver.js';
 import { RecentlyUsedSearchStateManager } from './recentlyUsedSearchStateManager.js';
 import { RecentlyUsedSignalManager } from './recentlyUsedSignalManager.js';
-import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionById, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
+import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
 
 /**
  * Normalizes a value to a positive integer, returning fallback when invalid.
@@ -38,6 +38,8 @@ export class RecentlyUsedRuntimeService {
         this._settings = settings;
         this._onRender = typeof onRender === 'function' ? onRender : null;
         this._started = false;
+        this._orderedSections = [];
+        this._sectionsById = new Map();
         this._searchStateManager = new RecentlyUsedSearchStateManager({
             onRender: () => this._onRender?.(),
         });
@@ -60,6 +62,7 @@ export class RecentlyUsedRuntimeService {
         }
 
         await initializeRecentlyUsedRegistry();
+        this._materializeSectionDefinitions();
         await this._initializePlugins();
         this._signalManager.connect();
         this._started = true;
@@ -84,7 +87,75 @@ export class RecentlyUsedRuntimeService {
 
         this._signalManager.disconnect();
         this._searchStateManager.clear();
+        this._orderedSections = [];
+        this._sectionsById = new Map();
         this._started = false;
+    }
+
+    /**
+     * Builds runtime-scoped section definitions from registry templates.
+     *
+     * @private
+     */
+    _materializeSectionDefinitions() {
+        const orderedTemplates = getRecentlyUsedOrderedSections();
+        const materializedSections = orderedTemplates
+            .map((sectionDefinition) => this._instantiateSectionDefinition(sectionDefinition))
+            .filter((sectionDefinition) => sectionDefinition && typeof sectionDefinition.id === 'string');
+
+        this._orderedSections = materializedSections;
+        this._sectionsById = new Map(materializedSections.map((sectionDefinition) => [sectionDefinition.id, sectionDefinition]));
+    }
+
+    /**
+     * Instantiates a section definition when a section factory is available.
+     *
+     * @param {object} sectionDefinition Section definition template.
+     * @returns {object|null} Runtime section definition.
+     * @private
+     */
+    _instantiateSectionDefinition(sectionDefinition) {
+        if (!sectionDefinition || typeof sectionDefinition !== 'object') {
+            return null;
+        }
+
+        if (typeof sectionDefinition.createInstance !== 'function') {
+            return sectionDefinition;
+        }
+
+        try {
+            const instance = sectionDefinition.createInstance();
+            if (!instance || typeof instance !== 'object') {
+                console.warn(`[AIO-Clipboard] Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned a non-object value.`);
+                return sectionDefinition;
+            }
+
+            const instanceId = typeof instance.id === 'string' && instance.id.length > 0 ? instance.id : sectionDefinition.id;
+            if (instanceId !== sectionDefinition.id) {
+                console.warn(`[AIO-Clipboard] Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned mismatched id '${instanceId}'. Using template id.`);
+            }
+
+            return {
+                ...sectionDefinition,
+                ...instance,
+                id: sectionDefinition.id,
+            };
+        } catch (e) {
+            const message = e?.message ?? String(e);
+            console.warn(`[AIO-Clipboard] Failed to instantiate Recently Used section '${sectionDefinition.id || '<unknown>'}': ${message}`);
+            return sectionDefinition;
+        }
+    }
+
+    /**
+     * Retrieves a runtime section definition by ID.
+     *
+     * @param {string} sectionId Section id.
+     * @returns {object|null} Section definition.
+     * @private
+     */
+    _getSectionById(sectionId) {
+        return this._sectionsById.get(sectionId) || null;
     }
 
     /**
@@ -134,7 +205,7 @@ export class RecentlyUsedRuntimeService {
      * @returns {object|null} Section scaffold or null.
      */
     getSectionScaffold(sectionId) {
-        const sectionConfig = getRecentlyUsedSectionById(sectionId);
+        const sectionConfig = this._getSectionById(sectionId);
         if (!sectionConfig) {
             return null;
         }
@@ -152,7 +223,7 @@ export class RecentlyUsedRuntimeService {
      * @returns {Array<object>} Ordered section definitions.
      */
     getOrderedSections() {
-        return getRecentlyUsedOrderedSections();
+        return this._orderedSections;
     }
 
     /**
@@ -163,7 +234,7 @@ export class RecentlyUsedRuntimeService {
      * @returns {object|null} Render model or null.
      */
     getSectionRenderModel(sectionId, viewRuntimeContext = {}) {
-        const sectionConfig = getRecentlyUsedSectionById(sectionId);
+        const sectionConfig = this._getSectionById(sectionId);
         if (!sectionConfig) {
             return null;
         }
@@ -215,7 +286,7 @@ export class RecentlyUsedRuntimeService {
      * @returns {Promise<boolean>} True when click handling succeeds.
      */
     async handleItemClick(itemData, sectionId) {
-        const sectionDefinition = getRecentlyUsedSectionById(sectionId);
+        const sectionDefinition = this._getSectionById(sectionId);
 
         if (typeof sectionDefinition?.onClick !== 'function') {
             return false;

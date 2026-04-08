@@ -9,49 +9,53 @@ import { ClipboardSearchUtils } from '../../Clipboard/utilities/clipboardSearchU
 import { ensureClipboardSearchProviderRegistered } from '../../Clipboard/integrations/clipboardSearchProvider.js';
 
 /**
- * Section definition for clipboard pinned items.
+ * Creates a runtime-scoped pinned section definition.
+ *
+ * @returns {object} Pinned section definition instance.
  */
-export const RecentlyUsedDefinitionPinned = {
-    id: 'pinned',
-    targetTab: 'Clipboard',
-    layoutType: 'list',
-    source: {
-        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
-    },
-    layoutTransition: {
-        threshold: 5,
-        above: 'nested-list',
-    },
-    layoutPolicy: {
-        maxVisible: RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS,
-        itemHeight: RecentlyUsedUI.NESTED_ITEM_HEIGHT,
-    },
-    settings: {
-        autoPasteSettingKey: 'auto-paste-clipboard',
-        imagePreviewSizeSettingKey: 'clipboard-image-preview-size',
-    },
-    listPresentation: {
-        text: {
-            weight: 'normal',
-            style: 'normal',
-            size: 'default',
-            align: 'fill',
-            truncate: 'end',
+function createRecentlyUsedDefinitionPinnedInstance() {
+    const definition = {
+        id: 'pinned',
+        targetTab: 'Clipboard',
+        layoutType: 'list',
+        source: {
+            maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
         },
-    },
-    gridPresentation: null,
+        layoutTransition: {
+            threshold: 5,
+            above: 'nested-list',
+        },
+        layoutPolicy: {
+            maxVisible: RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS,
+            itemHeight: RecentlyUsedUI.NESTED_ITEM_HEIGHT,
+        },
+        settings: {
+            autoPasteSettingKey: 'auto-paste-clipboard',
+            imagePreviewSizeSettingKey: 'clipboard-image-preview-size',
+        },
+        listPresentation: {
+            text: {
+                weight: 'normal',
+                style: 'normal',
+                size: 'default',
+                align: 'fill',
+                truncate: 'end',
+            },
+        },
+        gridPresentation: null,
+    };
 
     /**
      * Initializes the pinned section.
      */
-    initialize: () => {
+    definition.initialize = () => {
         ensureClipboardSearchProviderRegistered();
-    },
+    };
 
     /**
      * Cleans up pinned section resources.
      */
-    destroy: () => {},
+    definition.destroy = () => {};
 
     /**
      * Returns signals that should trigger section re-rendering.
@@ -61,18 +65,18 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ extension, onRender }) => {
+    definition.getSignals = ({ extension, onRender }) => {
         const clipboardManager = extension?._clipboardManager;
         if (!clipboardManager) return [];
         return [{ obj: clipboardManager, id: clipboardManager.connect('pinned-list-changed', onRender) }];
-    },
+    };
 
     /**
      * Indicates whether this section is enabled.
      *
      * @returns {boolean} Always true for pinned items.
      */
-    isEnabled: () => true,
+    definition.isEnabled = () => true;
 
     /**
      * Returns pinned clipboard items.
@@ -81,10 +85,10 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {object} params.extension Extension instance.
      * @returns {Array<object>} Pinned clipboard entries.
      */
-    getItems: ({ extension }) => {
+    definition.getItems = ({ extension }) => {
         const clipboardManager = extension?._clipboardManager;
         return clipboardManager?.getPinnedItems?.() || [];
-    },
+    };
 
     /**
      * Searches pinned clipboard items through the shared Search Hub provider.
@@ -94,7 +98,7 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {object} params.runtimeContext Runtime context.
      * @returns {Promise<Array<object>>} Matching pinned entries.
      */
-    searchItems: async ({ query, runtimeContext }) => {
+    definition.searchItems = async ({ query, runtimeContext }) => {
         if (!query) {
             return [];
         }
@@ -107,7 +111,7 @@ export const RecentlyUsedDefinitionPinned = {
         });
 
         return providerItems.filter((item) => pinnedIds.has(item?.id));
-    },
+    };
 
     /**
      * Maps a source item into the shared section payload format.
@@ -115,14 +119,14 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
-    mapItem: (sourceItem) => {
+    definition.mapItem = (sourceItem) => {
         return {
             ...(sourceItem && typeof sourceItem === 'object' ? sourceItem : { value: sourceItem }),
-            __recentlyUsedListPresentation: RecentlyUsedDefinitionPinned.listPresentation,
+            __recentlyUsedListPresentation: definition.listPresentation,
             __recentlyUsedGridPresentation: null,
             __recentlyUsedClickPayload: sourceItem,
         };
-    },
+    };
 
     /**
      * Matches pinned clipboard entries using Clipboard tab search behavior.
@@ -133,7 +137,7 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {Function} params.fallbackMatch Generic fallback matcher.
      * @returns {boolean} True when the pinned item matches search.
      */
-    matchesSearch: ({ item, query, fallbackMatch }) => {
+    definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
             return true;
         }
@@ -143,7 +147,7 @@ export const RecentlyUsedDefinitionPinned = {
         } catch {
             return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
         }
-    },
+    };
 
     /**
      * Renders clipboard content for list rows.
@@ -151,16 +155,16 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {object} params Render parameters.
      * @returns {boolean} True when custom rendering succeeds.
      */
-    renderListContent: ({ button, box, itemData, styleClass, runtimeContext }) => {
+    definition.renderListContent = ({ button, box, itemData, styleClass, runtimeContext }) => {
         return renderRecentlyUsedClipboardListContent({
             button,
             box,
             itemData,
             styleClass,
             runtimeContext,
-            imagePreviewSizeSettingKey: RecentlyUsedDefinitionPinned.settings.imagePreviewSizeSettingKey,
+            imagePreviewSizeSettingKey: definition.settings.imagePreviewSizeSettingKey,
         });
-    },
+    };
 
     /**
      * Handles clicks by copying and promoting pinned items.
@@ -168,7 +172,7 @@ export const RecentlyUsedDefinitionPinned = {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    onClick: async ({ itemData, extension, settings }) => {
+    definition.onClick = async ({ itemData, extension, settings }) => {
         const clipboardManager = extension?._clipboardManager;
         if (!clipboardManager) return false;
 
@@ -177,10 +181,19 @@ export const RecentlyUsedDefinitionPinned = {
 
         clipboardManager.promoteItemToTop(itemData.id);
 
-        if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionPinned.settings.autoPasteSettingKey)) {
+        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();
         }
 
         return true;
-    },
-};
+    };
+
+    definition.createInstance = () => createRecentlyUsedDefinitionPinnedInstance();
+
+    return definition;
+}
+
+/**
+ * Section definition template for clipboard pinned items.
+ */
+export const RecentlyUsedDefinitionPinned = createRecentlyUsedDefinitionPinnedInstance();

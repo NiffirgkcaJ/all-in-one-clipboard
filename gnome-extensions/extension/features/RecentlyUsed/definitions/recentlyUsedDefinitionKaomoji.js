@@ -8,35 +8,40 @@ import { ensureKaomojiSearchProviderRegistered } from '../../Kaomoji/integration
 import { KaomojiProvider } from '../../Kaomoji/constants/kaomojiConstants.js';
 import { KaomojiViewRenderer } from '../../Kaomoji/view/kaomojiViewRenderer.js';
 
-let _recentManager = null;
 const _kaomojiSearchRenderer = new KaomojiViewRenderer();
 
 /**
- * Section definition for recently used kaomoji items.
+ * Creates a runtime-scoped kaomoji section definition.
+ *
+ * @returns {object} Kaomoji section definition instance.
  */
-export const RecentlyUsedDefinitionKaomoji = {
-    id: 'kaomoji',
-    targetTab: 'Kaomoji',
-    layoutType: 'list',
-    source: {
-        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
-    },
-    settings: {
-        enabledSettingKey: 'enable-kaomoji-tab',
-        autoPasteSettingKey: 'auto-paste-kaomoji',
-    },
-    listPresentation: {
-        variant: 'default',
-        contentMode: 'text',
-        text: {
-            weight: 'bold',
-            style: 'normal',
-            size: 'default',
-            align: 'center',
-            truncate: 'none',
+function createRecentlyUsedDefinitionKaomojiInstance() {
+    let recentManager = null;
+
+    const definition = {
+        id: 'kaomoji',
+        targetTab: 'Kaomoji',
+        layoutType: 'list',
+        source: {
+            maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
         },
-    },
-    gridPresentation: null,
+        settings: {
+            enabledSettingKey: 'enable-kaomoji-tab',
+            autoPasteSettingKey: 'auto-paste-kaomoji',
+        },
+        listPresentation: {
+            variant: 'default',
+            contentMode: 'text',
+            text: {
+                weight: 'bold',
+                style: 'normal',
+                size: 'default',
+                align: 'center',
+                truncate: 'none',
+            },
+        },
+        gridPresentation: null,
+    };
 
     /**
      * Initializes the kaomoji recents manager.
@@ -45,29 +50,29 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {string} params.extensionUuid Extension UUID.
      * @param {object} params.settings Extension settings object.
      */
-    initialize: ({ extensionUuid, settings }) => {
+    definition.initialize = ({ extensionUuid, settings }) => {
         ensureKaomojiSearchProviderRegistered({ extensionUuid });
 
-        if (_recentManager) {
+        if (recentManager) {
             try {
-                _recentManager.destroy();
+                recentManager.destroy();
             } catch {
                 // Ignore stale manager teardown errors before re-init.
             }
-            _recentManager = null;
+            recentManager = null;
         }
 
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_KAOMOJI');
-        _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'kaomoji-recents-max-items');
-    },
+        recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'kaomoji-recents-max-items');
+    };
 
     /**
      * Cleans up kaomoji recents resources.
      */
-    destroy: () => {
-        _recentManager?.destroy();
-        _recentManager = null;
-    },
+    definition.destroy = () => {
+        recentManager?.destroy();
+        recentManager = null;
+    };
 
     /**
      * Returns signals that trigger kaomoji section updates.
@@ -76,10 +81,10 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ onRender }) => {
-        if (!_recentManager) return [];
-        return [{ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) }];
-    },
+    definition.getSignals = ({ onRender }) => {
+        if (!recentManager) return [];
+        return [{ obj: recentManager, id: recentManager.connect('recents-changed', onRender) }];
+    };
 
     /**
      * Indicates whether the kaomoji section is enabled.
@@ -88,18 +93,18 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {object} params.settings Extension settings object.
      * @returns {boolean} True when enabled.
      */
-    isEnabled: ({ settings }) => {
-        return settings?.get_boolean(RecentlyUsedDefinitionKaomoji.settings.enabledSettingKey) ?? true;
-    },
+    definition.isEnabled = ({ settings }) => {
+        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+    };
 
     /**
      * Returns kaomoji recents.
      *
      * @returns {Array<object>} Kaomoji items.
      */
-    getItems: () => {
-        return _recentManager?.getRecents?.() || [];
-    },
+    definition.getItems = () => {
+        return recentManager?.getRecents?.() || [];
+    };
 
     /**
      * Searches the kaomoji catalog using the same filter behavior as the Kaomoji tab.
@@ -108,9 +113,9 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {string} params.query Normalized search query.
      * @returns {Promise<Array<object>>} Matching kaomoji entries.
      */
-    searchItems: async ({ query }) => {
+    definition.searchItems = async ({ query }) => {
         return searchViaProvider(KaomojiProvider.SEARCH_PROVIDER_ID, { query });
-    },
+    };
 
     /**
      * Maps a source item into the shared section payload format.
@@ -118,10 +123,10 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
-    mapItem: (sourceItem) => {
+    definition.mapItem = (sourceItem) => {
         const mapped = {
             ...(sourceItem && typeof sourceItem === 'object' ? sourceItem : { value: sourceItem }),
-            __recentlyUsedListPresentation: RecentlyUsedDefinitionKaomoji.listPresentation,
+            __recentlyUsedListPresentation: definition.listPresentation,
             __recentlyUsedGridPresentation: null,
             __recentlyUsedClickPayload: sourceItem,
         };
@@ -133,7 +138,7 @@ export const RecentlyUsedDefinitionKaomoji = {
         // resolve preview from field 'value'
         mapped.preview = mapped.value || '';
         return mapped;
-    },
+    };
 
     /**
      * Matches kaomoji entries using Kaomoji tab search behavior.
@@ -144,7 +149,7 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {Function} params.fallbackMatch Generic fallback matcher.
      * @returns {boolean} True when the kaomoji matches search.
      */
-    matchesSearch: ({ item, query, fallbackMatch }) => {
+    definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
             return true;
         }
@@ -154,7 +159,7 @@ export const RecentlyUsedDefinitionKaomoji = {
         } catch {
             return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
         }
-    },
+    };
 
     /**
      * Handles clicks by copying kaomoji content and updating recents.
@@ -162,17 +167,26 @@ export const RecentlyUsedDefinitionKaomoji = {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    onClick: async ({ itemData, settings }) => {
+    definition.onClick = async ({ itemData, settings }) => {
         const contentToCopy = itemData?.value || itemData?.char || itemData?.kaomoji || '';
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.kaomoji || contentToCopy });
+        recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.kaomoji || contentToCopy });
 
-        if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionKaomoji.settings.autoPasteSettingKey)) {
+        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();
         }
 
         return true;
-    },
-};
+    };
+
+    definition.createInstance = () => createRecentlyUsedDefinitionKaomojiInstance();
+
+    return definition;
+}
+
+/**
+ * Section definition template for recently used kaomoji items.
+ */
+export const RecentlyUsedDefinitionKaomoji = createRecentlyUsedDefinitionKaomojiInstance();

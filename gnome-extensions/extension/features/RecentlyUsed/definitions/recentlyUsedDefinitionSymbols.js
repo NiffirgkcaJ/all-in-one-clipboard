@@ -8,29 +8,34 @@ import { ensureSymbolsSearchProviderRegistered } from '../../Symbols/integration
 import { SymbolsProvider } from '../../Symbols/constants/symbolsConstants.js';
 import { SymbolsViewRenderer } from '../../Symbols/view/symbolsViewRenderer.js';
 
-let _recentManager = null;
 const _symbolsSearchRenderer = new SymbolsViewRenderer();
 
 /**
- * Section definition for recently used symbol items.
+ * Creates a runtime-scoped symbols section definition.
+ *
+ * @returns {object} Symbols section definition instance.
  */
-export const RecentlyUsedDefinitionSymbols = {
-    id: 'symbols',
-    targetTab: 'Symbols',
-    layoutType: 'grid',
-    source: {
-        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
-    },
-    settings: {
-        enabledSettingKey: 'enable-symbols-tab',
-        autoPasteSettingKey: 'auto-paste-symbols',
-    },
-    gridPresentation: {
-        contentMode: 'char-or-value-text',
-        tooltipMode: 'name-or-value',
-        icon: null,
-    },
-    listPresentation: null,
+function createRecentlyUsedDefinitionSymbolsInstance() {
+    let recentManager = null;
+
+    const definition = {
+        id: 'symbols',
+        targetTab: 'Symbols',
+        layoutType: 'grid',
+        source: {
+            maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
+        },
+        settings: {
+            enabledSettingKey: 'enable-symbols-tab',
+            autoPasteSettingKey: 'auto-paste-symbols',
+        },
+        gridPresentation: {
+            contentMode: 'char-or-value-text',
+            tooltipMode: 'name-or-value',
+            icon: null,
+        },
+        listPresentation: null,
+    };
 
     /**
      * Initializes the symbols recents manager.
@@ -39,29 +44,29 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {string} params.extensionUuid Extension UUID.
      * @param {object} params.settings Extension settings object.
      */
-    initialize: ({ extensionUuid, settings }) => {
+    definition.initialize = ({ extensionUuid, settings }) => {
         ensureSymbolsSearchProviderRegistered({ extensionUuid });
 
-        if (_recentManager) {
+        if (recentManager) {
             try {
-                _recentManager.destroy();
+                recentManager.destroy();
             } catch {
                 // Ignore stale manager teardown errors before re-init.
             }
-            _recentManager = null;
+            recentManager = null;
         }
 
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_SYMBOLS');
-        _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'symbols-recents-max-items');
-    },
+        recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'symbols-recents-max-items');
+    };
 
     /**
      * Cleans up symbols recents resources.
      */
-    destroy: () => {
-        _recentManager?.destroy();
-        _recentManager = null;
-    },
+    definition.destroy = () => {
+        recentManager?.destroy();
+        recentManager = null;
+    };
 
     /**
      * Returns signals that trigger symbols section updates.
@@ -70,10 +75,10 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ onRender }) => {
-        if (!_recentManager) return [];
-        return [{ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) }];
-    },
+    definition.getSignals = ({ onRender }) => {
+        if (!recentManager) return [];
+        return [{ obj: recentManager, id: recentManager.connect('recents-changed', onRender) }];
+    };
 
     /**
      * Indicates whether the symbols section is enabled.
@@ -82,18 +87,18 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {object} params.settings Extension settings object.
      * @returns {boolean} True when enabled.
      */
-    isEnabled: ({ settings }) => {
-        return settings?.get_boolean(RecentlyUsedDefinitionSymbols.settings.enabledSettingKey) ?? true;
-    },
+    definition.isEnabled = ({ settings }) => {
+        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+    };
 
     /**
      * Returns symbols recents.
      *
      * @returns {Array<object>} Symbol items.
      */
-    getItems: () => {
-        return _recentManager?.getRecents?.() || [];
-    },
+    definition.getItems = () => {
+        return recentManager?.getRecents?.() || [];
+    };
 
     /**
      * Searches the symbols catalog using the same filter behavior as the Symbols tab.
@@ -102,9 +107,9 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {string} params.query Normalized search query.
      * @returns {Promise<Array<object>>} Matching symbol entries.
      */
-    searchItems: async ({ query }) => {
+    definition.searchItems = async ({ query }) => {
         return searchViaProvider(SymbolsProvider.SEARCH_PROVIDER_ID, { query });
-    },
+    };
 
     /**
      * Maps a source item into the shared section payload format.
@@ -112,7 +117,7 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
-    mapItem: (sourceItem) => {
+    definition.mapItem = (sourceItem) => {
         const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
         const normalizedValue = normalizedItem.value || normalizedItem.char || normalizedItem.symbol || '';
         normalizedItem.value = typeof normalizedValue === 'string' ? normalizedValue : '';
@@ -122,11 +127,11 @@ export const RecentlyUsedDefinitionSymbols = {
 
         return {
             ...normalizedItem,
-            __recentlyUsedListPresentation: RecentlyUsedDefinitionSymbols.listPresentation,
-            __recentlyUsedGridPresentation: RecentlyUsedDefinitionSymbols.gridPresentation,
+            __recentlyUsedListPresentation: definition.listPresentation,
+            __recentlyUsedGridPresentation: definition.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
-    },
+    };
 
     /**
      * Matches symbol entries using Symbols tab search behavior.
@@ -137,7 +142,7 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {Function} params.fallbackMatch Generic fallback matcher.
      * @returns {boolean} True when the symbol matches search.
      */
-    matchesSearch: ({ item, query, fallbackMatch }) => {
+    definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
             return true;
         }
@@ -147,7 +152,7 @@ export const RecentlyUsedDefinitionSymbols = {
         } catch {
             return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
         }
-    },
+    };
 
     /**
      * Handles clicks by copying symbol content and updating recents.
@@ -155,17 +160,26 @@ export const RecentlyUsedDefinitionSymbols = {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    onClick: async ({ itemData, settings }) => {
+    definition.onClick = async ({ itemData, settings }) => {
         const contentToCopy = itemData?.char || itemData?.value || itemData?.symbol || '';
         if (!contentToCopy) return false;
 
         setRecentlyUsedClipboardText(contentToCopy);
-        _recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy });
+        recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy });
 
-        if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionSymbols.settings.autoPasteSettingKey)) {
+        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();
         }
 
         return true;
-    },
-};
+    };
+
+    definition.createInstance = () => createRecentlyUsedDefinitionSymbolsInstance();
+
+    return definition;
+}
+
+/**
+ * Section definition template for recently used symbol items.
+ */
+export const RecentlyUsedDefinitionSymbols = createRecentlyUsedDefinitionSymbolsInstance();

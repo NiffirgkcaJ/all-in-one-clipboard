@@ -17,30 +17,34 @@ const GIF_PLACEHOLDER = {
     iconSize: 64,
 };
 
-let _recentManager = null;
-
 /**
- * Section definition for recently used GIF items.
+ * Creates a runtime-scoped GIF section definition.
+ *
+ * @returns {object} GIF section definition instance.
  */
-export const RecentlyUsedDefinitionGif = {
-    id: 'gif',
-    targetTab: 'GIF',
-    layoutType: 'grid',
-    source: {
-        maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
-    },
-    settings: {
-        enabledSettingKey: 'enable-gif-tab',
-        autoPasteSettingKey: 'auto-paste-gif',
-    },
-    gridPresentation: {
-        contentMode: 'icon',
-        tooltipMode: 'description-or-fallback',
-        icon: {
-            kind: 'gif-placeholder',
+function createRecentlyUsedDefinitionGifInstance() {
+    let recentManager = null;
+
+    const definition = {
+        id: 'gif',
+        targetTab: 'GIF',
+        layoutType: 'grid',
+        source: {
+            maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
         },
-    },
-    listPresentation: null,
+        settings: {
+            enabledSettingKey: 'enable-gif-tab',
+            autoPasteSettingKey: 'auto-paste-gif',
+        },
+        gridPresentation: {
+            contentMode: 'icon',
+            tooltipMode: 'description-or-fallback',
+            icon: {
+                kind: 'gif-placeholder',
+            },
+        },
+        listPresentation: null,
+    };
 
     /**
      * Initializes GIF recents and runtime services.
@@ -49,31 +53,31 @@ export const RecentlyUsedDefinitionGif = {
      * @param {string} params.extensionUuid Extension UUID.
      * @param {object} params.settings Extension settings object.
      */
-    initialize: ({ extensionUuid, extensionPath, settings }) => {
-        if (_recentManager) {
+    definition.initialize = ({ extensionUuid, extensionPath, settings }) => {
+        if (recentManager) {
             try {
-                _recentManager.destroy();
+                recentManager.destroy();
             } catch {
                 // Ignore stale manager teardown errors before re-init.
             }
-            _recentManager = null;
+            recentManager = null;
         }
 
         const absolutePath = resolveRecentlyUsedRecentFilePath('RECENT_GIFS');
-        _recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'gif-recents-max-items');
+        recentManager = createRecentlyUsedRecentsManager(extensionUuid, settings, absolutePath, 'gif-recents-max-items');
         getRecentlyUsedGifRuntime(); // Start HTTP session if needed
         ensureGifSearchProviderRegistered({ settings, extensionUuid, extensionPath });
-    },
+    };
 
     /**
      * Cleans up GIF recents and runtime services.
      */
-    destroy: () => {
-        _recentManager?.destroy();
-        _recentManager = null;
+    definition.destroy = () => {
+        recentManager?.destroy();
+        recentManager = null;
 
         destroyRecentlyUsedGifRuntime();
-    },
+    };
 
     /**
      * Returns signals that trigger GIF section updates.
@@ -82,11 +86,11 @@ export const RecentlyUsedDefinitionGif = {
      * @param {Function} params.onRender Re-render callback.
      * @returns {Array<object>} Signal descriptors.
      */
-    getSignals: ({ settings, onRender }) => {
+    definition.getSignals = ({ settings, onRender }) => {
         const signals = [];
 
-        if (_recentManager) {
-            signals.push({ obj: _recentManager, id: _recentManager.connect('recents-changed', onRender) });
+        if (recentManager) {
+            signals.push({ obj: recentManager, id: recentManager.connect('recents-changed', onRender) });
         }
 
         if (settings && typeof settings.connect === 'function') {
@@ -94,7 +98,7 @@ export const RecentlyUsedDefinitionGif = {
         }
 
         return signals;
-    },
+    };
 
     /**
      * Indicates whether the GIF section is enabled.
@@ -103,18 +107,18 @@ export const RecentlyUsedDefinitionGif = {
      * @param {object} params.settings Extension settings object.
      * @returns {boolean} True when enabled.
      */
-    isEnabled: ({ settings }) => {
-        return settings?.get_boolean(RecentlyUsedDefinitionGif.settings.enabledSettingKey) ?? true;
-    },
+    definition.isEnabled = ({ settings }) => {
+        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+    };
 
     /**
      * Returns GIF recents.
      *
      * @returns {Array<object>} GIF items.
      */
-    getItems: () => {
-        return _recentManager?.getRecents?.() || [];
-    },
+    definition.getItems = () => {
+        return recentManager?.getRecents?.() || [];
+    };
 
     /**
      * Executes provider-level GIF search when a query is present.
@@ -123,9 +127,9 @@ export const RecentlyUsedDefinitionGif = {
      * @param {string} params.query Normalized search query.
      * @returns {Promise<Array<object>>} Provider search results.
      */
-    searchItems: async ({ query }) => {
+    definition.searchItems = async ({ query }) => {
         return searchViaProvider(GifProvider.SEARCH_PROVIDER_ID, { query });
-    },
+    };
 
     /**
      * Maps a source item into the shared section payload format.
@@ -133,7 +137,7 @@ export const RecentlyUsedDefinitionGif = {
      * @param {object|string} sourceItem Source entry.
      * @returns {object} Normalized payload.
      */
-    mapItem: (sourceItem) => {
+    definition.mapItem = (sourceItem) => {
         const normalizedItem = sourceItem && typeof sourceItem === 'object' ? { ...sourceItem } : { value: sourceItem };
 
         if (typeof normalizedItem.value !== 'string' || normalizedItem.value.length === 0) {
@@ -142,11 +146,11 @@ export const RecentlyUsedDefinitionGif = {
 
         return {
             ...normalizedItem,
-            __recentlyUsedListPresentation: RecentlyUsedDefinitionGif.listPresentation,
-            __recentlyUsedGridPresentation: RecentlyUsedDefinitionGif.gridPresentation,
+            __recentlyUsedListPresentation: definition.listPresentation,
+            __recentlyUsedGridPresentation: definition.gridPresentation,
             __recentlyUsedClickPayload: sourceItem,
         };
-    },
+    };
 
     /**
      * Matches GIF entries against global search query with GIF-specific priorities.
@@ -157,7 +161,7 @@ export const RecentlyUsedDefinitionGif = {
      * @param {Function} params.fallbackMatch Generic fallback matcher.
      * @returns {boolean} True when the GIF matches search.
      */
-    matchesSearch: ({ item, query, fallbackMatch }) => {
+    definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
             return true;
         }
@@ -172,7 +176,7 @@ export const RecentlyUsedDefinitionGif = {
         } catch {
             return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
         }
-    },
+    };
 
     /**
      * Resolves a grid icon definition for the given icon kind.
@@ -180,20 +184,20 @@ export const RecentlyUsedDefinitionGif = {
      * @param {string} iconKind Requested icon kind.
      * @returns {object|null} Icon definition or null.
      */
-    resolveGridIcon: (iconKind) => {
+    definition.resolveGridIcon = (iconKind) => {
         if (iconKind === 'gif-placeholder') {
             return GIF_PLACEHOLDER;
         }
 
         return null;
-    },
+    };
 
     /**
      * Loads a cached preview icon for a grid item.
      *
      * @param {object} params Grid item creation context.
      */
-    onGridItemCreated: ({ widget, item, renderSession, currentRenderSession }) => {
+    definition.onGridItemCreated = ({ widget, item, renderSession, currentRenderSession }) => {
         const previewUrl = item?.preview_url;
         if (!previewUrl) return;
 
@@ -228,7 +232,7 @@ export const RecentlyUsedDefinitionGif = {
         };
 
         updatePreview();
-    },
+    };
 
     /**
      * Handles clicks by copying GIF content and updating recents.
@@ -236,16 +240,25 @@ export const RecentlyUsedDefinitionGif = {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    onClick: async ({ itemData, extension, settings }) => {
+    definition.onClick = async ({ itemData, extension, settings }) => {
         const copySuccess = await copyRecentlyUsedGifToClipboard(itemData, settings, extension);
         if (!copySuccess) return false;
 
-        _recentManager?.addItem(itemData);
+        recentManager?.addItem(itemData);
 
-        if (shouldRecentlyUsedAutoPaste(settings, RecentlyUsedDefinitionGif.settings.autoPasteSettingKey)) {
+        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
             await triggerRecentlyUsedAutoPaste();
         }
 
         return true;
-    },
-};
+    };
+
+    definition.createInstance = () => createRecentlyUsedDefinitionGifInstance();
+
+    return definition;
+}
+
+/**
+ * Section definition template for recently used GIF items.
+ */
+export const RecentlyUsedDefinitionGif = createRecentlyUsedDefinitionGifInstance();
