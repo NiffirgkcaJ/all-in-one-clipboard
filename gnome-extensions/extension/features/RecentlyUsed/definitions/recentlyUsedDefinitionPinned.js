@@ -1,7 +1,7 @@
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
-import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { RecentlyUsedDefaultPolicy, RecentlyUsedLimitMode } from '../constants/recentlyUsedPolicyConstants.js';
 import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste, renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
@@ -18,6 +18,13 @@ function createRecentlyUsedDefinitionPinnedInstance() {
         id: 'pinned',
         targetTab: 'Clipboard',
         layoutType: 'list',
+        defaultPolicy: {
+            defaultLimitMode: RecentlyUsedLimitMode.UNLIMITED,
+            customLimitByContext: false,
+            customDisplayByView: false,
+            customVisibleByView: false,
+            customWindowByView: false,
+        },
         source: {
             maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
         },

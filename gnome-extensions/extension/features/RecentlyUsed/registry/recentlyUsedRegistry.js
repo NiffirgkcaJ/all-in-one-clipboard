@@ -1,4 +1,6 @@
-import { RecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
 
 const recentlyUsedRegistry = new Map();
 const recentlyUsedOrderRegistry = [];
@@ -72,7 +74,7 @@ export async function initializeRecentlyUsedRegistry() {
     }
 
     initializeRecentlyUsedRegistryPromise = (async () => {
-        registerRecentlyUsedOrder(RecentlyUsedOrder);
+        registerRecentlyUsedOrder(getRecentlyUsedOrder(_));
         recentlyUsedRegistry.clear();
 
         if (recentlyUsedOrderRegistry.length === 0) {

@@ -5,9 +5,12 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import { getGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
-import { GifProviderRegistry } from './features/GIF/logic/gifProviderRegistry.js';
 import { initStorage } from './shared/constants/storagePaths.js';
+
+import { addRecentlyUsedAdvancedOverridesPrefs } from './features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js';
+import { getGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
+import { getRecentlyUsedOrder } from './features/RecentlyUsed/definitions/recentlyUsedOrder.js';
+import { GifProviderRegistry } from './features/GIF/logic/gifProviderRegistry.js';
 
 export default class AllInOneClipboardPreferences extends ExtensionPreferences {
     /**
@@ -59,7 +62,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         this._addRecentItemsGroup(page, settings);
         this._addAutoPasteGroup(page, settings);
         this._addGridLayoutGroup(page, settings);
-        this._addRecentlyUsedGroup(page, settings);
+        this._addRecentlyUsedGroup(page, settings, window);
         this._addEmojiSettingsGroup(page, settings);
         this._addGifSettingsGroup(page, settings);
         this._addClipboardSettingsGroup(page, settings);
@@ -842,8 +845,9 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
      *
      * @param {Adw.PreferencesPage} page - The preferences page to add the group to.
      * @param {Gio.Settings} settings - The Gio.Settings instance.
+     * @param {Adw.PreferencesWindow} window - The preferences window for subpage navigation.
      */
-    _addRecentlyUsedGroup(page, settings) {
+    _addRecentlyUsedGroup(page, settings, window) {
         const group = new Adw.PreferencesGroup({
             title: _('Recently Used'),
             description: _('Behavior settings for the Recently Used tab.'),
@@ -928,7 +932,9 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             settings.bind(key, expander, 'enable-expansion', Gio.SettingsBindFlags.DEFAULT);
 
             const syncExpandedState = () => {
-                expander.expanded = expander.enable_expansion;
+                if (!expander.enable_expansion && expander.expanded) {
+                    expander.expanded = false;
+                }
             };
 
             syncExpandedState();
@@ -1111,6 +1117,15 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                 subtitle: _('Hard cap for unlimited mode to protect shell responsiveness.'),
             }),
         );
+        addRecentlyUsedAdvancedOverridesPrefs({
+            settings,
+            window,
+            group,
+            signalIds,
+            sectionDescriptors: getRecentlyUsedOrder(_),
+            getRangeFromSchema: (key) => this._getRangeFromSchema(settings, key),
+            translate: _,
+        });
     }
 
     /**

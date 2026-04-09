@@ -386,6 +386,11 @@
             <summary>Unlimited safety cap in Recently Used</summary>
             <description>Maximum number of items allowed in Recently Used when limit mode is unlimited.</description>
         </key>
+        <key name="recently-used-advanced-section-overrides" type="s">
+            <default>'{}'</default>
+            <summary>Advanced Recently Used section overrides</summary>
+            <description>Serialized object storing per-section Recently Used policy overrides to avoid schema key explosion.</description>
+        </key>
 
         <!-- Emoji Settings -->
         <key name="enable-custom-skin-tones" type="b">

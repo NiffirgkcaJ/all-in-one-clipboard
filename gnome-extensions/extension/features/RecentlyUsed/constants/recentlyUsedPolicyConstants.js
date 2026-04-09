@@ -35,6 +35,7 @@ export const RecentlyUsedDefaultPolicy = {
 // Canonical GSettings keys used by Recently Used policy resolution and change tracking.
 export const RecentlyUsedPolicySettings = {
     EXTENSION_WIDTH: 'extension-width',
+    ENABLE_RECENTLY_USED_SEARCH: 'enable-recently-used-search',
     DEFAULT_LIMIT_MODE: 'recently-used-default-limit-mode',
     ENABLE_CUSTOM_LIMIT_POLICY: 'recently-used-enable-custom-limit-policy',
     HISTORY_LIMIT_MODE: 'recently-used-history-limit-mode',
@@ -53,6 +54,7 @@ export const RecentlyUsedPolicySettings = {
     GRID_WINDOW_ROWS: 'recently-used-grid-window-rows',
     GRID_WINDOW_COLUMNS: 'recently-used-grid-window-columns',
     UNLIMITED_SAFETY_CAP: 'recently-used-unlimited-safety-cap',
+    ADVANCED_SECTION_OVERRIDES: 'recently-used-advanced-section-overrides',
 };
 
 // GSettings keys monitored for policy changes.
