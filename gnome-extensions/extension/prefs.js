@@ -1124,7 +1124,6 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
             signalIds,
             sectionDescriptors: getRecentlyUsedOrder(_),
             getRangeFromSchema: (key) => this._getRangeFromSchema(settings, key),
-            translate: _,
         });
     }
 

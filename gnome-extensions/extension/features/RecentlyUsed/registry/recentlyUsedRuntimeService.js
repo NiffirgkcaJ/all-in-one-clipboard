@@ -334,7 +334,7 @@ export class RecentlyUsedRuntimeService {
         const windowLimit = resolvePositiveInt(resolvedPolicy?.limits?.windowLimit, filteredItems.length);
         const cappedItems = filteredItems.slice(0, effectiveCap);
         const items = resolvedPolicy?.displayMode === RecentlyUsedDisplayMode.FIXED_WINDOW ? cappedItems.slice(0, windowLimit) : cappedItems;
-        const { listLayout, gridLayout, nestedLayout } = resolveRecentlyUsedSectionLayouts(sectionConfig, resolvedPolicy);
+        const { gridLayout, listLayout, nestedLayout } = resolveRecentlyUsedSectionLayouts(sectionConfig, resolvedPolicy);
 
         return {
             visible: true,
@@ -347,8 +347,8 @@ export class RecentlyUsedRuntimeService {
                 baseTitle: baseSectionTitle,
             }),
             resolvedPolicy,
-            listLayout,
             gridLayout,
+            listLayout,
             nestedLayout,
             listContentRenderer: typeof sectionConfig.renderListContent === 'function' ? (args) => sectionConfig.renderListContent(args) : null,
             gridIconResolver: typeof sectionConfig.resolveGridIcon === 'function' ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,

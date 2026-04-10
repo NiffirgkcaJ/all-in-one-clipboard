@@ -305,5 +305,6 @@ export function renderRecentlyUsedNestedGridSection({ id, nestedLayout, resolved
         widgets,
         nestedScrollView,
         showAllBtn: sectionData.showAllBtn,
+        isScrollable: sourceItems.length > windowSize,
     };
 }

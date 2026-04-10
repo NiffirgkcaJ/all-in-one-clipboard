@@ -78,23 +78,6 @@ export function resolveRecentlyUsedDisplayLayout(sectionConfig, baseLayout, reso
 }
 
 /**
- * Resolves the nested list layout configuration for a recently used section based on policy and configuration.
- *
- * @param {object} nestedLayoutConfig Section layout configuration object for nested list.
- * @param {object} resolvedPolicy Resolved display policy model.
- * @returns {object} Resolved nested list layout configuration.
- */
-export function resolveRecentlyUsedListLayout(sectionConfig, resolvedPolicy = null) {
-    const policyLimits = resolvedPolicy?.limits || null;
-    const layoutPolicy = sectionConfig?.layoutPolicy;
-
-    return {
-        maxVisible: resolveLayoutInt(policyLimits?.listWindowRows ?? policyLimits?.listVisibleLimit, layoutPolicy?.maxVisible, RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS),
-        itemHeight: layoutPolicy?.itemHeight ?? RecentlyUsedUI.NESTED_ITEM_HEIGHT,
-    };
-}
-
-/**
  * Resolves the grid layout configuration for a recently used section based on policy and configuration.
  *
  * @param {object} sectionConfig Section configuration object for grid layout.
@@ -107,6 +90,23 @@ export function resolveRecentlyUsedGridLayout(sectionConfig, resolvedPolicy = nu
 
     return {
         columnCount: resolveLayoutInt(policyLimits?.gridColumns, layoutPolicy?.columnCount ?? layoutPolicy?.columns, RecentlyUsedDefaultPolicy.GRID_WINDOW_COLUMNS),
+    };
+}
+
+/**
+ * Resolves the list layout configuration for a recently used section based on policy and configuration.
+ *
+ * @param {object} sectionConfig Section configuration object for list layout.
+ * @param {object} resolvedPolicy Resolved display policy model.
+ * @returns {object} Resolved list layout configuration.
+ */
+export function resolveRecentlyUsedListLayout(sectionConfig, resolvedPolicy = null) {
+    const policyLimits = resolvedPolicy?.limits || null;
+    const layoutPolicy = sectionConfig?.layoutPolicy;
+
+    return {
+        maxVisible: resolveLayoutInt(policyLimits?.listWindowRows ?? policyLimits?.listVisibleLimit, layoutPolicy?.maxVisible, RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS),
+        itemHeight: layoutPolicy?.itemHeight ?? RecentlyUsedUI.NESTED_ITEM_HEIGHT,
     };
 }
 
@@ -137,8 +137,8 @@ export function resolveRecentlyUsedNestedLayout(sectionConfig, resolvedPolicy = 
  */
 export function resolveRecentlyUsedSectionLayouts(sectionConfig, resolvedPolicy = null) {
     return {
-        listLayout: resolveRecentlyUsedListLayout(sectionConfig, resolvedPolicy),
         gridLayout: resolveRecentlyUsedGridLayout(sectionConfig, resolvedPolicy),
+        listLayout: resolveRecentlyUsedListLayout(sectionConfig, resolvedPolicy),
         nestedLayout: resolveRecentlyUsedNestedLayout(sectionConfig, resolvedPolicy),
     };
 }

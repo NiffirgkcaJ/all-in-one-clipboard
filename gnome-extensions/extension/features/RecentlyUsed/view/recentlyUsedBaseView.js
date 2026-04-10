@@ -144,9 +144,21 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
         /**
          * Attempt to intelligently focus the best widget upon rendering or activation.
-         * Prioritizes section headers, then items, then any focusable element.
+         * Prioritizes search field, then first content items, then section headers, then any element.
          */
         focusBestCandidate() {
+            if (this._isSearchEnabled() && this._searchComponent) {
+                const searchWidget = this._searchComponent.getWidget();
+                if (searchWidget?.visible && searchWidget.get_stage()) {
+                    try {
+                        this._searchComponent.grabFocus();
+                        return;
+                    } catch {
+                        // Pass through to fallbacks
+                    }
+                }
+            }
+
             const showAllButtons = new Set();
             for (const section of Object.values(this._sections)) {
                 if (section.showAllBtn) {
@@ -154,8 +166,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 }
             }
 
-            if (this._tryFocusShowAllButton(showAllButtons)) return;
             if (this._tryFocusContentItem(showAllButtons)) return;
+            if (this._tryFocusShowAllButton(showAllButtons)) return;
             this._tryFocusAnyWidget();
         }
 
@@ -306,43 +318,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             const effectiveLayout = renderModel.effectiveLayout;
             const items = renderModel.items;
 
-            if (effectiveLayout === 'nested-list') {
-                const result = renderRecentlyUsedNestedListSection({
-                    id,
-                    nestedLayout: renderModel.nestedLayout,
-                    resolvedPolicy: renderModel.resolvedPolicy,
-                    sections: this._sections,
-                    items,
-                    focusGrid: this._focusGrid,
-                    createItemWidget: (itemData, sectionId = id) => this._createNestedItemWidget(itemData, sectionId, renderModel),
-                    scrollLockController: this._scrollLockController,
-                });
-
-                if (result) {
-                    this._bindNestedSectionFocus(result);
-                }
-                return;
-            }
-
-            if (effectiveLayout === 'nested-grid') {
-                const result = renderRecentlyUsedNestedGridSection({
-                    id,
-                    nestedLayout: renderModel.nestedLayout,
-                    resolvedPolicy: renderModel.resolvedPolicy,
-                    settings: this._settings,
-                    sections: this._sections,
-                    items,
-                    focusGrid: this._focusGrid,
-                    createItemWidget: (itemData, sectionId = id) => this._createGridItemWidget(itemData, sectionId, renderModel),
-                    scrollLockController: this._scrollLockController,
-                });
-
-                if (result) {
-                    this._bindNestedSectionFocus(result);
-                }
-                return;
-            }
-
             if (effectiveLayout === 'grid') {
                 renderRecentlyUsedGridSection({
                     id,
@@ -363,6 +338,43 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     focusGrid: this._focusGrid,
                     createItemWidget: (itemData, sectionId = id) => this._createListItemWidget(itemData, sectionId, renderModel),
                 });
+                return;
+            }
+
+            if (effectiveLayout === 'nested-grid') {
+                const result = renderRecentlyUsedNestedGridSection({
+                    id,
+                    nestedLayout: renderModel.nestedLayout,
+                    resolvedPolicy: renderModel.resolvedPolicy,
+                    settings: this._settings,
+                    sections: this._sections,
+                    items,
+                    focusGrid: this._focusGrid,
+                    createItemWidget: (itemData, sectionId = id) => this._createNestedGridItemWidget(itemData, sectionId, renderModel),
+                    scrollLockController: this._scrollLockController,
+                });
+
+                if (result) {
+                    this._bindNestedSectionFocus(result, sectionData.section);
+                }
+                return;
+            }
+
+            if (effectiveLayout === 'nested-list') {
+                const result = renderRecentlyUsedNestedListSection({
+                    id,
+                    nestedLayout: renderModel.nestedLayout,
+                    resolvedPolicy: renderModel.resolvedPolicy,
+                    sections: this._sections,
+                    items,
+                    focusGrid: this._focusGrid,
+                    createItemWidget: (itemData, sectionId = id) => this._createNestedListItemWidget(itemData, sectionId, renderModel),
+                    scrollLockController: this._scrollLockController,
+                });
+
+                if (result) {
+                    this._bindNestedSectionFocus(result, sectionData.section);
+                }
                 return;
             }
         }
@@ -545,37 +557,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Create a standard list item widget spanning the section width.
-         *
-         * @param {object} itemData Data to render
-         * @param {string} sectionId The parent section ID mapped for telemetry
-         * @param {object} renderModel Model providing internal string formatting methods
-         * @returns {Clutter.Actor} The interactive widget
-         * @private
-         */
-        _createListItemWidget(itemData, sectionId, renderModel) {
-            const runtimeContext = this._createSectionRuntimeContext();
-            const context = {
-                runtimeContext,
-                renderListContent: renderModel?.listContentRenderer || undefined,
-            };
-
-            const button = RecentlyUsedBaseWidgetFactory.createFullWidthListItem(itemData, context);
-
-            button.connect('clicked', () => {
-                const payload = itemData.__recentlyUsedClickPayload ?? itemData;
-                Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
-                    const message = e?.message ?? String(e);
-                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
-                });
-            });
-
-            this._connectStandardFocusHandler(button);
-
-            return button;
-        }
-
-        /**
          * Create a structured grid item widget spanning one column index.
          *
          * @param {object} itemData Data to render
@@ -605,14 +586,79 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
                 });
             });
-
             this._connectStandardFocusHandler(button);
 
             return button;
         }
 
         /**
-         * Create a standard block list item specifically mapped for nesting bounds.
+         * Create a standard list item widget spanning the section width.
+         *
+         * @param {object} itemData Data to render
+         * @param {string} sectionId The parent section ID mapped for telemetry
+         * @param {object} renderModel Model providing internal string formatting methods
+         * @returns {Clutter.Actor} The interactive widget
+         * @private
+         */
+        _createListItemWidget(itemData, sectionId, renderModel) {
+            const runtimeContext = this._createSectionRuntimeContext();
+            const context = {
+                runtimeContext,
+                renderListContent: renderModel?.listContentRenderer || undefined,
+            };
+
+            const button = RecentlyUsedBaseWidgetFactory.createFullWidthListItem(itemData, context);
+
+            button.connect('clicked', () => {
+                const payload = itemData.__recentlyUsedClickPayload ?? itemData;
+                Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
+                    const message = e?.message ?? String(e);
+                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                });
+            });
+            this._connectStandardFocusHandler(button);
+
+            return button;
+        }
+
+        /**
+         * Create a grid item widget specifically for nested scroll sections.
+         * Omits the standard focus handler to avoid conflict with the nested focus handler.
+         *
+         * @param {object} itemData Data to render
+         * @param {string} sectionId The parent section ID
+         * @param {object} renderModel Defines internal icon resolutions
+         * @returns {Clutter.Actor} The formatted grid button
+         * @private
+         */
+        _createNestedGridItemWidget(itemData, sectionId, renderModel) {
+            const context = {
+                resolveGridIcon: renderModel?.gridIconResolver || undefined,
+            };
+
+            const button = RecentlyUsedBaseWidgetFactory.createGridItem(itemData, context);
+
+            if (typeof renderModel?.onGridItemCreated === 'function') {
+                renderModel.onGridItemCreated({
+                    item: itemData,
+                    widget: button,
+                });
+            }
+
+            button.connect('clicked', () => {
+                const payload = itemData.__recentlyUsedClickPayload ?? itemData;
+                Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
+                    const message = e?.message ?? String(e);
+                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                });
+            });
+
+            return button;
+        }
+
+        /**
+         * Create a standard block list item specifically for nesting bounds.
+         * Omits the standard focus handler to avoid conflict with the nested focus handler.
          *
          * @param {object} itemData Data to render
          * @param {string} sectionId Target section mapped to event handling
@@ -620,7 +666,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @returns {Clutter.Actor} Bare widget not yet bound to standard scroll focus
          * @private
          */
-        _createNestedItemWidget(itemData, sectionId, renderModel) {
+        _createNestedListItemWidget(itemData, sectionId, renderModel) {
             const runtimeContext = this._createSectionRuntimeContext();
             const context = {
                 runtimeContext,
@@ -653,12 +699,15 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @param {Clutter.Actor} scope.showAllBtn Navigational sibling control for visibility locks
          * @private
          */
-        _bindNestedSectionFocus({ widgets, nestedScrollView, showAllBtn }) {
-            this._nestedSectionWidgets.add(showAllBtn);
-
+        _bindNestedSectionFocus({ widgets, nestedScrollView, isScrollable }, section) {
             widgets.forEach((widget) => {
                 this._nestedSectionWidgets.add(widget);
-                this._connectNestedFocusHandler(widget, nestedScrollView, showAllBtn);
+
+                if (isScrollable) {
+                    this._connectNestedFocusHandler(widget, nestedScrollView, section);
+                } else {
+                    this._connectStandardFocusHandler(widget);
+                }
             });
         }
 
@@ -670,7 +719,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _focusWidgetSafely(widget) {
-            if (!widget || !widget.visible || !widget.get_stage()) {
+            if (!widget || !widget.visible) {
                 return false;
             }
 
@@ -715,9 +764,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 this._clearScrollIntoViewIdle();
                 this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._scrollIntoViewIdleId = 0;
-                    if (widget.get_stage()) {
-                        ensureActorVisibleInScrollView(this._scrollView, widget);
-                    }
+                    ensureActorVisibleInScrollView(this._scrollView, widget);
                     return GLib.SOURCE_REMOVE;
                 });
                 this._previousFocus = widget;
@@ -729,10 +776,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          *
          * @param {Clutter.Actor} widget The interacted nested child widget taking focus
          * @param {St.ScrollView} nestedScrollView Scrolling parent container
-         * @param {Clutter.Actor} showAllBtn Target control above container
          * @private
          */
-        _connectNestedFocusHandler(widget, nestedScrollView, showAllBtn) {
+        _connectNestedFocusHandler(widget, nestedScrollView, section) {
             widget.connect('key-focus-in', () => {
                 const isEnteringFromOutside = !this._nestedSectionWidgets.has(this._previousFocus);
 
@@ -741,31 +787,29 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     this._clearScrollIntoViewIdle();
                     this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                         this._scrollIntoViewIdleId = 0;
-                        if (widget.get_stage()) {
-                            ensureActorVisibleInScrollView(this._scrollView, showAllBtn);
-                            ensureActorVisibleInScrollView(nestedScrollView, widget);
+                        ensureActorVisibleInScrollView(this._scrollView, section);
+                        ensureActorVisibleInScrollView(nestedScrollView, widget);
 
-                            if (this._lockTimeoutId) {
-                                GLib.source_remove(this._lockTimeoutId);
-                                this._lockTimeoutId = null;
-                            }
-
-                            this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
-                                this._lockTimeoutId = null;
-                                this._lockOuterScroll();
-                                return GLib.SOURCE_REMOVE;
-                            });
+                        if (this._lockTimeoutId) {
+                            GLib.source_remove(this._lockTimeoutId);
+                            this._lockTimeoutId = null;
                         }
+
+                        this._lockTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedUI.OUTER_SCROLL_LOCK_DELAY_MS, () => {
+                            this._lockTimeoutId = null;
+                            this._lockOuterScroll();
+                            return GLib.SOURCE_REMOVE;
+                        });
                         return GLib.SOURCE_REMOVE;
                     });
                 } else {
-                    this._lockOuterScroll();
+                    if (!this._lockTimeoutId) {
+                        this._lockOuterScroll();
+                    }
                     this._clearScrollIntoViewIdle();
                     this._scrollIntoViewIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                         this._scrollIntoViewIdleId = 0;
-                        if (widget.get_stage()) {
-                            ensureActorVisibleInScrollView(nestedScrollView, widget);
-                        }
+                        ensureActorVisibleInScrollView(nestedScrollView, widget);
                         return GLib.SOURCE_REMOVE;
                     });
                 }
@@ -823,7 +867,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 if (!row || row.length === 0) continue;
 
                 const firstItem = row[0];
-                if (!firstItem || !firstItem.visible || !firstItem.get_stage()) continue;
+                if (!firstItem || !firstItem.visible) continue;
                 if (firstItem === this._settingsBtn) continue;
                 if (showAllButtons.has(firstItem)) continue;
 
