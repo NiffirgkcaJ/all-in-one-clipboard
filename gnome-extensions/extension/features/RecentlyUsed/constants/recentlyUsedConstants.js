@@ -29,7 +29,7 @@ export const RecentlyUsedStyles = {
 // Icon Definitions
 export const RecentlyUsedIcons = {
     SETTINGS: {
-        icon: 'recently-used-settings-symbolic.svg',
+        icon: 'recently_used-settings-symbolic.svg',
         iconSize: 16,
     },
 };

@@ -13,15 +13,15 @@ function getUserCacheDir(uuid) {
     return GLib.build_filenamev([GLib.get_user_cache_dir(), uuid]);
 }
 
-function getResourceDataDir() {
+function getAssetDataDir() {
     return 'assets/data';
 }
 
-function getResourceIconsDir() {
+function getAssetIconsDir() {
     return 'assets/icons';
 }
 
-function getResourceLogosDir() {
+function getAssetLogosDir() {
     return 'assets/logos';
 }
 
@@ -31,6 +31,10 @@ function buildFileUri(absolutePath) {
 
 function buildResourceUri(relativePath) {
     return `resource:///org/gnome/shell/extensions/all-in-one-clipboard/${relativePath}`;
+}
+
+function buildExtensionUri(relativePath) {
+    return `/org/gnome/shell/extensions/all-in-one-clipboard/${relativePath}`;
 }
 
 // -------------------------------------------------------------
@@ -46,6 +50,8 @@ export let FilePath = null;
 export let FileItem = null;
 export let ResourcePath = null;
 export let ResourceItem = null;
+export let ExtensionPath = null;
+export let ExtensionItem = null;
 
 // -------------------------------------------------------------
 // Initialization
@@ -77,9 +83,9 @@ function _initFilePaths(uuid = 'default') {
 function _initResourcePaths() {
     // Resource base paths
     ResourcePath = {
-        DATA: buildResourceUri(getResourceDataDir()),
-        ICONS: buildResourceUri(getResourceIconsDir()),
-        LOGOS: buildResourceUri(getResourceLogosDir()),
+        DATA: buildResourceUri(getAssetDataDir()),
+        ICONS: buildResourceUri(getAssetIconsDir()),
+        LOGOS: buildResourceUri(getAssetLogosDir()),
     };
     ResourcePath.CLIPBOARD = `${ResourcePath.DATA}/clipboard`;
     ResourcePath.EMOJI = `${ResourcePath.DATA}/emoji`;
@@ -99,7 +105,33 @@ function _initResourcePaths() {
     };
 }
 
+function _initExtensionPaths() {
+    // Extension base paths
+    ExtensionPath = {
+        DATA: buildExtensionUri(getAssetDataDir()),
+        ICONS: buildExtensionUri(getAssetIconsDir()),
+        LOGOS: buildExtensionUri(getAssetLogosDir()),
+    };
+    ExtensionPath.CLIPBOARD = `${ExtensionPath.DATA}/clipboard`;
+    ExtensionPath.EMOJI = `${ExtensionPath.DATA}/emoji`;
+    ExtensionPath.GIF = `${ExtensionPath.DATA}/gif`;
+    ExtensionPath.KAOMOJI = `${ExtensionPath.DATA}/kaomoji`;
+    ExtensionPath.SYMBOLS = `${ExtensionPath.DATA}/symbols`;
+    ExtensionPath.FLAGS = `${ExtensionPath.ICONS}/flags`;
+    ExtensionPath.UI = `${ExtensionPath.ICONS}/ui`;
+    ExtensionPath.uri = buildExtensionUri;
+
+    // Extension items
+    ExtensionItem = {
+        COUNTRIES: `${ExtensionPath.CLIPBOARD}/countries.json`,
+        EMOJI: `${ExtensionPath.EMOJI}/emojis.json`,
+        KAOMOJI: `${ExtensionPath.KAOMOJI}/kaomojis.json`,
+        SYMBOLS: `${ExtensionPath.SYMBOLS}/symbols.json`,
+    };
+}
+
 export function initStorage(uuid) {
     _initFilePaths(uuid);
     _initResourcePaths();
+    _initExtensionPaths();
 }
