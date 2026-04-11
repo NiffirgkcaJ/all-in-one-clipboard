@@ -14,6 +14,7 @@ import { addPreferenceRecentItems } from './shared/preferences/preferenceGroupRe
 import { addPreferenceTabManagement } from './shared/preferences/preferenceGroupTabManagement.js';
 import { getIconName } from './shared/preferences/preferenceUtilities.js';
 import { initStorage, ExtensionPath } from './shared/constants/storagePaths.js';
+import { addPreferenceSettingsManagement } from './shared/preferences/preferenceGroupSettingsManagement.js';
 
 import { addPreferenceClipboardSettings } from './features/Clipboard/preferences/clipboardPreferenceGroup.js';
 import { addPreferenceEmojiSettings } from './features/Emoji/preferences/emojiPreferenceGroup.js';
@@ -101,5 +102,6 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
 
         addPreferenceExclusions({ page: advancedPage, settings });
         addPreferenceDataManagement({ page: advancedPage, settings, window });
+        addPreferenceSettingsManagement({ page: advancedPage, settings, window });
     }
 }
