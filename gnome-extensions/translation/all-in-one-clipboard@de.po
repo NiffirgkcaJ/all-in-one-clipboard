@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-11 10:16+0000\n"
+"POT-Creation-Date: 2026-04-12 00:47+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -17,50 +17,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: gnome-extensions/extension/extension.js:36
-#: gnome-extensions/extension/extension.js:642
-#: gnome-extensions/extension/features/Emoji/tabEmoji.js:103
-#: gnome-extensions/extension/features/GIF/tabGIF.js:196
-#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:81
-#: gnome-extensions/extension/features/Symbols/tabSymbols.js:81
-msgid "Recently Used"
-msgstr "Zuletzt genutzt"
-
-#: gnome-extensions/extension/extension.js:37
-#: gnome-extensions/extension/extension.js:1088
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
-msgid "Emoji"
-msgstr "Emoji"
-
-#: gnome-extensions/extension/extension.js:38
-#: gnome-extensions/extension/extension.js:664
-#: gnome-extensions/extension/extension.js:1089
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
-msgid "GIF"
-msgstr "GIF"
-
-#: gnome-extensions/extension/extension.js:39
-#: gnome-extensions/extension/extension.js:1090
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
-msgid "Kaomoji"
-msgstr "Kaomoji"
-
-#: gnome-extensions/extension/extension.js:40
-#: gnome-extensions/extension/extension.js:1091
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
-msgid "Symbols"
-msgstr "Symbole"
-
-#: gnome-extensions/extension/extension.js:41
-#: gnome-extensions/extension/extension.js:664
-#: gnome-extensions/extension/extension.js:1087
+#: gnome-extensions/extension/extension.js:113
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:6
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
 msgid "Clipboard"
 msgstr "Zwischenablage"
 
-#: gnome-extensions/extension/extension.js:112
-msgid "All-in-One Clipboard"
-msgstr "All-in-One Zwischenablage"
+#: gnome-extensions/extension/extension.js:114
+#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:6
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
+msgid "Emoji"
+msgstr "Emoji"
+
+#: gnome-extensions/extension/extension.js:115
+#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:6
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
+msgid "GIF"
+msgstr "GIF"
+
+#: gnome-extensions/extension/extension.js:116
+#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:6
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
+msgid "Kaomoji"
+msgstr "Kaomoji"
+
+#: gnome-extensions/extension/extension.js:117
+#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:6
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+msgid "Symbols"
+msgstr "Symbole"
 
 #: gnome-extensions/extension/prefs.js:72
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
@@ -254,6 +239,14 @@ msgstr "Sekundärer Farbton"
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:79
 msgid "For the second person in pairs."
 msgstr "Für die zweite Person in Paaren."
+
+#: gnome-extensions/extension/features/Emoji/tabEmoji.js:103
+#: gnome-extensions/extension/features/GIF/tabGIF.js:196
+#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:81
+#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
+#: gnome-extensions/extension/features/Symbols/tabSymbols.js:81
+msgid "Recently Used"
+msgstr "Zuletzt genutzt"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:22
 msgid "GIF Settings"
@@ -764,6 +757,10 @@ msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sich
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:253
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
+
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:28
+msgid "All-in-One Clipboard"
+msgstr "All-in-One Zwischenablage"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:14
 msgid "Auto-Paste Settings"
