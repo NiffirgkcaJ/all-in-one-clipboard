@@ -195,12 +195,18 @@ export const EmojiTabContent = GObject.registerClass(
         /**
          * Called by the parent when this tab is selected.
          */
-        async onTabSelected() {
-            await this._setupPromise;
-
-            this.emit('set-main-tab-bar-visibility', false);
-
-            this._viewer?.onSelected();
+        onTabSelected() {
+            if (this._viewer) {
+                this.emit('set-main-tab-bar-visibility', false);
+                this._viewer.onSelected();
+            } else {
+                this._setupPromise
+                    .then(() => {
+                        this.emit('set-main-tab-bar-visibility', false);
+                        this._viewer?.onSelected();
+                    })
+                    .catch((e) => console.error(e));
+            }
         }
 
         /**

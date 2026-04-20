@@ -110,6 +110,10 @@ export const MenuIndicator = GObject.registerClass(
             this._contentArea.connect('set-main-tab-bar-visibility', (actor, isVisible) => {
                 this._tabBar.setTabBarVisibility(isVisible);
             });
+
+            this._tabBar.connect('navigate-down', () => {
+                this._contentArea.focusActiveTabContent();
+            });
         }
 
         // ========================================================================

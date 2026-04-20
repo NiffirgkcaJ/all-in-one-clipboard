@@ -79,7 +79,6 @@ export const GIFTabContent = GObject.registerClass(
             });
 
             this._providerChangedSignalId = 0;
-            this._focusIdleId = 0;
             this._scrollHeaderIdleId = 0;
             this._isClearingForCategoryChange = false;
             this._recentsManager = null;
@@ -873,25 +872,15 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _focusSearchOrFirstItem() {
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
-            }
+            const searchWidget = this._searchComponent?.getWidget();
 
-            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                this._focusIdleId = 0;
-                const searchWidget = this._searchComponent?.getWidget();
-
-                if (searchWidget && searchWidget.visible) {
-                    this._searchComponent.grabFocus();
-                } else if (!this._focusFirstGifResult()) {
-                    if (this._headerFocusables.length > 0) {
-                        this._headerFocusables[0].grab_key_focus();
-                    }
+            if (searchWidget && searchWidget.visible) {
+                this._searchComponent.grabFocus();
+            } else if (!this._focusFirstGifResult()) {
+                if (this._headerFocusables.length > 0) {
+                    this._headerFocusables[0].grab_key_focus();
                 }
-
-                return GLib.SOURCE_REMOVE;
-            });
+            }
         }
 
         /**
@@ -1312,10 +1301,6 @@ export const GIFTabContent = GObject.registerClass(
          * Clean up all resources.
          */
         destroy() {
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
-            }
             if (this._scrollHeaderIdleId) {
                 GLib.source_remove(this._scrollHeaderIdleId);
                 this._scrollHeaderIdleId = 0;

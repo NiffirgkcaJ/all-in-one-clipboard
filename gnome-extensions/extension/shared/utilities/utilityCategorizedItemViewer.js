@@ -109,7 +109,6 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._setActiveCategoryTimeoutId = 0;
             this._yieldTimeoutId = 0;
             this._scrollIdleId = 0;
-            this._focusIdleId = 0;
             this._initIdleId = 0;
             this._layoutIdleId = 0;
             this._itemFocusIdleId = 0;
@@ -381,10 +380,6 @@ export const CategorizedItemViewer = GObject.registerClass(
         _onFocusRingKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
 
-            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right) {
-                return Clutter.EVENT_PROPAGATE;
-            }
-
             const focusables = this._getHeaderFocusables();
             if (focusables.length === 0) {
                 return Clutter.EVENT_PROPAGATE;
@@ -394,7 +389,16 @@ export const CategorizedItemViewer = GObject.registerClass(
             const currentIndex = focusables.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
+            }
+
+            if (symbol === Clutter.KEY_Down) {
+                this._searchComponent?.grabFocus();
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
         }
 
         /**
@@ -446,15 +450,12 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Focuses the search bar for immediate typing.
          */
         onSelected() {
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
+            this._searchComponent?.grabFocus();
+
+            if (this._config.enableTabScrolling && this._tabScrollPolicyDebouncer) {
+                this._tabScrollPolicyState = null;
+                this._tabScrollPolicyDebouncer.trigger();
             }
-            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                this._searchComponent?.grabFocus();
-                this._focusIdleId = 0;
-                return GLib.SOURCE_REMOVE;
-            });
         }
 
         /**
@@ -751,6 +752,8 @@ export const CategorizedItemViewer = GObject.registerClass(
         _updateTabScrollPolicy() {
             if (!this._config.enableTabScrolling || !this._categoryTabScrollView || !this._categoryTabBar) return;
 
+            if (!this.mapped) return;
+
             const availableWidth = this._getTabScrollAvailableWidth();
             if (availableWidth <= 0) return;
 
@@ -986,10 +989,6 @@ export const CategorizedItemViewer = GObject.registerClass(
             if (this._scrollIdleId) {
                 GLib.source_remove(this._scrollIdleId);
                 this._scrollIdleId = 0;
-            }
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
             }
             if (this._initIdleId) {
                 GLib.source_remove(this._initIdleId);

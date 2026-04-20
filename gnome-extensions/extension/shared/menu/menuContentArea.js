@@ -8,7 +8,7 @@ import { applySearchHandoffToTab } from '../services/serviceSearchHub.js';
 import { FilePath } from '../constants/storagePaths.js';
 import { IOFile } from '../utilities/utilityIO.js';
 
-import { getMenuSectionByLocalizedName } from './menuRegistry.js';
+import { getMenuSectionByLocalizedName, getMenuOrderedSections } from './menuRegistry.js';
 
 /**
  * The content area of the menu, which displays the active tab.
@@ -31,22 +31,56 @@ export const MenuContentArea = GObject.registerClass(
         constructor(settings, extension, clipboardManager) {
             super({
                 style_class: 'aio-clipboard-content-area',
-                x_expand: true,
-                y_expand: true,
                 y_align: Clutter.ActorAlign.FILL,
                 x_align: Clutter.ActorAlign.FILL,
+                x_expand: true,
+                y_expand: true,
             });
             this._settings = settings;
             this._extension = extension;
             this._clipboardManager = clipboardManager;
 
+            this._tabWrapper = new Clutter.Actor({
+                layout_manager: new Clutter.BinLayout(),
+                clip_to_allocation: true,
+                x_align: Clutter.ActorAlign.FILL,
+                y_align: Clutter.ActorAlign.FILL,
+                x_expand: true,
+                y_expand: true,
+            });
+            this.set_child(this._tabWrapper);
+
             this._activeTabName = null;
             this._currentTabActor = null;
-            this._isSelectingTab = false;
+            this._isDestroyed = false;
+
+            this._tabActors = new Map();
+            this._tabLoadPromises = new Map();
 
             this._currentTabVisibilitySignalId = 0;
             this._currentTabNavigateSignalId = 0;
-            this._selectTabTimeoutId = 0;
+            this._preloadIdleId = 0;
+
+            this._preloadIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._preloadIdleId = 0;
+                if (!this._isDestroyed) {
+                    this._preloadAllTabs().catch((e) => {
+                        console.error(`[AIO-Clipboard] Background tab preload failed: ${e.message}`);
+                    });
+                }
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        // ========================================================================
+        // Focus Delegation
+        // ========================================================================
+
+        /**
+         * Focuses the active tab's primary content element.
+         */
+        focusActiveTabContent() {
+            this._currentTabActor?.onTabSelected?.();
         }
 
         // ========================================================================
@@ -54,16 +88,15 @@ export const MenuContentArea = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Selects a tab by rendering its definition payload dynamically.
+         * Selects a tab and swaps in its content actor.
          *
-         * @param {string} tabName Localized target tab identifier to execute.
-         * @returns {Promise<void>} Resolves when the target component instantiates completely.
+         * @param {string} tabName Localized tab name.
+         * @returns {Promise<void>} Resolves once selection work completes.
          */
         async selectTab(tabName) {
             if (!IOFile.mkdir(FilePath.DATA)) {
                 return;
             }
-            this._isSelectingTab = true;
 
             const oldActor = this._currentTabActor;
 
@@ -75,39 +108,29 @@ export const MenuContentArea = GObject.registerClass(
 
                 this._activeTabName = tabName;
 
-                const newContentActor = await this._loadTabModule(tabName);
-
-                if (this._activeTabName !== tabName) {
-                    newContentActor?.destroy();
+                const cachedActor = this._tabActors.get(tabName);
+                if (cachedActor) {
+                    this._swapToTab(cachedActor, oldActor);
+                    this._deferSearchHandoff(tabName, cachedActor);
                     return;
                 }
 
-                await applySearchHandoffToTab({
-                    targetTab: tabName,
-                    tabActor: newContentActor,
-                });
+                const newContentActor = await this._resolveAndCacheTab(tabName);
 
-                if (this._activeTabName !== tabName) {
-                    newContentActor?.destroy();
+                if (!newContentActor || this._activeTabName !== tabName) {
                     return;
                 }
 
-                this.set_child(newContentActor);
-
-                this._disconnectTabSignals(oldActor);
-                oldActor?.destroy();
-
-                this._currentTabActor = newContentActor;
-
-                this._connectTabSignals(newContentActor);
-
-                this._scheduleTabSelected();
+                this._swapToTab(newContentActor, oldActor);
+                this._deferSearchHandoff(tabName, newContentActor);
             } catch (e) {
                 console.error(`[AIO-Clipboard] Failed to load tab '${tabName}': ${e.message}\n${e.stack}`);
 
                 this.emit('set-main-tab-bar-visibility', true);
 
-                oldActor?.destroy();
+                if (oldActor) {
+                    this._releaseInactiveActor(oldActor);
+                }
 
                 if (this._activeTabName === tabName) {
                     const errorLabel = new St.Label({
@@ -118,12 +141,47 @@ export const MenuContentArea = GObject.registerClass(
                         x_expand: true,
                         y_expand: true,
                     });
-                    this.set_child(errorLabel);
+
+                    this._tabWrapper.add_child(errorLabel);
                     this._currentTabActor = errorLabel;
                 }
-            } finally {
-                this._isSelectingTab = false;
             }
+        }
+
+        /**
+         * Swaps the visible tab actor.
+         *
+         * @param {Clutter.Actor} newActor Target actor.
+         * @param {Clutter.Actor|null} oldActor Actor being replaced.
+         * @private
+         */
+        _swapToTab(newActor, oldActor) {
+            if (oldActor && oldActor !== newActor) {
+                this._releaseInactiveActor(oldActor);
+            }
+
+            newActor.show();
+            this._currentTabActor = newActor;
+
+            this._connectTabSignals(newActor);
+
+            this._notifyTabSelected();
+        }
+
+        /**
+         * Applies search handoff asynchronously so tab swapping stays instant.
+         *
+         * @param {string} tabName Target tab name.
+         * @param {Clutter.Actor} tabActor Target tab actor.
+         * @private
+         */
+        _deferSearchHandoff(tabName, tabActor) {
+            applySearchHandoffToTab({
+                targetTab: tabName,
+                tabActor,
+            }).catch((e) => {
+                console.error(`[AIO-Clipboard] Search handoff failed for '${tabName}': ${e?.message || e}`);
+            });
         }
 
         // ========================================================================
@@ -131,11 +189,116 @@ export const MenuContentArea = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Loads and instantiates the appropriate module matching the definition target dynamically.
+         * Eagerly preloads all enabled tabs.
          *
-         * @param {string} tabName Localized target tab name bound explicitly.
-         * @returns {Promise<Clutter.Actor>} Renderable content actor representing requested configuration logic locally.
-         * @throws {Error} Evaluates when the namespace resolution aborts gracefully natively.
+         * @private
+         */
+        async _preloadAllTabs() {
+            const sections = getMenuOrderedSections();
+            const sectionsByName = new Map(sections.map((section) => [section.name(), section]));
+            const orderedTabNames = this._settings.get_strv('tab-order').map((name) => _(name));
+            const loadPromises = [];
+
+            for (const tabName of orderedTabNames) {
+                const section = sectionsByName.get(tabName);
+                if (!section) {
+                    continue;
+                }
+                const isEnabled = section.settingKey ? this._settings.get_boolean(section.settingKey) : true;
+
+                if (isEnabled && !this._tabActors.has(tabName)) {
+                    loadPromises.push(this._resolveAndCacheTab(tabName));
+                }
+            }
+
+            await Promise.allSettled(loadPromises);
+        }
+
+        /**
+         * Resolves and caches a tab actor.
+         *
+         * @param {string} tabName Localized tab name.
+         * @returns {Promise<Clutter.Actor|null>} Cached tab actor.
+         * @private
+         */
+        async _resolveAndCacheTab(tabName) {
+            if (this._tabActors.has(tabName)) {
+                return this._tabActors.get(tabName);
+            }
+
+            if (this._tabLoadPromises.has(tabName)) {
+                return await this._tabLoadPromises.get(tabName);
+            }
+
+            const loadPromise = this._loadTabModule(tabName)
+                .then((actor) => {
+                    this._tabLoadPromises.delete(tabName);
+
+                    if (this._isDestroyed || !actor) {
+                        actor?.destroy();
+                        return null;
+                    }
+                    actor.x_align = Clutter.ActorAlign.FILL;
+                    actor.y_align = Clutter.ActorAlign.FILL;
+                    actor.x_expand = true;
+                    actor.y_expand = true;
+                    actor.hide();
+                    this._tabWrapper.add_child(actor);
+                    this._tabActors.set(tabName, actor);
+                    return actor;
+                })
+                .catch((e) => {
+                    this._tabLoadPromises.delete(tabName);
+                    console.error(`[AIO-Clipboard] Failed to cache tab '${tabName}':`, e);
+                    throw e;
+                });
+
+            this._tabLoadPromises.set(tabName, loadPromise);
+            return await loadPromise;
+        }
+
+        /**
+         * Returns whether an actor is one of the cached tab actors.
+         *
+         * @param {Clutter.Actor} actor Actor to inspect.
+         * @returns {boolean} True when actor is cached in the tab map.
+         * @private
+         */
+        _isCachedTabActor(actor) {
+            for (const cachedActor of this._tabActors.values()) {
+                if (cachedActor === actor) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Releases a non-active actor while preserving cached tab instances.
+         *
+         * @param {Clutter.Actor} actor Actor to release.
+         * @private
+         */
+        _releaseInactiveActor(actor) {
+            if (!actor) {
+                return;
+            }
+
+            this._disconnectTabSignals(actor);
+
+            if (this._isCachedTabActor(actor)) {
+                actor.hide();
+            } else {
+                actor.destroy();
+            }
+        }
+
+        /**
+         * Loads and instantiates the actor for a tab definition.
+         *
+         * @param {string} tabName Localized tab name.
+         * @returns {Promise<Clutter.Actor>} Instantiated tab actor.
+         * @throws {Error} Thrown when tab definition resolution fails.
          * @private
          */
         async _loadTabModule(tabName) {
@@ -156,9 +319,9 @@ export const MenuContentArea = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Connects local tab events directly to bubble through the Menu implementation logically.
+         * Connects tab signals that should bubble up to the menu layer.
          *
-         * @param {Clutter.Actor} actor Valid initialized tab layout structure object.
+         * @param {Clutter.Actor} actor Active tab actor.
          * @private
          */
         _connectTabSignals(actor) {
@@ -178,9 +341,9 @@ export const MenuContentArea = GObject.registerClass(
         }
 
         /**
-         * Gracefully disconnects all tracked layout signalling representations structurally inline.
+         * Disconnects tracked signals from the previously active tab.
          *
-         * @param {Clutter.Actor} tabActor Instantiated event dispatcher element explicitly configured logically.
+         * @param {Clutter.Actor} tabActor Tab actor to disconnect.
          * @private
          */
         _disconnectTabSignals(tabActor) {
@@ -202,26 +365,20 @@ export const MenuContentArea = GObject.registerClass(
         }
 
         /**
-         * Schedules the tab to be selected after a short delay.
+         * Invokes tab-selected lifecycle hooks synchronously.
          *
-         * @param {function} afterTabSelected Fallback operation evaluation natively injected.
+         * @param {function|null} afterTabSelected Optional post-selection hook.
          * @private
          */
-        _scheduleTabSelected(afterTabSelected = null) {
-            if (this._selectTabTimeoutId) {
-                GLib.source_remove(this._selectTabTimeoutId);
+        _notifyTabSelected(afterTabSelected = null) {
+            const selectedActor = this._currentTabActor;
+            selectedActor?.onTabSelected?.();
+
+            if (typeof afterTabSelected === 'function') {
+                Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
+                    console.error(`[AIO-Clipboard] Failed to apply tab post-selection hook: ${e?.message || e}`);
+                });
             }
-            this._selectTabTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 10, () => {
-                const selectedActor = this._currentTabActor;
-                selectedActor?.onTabSelected?.();
-                if (typeof afterTabSelected === 'function') {
-                    Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
-                        console.error(`[AIO-Clipboard] Failed to apply tab post-selection hook: ${e?.message || e}`);
-                    });
-                }
-                this._selectTabTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
-            });
         }
 
         // ========================================================================
@@ -229,11 +386,13 @@ export const MenuContentArea = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Fires child menu termination hooks gracefully.
+         * Forwards menu-close lifecycle events to cached tab actors.
          */
         onMenuClosed() {
-            if (this._currentTabActor && this._currentTabActor.get_stage()) {
-                this._currentTabActor.onMenuClosed?.();
+            for (const actor of this._tabActors.values()) {
+                if (actor && actor.get_stage() && typeof actor.onMenuClosed === 'function') {
+                    actor.onMenuClosed();
+                }
             }
         }
 
@@ -243,9 +402,14 @@ export const MenuContentArea = GObject.registerClass(
         clearContent() {
             if (this._currentTabActor) {
                 this._disconnectTabSignals(this._currentTabActor);
-                this._currentTabActor.destroy();
-                this._currentTabActor = null;
             }
+            this._tabActors.clear();
+            this._tabLoadPromises.clear();
+            if (this._tabWrapper) {
+                this._tabWrapper.destroy_all_children();
+            }
+
+            this._currentTabActor = null;
             this._activeTabName = null;
         }
 
@@ -255,18 +419,20 @@ export const MenuContentArea = GObject.registerClass(
          * @override
          */
         destroy() {
-            if (this._selectTabTimeoutId) {
-                GLib.source_remove(this._selectTabTimeoutId);
-                this._selectTabTimeoutId = 0;
+            this._isDestroyed = true;
+            if (this._preloadIdleId) {
+                GLib.source_remove(this._preloadIdleId);
+                this._preloadIdleId = 0;
             }
-            if (this._currentTabActor) {
-                this._disconnectTabSignals(this._currentTabActor);
-            }
-            this._currentTabActor?.destroy();
-            this._currentTabActor = null;
+            this.clearContent();
+
+            this._tabWrapper?.destroy();
+            this._tabWrapper = null;
+
             this._settings = null;
             this._extension = null;
             this._clipboardManager = null;
+
             super.destroy();
         }
     },

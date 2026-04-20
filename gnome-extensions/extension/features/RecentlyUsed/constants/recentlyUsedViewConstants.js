@@ -18,8 +18,7 @@ export const RecentlyUsedListViewTuning = {
     LIST_ITEM_CONTENT_SPACING: 8,
 };
 
-// Small focus/restore delays to avoid focus flicker during view updates.
+// Small focus-related delays to avoid visual focus flicker.
 export const RecentlyUsedBaseViewTiming = {
-    FOCUS_RESTORE_DELAY_MS: 100,
     SETTINGS_BUTTON_FOCUS_RESET_DELAY_MS: 10,
 };

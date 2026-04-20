@@ -33,6 +33,7 @@ export const SearchComponent = GObject.registerClass(
             this._onSearchChangedCallback = onSearchChangedCallback;
             this._onNavigateDown = onNavigateDown ?? null;
             this._onNavigateUp = onNavigateUp ?? null;
+            this._mappedSignalId = 0;
 
             this.actor = new St.BoxLayout({
                 style_class: 'aio-search-bar-container',
@@ -255,7 +256,22 @@ export const SearchComponent = GObject.registerClass(
          * Sets the keyboard focus to the search entry.
          */
         grabFocus() {
-            this._entry.grab_key_focus();
+            if (this._entry.mapped && this._entry.visible) {
+                this._entry.grab_key_focus();
+            } else {
+                if (this._mappedSignalId) {
+                    this._entry.disconnect(this._mappedSignalId);
+                }
+                this._mappedSignalId = this._entry.connect('notify::mapped', () => {
+                    if (this._entry.mapped && this._entry.visible) {
+                        if (this._mappedSignalId) {
+                            this._entry.disconnect(this._mappedSignalId);
+                            this._mappedSignalId = 0;
+                        }
+                        this._entry.grab_key_focus();
+                    }
+                });
+            }
         }
 
         /**
@@ -270,6 +286,10 @@ export const SearchComponent = GObject.registerClass(
          * Cleans up resources and references.
          */
         destroy() {
+            if (this._mappedSignalId) {
+                this._entry?.disconnect(this._mappedSignalId);
+                this._mappedSignalId = 0;
+            }
             this._entry = null;
             this._clearButton = null;
             this.actor = null;

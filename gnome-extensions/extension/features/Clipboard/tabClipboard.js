@@ -33,8 +33,8 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         constructor(extension, settings, manager) {
             super({
-                y_align: Clutter.ActorAlign.FILL,
                 x_align: Clutter.ActorAlign.FILL,
+                y_align: Clutter.ActorAlign.FILL,
                 x_expand: true,
                 y_expand: true,
             });
@@ -77,7 +77,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
             this._selectionBar = null;
             this._redrawIdleId = 0;
-            this._focusIdleId = 0;
             this._deferredRedrawPending = false;
             this._deferredRedrawTimeoutId = 0;
             this._suppressSearchChangeEffects = false;
@@ -797,15 +796,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 this._scheduleRedraw(true);
             }
             this._manager?.scheduleImagePreviewWarmup?.();
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
-            }
-            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                this._focusIdleId = 0;
-                this._searchComponent?.grabFocus();
-                return GLib.SOURCE_REMOVE;
-            });
+            this._searchComponent?.grabFocus();
         }
 
         /**
@@ -864,10 +855,6 @@ export const ClipboardTabContent = GObject.registerClass(
             if (this._redrawIdleId) {
                 GLib.source_remove(this._redrawIdleId);
                 this._redrawIdleId = 0;
-            }
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
             }
             this._clearDeferredRedrawRetry();
             this._searchDebouncer?.destroy();

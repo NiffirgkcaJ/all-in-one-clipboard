@@ -8,10 +8,22 @@ import { FocusUtils } from '../utilities/utilityFocus.js';
 
 import { getMenuOrderedSections } from './menuRegistry.js';
 
+/**
+ * MenuTabBar is a dynamic tab bar component for the clipboard manager menu, allowing users to switch between different sections of the menu. It reacts to extension settings to show/hide tabs and manages keyboard navigation for accessibility.
+ * The component emits 'tab-selected' when a tab is clicked or selected via keyboard, and 'navigate-down' when the user presses the down arrow key while focused on the tab bar.
+ * It listens to changes in the extension settings to update the visibility of tabs and the tab bar itself, ensuring that the UI always reflects the current configuration and active tab state.
+ *
+ * @class MenuTabBar
+ * @extends St.BoxLayout
+ * @emits 'tab-selected' Emitted when a tab is selected, with the localized tab name as a parameter.
+ * @emits 'navigate-down' Emitted when the user presses the down arrow key while focused on the tab bar.
+ * @param {Gio.Settings} settings The extension settings object for reactive configuration.
+ */
 export const MenuTabBar = GObject.registerClass(
     {
         Signals: {
             'tab-selected': { param_types: [GObject.TYPE_STRING] },
+            'navigate-down': {},
         },
     },
     class MenuTabBar extends St.BoxLayout {
@@ -199,7 +211,7 @@ export const MenuTabBar = GObject.registerClass(
         }
 
         /**
-         * Reads backing settings to hide or reveal dynamic tab buttons natively.
+         * Updates visibility and focusability for each tab button.
          *
          * @private
          */
@@ -258,10 +270,10 @@ export const MenuTabBar = GObject.registerClass(
         }
 
         /**
-         * Indicates whether the specified tab handles user layouts natively without being hidden.
+         * Returns whether a tab is currently available and visible.
          *
-         * @param {string} tabName Localized tab name to evaluate.
-         * @returns {boolean} True if rendered and visible safely inline.
+         * @param {string} tabName Localized tab name.
+         * @returns {boolean} True when the tab is visible.
          */
         isTabAvailable(tabName) {
             const button = this._tabButtons[tabName];
@@ -269,9 +281,9 @@ export const MenuTabBar = GObject.registerClass(
         }
 
         /**
-         * Increments or decrements the currently accessible tab array boundaries mathematically.
+         * Cycles to the next or previous visible tab.
          *
-         * @param {number} direction Numeric offset targeting cycle length logic.
+         * @param {number} direction Direction offset. Use `1` for next, `-1` for previous.
          */
         cycleTab(direction) {
             const tabOrder = this._settings.get_strv('tab-order');
@@ -301,18 +313,15 @@ export const MenuTabBar = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Processes manual keyboard selection routines targeting UI layout arrays natively.
+         * Handles keyboard navigation in the main tab bar.
          *
-         * @param {Clutter.Actor} actor Event target dispatch caller layout object.
-         * @param {Clutter.Event} event Raw clutter layout interaction keystrokes natively mapped.
-         * @returns {number} Clutter event response layout payload state representation token natively emitted mathematically.
+         * @param {Clutter.Actor} actor Event source.
+         * @param {Clutter.Event} event Key press event.
+         * @returns {number} Clutter event handling result.
          * @private
          */
         _onMainTabBarKeyPress(actor, event) {
             const symbol = event.get_key_symbol();
-            if (symbol !== Clutter.KEY_Left && symbol !== Clutter.KEY_Right) {
-                return Clutter.EVENT_PROPAGATE;
-            }
 
             const buttons = Object.values(this._tabButtons);
             if (buttons.length === 0) {
@@ -326,7 +335,16 @@ export const MenuTabBar = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            return FocusUtils.handleLinearNavigation(event, buttons, currentIndex);
+            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+                return FocusUtils.handleLinearNavigation(event, buttons, currentIndex);
+            }
+
+            if (symbol === Clutter.KEY_Down) {
+                this.emit('navigate-down');
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
         }
 
         // ========================================================================
@@ -334,7 +352,7 @@ export const MenuTabBar = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Destroys internal layout representations gracefully.
+         * Cleans up resources and disconnects settings signals.
          *
          * @override
          */

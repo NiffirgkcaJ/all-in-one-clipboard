@@ -70,8 +70,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._scrollIntoViewIdleId = 0;
             this._lockTimeoutId = null;
             this._settingsBtnFocusTimeoutId = 0;
-            this._focusIdleId = 0;
-            this._restoreFocusTimeoutId = 0;
             this._scrollLockController = null;
             this._searchComponent = null;
             this._searchDebouncer = null;
@@ -130,16 +128,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         onActivated() {
             this.render();
             this._unlockOuterScroll();
-
-            if (this._restoreFocusTimeoutId) {
-                GLib.source_remove(this._restoreFocusTimeoutId);
-                this._restoreFocusTimeoutId = 0;
-            }
-            this._restoreFocusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RecentlyUsedBaseViewTiming.FOCUS_RESTORE_DELAY_MS, () => {
-                this._restoreFocus();
-                this._restoreFocusTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
-            });
+            this._restoreFocus();
         }
 
         /**
@@ -819,24 +808,15 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         }
 
         /**
-         * Wait until UI idle completely flushing geometry trees to focus best fallback logic.
+         * Restore focus to the best candidate item.
          * @private
          */
         _restoreFocus() {
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
+            if (this._focusGrid.length === 0) {
+                return;
             }
 
-            this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                this._focusIdleId = 0;
-                if (this._focusGrid.length === 0) {
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                this.focusBestCandidate();
-                return GLib.SOURCE_REMOVE;
-            });
+            this.focusBestCandidate();
         }
 
         /**
@@ -1041,17 +1021,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 GLib.source_remove(this._lockTimeoutId);
                 this._lockTimeoutId = null;
             }
-            if (this._focusIdleId) {
-                GLib.source_remove(this._focusIdleId);
-                this._focusIdleId = 0;
-            }
             if (this._scrollIntoViewIdleId) {
                 GLib.source_remove(this._scrollIntoViewIdleId);
                 this._scrollIntoViewIdleId = 0;
-            }
-            if (this._restoreFocusTimeoutId) {
-                GLib.source_remove(this._restoreFocusTimeoutId);
-                this._restoreFocusTimeoutId = 0;
             }
 
             if (this._scrollLockController) {
