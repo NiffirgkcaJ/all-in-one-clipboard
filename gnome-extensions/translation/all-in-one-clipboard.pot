@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-12 00:47+0000\n"
+"POT-Creation-Date: 2026-04-20 09:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,49 +126,49 @@ msgstr ""
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:168
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:713
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:719
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:167
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:712
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:718
 msgid "Select All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:192
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:361
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:191
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:360
 msgid "Switch to Grid View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:192
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:361
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:191
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:360
 msgid "Switch to List View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:207
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:593
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:206
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:592
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:217
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:734
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:216
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:733
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:225
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:224
 msgid "Delete Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:593
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:592
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:716
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:715
 msgid "Deselect All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:741
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:740
 msgid "Pin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:741
+#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:740
 msgid "Unpin Selected"
 msgstr ""
 
@@ -241,7 +241,7 @@ msgid "For the second person in pairs."
 msgstr ""
 
 #: gnome-extensions/extension/features/Emoji/tabEmoji.js:103
-#: gnome-extensions/extension/features/GIF/tabGIF.js:196
+#: gnome-extensions/extension/features/GIF/tabGIF.js:195
 #: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:81
 #: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
 #: gnome-extensions/extension/features/Symbols/tabSymbols.js:81
@@ -324,58 +324,58 @@ msgstr ""
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:147
+#: gnome-extensions/extension/features/GIF/tabGIF.js:146
 msgid "Search"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:153
+#: gnome-extensions/extension/features/GIF/tabGIF.js:152
 #, javascript-format
 msgid "Search %s..."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:153
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:46
+#: gnome-extensions/extension/features/GIF/tabGIF.js:152
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:47
 msgid "Search..."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:266
+#: gnome-extensions/extension/features/GIF/tabGIF.js:265
 msgid "Online search is disabled."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:494
-#: gnome-extensions/extension/features/GIF/tabGIF.js:588
-#: gnome-extensions/extension/features/GIF/tabGIF.js:597
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:665
+#: gnome-extensions/extension/features/GIF/tabGIF.js:493
+#: gnome-extensions/extension/features/GIF/tabGIF.js:587
+#: gnome-extensions/extension/features/GIF/tabGIF.js:596
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:666
 msgid "Recents"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:540
+#: gnome-extensions/extension/features/GIF/tabGIF.js:539
 msgid "No categories available."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:608
-#: gnome-extensions/extension/features/GIF/tabGIF.js:614
+#: gnome-extensions/extension/features/GIF/tabGIF.js:607
+#: gnome-extensions/extension/features/GIF/tabGIF.js:613
 msgid "Trending"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:615
+#: gnome-extensions/extension/features/GIF/tabGIF.js:614
 msgid "Trending GIFs"
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:926
+#: gnome-extensions/extension/features/GIF/tabGIF.js:915
 msgid "No recent GIFs."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:960
+#: gnome-extensions/extension/features/GIF/tabGIF.js:949
 msgid "No trending GIFs found."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:1007
+#: gnome-extensions/extension/features/GIF/tabGIF.js:996
 #, javascript-format
 msgid "No results found for '%s'."
 msgstr ""
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:1173
+#: gnome-extensions/extension/features/GIF/tabGIF.js:1162
 #, javascript-format
 msgid ""
 "Error: %s\n"
@@ -383,7 +383,7 @@ msgid ""
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:870
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:873
 msgid "No recent items yet."
 msgstr ""
 
@@ -1331,14 +1331,14 @@ msgstr ""
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:590
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:591
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:868
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:871
 msgid "No items available."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:869
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:872
 msgid "No items match your search."
 msgstr ""
