@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 09:16+0000\n"
+"POT-Creation-Date: 2026-04-26 10:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: gnome-extensions/extension/extension.js:113
-#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:6
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
-msgid "Clipboard"
+#: gnome-extensions/extension/features/Emoji/tabEmoji.js:103
+#: gnome-extensions/extension/features/GIF/tabGIF.js:195
+#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:81
+#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
+#: gnome-extensions/extension/features/Symbols/tabSymbols.js:81
+msgid "Recently Used"
 msgstr ""
 
 #: gnome-extensions/extension/extension.js:114
@@ -45,6 +48,12 @@ msgstr ""
 #: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:6
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
 msgid "Symbols"
+msgstr ""
+
+#: gnome-extensions/extension/extension.js:118
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:6
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
+msgid "Clipboard"
 msgstr ""
 
 #: gnome-extensions/extension/prefs.js:72
@@ -238,14 +247,6 @@ msgstr ""
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:79
 msgid "For the second person in pairs."
-msgstr ""
-
-#: gnome-extensions/extension/features/Emoji/tabEmoji.js:103
-#: gnome-extensions/extension/features/GIF/tabGIF.js:195
-#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:81
-#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
-#: gnome-extensions/extension/features/Symbols/tabSymbols.js:81
-msgid "Recently Used"
 msgstr ""
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:22
@@ -1055,74 +1056,78 @@ msgid "Toggle Main Menu"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:142
-msgid "Open Emoji Tab"
+msgid "Open Recently Used Tab"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:143
-msgid "Open GIF Tab"
+msgid "Open Emoji Tab"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:144
-msgid "Open Kaomoji Tab"
+msgid "Open GIF Tab"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:145
-msgid "Open Symbols Tab"
+msgid "Open Kaomoji Tab"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:146
+msgid "Open Symbols Tab"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:147
 msgid "Open Clipboard Tab"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:156
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:157
 msgid "Main Tab Navigation"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:157
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:158
 msgid "Switch between the main tabs within the menu."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:162
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:163
 msgid "Next Tab"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:163
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:164
 msgid "Previous Tab"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:173
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:174
 msgid "Category Navigation"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:174
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:175
 msgid "Switch between the categories within the tabs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:179
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:180
 msgid "Next Category"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:180
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:181
 msgid "Previous Category"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:190
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:191
 msgid "Clipboard Item Actions"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:191
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:192
 msgid "Shortcuts for items in the grid/list view."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:196
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:197
 msgid "Select Item"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:197
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:198
 msgid "Pin Item"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:198
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:199
 msgid "Delete Item"
 msgstr ""
 
