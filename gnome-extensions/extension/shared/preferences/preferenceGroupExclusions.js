@@ -4,7 +4,7 @@ import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 /**
- * Adds the "Excluded Applications" preferences group to the page.
+ * Adds the "Exclusions" preferences group to the page.
  *
  * @param {Object} params
  * @param {Adw.PreferencesPage} params.page The preferences page to add the group to.
@@ -12,8 +12,8 @@ import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensio
  */
 export function addPreferenceExclusions({ page, settings }) {
     const group = new Adw.PreferencesGroup({
-        title: _('Excluded Applications'),
-        description: _('Manage applications that should be ignored by the clipboard manager.'),
+        title: _('Exclusions'),
+        description: _('Manage content that should be ignored by the clipboard manager.'),
     });
     page.add(group);
 
@@ -30,16 +30,35 @@ export function addPreferenceExclusions({ page, settings }) {
         a11ySettings.set_boolean('toolkit-accessibility', atspiRow.active);
     });
 
-    // Ignored Applications
-    const exclusionExpander = new Adw.ExpanderRow({
-        title: _('Ignored Applications'),
-        subtitle: _('Prevent specific applications from saving content to the clipboard history.'),
+    // Application Exclusions
+    const appExclusionExpander = new Adw.ExpanderRow({
+        title: _('Applications'),
+        subtitle: _('Prevent specific applications from being captured.'),
     });
-    group.add(exclusionExpander);
+    group.add(appExclusionExpander);
+    _setupExclusionList(appExclusionExpander, settings, 'excluded-applications', _('Application Name or ID'));
 
-    const createExcludedAppRow = (appClassName) => {
+    // Content Exclusions
+    const contentExclusionExpander = new Adw.ExpanderRow({
+        title: _('Addresses'),
+        subtitle: _('Prevent specific links or emails from being crawled.'),
+    });
+    group.add(contentExclusionExpander);
+    _setupExclusionList(contentExclusionExpander, settings, 'excluded-addresses', _('Link or Email Address'));
+}
+
+/**
+ * Helper to setup an exclusion list management UI.
+ * @param {Adw.ExpanderRow} expander The expander row to add list to.
+ * @param {Gio.Settings} settings The settings instance.
+ * @param {string} key The GSettings key.
+ * @param {string} placeholder The placeholder text for the add entry.
+ * @private
+ */
+function _setupExclusionList(expander, settings, key, placeholder) {
+    const createRow = (value) => {
         const row = new Adw.ActionRow({
-            title: appClassName,
+            title: value,
         });
 
         const removeButton = new Gtk.Button({
@@ -49,37 +68,37 @@ export function addPreferenceExclusions({ page, settings }) {
         });
 
         removeButton.connect('clicked', () => {
-            const currentList = settings.get_strv('exclusion-list');
-            const newList = currentList.filter((c) => c !== appClassName);
-            settings.set_strv('exclusion-list', newList);
+            const currentList = settings.get_strv(key);
+            const newList = currentList.filter((c) => c !== value);
+            settings.set_strv(key, newList);
         });
 
         row.add_suffix(removeButton);
         return row;
     };
 
-    const exclusionRows = [];
+    const rows = [];
     const refreshList = () => {
-        exclusionRows.forEach((row) => exclusionExpander.remove(row));
-        exclusionRows.length = 0;
+        rows.forEach((row) => expander.remove(row));
+        rows.length = 0;
 
-        const list = settings.get_strv('exclusion-list');
-        list.forEach((appClass) => {
-            const row = createExcludedAppRow(appClass);
-            exclusionExpander.add_row(row);
-            exclusionRows.push(row);
+        const list = settings.get_strv(key);
+        list.forEach((value) => {
+            const row = createRow(value);
+            expander.add_row(row);
+            rows.push(row);
         });
     };
 
-    settings.connect('changed::exclusion-list', refreshList);
+    settings.connect(`changed::${key}`, refreshList);
 
-    // Add New Exclusion
+    // Add New Exclusion Row
     const addRow = new Adw.ActionRow({
         title: _('Add New Exclusion'),
     });
 
     const entry = new Gtk.Entry({
-        placeholder_text: _('Application Name or ID'),
+        placeholder_text: placeholder,
         valign: Gtk.Align.CENTER,
         hexpand: true,
     });
@@ -93,9 +112,9 @@ export function addPreferenceExclusions({ page, settings }) {
     const addAction = () => {
         const text = entry.get_text().trim();
         if (text) {
-            const currentList = settings.get_strv('exclusion-list');
+            const currentList = settings.get_strv(key);
             if (!currentList.includes(text)) {
-                settings.set_strv('exclusion-list', [...currentList, text]);
+                settings.set_strv(key, [...currentList, text]);
                 entry.set_text('');
             }
         }
@@ -107,7 +126,7 @@ export function addPreferenceExclusions({ page, settings }) {
     addRow.add_prefix(entry);
     addRow.add_suffix(addButton);
 
-    group.add(addRow);
+    expander.add_row(addRow);
 
     refreshList();
 }

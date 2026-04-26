@@ -473,16 +473,21 @@
         </key>
 
         <!-- Advanced Page -->
-        <!-- Excluded Applications -->
+        <!-- Exclusions -->
         <key name="enable-atspi-exclusion" type="b">
             <default>false</default>
             <summary>Enhanced Exclusion Detection</summary>
             <description>When enabled, uses the system accessibility service (AT-SPI) to detect excluded applications inside browser windows, such as password manager extension popups. This will enable the system accessibility service (toolkit-accessibility) if it is not already active.</description>
         </key>
-        <key name="exclusion-list" type="as">
+        <key name="excluded-applications" type="as">
             <default>[]</default>
             <summary>List of excluded applications</summary>
             <description>A list of applications or window classes (wm_class) that should be ignored by the clipboard manager.</description>
+        </key>
+        <key name="excluded-addresses" type="as">
+            <default>[]</default>
+            <summary>List of excluded addresses</summary>
+            <description>A list of domains, URLs, or email addresses that should be ignored when fetching metadata.</description>
         </key>
 
         <!-- Data Management -->

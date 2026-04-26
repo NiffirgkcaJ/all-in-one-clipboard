@@ -400,6 +400,11 @@ export const ClipboardManager = GObject.registerClass(
 
             this._addItemToHistory(newItem);
 
+            // Check if URL is blacklisted for crawling
+            if (this._exclusionUtils.isAddressExcluded(newItem.url)) {
+                return;
+            }
+
             this._linkProcessor.fetchMetadata(newItem.url).then(async (metadata) => {
                 let updated = false;
                 const item = this._history.find((i) => i.id === newItem.id);
@@ -444,6 +449,11 @@ export const ClipboardManager = GObject.registerClass(
 
             // For emails, try to fetch the provider's icon
             if (newItem.subtype === 'email') {
+                // Check if email/domain is blacklisted for crawling
+                if (this._exclusionUtils.isAddressExcluded(newItem.text)) {
+                    return;
+                }
+
                 const parts = newItem.text.split('@');
                 if (parts.length === 2) {
                     const domain = parts[1];
