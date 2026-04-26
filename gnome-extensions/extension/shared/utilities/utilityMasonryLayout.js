@@ -35,10 +35,10 @@ const MasonryVirtualization = {
 };
 
 /**
- * MasonryLayout
- * A self navigating Pinterest style masonry layout widget.
+ * A self navigating masonry layout widget.
  * Items are distributed across columns with the shortest column always receiving the next item.
  * Automatically updates layout when width changes.
+ *
  * @example
  * const masonry = new MasonryLayout({
  *     columns: 4,
@@ -52,13 +52,7 @@ export const MasonryLayout = GObject.registerClass(
     class MasonryLayout extends St.Widget {
         /**
          * Initialize the masonry layout.
-         * @param {object} params Configuration parameters
-         * @param {number} [params.columns=4] Number of columns to display
-         * @param {number} [params.maxColumns] Optional maximum number of columns when auto-sizing
-         * @param {number} [params.spacing=2] Spacing between items in pixels
-         * @param {number} [params.targetItemWidth] Target item width for auto column calculation
-         * @param {Function} params.renderItemFn Function to render each item
-         * @param {St.ScrollView} [params.scrollView] Optional scroll view for auto-scroll on focus
+         * @param {Object} params Configuration parameters.
          */
         constructor(params) {
             super({ x_expand: true });
@@ -121,13 +115,12 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Handle allocation changes and manually allocate each child.
-         * @param {Clutter.ActorBox} box The allocation box
+         * @param {Clutter.ActorBox} box The allocation box.
          */
         vfunc_allocate(box) {
             const newWidth = box.get_width();
             const oldWidth = this._lastLayoutWidth;
 
-            // Update width before set_allocation so notify::width validation uses the current value.
             this._lastLayoutWidth = newWidth;
 
             this.set_allocation(box);
@@ -183,18 +176,17 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Report the allocated width as our preferred width.
-         * @param {number} _forHeight Height to compute width for
-         * @returns {[number, number]} Minimum and natural width
+         * @param {number} _forHeight Height to compute width for.
+         * @returns {number[]} Minimum and natural width.
          */
         vfunc_get_preferred_width(_forHeight) {
             const width = this._lastLayoutWidth > 0 ? this._lastLayoutWidth : 0;
-            // Allow the parent to shrink this actor when the available width changes.
             return [0, width];
         }
 
         /**
          * Update the maximum number of columns and trigger a relayout.
-         * @param {number|null} maxColumns Maximum columns, or null to remove the cap
+         * @param {number|null} maxColumns Maximum columns or null to remove the cap.
          */
         setMaxColumns(maxColumns) {
             const normalized = typeof maxColumns === 'number' && maxColumns > 0 ? maxColumns : null;
@@ -211,8 +203,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Add items to the masonry layout.
-         * @param {Array<object>} items Array of item data objects
-         * @param {object} renderSession Session object for tracking async operations
+         * @param {Array<Object>} items Array of item data objects.
+         * @param {Object} renderSession Session object for tracking async operations.
          */
         addItems(items, renderSession) {
             if (!this._isValidWidth()) {
@@ -259,12 +251,11 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Reconcile the layout with a new list of items reusing existing widgets.
-         * @param {Array<object>} items New list of items to render
-         * @param {object} renderSession Render session object
+         * @param {Array<Object>} items New list of items to render.
+         * @param {Object} renderSession Render session object.
          */
         reconcile(items, renderSession) {
             if (!this._isValidWidth()) {
-                // Keep current children alive until width is valid, then swap in the latest snapshot.
                 this._deferRender(items, renderSession, { replacePending: true });
                 return;
             }
@@ -329,8 +320,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Reconcile a single item and optionally upsert its widget.
-         * @param {object} itemData Raw item data
-         * @param {object} options Reconciliation options
+         * @param {Object} itemData Raw item data.
+         * @param {Object} options Reconciliation options.
          * @private
          */
         _layoutReconcileItem(itemData, options) {
@@ -367,10 +358,10 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Update or create a masonry widget for a reconciled item.
-         * @param {object} itemData Prepared item data
-         * @param {object} layoutData Masonry layout data
-         * @param {Map<string,St.Widget>} existingWidgets Existing widgets by id
-         * @param {object} renderSession Render session object
+         * @param {Object} itemData Prepared item data.
+         * @param {Object} layoutData Masonry layout data.
+         * @param {Map<string,St.Widget>} existingWidgets Existing widgets by identifier.
+         * @param {Object} renderSession Render session object.
          * @private
          */
         _upsertReconciledWidget(itemData, layoutData, existingWidgets, renderSession) {
@@ -385,7 +376,6 @@ export const MasonryLayout = GObject.registerClass(
                 const oldData = itemWidget._masonryData;
                 const positionChanged = oldData && (oldData.x !== layoutData.x || oldData.y !== layoutData.y || oldData.width !== layoutData.width || oldData.height !== layoutData.height);
 
-                // Delete old layout data to force a clean allocation pass if inner contents were completely rebuilt.
                 if (structureChanged) {
                     itemWidget._masonryData = null;
                     itemWidget.queue_relayout();
@@ -416,7 +406,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Get the number of items that have been rendered.
-         * @returns {number} The number of rendered items
+         * @returns {number} The number of rendered items.
          */
         getItemCount() {
             return this._items.length;
@@ -424,7 +414,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if there are pending items waiting to be rendered.
-         * @returns {boolean} True if there are pending deferred items
+         * @returns {boolean} True if there are pending deferred items.
          */
         hasPendingItems() {
             return this._pendingItems.length > 0;
@@ -432,7 +422,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if loading should be deferred.
-         * @returns {boolean} True if loading should be deferred
+         * @returns {boolean} True if loading should be deferred.
          */
         shouldDeferLoading() {
             return !this._isValidWidth() || this.hasPendingItems();
@@ -440,7 +430,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Public method to check if width is valid for rendering.
-         * @returns {boolean} True if width is valid
+         * @returns {boolean} True if width is valid.
          */
         hasValidWidth() {
             return this._isValidWidth();
@@ -448,8 +438,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Update viewport metrics used for masonry viewport culling.
-         * @param {number} scrollTop Current vertical scroll offset
-         * @param {number} viewportHeight Current viewport height
+         * @param {number} scrollTop Current vertical scroll offset.
+         * @param {number} viewportHeight Current viewport height.
          */
         setViewport(scrollTop, viewportHeight) {
             if (!this._virtualizationEnabled) return;
@@ -472,9 +462,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Convert global scroll offset into this layout's local coordinate space.
-         * @param {number} scrollTop Global scroll offset
-         * @returns {number} Local viewport top offset
+         * Convert global scroll offset into this layout coordinate space.
+         * @param {number} scrollTop Global scroll offset.
+         * @returns {number} Local viewport top offset.
          * @private
          */
         _resolveLocalViewportTop(scrollTop) {
@@ -485,9 +475,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Focus an item by id, making it visible first if viewport culling is active.
-         * @param {string} itemId Item id to focus
-         * @returns {boolean} True if item was found and focused
+         * Focus an item by identifier and make it visible if virtualization is active.
+         * @param {string} itemId Item identifier to focus.
+         * @returns {boolean} True if item was found and focused.
          */
         focusByItemId(itemId) {
             if (!itemId) return false;
@@ -510,7 +500,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Focus the first item in the masonry layout.
-         * @param {number} [targetCenterX] X position to find item in same column
+         * @param {number} [targetCenterX] Horizontal position to find item in the same column.
          */
         focusFirst(targetCenterX) {
             const children = this._getItemChildren(true);
@@ -540,7 +530,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Focus the last item in the masonry layout.
-         * @param {number} [targetCenterX] X position to find item in same column
+         * @param {number} [targetCenterX] Horizontal position to find item in the same column.
          */
         focusLast(targetCenterX) {
             const children = this._getItemChildren(true);
@@ -576,7 +566,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Focus a specific item widget with robust handling.
-         * @param {St.Widget} widget The widget to focus
+         * @param {St.Widget} widget The widget to focus.
          */
         focusItem(widget) {
             if (!widget) return;
@@ -599,10 +589,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Handles key press events for grid navigation.
-         * @param {Clutter.Actor} _actor The actor that received the event
-         * @param {Clutter.Event} event The key press event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
-         * @private
+         * @param {Clutter.Actor} _actor The actor that received the event.
+         * @param {Clutter.Event} event The key press event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          */
         handleKeyPress(_actor, event) {
             const symbol = event.get_key_symbol();
@@ -642,7 +631,6 @@ export const MasonryLayout = GObject.registerClass(
                 return Clutter.EVENT_STOP;
             }
 
-            // Masonry cells are single focus without subtargets so direct grab_key_focus is sufficient.
             nextWidget.grab_key_focus();
 
             if (this._scrollView) {
@@ -654,8 +642,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Converts a keyboard symbol to a navigation direction.
-         * @param {number} symbol The key symbol
-         * @returns {string|null} The direction string or null
+         * @param {number} symbol The key symbol.
+         * @returns {string|null} The direction string or null.
          * @private
          */
         _getDirectionFromKey(symbol) {
@@ -675,9 +663,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Finds the most logical next widget in a given direction.
-         * @param {St.Widget} currentWidget The currently focused widget
-         * @param {string} direction 'up', 'down', 'left', or 'right'
-         * @returns {St.Widget|null} The next widget to focus, or null
+         * @param {St.Widget} currentWidget The currently focused widget.
+         * @param {string} direction up, down, left, or right.
+         * @returns {St.Widget|null} The next widget to focus or null.
          * @private
          */
         _findClosestInDirection(currentWidget, direction) {
@@ -752,9 +740,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Calculates the vertical overlap in pixels between two items.
-         * @param {object} itemA A spatial map object for the first item
-         * @param {object} itemB A spatial map object for the second item
-         * @returns {number} The number of overlapping vertical pixels
+         * @param {Object} itemA A spatial map object for the first item.
+         * @param {Object} itemB A spatial map object for the second item.
+         * @returns {number} The number of overlapping vertical pixels.
          * @private
          */
         _getVerticalOverlap(itemA, itemB) {
@@ -765,11 +753,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Handle vertical navigation misses when virtualization is active.
-         * Masonry needs this wrapper because spatial navigation may fail to find a
-         * physical neighbor even when logical neighbors exist outside the realized window.
-         * @param {St.Widget} itemWidget Current item widget
-         * @param {string} direction Navigation direction
-         * @returns {boolean} True if handled
+         * @param {St.Widget} itemWidget Current item widget.
+         * @param {string} direction Navigation direction.
+         * @returns {boolean} True if handled.
          * @private
          */
         _tryVirtualVerticalFallback(itemWidget, direction) {
@@ -779,10 +765,10 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Try virtualized up/down movement by global index and realize target if needed.
-         * @param {St.Widget} itemWidget Current item widget
-         * @param {'up'|'down'} direction Vertical direction
-         * @returns {boolean} True if focus moved
+         * Try virtualized movement by global index and realize target if needed.
+         * @param {St.Widget} itemWidget Current item widget.
+         * @param {string} direction Vertical direction.
+         * @returns {boolean} True if focus moved.
          * @private
          */
         _tryVirtualVerticalNavigation(itemWidget, direction) {
@@ -830,9 +816,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check whether there is still a logical item above or below this widget.
-         * @param {St.Widget} itemWidget Current item widget
-         * @param {'up'|'down'} direction Vertical direction
-         * @returns {boolean}
+         * @param {St.Widget} itemWidget Current item widget.
+         * @param {string} direction Vertical direction.
+         * @returns {boolean} True if a neighbor exists.
          * @private
          */
         _hasVirtualNeighbor(itemWidget, direction) {
@@ -845,8 +831,8 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Resolve focused item id within this layout.
-         * @returns {string|null}
+         * Resolve focused item identifier within this layout.
+         * @returns {string|null} The item identifier or null.
          * @private
          */
         _getFocusedItemId() {
@@ -923,7 +909,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if this actor and its parents are visible.
-         * @returns {boolean}
+         * @returns {boolean} True if visible.
          * @private
          */
         _isEffectivelyVisible() {
@@ -937,7 +923,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if the widget is mapped and ready for relayout.
-         * @returns {boolean}
+         * @returns {boolean} True if ready.
          * @private
          */
         _canRelayoutNow() {
@@ -945,7 +931,7 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Schedule a relayout if mapped, otherwise defer until mapped.
+         * Schedule a relayout if mapped or defer until mapped.
          * @private
          */
         _scheduleRelayout() {
@@ -985,9 +971,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Return only item children, optionally only those currently visible.
-         * @param {boolean} visibleOnly
-         * @returns {Array<St.Widget>}
+         * Return item children optionally filtered by visibility.
+         * @param {boolean} visibleOnly Whether to return only visible children.
+         * @returns {Array<St.Widget>} The list of children.
          * @private
          */
         _getItemChildren(visibleOnly = false) {
@@ -998,7 +984,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Determine whether viewport culling should be active.
-         * @returns {boolean}
+         * @param {number} [count] Item count to evaluate.
+         * @returns {boolean} True if virtualization should be active.
          * @private
          */
         _shouldVirtualize(count = this._items.length) {
@@ -1007,7 +994,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Realize only items near the viewport to reduce actor count and allocation work.
-         * @param {boolean} force Whether to force relayout marking even when visibility set is unchanged
+         * @param {boolean} force Whether to force relayout marking.
          * @private
          */
         _applyViewportCulling(force) {
@@ -1025,10 +1012,10 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Reconcile only the currently visible virtualized window.
-         * @param {Map<string,St.Widget>|null} existingWidgets Optional existing widget map from caller
-         * @param {object} renderSession Render session object
-         * @param {boolean} force Force spatial map/layout refresh
-         * @param {boolean} updateExisting Whether to run updateItemFn on existing widgets
+         * @param {Map<string,St.Widget>|null} existingWidgets Optional existing widget map.
+         * @param {Object} renderSession Render session object.
+         * @param {boolean} force Force spatial map or layout refresh.
+         * @param {boolean} updateExisting Whether to run update functions on existing widgets.
          * @private
          */
         _reconcileVirtualWindow(existingWidgets, renderSession, force, updateExisting) {
@@ -1052,7 +1039,6 @@ export const MasonryLayout = GObject.registerClass(
                 const itemTop = layoutData.y;
                 const itemBottom = layoutData.y + layoutData.height;
 
-                // Pixel based culling preserves the focused item inline because Masonry can simply include it in the viewport check.
                 const inViewport = itemId === focusedItemId || (itemBottom >= minY && itemTop <= maxY);
                 if (!inViewport) continue;
 
@@ -1079,11 +1065,11 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Obtain a realized widget from cache or renderer and attach it to the layout.
-         * @param {string} itemId Item id
-         * @param {object} itemData Item data
-         * @param {object} layoutData Layout data
-         * @param {object} renderSession Render session
-         * @returns {St.Widget|null}
+         * @param {string} itemId Item identifier.
+         * @param {Object} itemData Item data.
+         * @param {Object} layoutData Layout data.
+         * @param {Object} renderSession Render session object.
+         * @returns {St.Widget|null} The realized widget or null.
          * @private
          */
         _obtainRealizedWidget(itemId, itemData, layoutData, renderSession) {
@@ -1102,8 +1088,8 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Pre-realize a small neighborhood around the target index to smooth held-arrow traversal.
-         * @param {number} centerIndex Center index in navigable ids
+         * Pre-realize a small neighborhood around the target index to smooth traversal.
+         * @param {number} centerIndex Center index in navigable identifiers.
          * @private
          */
         _ensureRealizedNeighborhood(centerIndex) {
@@ -1134,12 +1120,12 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Update a realized widget with new data/layout and animation flags.
-         * @param {St.Widget} widget Existing widget
-         * @param {object} itemData Item data
-         * @param {object} layoutData Layout data
-         * @param {object} renderSession Render session
-         * @param {boolean} updateExisting Whether to run updateItemFn
+         * Update a realized widget with new data and animation flags.
+         * @param {St.Widget} widget Existing widget.
+         * @param {Object} itemData Item data.
+         * @param {Object} layoutData Layout data.
+         * @param {Object} renderSession Render session object.
+         * @param {boolean} updateExisting Whether to run update functions.
          * @private
          */
         _updateRealizedWidget(widget, itemData, layoutData, renderSession, updateExisting) {
@@ -1161,9 +1147,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Remove or cache off-window widgets.
-         * @param {Map<string,St.Widget>} widgetsById Existing widgets map
-         * @param {string|null} focusedItemId Focused item id to preserve
-         * @returns {boolean} True if anything changed
+         * @param {Map<string,St.Widget>} widgetsById Existing widgets map.
+         * @param {string|null} focusedItemId Focused item identifier to preserve.
+         * @returns {boolean} True if any widget was evicted.
          * @private
          */
         _evictOffWindowWidgets(widgetsById, focusedItemId) {
@@ -1181,9 +1167,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Cache an off-window widget for potential reuse on reverse scrolling.
-         * @param {string} itemId Item id key
-         * @param {St.Widget} widget Widget to cache
+         * Cache an off-window widget for potential reuse.
+         * @param {string} itemId Item identifier key.
+         * @param {St.Widget} widget Widget to cache.
          * @private
          */
         _cacheVirtualWidget(itemId, widget) {
@@ -1215,9 +1201,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Defer rendering until a valid width is available.
-         * @param {Array<object>} items Items to render
-         * @param {object} renderSession Render session object
-         * @param {{replacePending?: boolean}} [options] Replace queued items instead of appending
+         * @param {Array<Object>} items Items to render.
+         * @param {Object} renderSession Render session object.
+         * @param {Object} [options] Rendering options.
          * @private
          */
         _deferRender(items, renderSession, options = {}) {
@@ -1244,7 +1230,6 @@ export const MasonryLayout = GObject.registerClass(
                     return;
                 }
 
-                // Keep waiting for allocation until width becomes valid.
                 if (!this._isValidWidth() || this._pendingItems.length === 0) {
                     return;
                 }
@@ -1280,14 +1265,14 @@ export const MasonryLayout = GObject.registerClass(
                 try {
                     this.disconnect(this._pendingAllocationId);
                 } catch {
-                    // Object may already be disposing.
+                    // Object may already be disposing
                 }
                 this._pendingAllocationId = null;
             }
         }
 
         /**
-         * Cancel a scheduled relayout timeout, if one exists.
+         * Cancel a scheduled relayout timeout if one exists.
          * @private
          */
         _cancelScheduledRelayout() {
@@ -1307,7 +1292,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Checks if the current width is valid for rendering.
-         * @returns {boolean} True if width is valid, false otherwise
+         * @returns {boolean} True if width is valid.
          * @private
          */
         _isValidWidth() {
@@ -1315,8 +1300,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @param {number} effectiveWidth The effective width to validate
-         * @returns {boolean} True if valid
+         * Validates the effective width.
+         * @param {number} effectiveWidth The width to validate.
+         * @returns {boolean} True if valid.
          * @private
          */
         _isValidEffectiveWidth(effectiveWidth) {
@@ -1328,8 +1314,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @param {number} columnWidth The column width to validate
-         * @returns {boolean} True if valid
+         * Validates the column width.
+         * @param {number} columnWidth The column width to validate.
+         * @returns {boolean} True if valid.
          * @private
          */
         _isValidColumnWidth(columnWidth) {
@@ -1342,8 +1329,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if item data has valid dimensions.
-         * @param {object} itemData The item data
-         * @returns {boolean} True if dimensions are valid
+         * @param {Object} itemData The item data.
+         * @returns {boolean} True if dimensions are valid.
          * @private
          */
         _hasValidDimensions(itemData) {
@@ -1352,8 +1339,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Check if the calculated item height is valid.
-         * @param {number} itemHeight The item height to validate
-         * @returns {boolean} True if valid
+         * @param {number} itemHeight The height to validate.
+         * @returns {boolean} True if valid.
          * @private
          */
         _isValidItemHeight(itemHeight) {
@@ -1361,7 +1348,8 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @returns {number} The effective width accounting for padding
+         * Calculates the effective width of the container.
+         * @returns {number} The effective width.
          * @private
          */
         _calculateEffectiveWidth() {
@@ -1369,8 +1357,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @param {number} effectiveWidth The effective width
-         * @returns {number} The optimal column count
+         * Calculates the optimal column count.
+         * @param {number} effectiveWidth The effective width.
+         * @returns {number} The column count.
          * @private
          */
         _calculateColumns(effectiveWidth) {
@@ -1385,8 +1374,9 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * @param {number} effectiveWidth The effective width of the container
-         * @returns {number} The column width
+         * Calculates the column width.
+         * @param {number} effectiveWidth The effective width.
+         * @returns {number} The column width.
          * @private
          */
         _calculateColumnWidth(effectiveWidth) {
@@ -1397,9 +1387,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Render all items into the masonry layout.
-         * @param {Array<object>} items Items to render
-         * @param {number} columnWidth Width of each column
-         * @param {object} renderSession Render session object
+         * @param {Array<Object>} items Items to render.
+         * @param {number} columnWidth Width of each column.
+         * @param {Object} renderSession Render session object.
          * @private
          */
         _renderItems(items, columnWidth, renderSession) {
@@ -1426,9 +1416,9 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Calculate item height based on aspect ratio.
-         * @param {object} itemData The item data with width and height
-         * @param {number} columnWidth The width of the column
-         * @returns {number} The calculated item height
+         * @param {Object} itemData Item data with width and height.
+         * @param {number} columnWidth Width of the column.
+         * @returns {number} Calculated item height.
          * @private
          */
         _calculateItemHeight(itemData, columnWidth) {
@@ -1438,7 +1428,7 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Find the index of the shortest column.
-         * @returns {number} The column index
+         * @returns {number} The column index.
          * @private
          */
         _findShortestColumn() {
@@ -1447,11 +1437,11 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Position an item widget in the layout.
-         * @param {St.Widget} itemWidget The widget to position
-         * @param {number} columnIndex The column index
-         * @param {number} columnWidth The width of the column
-         * @param {number} itemHeight The height of the item
-         * @param {number} paddingLeft Left padding of the container
+         * @param {St.Widget} itemWidget Widget to position.
+         * @param {number} columnIndex Column index.
+         * @param {number} columnWidth Width of the column.
+         * @param {number} itemHeight Height of the item.
+         * @param {number} paddingLeft Left padding of the container.
          * @private
          */
         _positionItem(itemWidget, columnIndex, columnWidth, itemHeight, paddingLeft) {
@@ -1470,8 +1460,8 @@ export const MasonryLayout = GObject.registerClass(
 
         /**
          * Update the height of a column after adding an item.
-         * @param {number} columnIndex The column index
-         * @param {number} itemHeight The height of the added item
+         * @param {number} columnIndex Column index.
+         * @param {number} itemHeight Height of the added item.
          * @private
          */
         _updateColumnHeight(columnIndex, itemHeight) {

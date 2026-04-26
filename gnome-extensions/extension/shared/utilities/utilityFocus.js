@@ -6,18 +6,16 @@ import Clutter from 'gi://Clutter';
  */
 export const FocusUtils = {
     /**
-     * Handles linear navigation (Left/Right) within a list of items.
+     * Handles linear navigation Left or Right within a list of items.
      * Traps focus at the boundaries unless a custom boundary handler is provided.
      *
-     * @param {Clutter.Event} event - The key press event.
-     * @param {Array<Clutter.Actor>} items - The list of focusable items.
-     * @param {number} currentIndex - The index of the currently focused item.
-     * @param {Object} options - Configuration options.
-     * @param {boolean} [options.wrap=false] - Whether to wrap around at edges (e.g., Last -> First).
-     * @param {Function} [options.onBoundary] - Callback when navigating past a boundary.
-     *                                           Receives 'start' or 'end'. Should return Clutter.EVENT_STOP if handled.
-     *                                           If not provided, focus is trapped (EVENT_STOP).
-     * @returns {number} Clutter.EVENT_STOP if handled/trapped, Clutter.EVENT_PROPAGATE otherwise.
+     * @param {Clutter.Event} event The key press event.
+     * @param {Array<Clutter.Actor>} items The list of focusable items.
+     * @param {number} currentIndex The index of the currently focused item.
+     * @param {Object} options Configuration options.
+     * @param {boolean} [options.wrap=false] Whether to wrap around at edges.
+     * @param {Function} [options.onBoundary] Callback when navigating past a boundary.
+     * @returns {number} Clutter.EVENT_STOP if handled or trapped and Clutter.EVENT_PROPAGATE otherwise.
      */
     handleLinearNavigation(event, items, currentIndex, { wrap = false, onBoundary = null } = {}) {
         const symbol = event.get_key_symbol();
@@ -59,18 +57,17 @@ export const FocusUtils = {
     },
 
     /**
-     * Handles grid navigation (Up/Down/Left/Right).
-     * Left/Right behaves linearly (wrapping between rows).
-     * Up/Down moves by column.
+     * Handles grid navigation including Up, Down, Left, and Right.
+     * Left and Right behave linearly and wrap between rows.
+     * Up and Down moves by column.
      *
-     * @param {Clutter.Event} event - The key press event.
-     * @param {Array<Clutter.Actor>} items - The list of focusable items.
-     * @param {number} currentIndex - The index of the currently focused item.
-     * @param {number} itemsPerRow - Number of items per row.
-     * @param {Object} options - Configuration options.
-     * @param {Function} [options.onBoundary] - Callback when navigating past a boundary.
-     *                                           Receives 'up', 'down', 'start', or 'end'.
-     * @returns {number} Clutter.EVENT_STOP if handled/trapped, Clutter.EVENT_PROPAGATE otherwise.
+     * @param {Clutter.Event} event The key press event.
+     * @param {Array<Clutter.Actor>} items The list of focusable items.
+     * @param {number} currentIndex The index of the currently focused item.
+     * @param {number} itemsPerRow Number of items per row.
+     * @param {Object} options Configuration options.
+     * @param {Function} [options.onBoundary] Callback when navigating past a boundary.
+     * @returns {number} Clutter.EVENT_STOP if handled or trapped and Clutter.EVENT_PROPAGATE otherwise.
      */
     handleGridNavigation(event, items, currentIndex, itemsPerRow, { onBoundary = null } = {}) {
         const symbol = event.get_key_symbol();
@@ -87,16 +84,15 @@ export const FocusUtils = {
     },
 
     /**
-     * Handles horizontal navigation within rows (Left/Right).
-     * Respects row boundaries (does not wrap to next/prev row).
+     * Handles horizontal navigation within rows using Left and Right.
+     * Respects row boundaries and does not wrap to the next or previous row.
      *
-     * @param {Clutter.Event} event - The key press event.
-     * @param {Array<Clutter.Actor>} items - The list of focusable items.
-     * @param {number} currentIndex - The index of the currently focused item.
-     * @param {number} itemsPerRow - Number of items per row.
-     * @param {Function} [onBoundary] - Callback when navigating past a boundary.
-     *                                  Receives 'start' or 'end'.
-     * @returns {number} Clutter.EVENT_STOP if handled/trapped, Clutter.EVENT_PROPAGATE otherwise.
+     * @param {Clutter.Event} event The key press event.
+     * @param {Array<Clutter.Actor>} items The list of focusable items.
+     * @param {number} currentIndex The index of the currently focused item.
+     * @param {number} itemsPerRow Number of items per row.
+     * @param {Function} [onBoundary] Callback when navigating past a boundary.
+     * @returns {number} Clutter.EVENT_STOP if handled or trapped and Clutter.EVENT_PROPAGATE otherwise.
      */
     handleRowNavigation(event, items, currentIndex, itemsPerRow, onBoundary = null) {
         const symbol = event.get_key_symbol();
@@ -127,15 +123,14 @@ export const FocusUtils = {
     },
 
     /**
-     * Handles vertical navigation between columns (Up/Down).
+     * Handles vertical navigation between columns using Up and Down.
      *
-     * @param {Clutter.Event} event - The key press event.
-     * @param {Array<Clutter.Actor>} items - The list of focusable items.
-     * @param {number} currentIndex - The index of the currently focused item.
-     * @param {number} itemsPerRow - Number of items per row.
-     * @param {Function} [onBoundary] - Callback when navigating past a boundary.
-     *                                  Receives 'up' or 'down'.
-     * @returns {number} Clutter.EVENT_STOP if handled/trapped, Clutter.EVENT_PROPAGATE otherwise.
+     * @param {Clutter.Event} event The key press event.
+     * @param {Array<Clutter.Actor>} items The list of focusable items.
+     * @param {number} currentIndex The index of the currently focused item.
+     * @param {number} itemsPerRow Number of items per row.
+     * @param {Function} [onBoundary] Callback when navigating past a boundary.
+     * @returns {number} Clutter.EVENT_STOP if handled or trapped and Clutter.EVENT_PROPAGATE otherwise.
      */
     handleColumnNavigation(event, items, currentIndex, itemsPerRow, onBoundary = null) {
         const symbol = event.get_key_symbol();
@@ -174,12 +169,11 @@ export const FocusUtils = {
 
     /**
      * Attempts to navigate focus internally within a container.
-     * If internal navigation fails, it traps focus (returns EVENT_STOP).
-     * This is useful for complex widgets like Search entries.
+     * If internal navigation fails, it traps focus by returning EVENT_STOP.
      *
-     * @param {Clutter.Actor} actor - The actor initiating the navigation (usually the container or a child).
-     * @param {Clutter.Actor} container - The container to navigate within.
-     * @param {St.DirectionType} direction - The direction to navigate.
+     * @param {Clutter.Actor} actor The actor initiating the navigation.
+     * @param {Clutter.Actor} container The container to navigate within.
+     * @param {St.DirectionType} direction The direction to navigate.
      * @returns {number} Clutter.EVENT_STOP.
      */
     trapFocusInContainer(actor, container, direction) {

@@ -4,7 +4,7 @@ import St from 'gi://St';
  * Set text on both CLIPBOARD and PRIMARY selections.
  * This ensures pasting works consistently across all apps, including terminals.
  *
- * @param {string} text - The text to set
+ * @param {string} text The text to set.
  */
 export function clipboardSetText(text) {
     const clipboard = St.Clipboard.get_default();
@@ -16,8 +16,8 @@ export function clipboardSetText(text) {
  * Set binary content on both CLIPBOARD and PRIMARY selections.
  * Used for images, file URIs, and other non-text content.
  *
- * @param {string} mimeType - The MIME type of the content
- * @param {GLib.Bytes} bytes - The content bytes
+ * @param {string} mimeType The MIME type of the content.
+ * @param {GLib.Bytes} bytes The content bytes.
  */
 export function clipboardSetContent(mimeType, bytes) {
     const clipboard = St.Clipboard.get_default();
@@ -29,7 +29,7 @@ export function clipboardSetContent(mimeType, bytes) {
  * Read text from the CLIPBOARD selection.
  * Wraps the callback-based API in a Promise.
  *
- * @returns {Promise<string|null>} The clipboard text, or null if empty
+ * @returns {Promise<string|null>} The clipboard text or null if empty.
  */
 export function clipboardGetText() {
     return new Promise((resolve) => {
@@ -43,8 +43,8 @@ export function clipboardGetText() {
  * Read binary content from the CLIPBOARD selection for a given MIME type.
  * Wraps the callback-based API in a Promise.
  *
- * @param {string} mimeType - The MIME type to request
- * @returns {Promise<{data: Uint8Array, size: number}|null>} The content data, or null if empty
+ * @param {string} mimeType The MIME type to request.
+ * @returns {Promise<Object|null>} The content data or null if empty.
  */
 export function clipboardGetContent(mimeType) {
     return new Promise((resolve) => {

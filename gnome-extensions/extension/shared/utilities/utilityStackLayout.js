@@ -12,10 +12,9 @@ const StackVirtualization = {
 };
 
 /**
- * StackLayout
  * A vertical list container that supports atomic reconciliation.
- * Items are rendered sequentially in a vertical column.
- * List items are focused using arrow keys.
+ * Items are rendered sequentially in a vertical column and focused using arrow keys.
+ *
  * @example
  * const list = new StackLayout({
  *     spacing: 8,
@@ -27,10 +26,7 @@ export const StackLayout = GObject.registerClass(
     class StackLayout extends St.BoxLayout {
         /**
          * Initialize the stack layout.
-         * @param {Object} params Configuration parameters
-         * @param {Function} params.renderItemFn Function to render each item
-         * @param {St.ScrollView} [params.scrollView] Parent scroll view for focus scrolling
-         * @param {Object} [otherParams] Other St.BoxLayout parameters
+         * @param {Object} params Configuration parameters.
          */
         constructor(params) {
             const {
@@ -74,8 +70,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Append additional items without full reconciliation.
-         * @param {Array<Object>} newItems Items to append
-         * @param {Object} renderSession Optional session data
+         * @param {Array<Object>} newItems Items to append.
+         * @param {Object} renderSession Optional session data.
          */
         addItems(newItems, renderSession) {
             this._items = [...this._items, ...newItems];
@@ -98,8 +94,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Reconcile the layout with a new list of items reusing existing widgets.
-         * @param {Array<Object>} items New list of items to render
-         * @param {Object} renderSession Optional session data passed to renderItemFn
+         * @param {Array<Object>} items New list of items to render.
+         * @param {Object} renderSession Optional session data passed to renderItemFn.
          */
         reconcile(items, renderSession) {
             this._items = items;
@@ -121,8 +117,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Reconcile all items when virtualization is disabled.
-         * @param {Array<Object>} items Items to render
-         * @param {Object} renderSession Optional render session
+         * @param {Array<Object>} items Items to render.
+         * @param {Object} renderSession Optional render session.
          * @private
          */
         _reconcileAllItems(items, renderSession) {
@@ -167,7 +163,7 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Get the number of items currently in the layout.
-         * @returns {number} Item count
+         * @returns {number} Item count.
          */
         getItemCount() {
             return this._items.length;
@@ -175,7 +171,7 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Check if there are pending items waiting to be rendered.
-         * @returns {boolean} Always false for StackLayout
+         * @returns {boolean} Always false for StackLayout.
          */
         hasPendingItems() {
             return false;
@@ -183,7 +179,7 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Check if loading should be deferred.
-         * @returns {boolean} Always false for StackLayout
+         * @returns {boolean} Always false for StackLayout.
          */
         shouldDeferLoading() {
             return false;
@@ -191,8 +187,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Update viewport metrics used by virtualized rendering.
-         * @param {number} scrollTop Current vertical scroll offset
-         * @param {number} viewportHeight Current viewport height
+         * @param {number} scrollTop Current vertical scroll offset.
+         * @param {number} viewportHeight Current viewport height.
          */
         setViewport(scrollTop, viewportHeight) {
             if (!this._virtualizationEnabled) return;
@@ -218,9 +214,9 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Convert global scroll offset into this layout's local coordinate space.
-         * @param {number} scrollTop Global scroll offset
-         * @returns {number} Local viewport top offset
+         * Convert global scroll offset into this layout coordinate space.
+         * @param {number} scrollTop Global scroll offset.
+         * @returns {number} Local viewport top offset.
          * @private
          */
         _resolveLocalViewportTop(scrollTop) {
@@ -231,10 +227,10 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Focus a widget by item id. If virtualized and off-window, first shift the window.
-         * @param {string} itemId Item id to focus
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if the item was found and focused
+         * Focus a widget by item identifier.
+         * @param {string} itemId Item identifier to focus.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus.
+         * @returns {boolean} True if the item was found and focused.
          */
         focusByItemId(itemId, targetFinder) {
             if (!itemId) return false;
@@ -258,8 +254,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus the first item in the list.
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if an item was focused
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus.
+         * @returns {boolean} True if an item was focused.
          */
         focusFirst(targetFinder) {
             const children = this._getItemChildren();
@@ -273,8 +269,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus the last item in the list.
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
-         * @returns {boolean} True if an item was focused
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus.
+         * @returns {boolean} True if an item was focused.
          */
         focusLast(targetFinder) {
             const children = this._getItemChildren();
@@ -288,8 +284,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus a specific item widget with robust handling.
-         * @param {St.Widget} widget The widget to focus
-         * @param {Function} [targetFinder] Optional function to find a specific child to focus
+         * @param {St.Widget} widget The widget to focus.
+         * @param {Function} [targetFinder] Optional function to find a specific child to focus.
          */
         focusItem(widget, targetFinder) {
             if (!widget) return;
@@ -322,9 +318,9 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Handle key press events for stack navigation.
-         * @param {Clutter.Actor} _actor The actor that received the event
-         * @param {Clutter.Event} event The key press event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @param {Clutter.Actor} _actor The actor that received the event.
+         * @param {Clutter.Event} event The key press event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          */
         handleKeyPress(_actor, event) {
             const symbol = event.get_key_symbol();
@@ -352,10 +348,10 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Handle horizontal arrow key navigation within a row.
-         * @param {number} symbol Key symbol
-         * @param {Clutter.Actor} currentFocus Currently focused actor
-         * @param {St.Widget} itemWidget The row widget
-         * @returns {number} Clutter event constant
+         * @param {number} symbol Key symbol.
+         * @param {Clutter.Actor} currentFocus Currently focused actor.
+         * @param {St.Widget} itemWidget The row widget.
+         * @returns {number} Clutter event constant.
          * @private
          */
         _handleHorizontalNavigation(symbol, currentFocus, itemWidget) {
@@ -380,10 +376,10 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Handle vertical arrow key navigation between rows.
-         * @param {number} symbol Key symbol
-         * @param {Clutter.Actor} currentFocus Currently focused actor
-         * @param {St.Widget} itemWidget The row widget
-         * @returns {number} Clutter event constant
+         * @param {number} symbol Key symbol.
+         * @param {Clutter.Actor} currentFocus Currently focused actor.
+         * @param {St.Widget} itemWidget The row widget.
+         * @returns {number} Clutter event constant.
          * @private
          */
         _handleVerticalNavigation(symbol, currentFocus, itemWidget) {
@@ -425,11 +421,11 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Try virtualized up/down movement by global index and realize target if needed.
-         * @param {number} symbol Key symbol
-         * @param {Clutter.Actor} currentFocus Currently focused actor
-         * @param {St.Widget} itemWidget Current item widget
-         * @returns {boolean} True if focus moved
+         * Try virtualized movement by global index and realize target if needed.
+         * @param {number} symbol Key symbol.
+         * @param {Clutter.Actor} currentFocus Currently focused actor.
+         * @param {St.Widget} itemWidget Current item widget.
+         * @returns {boolean} True if focus moved.
          * @private
          */
         _tryVirtualVerticalNavigation(symbol, currentFocus, itemWidget) {
@@ -457,10 +453,10 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Check whether there is still a logical item above or below the current row in virtual mode.
-         * @param {St.Widget} itemWidget Current item widget
-         * @param {'up'|'down'} direction Vertical direction
-         * @returns {boolean}
+         * Check whether there is still a logical item above or below the current row.
+         * @param {St.Widget} itemWidget Current item widget.
+         * @param {string} direction Vertical direction.
+         * @returns {boolean} True if a neighbor exists.
          * @private
          */
         _hasVirtualNeighbor(itemWidget, direction) {
@@ -472,9 +468,9 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Focus matching control in the target row while preserving scroll visibility.
-         * @param {Clutter.Actor} currentFocus Currently focused actor
-         * @param {St.Widget} currentRow Source row
-         * @param {St.Widget} targetRow Destination row
+         * @param {Clutter.Actor} currentFocus Currently focused actor.
+         * @param {St.Widget} currentRow Source row.
+         * @param {St.Widget} targetRow Destination row.
          * @private
          */
         _focusVerticalTargetRow(currentFocus, currentRow, targetRow) {
@@ -495,8 +491,8 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Resolve focused item id within this container.
-         * @returns {string|null}
+         * Resolve focused item identifier within this container.
+         * @returns {string|null} The item identifier or null.
          * @private
          */
         _getFocusedItemId() {
@@ -522,7 +518,7 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Return only item children which excludes virtualization spacers.
-         * @returns {Array<St.Widget>}
+         * @returns {Array<St.Widget>} The list of item children.
          * @private
          */
         _getItemChildren() {
@@ -530,9 +526,9 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Whether virtualization should be enabled for current count.
-         * @param {number} count Item count
-         * @returns {boolean}
+         * Whether virtualization should be enabled for the current count.
+         * @param {number} count Item count.
+         * @returns {boolean} True if virtualization should be active.
          * @private
          */
         _shouldVirtualize(count) {
@@ -541,9 +537,9 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Reconcile only the currently visible virtualized window.
-         * @param {Array<Object>} items All items
-         * @param {Object} renderSession Optional render session
-         * @param {boolean} force Force reconciliation even when range is unchanged
+         * @param {Array<Object>} items All items.
+         * @param {Object} renderSession Optional render session.
+         * @param {boolean} force Force reconciliation even when range is unchanged.
          * @private
          */
         _reconcileVirtualWindow(items, renderSession, force) {
@@ -595,7 +591,6 @@ export const StackLayout = GObject.registerClass(
                 visibleIndex++;
             }
 
-            // Extraneous widgets are destroyed directly because list rows are easy to compute unlike MasonryLayout caching
             existingWidgets.forEach((widget) => widget.destroy());
             this._placeVirtualSpacersAtEdges();
             this._setSpacerHeights(window.topPad, window.bottomPad);
@@ -678,8 +673,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Set virtualization spacer heights.
-         * @param {number} topPad Height of top spacer
-         * @param {number} bottomPad Height of bottom spacer
+         * @param {number} topPad Height of top spacer.
+         * @param {number} bottomPad Height of bottom spacer.
          * @private
          */
         _setSpacerHeights(topPad, bottomPad) {
@@ -689,8 +684,8 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Calculate the visible virtual window from viewport and estimate.
-         * @param {number} totalItems Total item count
-         * @returns {{start:number,end:number,topPad:number,bottomPad:number}}
+         * @param {number} totalItems Total item count.
+         * @returns {Object} The window metrics.
          * @private
          */
         _calculateVirtualWindow(totalItems) {
@@ -716,10 +711,10 @@ export const StackLayout = GObject.registerClass(
         }
 
         /**
-         * Keep the currently focused row inside the realized window to avoid focus loss during virtual shifts.
-         * @param {{start:number,end:number,topPad:number,bottomPad:number}} window Proposed window
-         * @param {Array<Object>} items Full item array
-         * @returns {{start:number,end:number,topPad:number,bottomPad:number}}
+         * Keep the currently focused row inside the realized window.
+         * @param {Object} window Proposed window.
+         * @param {Array<Object>} items Full item array.
+         * @returns {Object} The adjusted window metrics.
          * @private
          */
         _ensureWindowContainsFocusedItem(window, items) {

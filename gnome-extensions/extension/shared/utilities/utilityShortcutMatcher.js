@@ -5,19 +5,19 @@ import Clutter from 'gi://Clutter';
  * This is used to handle keys that do not have a direct single-character representation.
  */
 const KEY_MAP = {
-    // --- Core Navigation & Control ---
+    // Core navigation and control keys
     Escape: Clutter.KEY_Escape,
     Tab: Clutter.KEY_Tab,
     ISO_Left_Tab: Clutter.KEY_ISO_Left_Tab,
     space: Clutter.KEY_space,
-    Space: Clutter.KEY_space, // GTK often returns 'Space'
+    Space: Clutter.KEY_space,
     BackSpace: Clutter.KEY_BackSpace,
     Return: Clutter.KEY_Return,
-    Enter: Clutter.KEY_KP_Enter, // Common alias
+    Enter: Clutter.KEY_KP_Enter,
     Insert: Clutter.KEY_Insert,
     Delete: Clutter.KEY_Delete,
 
-    // --- Arrows & Page Navigation ---
+    // Arrow and page navigation keys
     Up: Clutter.KEY_Up,
     Down: Clutter.KEY_Down,
     Left: Clutter.KEY_Left,
@@ -27,7 +27,7 @@ const KEY_MAP = {
     Page_Up: Clutter.KEY_Page_Up,
     Page_Down: Clutter.KEY_Page_Down,
 
-    // --- Function Keys ---
+    // Function keys
     F1: Clutter.KEY_F1,
     F2: Clutter.KEY_F2,
     F3: Clutter.KEY_F3,
@@ -41,41 +41,41 @@ const KEY_MAP = {
     F11: Clutter.KEY_F11,
     F12: Clutter.KEY_F12,
 
-    // --- Standard Punctuation & Symbols ---
-    grave: Clutter.KEY_grave, // `
-    asciitilde: Clutter.KEY_asciitilde, // ~
-    exclam: Clutter.KEY_exclam, // !
-    at: Clutter.KEY_at, // @
-    numbersign: Clutter.KEY_numbersign, // #
-    dollar: Clutter.KEY_dollar, // $
-    percent: Clutter.KEY_percent, // %
-    asciicircum: Clutter.KEY_asciicircum, // ^
-    ampersand: Clutter.KEY_ampersand, // &
-    asterisk: Clutter.KEY_asterisk, // *
-    parenleft: Clutter.KEY_parenleft, // (
-    parenright: Clutter.KEY_parenright, // )
-    minus: Clutter.KEY_minus, // -
-    underscore: Clutter.KEY_underscore, // _
-    plus: Clutter.KEY_plus, // +
-    equal: Clutter.KEY_equal, // =
-    bracketleft: Clutter.KEY_bracketleft, // [
-    bracketright: Clutter.KEY_bracketright, // ]
-    braceleft: Clutter.KEY_braceleft, // {
-    braceright: Clutter.KEY_braceright, // }
-    backslash: Clutter.KEY_backslash, // \
-    bar: Clutter.KEY_bar, // |
-    semicolon: Clutter.KEY_semicolon, // ;
-    colon: Clutter.KEY_colon, // :
-    apostrophe: Clutter.KEY_apostrophe, // '
-    quotedbl: Clutter.KEY_quotedbl, // "
-    comma: Clutter.KEY_comma, // ,
-    less: Clutter.KEY_less, // <
-    period: Clutter.KEY_period, // .
-    greater: Clutter.KEY_greater, // >
-    slash: Clutter.KEY_slash, // /
-    question: Clutter.KEY_question, // ?
+    // Standard punctuation and symbols
+    grave: Clutter.KEY_grave,
+    asciitilde: Clutter.KEY_asciitilde,
+    exclam: Clutter.KEY_exclam,
+    at: Clutter.KEY_at,
+    numbersign: Clutter.KEY_numbersign,
+    dollar: Clutter.KEY_dollar,
+    percent: Clutter.KEY_percent,
+    asciicircum: Clutter.KEY_asciicircum,
+    ampersand: Clutter.KEY_ampersand,
+    asterisk: Clutter.KEY_asterisk,
+    parenleft: Clutter.KEY_parenleft,
+    parenright: Clutter.KEY_parenright,
+    minus: Clutter.KEY_minus,
+    underscore: Clutter.KEY_underscore,
+    plus: Clutter.KEY_plus,
+    equal: Clutter.KEY_equal,
+    bracketleft: Clutter.KEY_bracketleft,
+    bracketright: Clutter.KEY_bracketright,
+    braceleft: Clutter.KEY_braceleft,
+    braceright: Clutter.KEY_braceright,
+    backslash: Clutter.KEY_backslash,
+    bar: Clutter.KEY_bar,
+    semicolon: Clutter.KEY_semicolon,
+    colon: Clutter.KEY_colon,
+    apostrophe: Clutter.KEY_apostrophe,
+    quotedbl: Clutter.KEY_quotedbl,
+    comma: Clutter.KEY_comma,
+    less: Clutter.KEY_less,
+    period: Clutter.KEY_period,
+    greater: Clutter.KEY_greater,
+    slash: Clutter.KEY_slash,
+    question: Clutter.KEY_question,
 
-    // --- Keypad (Numbers) ---
+    // Keypad numbers
     KP_0: Clutter.KEY_KP_0,
     KP_1: Clutter.KEY_KP_1,
     KP_2: Clutter.KEY_KP_2,
@@ -87,7 +87,7 @@ const KEY_MAP = {
     KP_8: Clutter.KEY_KP_8,
     KP_9: Clutter.KEY_KP_9,
 
-    // --- Keypad (Operations & Control) ---
+    // Keypad operations and control keys
     KP_Add: Clutter.KEY_KP_Add,
     KP_Subtract: Clutter.KEY_KP_Subtract,
     KP_Multiply: Clutter.KEY_KP_Multiply,
@@ -97,7 +97,7 @@ const KEY_MAP = {
     KP_Insert: Clutter.KEY_KP_Insert,
     KP_Delete: Clutter.KEY_KP_Delete,
 
-    // --- Keypad (Navigation) ---
+    // Keypad navigation keys
     KP_Up: Clutter.KEY_KP_Up,
     KP_Down: Clutter.KEY_KP_Down,
     KP_Left: Clutter.KEY_KP_Left,
@@ -106,13 +106,13 @@ const KEY_MAP = {
     KP_End: Clutter.KEY_KP_End,
     KP_Page_Up: Clutter.KEY_KP_Page_Up,
     KP_Page_Down: Clutter.KEY_KP_Page_Down,
-    KP_Begin: Clutter.KEY_KP_Begin, // Often the '5' key with NumLock off
-    KP_Next: Clutter.KEY_KP_Next, // Often aliases to Page Down
+    KP_Begin: Clutter.KEY_KP_Begin,
+    KP_Next: Clutter.KEY_KP_Next,
 };
 
 /**
  * Resolve a key name to its Clutter key symbol.
- * @param {string} keyName - The name of the key.
+ * @param {string} keyName The name of the key.
  * @returns {number|null} The Clutter key symbol or null if not found.
  */
 export function resolveKeySymbol(keyName) {
@@ -128,10 +128,10 @@ export function resolveKeySymbol(keyName) {
 /**
  * Checks if a Clutter event matches any of the keyboard shortcuts defined in GSettings.
  *
- * @param {Clutter.Event} event - The Clutter event to check.
- * @param {Gio.Settings} settings - The GSettings object containing the shortcuts.
- * @param {string} settingsKey - The key in GSettings where the shortcuts are stored.
- * @returns {boolean} - True if the event matches any shortcut, false otherwise.
+ * @param {Clutter.Event} event The Clutter event to check.
+ * @param {Gio.Settings} settings The GSettings object containing the shortcuts.
+ * @param {string} settingsKey The key in GSettings where the shortcuts are stored.
+ * @returns {boolean} True if the event matches any shortcut and false otherwise.
  */
 export function eventMatchesShortcut(event, settings, settingsKey) {
     const shortcuts = settings.get_strv(settingsKey);
@@ -165,9 +165,9 @@ export function eventMatchesShortcut(event, settings, settingsKey) {
 }
 
 /**
- * Parse modifier requirements from a shortcut string
- * @param {string} shortcutString - The shortcut string to parse
- * @returns {Object} Object with reqCtrl, reqShift, reqAlt, reqSuper properties
+ * Parse modifier requirements from a shortcut string.
+ * @param {string} shortcutString The shortcut string to parse.
+ * @returns {Object} Object with reqCtrl, reqShift, reqAlt, and reqSuper properties.
  * @private
  */
 function _parseModifiers(shortcutString) {
@@ -180,18 +180,17 @@ function _parseModifiers(shortcutString) {
 }
 
 /**
- * Check if a key name matches the event symbol
- * @param {string} keyName - The key name from the shortcut
- * @param {number} eventSymbol - The Clutter key symbol from the event
- * @param {boolean} hasShift - Whether Shift is pressed
- * @param {boolean} reqShift - Whether Shift is required
- * @returns {boolean} True if the key matches
+ * Check if a key name matches the event symbol.
+ * @param {string} keyName The key name from the shortcut.
+ * @param {number} eventSymbol The Clutter key symbol from the event.
+ * @param {boolean} hasShift Whether Shift is pressed.
+ * @param {boolean} reqShift Whether Shift is required.
+ * @returns {boolean} True if the key matches.
  * @private
  */
 function _checkKeyMatch(keyName, eventSymbol, hasShift, reqShift) {
     const mappedSymbol = KEY_MAP[keyName];
     if (mappedSymbol) {
-        // Tab and ISO_Left_Tab both represent the same key
         if (keyName === 'Tab' || keyName === 'ISO_Left_Tab') {
             const isEventTab = eventSymbol === Clutter.KEY_Tab || eventSymbol === Clutter.KEY_ISO_Left_Tab;
             return isEventTab && hasShift === reqShift;

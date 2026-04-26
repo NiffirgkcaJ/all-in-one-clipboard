@@ -20,12 +20,12 @@ const CLIPBOARD_CHECK_DELAY_MS = 50;
 const FIRST_CLIPBOARD_WARMUP_DELAY_MS = 120;
 
 /**
- * Manages clipboard exclusion rules using both window-level checks and AT-SPI accessibility tree traversal.
+ * Manages clipboard exclusion rules using window level checks and AT-SPI accessibility tree traversal.
  * Tracks focused UI elements to determine whether clipboard capture should be blocked for specific applications or contexts.
  */
 export class ExclusionUtils {
     /**
-     * @private
+     * Initializes the ExclusionUtils instance.
      */
     constructor() {
         this._atspiInitialized = false;
@@ -44,15 +44,15 @@ export class ExclusionUtils {
 
     /**
      * Stores a reference to the extension settings.
-     * @param {Gio.Settings} settings
+     * @param {Gio.Settings} settings The extension settings object.
      */
     setSettings(settings) {
         this._settings = settings;
     }
 
     /**
-     * Initializes exclusion utility lifecycle.
-     * @param {Gio.Settings} settings
+     * Initializes the exclusion utility lifecycle.
+     * @param {Gio.Settings} settings The extension settings object.
      */
     initialize(settings) {
         this.setSettings(settings);
@@ -85,8 +85,8 @@ export class ExclusionUtils {
 
     /**
      * Normalizes exclusion entries for internal matching.
-     * @param {string[]} exclusionList
-     * @returns {string[]}
+     * @param {string[]} exclusionList The list of exclusion strings.
+     * @returns {string[]} The normalized list.
      * @private
      */
     _normalizeExclusions(exclusionList) {
@@ -96,7 +96,7 @@ export class ExclusionUtils {
 
     /**
      * Starts AT-SPI tracking if the feature is enabled.
-     * @returns {boolean}
+     * @returns {boolean} True if the listener is active.
      */
     start() {
         if (!this._settings || !this._settings.get_boolean('enable-atspi-exclusion')) {
@@ -124,7 +124,7 @@ export class ExclusionUtils {
             try {
                 this._atspiListener.deregister('object:state-changed:focused');
             } catch {
-                // Silently ignore AT-SPI listener deregistration failures that are already detached or destroyed
+                // Ignore deregistration failures for detached or destroyed listeners
             }
             this._atspiListener = null;
             this._atspiListenerActive = false;
@@ -137,7 +137,7 @@ export class ExclusionUtils {
 
     /**
      * Updates exclusions and synchronizes listener lifecycle with settings.
-     * @param {string[]} exclusionList
+     * @param {string[]} exclusionList The list of exclusion strings.
      */
     refreshExclusions(exclusionList) {
         this._cachedExclusions = this._normalizeExclusions(exclusionList);
@@ -153,8 +153,8 @@ export class ExclusionUtils {
     }
 
     /**
-     * Gets the delay before clipboard content processing check.
-     * @returns {number}
+     * Gets the delay before checking clipboard content processing.
+     * @returns {number} The delay in milliseconds.
      */
     getClipboardCheckDelayMs() {
         const atspiEnabled = !!(this._settings && this._settings.get_boolean('enable-atspi-exclusion'));
@@ -168,9 +168,9 @@ export class ExclusionUtils {
     }
 
     /**
-     * Determines whether clipboard capture should be blocked in current context.
-     * @param {Meta.Window|null} focusWindow
-     * @returns {boolean}
+     * Determines whether clipboard capture should be blocked in the current context.
+     * @param {Meta.Window|null} focusWindow The currently focused window.
+     * @returns {boolean} True if the capture should be blocked.
      */
     shouldBlockClipboardNow(focusWindow) {
         const exclusionList = this._settings?.get_strv('exclusion-list') ?? [];
@@ -181,7 +181,7 @@ export class ExclusionUtils {
 
     /**
      * Initializes AT-SPI lazily.
-     * @returns {boolean}
+     * @returns {boolean} True if initialized.
      * @private
      */
     _ensureAtspiInitialized() {
@@ -222,7 +222,7 @@ export class ExclusionUtils {
 
                     this._processFocusDebouncer.trigger();
                 } catch {
-                    // Silently ignore AT-SPI errors from rapidly disappearing event sources
+                    // Ignore errors from rapidly disappearing event sources
                 }
             });
 
@@ -247,7 +247,7 @@ export class ExclusionUtils {
         try {
             this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
         } catch {
-            // Silently catch AT-SPI evaluate errors, typically missing objects
+            // Catch and ignore errors from missing objects
         } finally {
             this._pendingFocusSource = null;
         }
@@ -255,8 +255,8 @@ export class ExclusionUtils {
 
     /**
      * Builds lowercase ancestor outline chain starting at a specific accessible object.
-     * @param {Atspi.Accessible} source
-     * @returns {string[]}
+     * @param {Atspi.Accessible} source The accessible object source.
+     * @returns {string[]} The list of ancestor names.
      * @private
      */
     _getAncestorNamesFromSource(source) {
@@ -278,14 +278,14 @@ export class ExclusionUtils {
                 if (appDesc) names.push(appDesc.toLowerCase());
             }
         } catch {
-            // Silently catch AT-SPI D-Bus timeout errors as they are common when windows are closing or uncooperative
+            // Ignore D-Bus timeout errors common during window closing
         }
         return names;
     }
 
     /**
      * Walks the AT-SPI desktop tree to find the currently focused element and return its ancestor names.
-     * @returns {string[]}
+     * @returns {string[]} The list of ancestor names.
      * @private
      */
     _getAncestorNamesFromCurrentFocus() {
@@ -321,10 +321,10 @@ export class ExclusionUtils {
     }
 
     /**
-     * Checks whether name chain contains any exclusion match.
-     * @param {string[]} names
-     * @param {string[]} exclusionList
-     * @returns {boolean}
+     * Checks whether the name chain contains any exclusion match.
+     * @param {string[]} names The list of ancestor names.
+     * @param {string[]} exclusionList The list of exclusion strings.
+     * @returns {boolean} True if a match is found.
      * @private
      */
     _chainMatchesExclusion(names, exclusionList) {
@@ -332,9 +332,9 @@ export class ExclusionUtils {
     }
 
     /**
-     * Updates sticky excluded context flag based on one focus source.
-     * @param {Atspi.Accessible} source
-     * @param {string[]} exclusionList
+     * Updates the sticky excluded context flag based on one focus source.
+     * @param {Atspi.Accessible} source The accessible object source.
+     * @param {string[]} exclusionList The list of exclusion strings.
      * @private
      */
     _evaluateFocusSource(source, exclusionList) {
@@ -353,7 +353,7 @@ export class ExclusionUtils {
             return;
         }
 
-        // Leaf controls inside excluded popups should not clear the sticky blocked state.
+        // Leaf controls inside excluded popups should not clear the sticky blocked state
         let isTopLevel = false;
         try {
             isTopLevel = Object.values(ATSPI_TOP_LEVEL_ROLES).includes(source.get_role());
@@ -383,8 +383,8 @@ export class ExclusionUtils {
 
     /**
      * Checks if the current accessibility context is excluded.
-     * @param {string[]} exclusionList
-     * @returns {boolean}
+     * @param {string[]} exclusionList The list of exclusion strings.
+     * @returns {boolean} True if excluded.
      * @private
      */
     _isAtspiExcluded(exclusionList) {
@@ -399,16 +399,15 @@ export class ExclusionUtils {
 
     /**
      * Checks if a window should be excluded based on the provided list.
-     * @param {Meta.Window} window
-     * @param {string[]} exclusionList
-     * @returns {boolean}
+     * @param {Meta.Window} window The window to check.
+     * @param {string[]} exclusionList The list of exclusion strings.
+     * @returns {boolean} True if the window is excluded.
      */
     isWindowExcluded(window, exclusionList) {
         if (!window || !exclusionList) return false;
 
         const normalizedExclusions = exclusionList.map((s) => s.toLowerCase().trim()).filter((s) => s.length > 0);
 
-        // Ensure AT-SPI context evaluates empty exclusion lists
         if (normalizedExclusions.length === 0) return this._isAtspiExcluded(normalizedExclusions);
 
         const identifiers = [];
@@ -437,8 +436,8 @@ export class ExclusionUtils {
 
     /**
      * Checks if the current AT-SPI context is excluded.
-     * @param {string[]} exclusionList
-     * @returns {boolean}
+     * @param {string[]} exclusionList The list of exclusion strings.
+     * @returns {boolean} True if the context is excluded.
      */
     isContextExcluded(exclusionList) {
         if (!exclusionList) return false;

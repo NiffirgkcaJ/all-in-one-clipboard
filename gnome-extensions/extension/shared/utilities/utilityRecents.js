@@ -5,7 +5,9 @@ import { ServiceJson } from '../services/serviceJson.js';
 
 const DEFAULT_MAX_RECENTS_FALLBACK = 45;
 
-// Shared instances keyed by cache file path, enabling multiple consumers to reuse a single manager.
+/**
+ * Shared instances keyed by cache file path to allow multiple consumers to reuse a single manager.
+ */
 const _instances = new Map();
 
 /**
@@ -13,7 +15,7 @@ const _instances = new Map();
  * Handles loading from and saving to a cache file, enforcing a maximum item limit
  * from GSettings, and notifying listeners of changes.
  *
- * @fires recents-changed - Emitted when the list of recent items is modified.
+ * @fires recents-changed Emitted when the list of recent items is modified.
  */
 export const RecentItemsManager = GObject.registerClass(
     {
@@ -23,10 +25,10 @@ export const RecentItemsManager = GObject.registerClass(
     },
     class RecentItemsManager extends GObject.Object {
         /**
-         * @param {string} extensionUUID - The UUID of the extension.
-         * @param {Gio.Settings} settings - The GSettings object.
-         * @param {string} absolutePath - The absolute path for this manager's recents file.
-         * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type.
+         * @param {string} extensionUUID The UUID of the extension.
+         * @param {Gio.Settings} settings The GSettings object.
+         * @param {string} absolutePath The absolute path for this manager's recents file.
+         * @param {string} maxItemsSettingKey The GSettings key for the max items for this type.
          */
         constructor(extensionUUID, settings, absolutePath, maxItemsSettingKey) {
             super();
@@ -85,7 +87,6 @@ export const RecentItemsManager = GObject.registerClass(
                 } else {
                     this._recents = [];
                     if (recents !== null) {
-                        // null means file not found/empty which is expected
                         console.warn(`[AIO-Clipboard] Recents file ${this._cacheFilePath} content is not an array. Initializing as empty.`);
                     }
                 }
@@ -111,7 +112,7 @@ export const RecentItemsManager = GObject.registerClass(
         /**
          * Adds an item to the top of the recents list.
          * If the item already exists, it is moved to the top.
-         * @param {object} item - The item to add. Must have a 'value' property.
+         * @param {Object} item The item to add that must have a value property.
          */
         addItem(item) {
             if (!this._settings) return;
@@ -130,7 +131,7 @@ export const RecentItemsManager = GObject.registerClass(
 
         /**
          * Gets a copy of the current list of recent items.
-         * @returns {Array<object>} The list of recent items.
+         * @returns {Array<Object>} The list of recent items.
          */
         getRecents() {
             return [...this._recents];
@@ -147,7 +148,7 @@ export const RecentItemsManager = GObject.registerClass(
         }
 
         /**
-         * Cleans up resources, particularly the GSettings signal connection.
+         * Cleans up resources such as the GSettings signal connection.
          */
         destroy() {
             this._refCount--;
@@ -170,14 +171,13 @@ export const RecentItemsManager = GObject.registerClass(
 
 /**
  * Gets or creates a shared RecentItemsManager instance for the given cache file path.
- * Multiple consumers that manage the same recents file will receive the same instance,
- * keeping the in-memory state synchronized. Each call increments a reference count;
- * the instance is only destroyed when the last consumer calls destroy().
+ * Multiple consumers that manage the same recents file will receive the same instance.
+ * Each call increments a reference count and the instance is only destroyed when the last consumer calls destroy.
  *
- * @param {string} extensionUUID - The UUID of the extension.
- * @param {Gio.Settings} settings - The GSettings object.
- * @param {string} absolutePath - The absolute path for this manager's recents file.
- * @param {string} maxItemsSettingKey - The GSettings key for the max items for this type.
+ * @param {string} extensionUUID The UUID of the extension.
+ * @param {Gio.Settings} settings The GSettings object.
+ * @param {string} absolutePath The absolute path for this manager's recents file.
+ * @param {string} maxItemsSettingKey The GSettings key for the max items for this type.
  * @returns {RecentItemsManager} A shared manager instance.
  */
 export function getRecentItemsManager(extensionUUID, settings, absolutePath, maxItemsSettingKey) {

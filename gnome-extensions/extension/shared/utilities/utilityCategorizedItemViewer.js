@@ -31,32 +31,29 @@ const ViewerIcons = {
 };
 
 /**
- * @typedef {object} ViewerConfig
- * @property {string} jsonPath - The path to the main JSON data file, relative to the extension root.
- * @property {Function} parserClass - The constructor for the class that will parse the JSON data.
- * @property {string} recentsPath - The absolute path for storing recent items.
- * @property {string} recentsMaxItemsKey - The GSettings key for the maximum number of recent items.
- * @property {number} [itemsPerRow] - Static number of items per row. Used as fallback if targetItemWidth is not set.
- * @property {number} [targetItemWidth] - The width of a single grid item while excluding margin. When set, columns are calculated dynamically.
- * @property {string} [limitItemsPerRowKey] - GSettings key that enables column limiting for this grid.
- * @property {string} [maxItemsPerRowKey] - GSettings key for the maximum number of columns when limiting is enabled.
- * @property {string} categoryPropertyName - The name of the property in the parsed data that holds the category name.
- * @property {boolean} [sortCategories=false] - Whether to sort the categories alphabetically. Defaults to false (preserves order).
- * @property {Function} searchFilterFn - A function `(item, searchText)` that returns true if the item matches the search.
- * @property {Function} renderGridItemFn - A function `(itemData)` that returns an `St.Button` widget for a grid item.
- * @property {Function} renderCategoryButtonFn - A function `(categoryId, extensionPath)` that returns an `St.Button` for a category tab.
- * @property {Function} createSignalPayload - A function `(itemData)` that returns a simple object to be emitted in the 'item-selected' signal.
+ * @typedef {Object} ViewerConfig
+ * @property {string} jsonPath The path to the main JSON data file relative to the extension root.
+ * @property {Function} parserClass The constructor for the class that will parse the JSON data.
+ * @property {string} recentsPath The absolute path for storing recent items.
+ * @property {string} recentsMaxItemsKey The GSettings key for the maximum number of recent items.
+ * @property {number} [itemsPerRow] Static number of items per row used as fallback if targetItemWidth is not set.
+ * @property {number} [targetItemWidth] The width of a single grid item excluding margin to calculate columns dynamically.
+ * @property {string} [limitItemsPerRowKey] GSettings key that enables column limiting for this grid.
+ * @property {string} [maxItemsPerRowKey] GSettings key for the maximum number of columns when limiting is enabled.
+ * @property {string} categoryPropertyName The name of the property in the parsed data that holds the category name.
+ * @property {boolean} [sortCategories=false] Whether to sort the categories alphabetically.
+ * @property {Function} searchFilterFn A function that returns true if the item matches the search.
+ * @property {Function} renderGridItemFn A function that returns an St.Button widget for a grid item.
+ * @property {Function} renderCategoryButtonFn A function that returns an St.Button for a category tab.
+ * @property {Function} createSignalPayload A function that returns a simple object to be emitted in the item-selected signal.
  */
 
 /**
- * A generic, reusable component for displaying a grid of items that are
- * organized by category, searchable, and include a "Recents" tab.
+ * A generic reusable component for displaying a grid of items organized by category.
+ * This component is searchable and includes a recents tab.
  *
- * This component is highly configurable and abstracts away the complexity of
- * UI construction, data loading, state management, and user interaction.
- *
- * @fires back-requested - Emitted when the user clicks the back button.
- * @fires item-selected - Emitted with a JSON string payload when a grid item is clicked.
+ * @fires back-requested Emitted when the user clicks the back button.
+ * @fires item-selected Emitted with a JSON string payload when a grid item is clicked.
  */
 export const CategorizedItemViewer = GObject.registerClass(
     {
@@ -67,9 +64,9 @@ export const CategorizedItemViewer = GObject.registerClass(
     },
     class CategorizedItemViewer extends St.BoxLayout {
         /**
-         * @param {Extension} extension - The main extension instance.
-         * @param {Gio.Settings} settings - The GSettings object for the extension.
-         * @param {ViewerConfig} config - The configuration object that defines the component's behavior.
+         * @param {Extension} extension The main extension instance.
+         * @param {Gio.Settings} settings The GSettings object for the extension.
+         * @param {ViewerConfig} config The configuration object that defines component behavior.
          */
         constructor(extension, settings, config) {
             super({
@@ -126,7 +123,6 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._buildUI();
 
-            // Re-render grid when extension width changes for dynamic column count
             if (this._config.targetItemWidth) {
                 this._widthChangeDebouncer = new Debouncer(() => {
                     if (this._isContentLoaded) this._applyFiltersAndRenderGrid();
@@ -181,7 +177,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Validates that all required keys are present in the configuration object.
-         * @param {ViewerConfig} config - The configuration object.
+         * @param {ViewerConfig} config The configuration object.
          * @returns {boolean} True if the configuration is valid.
          * @private
          */
@@ -292,7 +288,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Toggles the visibility and focusability of the back button.
-         * @param {boolean} isVisible - Whether the back button should be shown.
+         * @param {boolean} isVisible Whether the back button should be shown.
          */
         setBackButtonVisible(isVisible) {
             if (!this._backButton) {
@@ -307,8 +303,9 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Handles key presses on the viewer container to cycle categories.
-         * @param {Clutter.Actor} actor
-         * @param {Clutter.Event} event
+         * @param {Clutter.Actor} actor The actor that received the event.
+         * @param {Clutter.Event} event The key press event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          */
         _onGlobalKeyPress(actor, event) {
             if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
@@ -327,7 +324,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Cycles to the next or previous category.
-         * @param {number} direction - 1 for next, -1 for previous
+         * @param {number} direction Navigation direction where 1 is next and -1 is previous.
          */
         _cycleCategory(direction) {
             const tabs = this._allDisplayableTabs;
@@ -357,8 +354,8 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Get all focusable header elements (back button + category tabs)
-         * @returns {Array<St.Button>} Array of focusable actors
+         * Get all focusable header elements.
+         * @returns {Array<St.Button>} Array of focusable actors.
          * @private
          */
         _getHeaderFocusables() {
@@ -371,9 +368,9 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Handles Left/Right arrow key presses for navigating between the back button and category tabs.
-         * @param {Clutter.Actor} actor - The actor that received the event.
-         * @param {Clutter.Event} event - The key press event.
+         * Handles Left and Right arrow key presses for navigating between header elements.
+         * @param {Clutter.Actor} actor The actor that received the event.
+         * @param {Clutter.Event} event The key press event.
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
@@ -403,8 +400,8 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Handles arrow key presses for navigating the grid of items.
-         * @param {Clutter.Actor} actor - The actor that received the event.
-         * @param {Clutter.Event} event - The key press event.
+         * @param {Clutter.Actor} actor The actor that received the event.
+         * @param {Clutter.Event} event The key press event.
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
@@ -429,8 +426,8 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Focuses the first grid item and ensures it's visible in the scroll view.
-         * Used by the search bar's Down key handler to deterministically route focus.
+         * Focuses the first grid item and ensures it is visible in the scroll view.
+         * @returns {boolean} True if an item was focused.
          * @private
          */
         _focusFirstGridItem() {
@@ -447,7 +444,6 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Public method called by the parent when this view becomes visible.
-         * Focuses the search bar for immediate typing.
          */
         onSelected() {
             this._searchComponent?.grabFocus();
@@ -462,7 +458,7 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Applies an externally provided query to the viewer search state.
          *
          * @param {string} query Query text to apply.
-         * @param {object} [options] Additional options.
+         * @param {Object} [options] Additional options.
          * @param {boolean} [options.focus=false] Whether to focus the search entry.
          */
         applyExternalSearch(query, { focus = false } = {}) {
@@ -492,8 +488,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Clears external search state.
-         *
-         * @param {object} [options] Additional options.
+         * @param {Object} [options] Additional options.
          * @param {boolean} [options.focus=false] Whether to focus the search entry.
          */
         clearExternalSearch({ focus = false } = {}) {
@@ -502,7 +497,6 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Public method called by the parent when the main menu is closed.
-         * Resets the state of the component, like clearing the search bar.
          */
         onMenuClosed() {
             this._searchComponent?.clearSearch();
@@ -510,7 +504,6 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Public method to command the viewer to re-render its grid.
-         * Useful when external state (like settings) changes.
          */
         rerenderGrid() {
             this._applyFiltersAndRenderGrid();
@@ -518,7 +511,6 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Asynchronously loads data from GResource and renders the initial state of the component.
-         * This is called from the constructor to ensure the widget is fully built upon creation.
          * @private
          */
         async _loadAndRenderInitialState() {
@@ -526,7 +518,6 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._isLoading = true;
 
             try {
-                // Ensure the UI loop has a chance to render the loading state
                 await new Promise((resolve) => {
                     if (this._initIdleId) {
                         GLib.source_remove(this._initIdleId);
@@ -596,7 +587,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Callback for when the search text changes.
-         * @param {string} searchText - The new search text.
+         * @param {string} searchText The new search text.
          * @private
          */
         _onSearchTextChanged(searchText) {
@@ -617,7 +608,7 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Filters the main data based on the current search text or active category, then triggers a grid render.
+         * Filters the main data and triggers a grid render.
          * @private
          */
         _applyFiltersAndRenderGrid() {
@@ -704,7 +695,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Determine the available width for the category tab bar.
-         * @returns {number}
+         * @returns {number} The available width.
          * @private
          */
         _getTabScrollAvailableWidth() {
@@ -773,7 +764,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Sets the active category, updates the UI, and triggers a grid re-render.
-         * @param {string} id - The ID of the category to activate.
+         * @param {string} id The ID of the category to activate.
          * @private
          */
         _setActiveCategory(id) {
@@ -803,8 +794,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Calculate the number of items per row based on the current container width.
-         * If `targetItemWidth` is configured, calculates dynamically from the available width.
-         * @returns {number} The number of items per row
+         * @returns {number} The number of items per row.
          * @private
          */
         _getItemsPerRow() {
@@ -840,7 +830,6 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._gridAllButtons = [];
             this._renderSession = {};
 
-            // Read CSS margin from a probe button before calculating columns
             if (this._config.targetItemWidth && !this._gridItemHorizontalMargin) {
                 const probe = this._config.renderGridItemFn({ char: ' ', value: ' ', name: '' });
                 this._contentArea.add_child(probe);
@@ -896,10 +885,10 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Renders a chunk of grid items asynchronously to keep the UI responsive.
-         * @param {St.Widget} grid - The grid layout widget to add items to.
-         * @param {number} startIndex - The starting index in this._filteredData to render.
-         * @param {object} session - The render session token to check against.
-         * @param {St.ScrollView} scrollView - The parent scroll view for focus handling.
+         * @param {St.Widget} grid The grid layout widget to add items to.
+         * @param {number} startIndex The starting index in the filtered data to render.
+         * @param {Object} session The render session token to check against.
+         * @param {St.ScrollView} scrollView The parent scroll view for focus handling.
          * @private
          */
         _renderGridChunk(grid, startIndex, session, scrollView) {
@@ -954,7 +943,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
         /**
          * Renders a generic error message in the content area.
-         * @param {string} errorMessage - The message to display.
+         * @param {string} errorMessage The message to display.
          * @private
          */
         _renderErrorState(errorMessage) {

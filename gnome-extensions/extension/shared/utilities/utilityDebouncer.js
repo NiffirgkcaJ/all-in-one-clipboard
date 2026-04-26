@@ -2,8 +2,7 @@ import GLib from 'gi://GLib';
 
 /**
  * A class that creates a debounced function. It delays invoking the function
- * until after `wait` milliseconds have elapsed since the last time `call()`
- * was invoked.
+ * until after wait milliseconds have elapsed since the last time trigger was invoked.
  */
 export class Debouncer {
     /**
@@ -18,7 +17,7 @@ export class Debouncer {
 
     /**
      * Triggers the debounced function. Each call will reset the waiting period.
-     * @param {...any} args - Arguments to pass to the original function.
+     * @param {...any} args Arguments to pass to the original function.
      */
     trigger(...args) {
         if (!this._func) return;
@@ -45,8 +44,8 @@ export class Debouncer {
     }
 
     /**
-     * Cancels any pending timeout, preventing the debounced function from executing.
-     * This must be called when the object that uses the debouncer is destroyed.
+     * Cancels any pending timeout and prevents further execution.
+     * This must be called when the object using the debouncer is destroyed.
      */
     destroy() {
         if (this._timeoutId > 0) {

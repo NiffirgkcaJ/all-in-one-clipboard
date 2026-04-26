@@ -2,6 +2,9 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 /**
  * Gets the monitor at the given coordinates.
+ * @param {number} x The horizontal coordinate.
+ * @param {number} y The vertical coordinate.
+ * @returns {Object} The monitor object.
  */
 function getMonitorAtPosition(x, y) {
     const index = Main.layoutManager.monitors.findIndex((monitor) => {
@@ -12,6 +15,9 @@ function getMonitorAtPosition(x, y) {
 
 /**
  * Gets the coordinates for the center of the primary monitor.
+ * @param {number} menuWidth The width of the menu.
+ * @param {number} menuHeight The height of the menu.
+ * @returns {Object} The calculated center position.
  */
 function getPositionAtCenter(menuWidth, menuHeight) {
     const monitor = Main.layoutManager.primaryMonitor;
@@ -22,6 +28,7 @@ function getPositionAtCenter(menuWidth, menuHeight) {
 
 /**
  * Gets the coordinates of the mouse pointer.
+ * @returns {Object} The current cursor position.
  */
 function getPositionAtCursor() {
     const [x, y] = global.get_pointer();
@@ -30,8 +37,9 @@ function getPositionAtCursor() {
 }
 
 /**
- * Gets the coordinates of the top-center of the focused window.
- * Falls back to the cursor's position if no window is focused.
+ * Gets the coordinates of the top center of the focused window.
+ * Falls back to the cursor position if no window is focused.
+ * @returns {Object} The calculated window position.
  */
 function getPositionAtWindow() {
     const focusWindow = global.display.get_focus_window();
@@ -47,6 +55,10 @@ function getPositionAtWindow() {
 
 /**
  * Adjusts a given position to ensure the menu does not render off-screen.
+ * @param {Object} pos The proposed position.
+ * @param {number} menuWidth The width of the menu.
+ * @param {number} menuHeight The height of the menu.
+ * @returns {Object} The adjusted position.
  */
 function keepOnScreen(pos, menuWidth, menuHeight) {
     const monitor = pos.monitor;
@@ -62,8 +74,8 @@ function keepOnScreen(pos, menuWidth, menuHeight) {
 
 /**
  * Main exported function to intelligently position a menu actor on the screen.
- * @param {Clutter.Actor} menuActor - The menu actor to be positioned.
- * @param {Gio.Settings} settings - The extension's settings object.
+ * @param {Clutter.Actor} menuActor The menu actor to be positioned.
+ * @param {Gio.Settings} settings The extension settings object.
  */
 export function positionMenu(menuActor, settings) {
     const [menuWidth, menuHeight] = menuActor.get_size();

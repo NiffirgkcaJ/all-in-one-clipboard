@@ -3,13 +3,13 @@ import GLib from 'gi://GLib';
 
 /**
  * File operations for the local filesystem.
- * All methods work with raw bytes (Uint8Array).
+ * All methods work with raw bytes.
  */
 export const IOFile = {
     /**
      * Reads a file and returns its contents as bytes.
-     * @param {string} path - Absolute path to the file
-     * @returns {Promise<Uint8Array|null>} File contents or null if not found
+     * @param {string} path Absolute path to the file.
+     * @returns {Promise<Uint8Array|null>} File contents or null if not found.
      */
     async read(path) {
         try {
@@ -35,10 +35,10 @@ export const IOFile = {
     },
 
     /**
-     * Writes bytes to a file, creating parent directories if needed.
-     * @param {string} path - Absolute path
-     * @param {Uint8Array|GLib.Bytes} data - Data to write
-     * @returns {Promise<boolean>} True if successful
+     * Writes bytes to a file and creates parent directories if needed.
+     * @param {string} path Absolute path.
+     * @param {Uint8Array|GLib.Bytes} data Data to write.
+     * @returns {Promise<boolean>} True if successful.
      */
     async write(path, data) {
         try {
@@ -74,8 +74,8 @@ export const IOFile = {
 
     /**
      * Deletes a file.
-     * @param {string} path - Absolute path
-     * @returns {Promise<boolean>} True if deleted or didn't exist
+     * @param {string} path Absolute path.
+     * @returns {Promise<boolean>} True if deleted or did not exist.
      */
     async delete(path) {
         try {
@@ -102,9 +102,9 @@ export const IOFile = {
     },
 
     /**
-     * Checks if a file/directory exists asynchronously.
-     * @param {string} path - Absolute path
-     * @returns {Promise<boolean>}
+     * Checks if a file or directory exists asynchronously.
+     * @param {string} path Absolute path.
+     * @returns {Promise<boolean>} True if the file or directory exists.
      */
     async exists(path) {
         try {
@@ -125,9 +125,9 @@ export const IOFile = {
     },
 
     /**
-     * Checks if a file/directory exists synchronously.
-     * @param {string} path - Absolute path
-     * @returns {boolean}
+     * Checks if a file or directory exists synchronously.
+     * @param {string} path Absolute path.
+     * @returns {boolean} True if the file or directory exists.
      */
     existsSync(path) {
         return Gio.File.new_for_path(path).query_exists(null);
@@ -135,8 +135,8 @@ export const IOFile = {
 
     /**
      * Gets file metadata.
-     * @param {string} path - Absolute path
-     * @returns {Promise<{size: number, mime: string, name: string, type: {value: number, is: function(string): boolean}}|null>}
+     * @param {string} path Absolute path.
+     * @returns {Promise<Object|null>} Metadata object or null if an error occurs.
      */
     async getInfo(path) {
         try {
@@ -166,9 +166,9 @@ export const IOFile = {
     },
 
     /**
-     * Creates a directory and parents if needed (sync).
-     * @param {string} path - Absolute path
-     * @returns {boolean} True if exists or created
+     * Creates a directory and parents if needed synchronously.
+     * @param {string} path Absolute path.
+     * @returns {boolean} True if exists or created.
      */
     mkdir(path) {
         try {
@@ -186,8 +186,8 @@ export const IOFile = {
 
     /**
      * Lists files in a directory.
-     * @param {string} path - Absolute path to directory
-     * @returns {Promise<Array<{name: string, path: string}>|null>}
+     * @param {string} path Absolute path to directory.
+     * @returns {Promise<Array<Object>|null>} List of file objects or null if not found.
      */
     async list(path) {
         try {
@@ -234,8 +234,8 @@ export const IOFile = {
     },
 
     /**
-     * Empties a directory (deletes all children, keeps directory).
-     * @param {string} path - Absolute path to directory
+     * Empties a directory by deleting all children while keeping the directory.
+     * @param {string} path Absolute path to directory.
      * @returns {Promise<void>}
      */
     async empty(path) {
@@ -250,8 +250,8 @@ export const IOFile = {
 
     /**
      * Recursively deletes a file or directory.
-     * @param {string} path - Absolute path
-     * @returns {Promise<boolean>}
+     * @param {string} path Absolute path.
+     * @returns {Promise<boolean>} True if successful.
      */
     async remove(path) {
         try {
@@ -267,9 +267,9 @@ export const IOFile = {
 
     /**
      * Copies a file.
-     * @param {string} src - Source path
-     * @param {string} dest - Destination path
-     * @returns {Promise<boolean>}
+     * @param {string} src Source path.
+     * @param {string} dest Destination path.
+     * @returns {Promise<boolean>} True if successful.
      */
     async copy(src, dest) {
         try {
@@ -299,9 +299,9 @@ export const IOFile = {
 
     /**
      * Moves a file.
-     * @param {string} src - Source path
-     * @param {string} dest - Destination path
-     * @returns {Promise<boolean>}
+     * @param {string} src Source path.
+     * @param {string} dest Destination path.
+     * @returns {Promise<boolean>} True if successful.
      */
     async move(src, dest) {
         try {
@@ -331,8 +331,8 @@ export const IOFile = {
 
     /**
      * Prunes a directory by deleting oldest files until under size limit.
-     * @param {string} path - Directory path
-     * @param {number} limitMB - Size limit in MB
+     * @param {string} path Directory path.
+     * @param {number} limitMB Size limit in megabytes.
      * @returns {Promise<void>}
      */
     async prune(path, limitMB) {
@@ -400,8 +400,8 @@ export const IOFile = {
 
     /**
      * Recursively deletes a file or directory.
-     * @param {Gio.File} fileOrDir - File or directory to delete
-     * @param {boolean} deleteSelf - Whether to delete the file or directory itself
+     * @param {Gio.File} fileOrDir File or directory to delete.
+     * @param {boolean} deleteSelf Whether to delete the file or directory itself.
      * @returns {Promise<void>}
      */
     async _deleteRecursively(fileOrDir, deleteSelf = true) {
@@ -464,7 +464,7 @@ export const IOFile = {
                         try {
                             obj.delete_finish(res);
                         } catch {
-                            // ignore
+                            // Ignore deletion errors for objects that may already be gone
                         }
                         resolve();
                     });
@@ -477,13 +477,13 @@ export const IOFile = {
 };
 
 /**
- * Resource operations for GResource bundles (read-only).
+ * Resource operations for read-only GResource bundles.
  */
 export const IOResource = {
     /**
      * Reads a resource from a GResource bundle.
-     * @param {string} uri - Full resource URI (e.g., 'resource:///org/gnome/...')
-     * @returns {Promise<Uint8Array|null>}
+     * @param {string} uri Full resource URI.
+     * @returns {Promise<Uint8Array|null>} Contents or null if not found.
      */
     async read(uri) {
         try {

@@ -14,7 +14,6 @@ const SearchIcons = {
 
 /**
  * A self-contained search bar component.
- *
  * Encapsulates an St.Entry with a clear button and provides a simple callback
  * mechanism to notify a listener of search text changes.
  */
@@ -23,10 +22,10 @@ export const SearchComponent = GObject.registerClass(
         /**
          * Initialize the search component.
          *
-         * @param {Function} onSearchChangedCallback A function that will be called with the new search text whenever it changes.
-         * @param {Object} [options] Optional configuration
-         * @param {Function} [options.onNavigateDown] Callback when down navigation is requested
-         * @param {Function} [options.onNavigateUp] Callback when up navigation is requested
+         * @param {Function} onSearchChangedCallback A function called with the new search text whenever it changes.
+         * @param {Object} [options] Optional configuration.
+         * @param {Function} [options.onNavigateDown] Callback when down navigation is requested.
+         * @param {Function} [options.onNavigateUp] Callback when up navigation is requested.
          */
         constructor(onSearchChangedCallback, { onNavigateDown, onNavigateUp } = {}) {
             super();
@@ -89,7 +88,7 @@ export const SearchComponent = GObject.registerClass(
         }
 
         /**
-         * Internal handler for the search entry's 'notify::text' signal.
+         * Internal handler for the search entry text notification signal.
          * @private
          */
         _onSearchChanged() {
@@ -99,12 +98,11 @@ export const SearchComponent = GObject.registerClass(
         }
 
         /**
-         * Handle key press events on the search entry.
-         * Allows escaping the entry with Left/Right arrows at text boundaries.
+         * Handle key press events on the search entry to allow escaping with arrow keys.
          *
-         * @param {Clutter.Actor} actor - The source actor
-         * @param {Clutter.Event} event - The key event
-         * @returns {boolean} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * @param {Clutter.Actor} actor The source actor.
+         * @param {Clutter.Event} event The key event.
+         * @returns {boolean} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
         _onKeyPress(actor, event) {
@@ -163,7 +161,7 @@ export const SearchComponent = GObject.registerClass(
          * Sets the current search text.
          *
          * @param {string} searchText Text to apply to the search field.
-         * @param {object} [options] Additional options.
+         * @param {Object} [options] Additional options.
          * @param {boolean} [options.focus=false] Whether to focus the entry after update.
          */
         setSearchText(searchText, { focus = false } = {}) {
@@ -180,7 +178,6 @@ export const SearchComponent = GObject.registerClass(
 
         /**
          * Returns the current search text.
-         *
          * @returns {string} Current entry text.
          */
         getSearchText() {
@@ -188,15 +185,12 @@ export const SearchComponent = GObject.registerClass(
         }
 
         /**
-         * Sets the search hint content. Accepts text, a logo config, or both.
-         * Text-only hints use the native `set_hint_text()` for perfect theme colors.
-         * When a logo is present, an St.Label with `hint-text` class is used for
-         * theme-consistent coloring, and the logo auto-resolves its color to match.
+         * Sets the search hint content using text or a logo configuration or both.
          *
-         * @param {Object} [config]
-         * @param {string} [config.text] - Hint text (e.g. "Search Tenor...")
-         * @param {Object} [config.logo] - Logo config for createLogo (e.g. { icon, height, basePath })
-         * @param {number} [config.spacing=4] - Spacing in px between text and logo
+         * @param {Object} [config] Configuration object.
+         * @param {string} [config.text] Hint text such as Search Tenor.
+         * @param {Object} [config.logo] Logo configuration for createLogo.
+         * @param {number} [config.spacing=4] Spacing in pixels between text and logo.
          */
         setHint(config) {
             if (this._hintWrapper) {
@@ -219,7 +213,6 @@ export const SearchComponent = GObject.registerClass(
 
                 let hintLabel = null;
                 if (config.text) {
-                    // Uses the theme's StEntry StLabel.hint-text selector for native hint color
                     hintLabel = new St.Label({
                         text: config.text,
                         style_class: 'hint-text',
@@ -247,7 +240,6 @@ export const SearchComponent = GObject.registerClass(
                     });
                 }
             } else {
-                // Text-only hints use the native hint_text for theme-consistent color
                 this._entry.set_hint_text(config.text);
             }
         }
