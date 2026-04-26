@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 04:54+0000\n"
+"POT-Creation-Date: 2026-04-26 07:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -334,7 +334,7 @@ msgid "Search %s..."
 msgstr ""
 
 #: gnome-extensions/extension/features/GIF/tabGIF.js:152
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:47
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:46
 msgid "Search..."
 msgstr ""
 
@@ -345,7 +345,7 @@ msgstr ""
 #: gnome-extensions/extension/features/GIF/tabGIF.js:493
 #: gnome-extensions/extension/features/GIF/tabGIF.js:587
 #: gnome-extensions/extension/features/GIF/tabGIF.js:596
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:666
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:657
 msgid "Recents"
 msgstr ""
 
@@ -383,7 +383,7 @@ msgid ""
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:873
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
 msgid "No recent items yet."
 msgstr ""
 
@@ -1327,18 +1327,18 @@ msgstr ""
 msgid "Restore the original tab order."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:90
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:87
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:591
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:582
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:871
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
 msgid "No items available."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:872
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
 msgid "No items match your search."
 msgstr ""

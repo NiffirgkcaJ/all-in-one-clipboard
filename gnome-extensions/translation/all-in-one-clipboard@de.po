@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 04:54+0000\n"
+"POT-Creation-Date: 2026-04-26 07:16+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -334,7 +334,7 @@ msgid "Search %s..."
 msgstr "Suche %s..."
 
 #: gnome-extensions/extension/features/GIF/tabGIF.js:152
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:47
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:46
 msgid "Search..."
 msgstr "Suche..."
 
@@ -345,7 +345,7 @@ msgstr "Onlinesuche ist deaktiviert."
 #: gnome-extensions/extension/features/GIF/tabGIF.js:493
 #: gnome-extensions/extension/features/GIF/tabGIF.js:587
 #: gnome-extensions/extension/features/GIF/tabGIF.js:596
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:666
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:657
 msgid "Recents"
 msgstr "Letzte"
 
@@ -385,7 +385,7 @@ msgstr ""
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:873
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
 msgid "No recent items yet."
 msgstr "Bisher keine letzten Elemente."
 
@@ -1344,19 +1344,19 @@ msgstr "Reihenfolge zurücksetzen"
 msgid "Restore the original tab order."
 msgstr "Ursprüngliche Reiter-Reihenfolge wiederherstellen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:90
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:87
 msgid "Component configuration is invalid. Check logs."
 msgstr "Komponentenkonfiguration ist ungültig. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:591
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:582
 msgid "Error loading data. Check logs."
 msgstr "Fehler beim Laden von Daten. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:871
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
 msgid "No items available."
 msgstr "Keine Elemente verfügbar."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:872
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
 
