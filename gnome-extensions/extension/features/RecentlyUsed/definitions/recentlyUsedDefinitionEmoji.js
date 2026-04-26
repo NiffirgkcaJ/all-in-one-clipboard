@@ -1,8 +1,9 @@
+import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { setRecentlyUsedClipboardText } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
-import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { EmojiProvider } from '../../Emoji/constants/emojiConstants.js';
 import { EmojiViewRenderer } from '../../Emoji/view/emojiViewRenderer.js';
@@ -158,18 +159,20 @@ function createRecentlyUsedDefinitionEmojiInstance() {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    definition.onClick = async ({ itemData, settings }) => {
+    definition.onClick = async ({ itemData, settings, extension }) => {
         const contentToCopy = itemData?.char || itemData?.value || '';
         if (!contentToCopy) return false;
 
-        setRecentlyUsedClipboardText(contentToCopy);
-        recentManager?.addItem({ ...itemData, value: contentToCopy });
-
-        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
-            await triggerRecentlyUsedAutoPaste();
-        }
-
-        return true;
+        return await GlobalActionService.executeCopyAction({
+            onCopy: async () => {
+                setRecentlyUsedClipboardText(contentToCopy);
+                return true;
+            },
+            onPostCopy: () => recentManager?.addItem({ ...itemData, value: contentToCopy }),
+            settings,
+            autoPasteKey: definition.settings.autoPasteSettingKey,
+            menu: extension?._indicator?.menu,
+        });
     };
 
     definition.createInstance = () => createRecentlyUsedDefinitionEmojiInstance();

@@ -5,7 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureKaomojiSearchProviderRegistered } from './integrations/kaomojiSearchProvider.js';
@@ -110,11 +110,12 @@ export const KaomojiTabContent = GObject.registerClass(
 
                 clipboardSetText(kaomojiToCopy);
 
-                if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-kaomoji')) {
-                    await getAutoPaster().trigger();
-                }
-
-                extension._indicator.menu?.close();
+                await GlobalActionService.executeCopyAction({
+                    onCopy: async () => true,
+                    settings: this._settings,
+                    autoPasteKey: 'auto-paste-kaomoji',
+                    menu: extension._indicator.menu,
+                });
             } catch (e) {
                 console.error('[AIO-Clipboard] Error in kaomoji item selection:', e);
             }

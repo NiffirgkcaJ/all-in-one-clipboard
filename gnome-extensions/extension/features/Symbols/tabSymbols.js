@@ -5,7 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureSymbolsSearchProviderRegistered } from './integrations/symbolsSearchProvider.js';
@@ -110,11 +110,12 @@ export const SymbolsTabContent = GObject.registerClass(
 
                 clipboardSetText(symbolToCopy);
 
-                if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-symbols')) {
-                    await getAutoPaster().trigger();
-                }
-
-                extension._indicator.menu?.close();
+                await GlobalActionService.executeCopyAction({
+                    onCopy: async () => true,
+                    settings: this._settings,
+                    autoPasteKey: 'auto-paste-symbols',
+                    menu: extension._indicator.menu,
+                });
             } catch (e) {
                 console.error('[AIO-Clipboard] Error in symbols item selection:', e);
             }

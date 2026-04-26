@@ -6,8 +6,8 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
+import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { createStaticIconButton, createDynamicIconButton } from '../../shared/utilities/utilityIcon.js';
 
 import { ClipboardGridView } from './view/clipboardGridView.js';
@@ -369,7 +369,9 @@ export const ClipboardTabContent = GObject.registerClass(
             this._scheduleRedraw(true);
 
             // Restore focus to search field to keep keyboard navigation working
-            this._searchComponent?.grabFocus();
+            if (this._extension?._indicator?.menu?.isOpen) {
+                this._searchComponent?.grabFocus();
+            }
         }
 
         /**
@@ -665,17 +667,13 @@ export const ClipboardTabContent = GObject.registerClass(
          * @param {Object} itemData - The clipboard item data
          */
         async _onItemCopyToClipboard(itemData) {
-            const copySuccess = await this._manager.copyToSystemClipboard(itemData);
-
-            if (copySuccess) {
-                if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-clipboard')) {
-                    await getAutoPaster().trigger();
-                }
-
-                this._manager.promoteItemToTop(itemData.id);
-            }
-
-            this._extension._indicator.menu.close();
+            await GlobalActionService.executeCopyAction({
+                onCopy: async () => await this._manager.copyToSystemClipboard(itemData),
+                onPostCopy: () => this._manager.promoteItemToTop(itemData.id),
+                settings: this._settings,
+                autoPasteKey: 'auto-paste-clipboard',
+                menu: this._extension._indicator?.menu,
+            });
         }
 
         // ========================================================================

@@ -1,8 +1,9 @@
+import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { RecentlyUsedDefaultPolicy, RecentlyUsedLimitMode } from '../constants/recentlyUsedPolicyConstants.js';
-import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste, renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
 import { ClipboardSearchUtils } from '../../Clipboard/utilities/clipboardSearchUtils.js';
@@ -183,16 +184,13 @@ function createRecentlyUsedDefinitionPinnedInstance() {
         const clipboardManager = extension?._clipboardManager;
         if (!clipboardManager) return false;
 
-        const copySuccess = await clipboardManager.copyToSystemClipboard(itemData);
-        if (!copySuccess) return false;
-
-        clipboardManager.promoteItemToTop(itemData.id);
-
-        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
-            await triggerRecentlyUsedAutoPaste();
-        }
-
-        return true;
+        return await GlobalActionService.executeCopyAction({
+            onCopy: async () => await clipboardManager.copyToSystemClipboard(itemData),
+            onPostCopy: () => clipboardManager.promoteItemToTop(itemData.id),
+            settings,
+            autoPasteKey: definition.settings.autoPasteSettingKey,
+            menu: extension?._indicator?.menu,
+        });
     };
 
     definition.createInstance = () => createRecentlyUsedDefinitionPinnedInstance();

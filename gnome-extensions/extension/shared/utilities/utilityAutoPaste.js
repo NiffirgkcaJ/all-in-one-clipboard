@@ -69,7 +69,8 @@ class AutoPaster {
         if (!settings.get_boolean('enable-auto-paste')) {
             return false;
         }
-        return settings.get_boolean(featureKey);
+        const result = settings.get_boolean(featureKey);
+        return result;
     }
 
     /**

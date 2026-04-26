@@ -1,8 +1,9 @@
+import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { setRecentlyUsedClipboardText } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
-import { setRecentlyUsedClipboardText, shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { ensureSymbolsSearchProviderRegistered } from '../../Symbols/integrations/symbolsSearchProvider.js';
 import { SymbolsProvider } from '../../Symbols/constants/symbolsConstants.js';
@@ -160,18 +161,20 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
      */
-    definition.onClick = async ({ itemData, settings }) => {
+    definition.onClick = async ({ itemData, settings, extension }) => {
         const contentToCopy = itemData?.char || itemData?.value || itemData?.symbol || '';
         if (!contentToCopy) return false;
 
-        setRecentlyUsedClipboardText(contentToCopy);
-        recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy });
-
-        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
-            await triggerRecentlyUsedAutoPaste();
-        }
-
-        return true;
+        return await GlobalActionService.executeCopyAction({
+            onCopy: async () => {
+                setRecentlyUsedClipboardText(contentToCopy);
+                return true;
+            },
+            onPostCopy: () => recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy }),
+            settings,
+            autoPasteKey: definition.settings.autoPasteSettingKey,
+            menu: extension?._indicator?.menu,
+        });
     };
 
     definition.createInstance = () => createRecentlyUsedDefinitionSymbolsInstance();

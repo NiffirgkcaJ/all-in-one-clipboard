@@ -10,10 +10,10 @@ import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { eventMatchesShortcut } from '../../shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { getRecentItemsManager } from '../../shared/utilities/utilityRecents.js';
+import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { MasonryLayout } from '../../shared/utilities/utilityMasonryLayout.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../shared/utilities/utilityHorizontalScrollView.js';
 import { FilePath, FileItem, ResourcePath } from '../../shared/constants/storagePaths.js';
 
@@ -1194,21 +1194,24 @@ export const GIFTabContent = GObject.registerClass(
                 return;
             }
 
-            await this._downloadService.copyToClipboard(gifObject, this._settings, this._clipboardManager);
-
-            if (gifObject.preview_url && gifObject.width && gifObject.height) {
-                const recentItem = {
-                    ...gifObject,
-                    value: gifObject.full_url,
-                };
-                this._recentsManager?.addItem(recentItem);
-            }
-
-            if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-gif')) {
-                await getAutoPaster().trigger();
-            }
-
-            this._extension._indicator.menu?.close();
+            await GlobalActionService.executeCopyAction({
+                onCopy: async () => {
+                    await this._downloadService.copyToClipboard(gifObject, this._settings, this._clipboardManager);
+                    return true;
+                },
+                onPostCopy: () => {
+                    if (gifObject.preview_url && gifObject.width && gifObject.height) {
+                        const recentItem = {
+                            ...gifObject,
+                            value: gifObject.full_url,
+                        };
+                        this._recentsManager?.addItem(recentItem);
+                    }
+                },
+                settings: this._settings,
+                autoPasteKey: 'auto-paste-gif',
+                menu: this._extension._indicator.menu,
+            });
         }
 
         // ========================================================================

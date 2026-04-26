@@ -1,12 +1,12 @@
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 
+import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
-import { shouldRecentlyUsedAutoPaste, triggerRecentlyUsedAutoPaste } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { getRecentlyUsedGifRuntime, destroyRecentlyUsedGifRuntime, copyRecentlyUsedGifToClipboard } from '../integrations/recentlyUsedIntegrationGif.js';
 
 import { ensureGifSearchProviderRegistered } from '../../GIF/integrations/gifSearchProvider.js';
@@ -241,16 +241,13 @@ function createRecentlyUsedDefinitionGifInstance() {
      * @returns {Promise<boolean>} True when copy succeeds.
      */
     definition.onClick = async ({ itemData, extension, settings }) => {
-        const copySuccess = await copyRecentlyUsedGifToClipboard(itemData, settings, extension);
-        if (!copySuccess) return false;
-
-        recentManager?.addItem(itemData);
-
-        if (shouldRecentlyUsedAutoPaste(settings, definition.settings.autoPasteSettingKey)) {
-            await triggerRecentlyUsedAutoPaste();
-        }
-
-        return true;
+        return await GlobalActionService.executeCopyAction({
+            onCopy: async () => await copyRecentlyUsedGifToClipboard(itemData, settings, extension),
+            onPostCopy: () => recentManager?.addItem(itemData),
+            settings,
+            autoPasteKey: definition.settings.autoPasteSettingKey,
+            menu: extension?._indicator?.menu,
+        });
     };
 
     definition.createInstance = () => createRecentlyUsedDefinitionGifInstance();

@@ -5,7 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { AutoPaster, getAutoPaster } from '../../shared/utilities/utilityAutoPaste.js';
+import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
@@ -144,11 +144,12 @@ export const EmojiTabContent = GObject.registerClass(
 
             clipboardSetText(charToCopy);
 
-            if (AutoPaster.shouldAutoPaste(this._settings, 'auto-paste-emoji')) {
-                await getAutoPaster().trigger();
-            }
-
-            extension._indicator.menu?.close();
+            await GlobalActionService.executeCopyAction({
+                onCopy: async () => true,
+                settings: this._settings,
+                autoPasteKey: 'auto-paste-emoji',
+                menu: extension._indicator.menu,
+            });
         }
 
         /**
