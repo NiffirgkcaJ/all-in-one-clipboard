@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 14:20+0000\n"
+"POT-Creation-Date: 2026-04-26 14:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -913,7 +913,7 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
-msgid "Exclusions"
+msgid "Exclusions Management"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16

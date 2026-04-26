@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 14:20+0000\n"
+"POT-Creation-Date: 2026-04-26 14:29+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -924,8 +924,8 @@ msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
 #, fuzzy
-msgid "Exclusions"
-msgstr "Neue Ausnahme hinzufügen"
+msgid "Exclusions Management"
+msgstr "Datenverwaltung"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16
 #, fuzzy
@@ -1381,6 +1381,10 @@ msgstr "Keine Elemente verfügbar."
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
+
+#, fuzzy
+#~ msgid "Exclusions"
+#~ msgstr "Neue Ausnahme hinzufügen"
 
 #~ msgid "Excluded Applications"
 #~ msgstr "Ausgenommene Anwendungen"
