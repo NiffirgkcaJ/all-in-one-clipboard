@@ -88,6 +88,10 @@
             <default>[]</default>
             <summary>Toggle main menu</summary>
         </key>
+        <key name="shortcut-open-recently-used" type="as">
+            <default>[]</default>
+            <summary>Open recently used tab</summary>
+        </key>
         <key name="shortcut-open-emoji" type="as">
             <default><![CDATA[['<Super>period']]]></default>
             <summary>Open emoji tab</summary>

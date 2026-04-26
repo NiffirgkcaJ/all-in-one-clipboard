@@ -110,11 +110,12 @@ export default class AllInOneClipboardExtension extends Extension {
         });
 
         const tabMap = {
-            'shortcut-open-clipboard': _('Clipboard'),
+            'shortcut-open-recently-used': _('Recently Used'),
             'shortcut-open-emoji': _('Emoji'),
             'shortcut-open-gif': _('GIF'),
             'shortcut-open-kaomoji': _('Kaomoji'),
             'shortcut-open-symbols': _('Symbols'),
+            'shortcut-open-clipboard': _('Clipboard'),
         };
 
         Object.entries(tabMap).forEach(([shortcutKey, tabName]) => {

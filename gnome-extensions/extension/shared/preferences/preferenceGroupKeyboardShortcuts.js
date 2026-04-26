@@ -139,6 +139,7 @@ export function addPreferenceKeyboardShortcuts({ page, settings }) {
 
     const globalShortcuts = [
         { key: 'shortcut-toggle-main', title: _('Toggle Main Menu') },
+        { key: 'shortcut-open-recently-used', title: _('Open Recently Used Tab') },
         { key: 'shortcut-open-emoji', title: _('Open Emoji Tab') },
         { key: 'shortcut-open-gif', title: _('Open GIF Tab') },
         { key: 'shortcut-open-kaomoji', title: _('Open Kaomoji Tab') },
