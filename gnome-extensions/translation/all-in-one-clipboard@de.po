@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 07:16+0000\n"
+"POT-Creation-Date: 2026-04-26 09:16+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -1151,16 +1151,16 @@ msgid "Maximum Recent Emojis"
 msgstr "Maximale letzte Emojis"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:24
+msgid "Maximum Recent GIFs"
+msgstr "Maximale letzte GIFs"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:25
 msgid "Maximum Recent Kaomojis"
 msgstr "Maximale letzte Kaomojis"
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:25
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:26
 msgid "Maximum Recent Symbols"
 msgstr "Maximale letzte Symbole"
-
-#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:26
-msgid "Maximum Recent GIFs"
-msgstr "Maximale letzte GIFs"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:17
 #, fuzzy

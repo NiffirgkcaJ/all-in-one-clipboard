@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 08:20+0000\n"
+"POT-Creation-Date: 2026-04-26 09:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1139,15 +1139,15 @@ msgid "Maximum Recent Emojis"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:24
-msgid "Maximum Recent Kaomojis"
+msgid "Maximum Recent GIFs"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:25
-msgid "Maximum Recent Symbols"
+msgid "Maximum Recent Kaomojis"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:26
-msgid "Maximum Recent GIFs"
+msgid "Maximum Recent Symbols"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:17
