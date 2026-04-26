@@ -4,7 +4,7 @@ import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 /**
- * Adds the "Exclusions" preferences group to the page.
+ * Adds the "Exclusions Management" preferences group to the page.
  *
  * @param {Object} params
  * @param {Adw.PreferencesPage} params.page The preferences page to add the group to.
@@ -12,7 +12,7 @@ import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensio
  */
 export function addPreferenceExclusions({ page, settings }) {
     const group = new Adw.PreferencesGroup({
-        title: _('Exclusions'),
+        title: _('Exclusions Management'),
         description: _('Manage content that should be ignored by the clipboard manager.'),
     });
     page.add(group);
@@ -30,7 +30,7 @@ export function addPreferenceExclusions({ page, settings }) {
         a11ySettings.set_boolean('toolkit-accessibility', atspiRow.active);
     });
 
-    // Application Exclusions
+    // Applications
     const appExclusionExpander = new Adw.ExpanderRow({
         title: _('Applications'),
         subtitle: _('Prevent specific applications from being captured.'),
@@ -38,7 +38,7 @@ export function addPreferenceExclusions({ page, settings }) {
     group.add(appExclusionExpander);
     _setupExclusionList(appExclusionExpander, settings, 'excluded-applications', _('Application Name or ID'));
 
-    // Content Exclusions
+    // Addresses
     const contentExclusionExpander = new Adw.ExpanderRow({
         title: _('Addresses'),
         subtitle: _('Prevent specific links or emails from being crawled.'),

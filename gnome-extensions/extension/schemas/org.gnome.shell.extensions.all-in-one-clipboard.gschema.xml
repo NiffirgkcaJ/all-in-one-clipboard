@@ -473,7 +473,7 @@
         </key>
 
         <!-- Advanced Page -->
-        <!-- Exclusions -->
+        <!-- Exclusions Management -->
         <key name="enable-atspi-exclusion" type="b">
             <default>false</default>
             <summary>Enhanced Exclusion Detection</summary>
