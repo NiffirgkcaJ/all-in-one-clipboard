@@ -260,6 +260,18 @@ export const MenuIndicator = GObject.registerClass(
             await this._executeTabSelection(tabName);
             this._isOpeningViaShortcut = true;
             this.openMenu();
+
+            if (this._menuOpenIdleId) {
+                GLib.source_remove(this._menuOpenIdleId);
+            }
+
+            this._menuOpenIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                if (this.menu.isOpen) {
+                    this._executeTabSelection(tabName);
+                }
+                this._menuOpenIdleId = 0;
+                return GLib.SOURCE_REMOVE;
+            });
         }
 
         // ========================================================================

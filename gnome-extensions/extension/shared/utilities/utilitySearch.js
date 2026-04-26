@@ -172,7 +172,7 @@ export const SearchComponent = GObject.registerClass(
             }
 
             if (focus) {
-                this._entry.grab_key_focus();
+                this.grabFocus();
             }
         }
 
