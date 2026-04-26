@@ -1,12 +1,12 @@
 /**
- * Text encoding and decoding service.
- * Works with raw bytes for integration with File/Resource.
+ * Text encoding and decoding service for byte-level integration with files.
  */
 export const ServiceText = {
     /**
      * Encodes bytes for storage.
-     * @param {Uint8Array} bytes - Raw bytes
-     * @returns {Uint8Array} Encoded bytes
+     *
+     * @param {Uint8Array} bytes Raw bytes.
+     * @returns {Uint8Array} Encoded bytes.
      */
     encode(bytes) {
         return this._encrypt(bytes);
@@ -14,8 +14,9 @@ export const ServiceText = {
 
     /**
      * Decodes bytes from storage.
-     * @param {Uint8Array} bytes - Stored bytes
-     * @returns {Uint8Array} Decoded bytes
+     *
+     * @param {Uint8Array} bytes Stored bytes.
+     * @returns {Uint8Array} Decoded bytes.
      */
     decode(bytes) {
         return this._decrypt(bytes);
@@ -23,8 +24,9 @@ export const ServiceText = {
 
     /**
      * Encrypts bytes for storage.
-     * @param {Uint8Array} bytes - Raw bytes
-     * @returns {Uint8Array} Encoded bytes
+     *
+     * @param {Uint8Array} bytes Raw bytes.
+     * @returns {Uint8Array} Encoded bytes.
      */
     _encrypt(bytes) {
         if (!bytes) return null;
@@ -33,8 +35,9 @@ export const ServiceText = {
 
     /**
      * Decrypts bytes from storage.
-     * @param {Uint8Array} bytes - Stored bytes
-     * @returns {Uint8Array} Decoded bytes
+     *
+     * @param {Uint8Array} bytes Stored bytes.
+     * @returns {Uint8Array} Decoded bytes.
      */
     _decrypt(bytes) {
         if (!bytes) return null;
@@ -43,9 +46,10 @@ export const ServiceText = {
 
     /**
      * Converts bytes to a string.
-     * @param {Uint8Array} bytes - Raw bytes to convert
-     * @param {string} [encoding='utf-8'] - Character encoding
-     * @returns {string|null} String or null on error
+     *
+     * @param {Uint8Array} bytes Raw bytes to convert.
+     * @param {string} [encoding='utf-8'] Character encoding.
+     * @returns {string|null} String or null on error.
      */
     fromBytes(bytes, encoding = 'utf-8') {
         if (!bytes) return null;
@@ -61,8 +65,9 @@ export const ServiceText = {
 
     /**
      * Converts a string to bytes.
-     * @param {string} text - String to convert
-     * @returns {Uint8Array|null} Bytes or null on error
+     *
+     * @param {string} text String to convert.
+     * @returns {Uint8Array|null} Bytes or null on error.
      */
     toBytes(text) {
         if (text === null || text === undefined) return null;

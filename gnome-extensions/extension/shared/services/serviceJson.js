@@ -1,12 +1,12 @@
 /**
- * JSON parsing and serialization service.
- * Works with raw bytes for integration with File/Resource.
+ * JSON parsing and serialization service for byte-level integration with files.
  */
 export const ServiceJson = {
     /**
      * Encodes bytes for storage.
-     * @param {Uint8Array} bytes - Raw bytes
-     * @returns {Uint8Array} Encoded bytes
+     *
+     * @param {Uint8Array} bytes Raw bytes.
+     * @returns {Uint8Array} Encoded bytes.
      */
     encode(bytes) {
         return this._encrypt(bytes);
@@ -14,8 +14,9 @@ export const ServiceJson = {
 
     /**
      * Decodes bytes from storage.
-     * @param {Uint8Array} bytes - Stored bytes
-     * @returns {Uint8Array} Decoded bytes
+     *
+     * @param {Uint8Array} bytes Stored bytes.
+     * @returns {Uint8Array} Decoded bytes.
      */
     decode(bytes) {
         return this._decrypt(bytes);
@@ -23,8 +24,9 @@ export const ServiceJson = {
 
     /**
      * Encrypts bytes for storage.
-     * @param {Uint8Array} bytes - Raw bytes
-     * @returns {Uint8Array} Encoded bytes
+     *
+     * @param {Uint8Array} bytes Raw bytes.
+     * @returns {Uint8Array} Encoded bytes.
      */
     _encrypt(bytes) {
         if (!bytes) return null;
@@ -33,8 +35,9 @@ export const ServiceJson = {
 
     /**
      * Decrypts bytes from storage.
-     * @param {Uint8Array} bytes - Stored bytes
-     * @returns {Uint8Array} Decoded bytes
+     *
+     * @param {Uint8Array} bytes Stored bytes.
+     * @returns {Uint8Array} Decoded bytes.
      */
     _decrypt(bytes) {
         if (!bytes) return null;
@@ -43,8 +46,9 @@ export const ServiceJson = {
 
     /**
      * Parses bytes as JSON.
-     * @param {Uint8Array} bytes - Raw bytes to parse
-     * @returns {any|null} Parsed object or null on error
+     *
+     * @param {Uint8Array} bytes Raw bytes to parse.
+     * @returns {any|null} Parsed object or null on error.
      */
     parse(bytes) {
         if (!bytes) return null;
@@ -60,8 +64,9 @@ export const ServiceJson = {
 
     /**
      * Serializes an object to JSON bytes.
-     * @param {any} data - Object to serialize
-     * @returns {Uint8Array|null} JSON bytes or null on error
+     *
+     * @param {any} data Object to serialize.
+     * @returns {Uint8Array|null} JSON bytes or null on error.
      */
     stringify(data) {
         try {

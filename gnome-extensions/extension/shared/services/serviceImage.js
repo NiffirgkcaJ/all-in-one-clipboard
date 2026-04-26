@@ -2,14 +2,14 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 /**
- * Image encoding and decoding service.
- * Works with raw bytes for integration with File operations.
+ * Image encoding and decoding service for byte-level integration with files.
  */
 export const ServiceImage = {
     /**
      * Encodes image bytes for storage.
-     * @param {Uint8Array} bytes - Raw image bytes
-     * @returns {Uint8Array} Encoded image bytes
+     *
+     * @param {Uint8Array} bytes Raw image bytes.
+     * @returns {Uint8Array} Encoded image bytes.
      */
     encode(bytes) {
         return this._encrypt(bytes);
@@ -17,8 +17,9 @@ export const ServiceImage = {
 
     /**
      * Decodes image bytes from storage.
-     * @param {Uint8Array} bytes - Stored image bytes
-     * @returns {Uint8Array} Decoded image bytes
+     *
+     * @param {Uint8Array} bytes Stored image bytes.
+     * @returns {Uint8Array} Decoded image bytes.
      */
     decode(bytes) {
         return this._decrypt(bytes);
@@ -26,8 +27,9 @@ export const ServiceImage = {
 
     /**
      * Encrypts image bytes for storage.
-     * @param {Uint8Array} bytes - Raw image bytes
-     * @returns {Uint8Array} Encoded image bytes
+     *
+     * @param {Uint8Array} bytes Raw image bytes.
+     * @returns {Uint8Array} Encoded image bytes.
      */
     _encrypt(bytes) {
         if (!bytes) return null;
@@ -36,8 +38,9 @@ export const ServiceImage = {
 
     /**
      * Decrypts image bytes from storage.
-     * @param {Uint8Array} bytes - Stored image bytes
-     * @returns {Uint8Array} Decoded image bytes
+     *
+     * @param {Uint8Array} bytes Stored image bytes.
+     * @returns {Uint8Array} Decoded image bytes.
      */
     _decrypt(bytes) {
         if (!bytes) return null;
@@ -46,9 +49,10 @@ export const ServiceImage = {
 
     /**
      * Downloads image bytes from a URL.
-     * @param {Soup.Session} httpSession - The HTTP session to use
-     * @param {string} url - Image URL
-     * @returns {Promise<{bytes: Uint8Array, contentType: string}|null>} Result object or null on error
+     *
+     * @param {Soup.Session} httpSession The HTTP session to use.
+     * @param {string} url Image URL.
+     * @returns {Promise<{bytes: Uint8Array, contentType: string}|null>} Result object or null on error.
      */
     async download(httpSession, url) {
         if (!httpSession || !url) return null;
@@ -98,9 +102,10 @@ export const ServiceImage = {
     },
 
     /**
-     * Computes a hash of image bytes.
-     * @param {Uint8Array} bytes - Image bytes
-     * @returns {string|null} SHA256 hash or null
+     * Computes a SHA256 hash of image bytes.
+     *
+     * @param {Uint8Array} bytes Image bytes.
+     * @returns {string|null} Hash string or null.
      */
     hash(bytes) {
         if (!bytes) return null;
@@ -115,9 +120,10 @@ export const ServiceImage = {
     },
 
     /**
-     * Gets MIME type from filename extension.
-     * @param {string} filename - Filename with extension
-     * @returns {string} MIME type
+     * Gets the MIME type from a filename extension.
+     *
+     * @param {string} filename Filename with extension.
+     * @returns {string} MIME type.
      */
     getMimeType(filename) {
         if (!filename) return 'application/octet-stream';
@@ -131,9 +137,10 @@ export const ServiceImage = {
     },
 
     /**
-     * Gets file extension from MIME type.
-     * @param {string} mimetype - MIME type
-     * @returns {string} File extension without dot
+     * Gets the file extension from a MIME type.
+     *
+     * @param {string} mimetype MIME type.
+     * @returns {string} File extension without dot.
      */
     getExtension(mimetype) {
         if (!mimetype) return 'bin';

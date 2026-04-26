@@ -6,10 +6,17 @@ const _subscribers = new Set();
 let _pendingHandoff = null;
 
 /**
- * Shared Search Hub service for cross-tab search provider registration and query handoff.
+ * Orchestrates cross-tab search provider registration and query handoffs.
  *
- * This service allows features to register search providers that can be targeted to specific tabs in the Search UI.
- * It also enables queuing one-shot search handoffs that can be consumed by the target tab, facilitating cross-tab search continuity.
+ * Allows features to register targeted search providers and facilitates
+ * search continuity across tabs via one-shot query handoffs.
+ */
+
+/**
+ * Normalizes a value for use as a lookup key.
+ *
+ * @param {string} value Raw value.
+ * @returns {string} Normalized key.
  */
 function normalizeLookupKey(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -36,7 +43,7 @@ function notifySearchHubSubscribers(event, payload) {
         try {
             listener?.({ event, payload });
         } catch {
-            // Ignore subscriber errors so one listener cannot break the hub.
+            // No action needed for subscriber errors.
         }
     });
 }
@@ -60,17 +67,17 @@ function clearSearchHandoffInternal(reason = 'cleared') {
 }
 
 /**
- * Checks whether a handoff is expired based on its expiresAt timestamp.
+ * Checks whether a handoff is expired based on its timestamp.
  *
  * @param {object} handoff Handoff object.
- * @returns {boolean} True when the handoff is expired.
+ * @returns {boolean} True if the handoff is expired.
  */
 function isHandoffExpired(handoff) {
     return !handoff || typeof handoff.expiresAt !== 'number' || Date.now() > handoff.expiresAt;
 }
 
 /**
- * Retrieves the current valid handoff if available, otherwise returns null.
+ * Retrieves the current valid handoff if available.
  *
  * @returns {object|null} Valid handoff or null.
  */
@@ -132,11 +139,11 @@ export function subscribeSearchHub(listener) {
  *
  * @param {object} provider Provider descriptor.
  * @param {string} provider.id Unique provider ID.
- * @param {Array<string>} [provider.targetTabs] Main tab names supported by provider.
+ * @param {Array<string>} [provider.targetTabs] Supported main tab names.
  * @param {Function} [provider.search] Optional async search function.
- * @param {Function} [provider.applyToTab] Optional tab handoff application hook.
- * @param {Function} [provider.clearOnTab] Optional tab search clear hook.
- * @returns {boolean} True when registration succeeds.
+ * @param {Function} [provider.applyToTab] Optional handoff application hook.
+ * @param {Function} [provider.clearOnTab] Optional search clear hook.
+ * @returns {boolean} True if registration succeeded.
  */
 export function registerSearchProvider(provider) {
     const providerId = normalizeLookupKey(provider?.id);
@@ -194,7 +201,7 @@ export function unregisterSearchProvider(providerId) {
 }
 
 /**
- * Executes provider search if available.
+ * Executes a search through a registered provider.
  *
  * @param {string} providerId Provider ID.
  * @param {object} params Search parameters.
@@ -219,7 +226,7 @@ export async function searchViaProvider(providerId, { query, context } = {}) {
 }
 
 /**
- * Queues a one-shot query handoff to be consumed by a target tab.
+ * Queues a one-shot query handoff for a target tab.
  *
  * @param {object} params Handoff payload.
  * @param {string} params.targetTab Target tab name.
@@ -256,12 +263,12 @@ export function queueSearchHandoff({ targetTab, query, sourceTab = '', sourceSec
 }
 
 /**
- * Applies and consumes a pending handoff for a tab actor.
+ * Applies and consumes a pending handoff for a target tab.
  *
  * @param {object} params Apply context.
  * @param {string} params.targetTab Target tab name.
  * @param {object} params.tabActor Target tab actor.
- * @returns {Promise<boolean>} True when search was applied.
+ * @returns {Promise<boolean>} True if the search was applied.
  */
 export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
     const handoff = getValidHandoff();
@@ -313,12 +320,12 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
 }
 
 /**
- * Clears active search state on a tab using its provider, when available.
+ * Clears active search state on a tab using its provider.
  *
  * @param {object} params Clear context.
  * @param {string} params.targetTab Target tab name.
  * @param {object} params.tabActor Target tab actor.
- * @returns {Promise<boolean>} True when clear action executed.
+ * @returns {Promise<boolean>} True if the clear action executed.
  */
 export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
     const resolvedProviderId = resolveProviderIdByTab(targetTab);

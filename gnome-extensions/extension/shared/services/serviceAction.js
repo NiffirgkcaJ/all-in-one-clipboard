@@ -1,10 +1,9 @@
 import { AutoPaster, getAutoPaster } from '../utilities/utilityAutoPaste.js';
 
 /**
- * GlobalActionService
+ * Orchestrates click-to-copy-and-paste actions across the extension.
  *
- * Orchestrates the golden path for click-to-copy-and-paste actions across the extension.
- * Ensures that Clutter modal grabs and keyboard focus are safely dropped before
+ * Ensures that Clutter modal grabs and keyboard focus are dropped before
  * simulating keystrokes to prevent stuck modifiers and missed inputs.
  */
 export class GlobalActionService {
@@ -12,10 +11,10 @@ export class GlobalActionService {
      * Executes a safe copy and auto-paste lifecycle.
      *
      * @param {Object} params
-     * @param {Function} params.onCopy Async callback that performs the actual clipboard copy. Must return a boolean indicating success.
-     * @param {Function} [params.onPostCopy] Optional synchronous callback executed after focus is dropped but before auto-paste.
+     * @param {Function} params.onCopy Async callback that performs the actual clipboard copy.
+     * @param {Function} [params.onPostCopy] Optional synchronous callback executed after focus is dropped.
      * @param {Gio.Settings} params.settings Extension settings object.
-     * @param {string} [params.autoPasteKey] The specific settings key to check for auto-paste.
+     * @param {string} [params.autoPasteKey] The settings key to check for auto-paste.
      * @param {Object} [params.menu] The extension indicator menu.
      * @returns {Promise<boolean>} True if the copy action succeeded.
      */
@@ -24,12 +23,12 @@ export class GlobalActionService {
         const copySuccess = await onCopy();
         if (!copySuccess) return false;
 
-        // Close the menu to pop the modal grab synchronously so the active Wayland window regains focus immediately.
+        // Close the menu to release the modal grab so the active window regains focus.
         if (menu && typeof menu.close === 'function') {
             menu.close();
         }
 
-        // Drop key focus to prevent routing simulated keystrokes into dying widgets during the menu fade-out animation.
+        // Clear key focus to prevent routing keystrokes to widgets during the fade-out animation.
         const currentFocus = global.stage.get_key_focus();
         if (currentFocus) {
             global.stage.set_key_focus(null);
