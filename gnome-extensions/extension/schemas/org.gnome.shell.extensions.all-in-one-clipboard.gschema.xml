@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
     <schema id="org.gnome.shell.extensions.all-in-one-clipboard" path="/org/gnome/shell/extensions/all-in-one-clipboard/">
+        <!-- General Page -->
         <!-- General Settings -->
         <key name="extension-width" type="i">
             <default>420</default>
@@ -87,10 +88,6 @@
             <default>[]</default>
             <summary>Toggle main menu</summary>
         </key>
-        <key name="shortcut-open-clipboard" type="as">
-            <default><![CDATA[['<Super>c']]]></default>
-            <summary>Open clipboard tab</summary>
-        </key>
         <key name="shortcut-open-emoji" type="as">
             <default><![CDATA[['<Super>period']]]></default>
             <summary>Open emoji tab</summary>
@@ -106,6 +103,10 @@
         <key name="shortcut-open-symbols" type="as">
             <default>[]</default>
             <summary>Open symbols tab</summary>
+        </key>
+        <key name="shortcut-open-clipboard" type="as">
+            <default><![CDATA[['<Super>c']]]></default>
+            <summary>Open clipboard tab</summary>
         </key>
         <key name="shortcut-next-tab" type="as">
             <default><![CDATA[['<Control>Tab']]]></default>
@@ -127,78 +128,20 @@
             <summary>Switch to previous category</summary>
             <description>Shortcut to cycle to the previous category within a tab.</description>
         </key>
-        <key name="clipboard-key-toggle-select" type="s">
+        <key name="clipboard-key-select" type="s">
             <default>'space'</default>
-            <summary>Toggle item selection</summary>
-            <description>Key to toggle the selection checkbox on a focused clipboard item.</description>
+            <summary>Select item</summary>
+            <description>Key to select a focused clipboard item.</description>
         </key>
-        <key name="clipboard-key-toggle-pin" type="s">
+        <key name="clipboard-key-pin" type="s">
             <default>'s'</default>
-            <summary>Toggle item pin/star</summary>
-            <description>Key to toggle the pin/star on a focused clipboard item.</description>
+            <summary>Pin/Star item</summary>
+            <description>Key to pin/star a focused clipboard item.</description>
         </key>
         <key name="clipboard-key-delete" type="s">
             <default>'Delete'</default>
             <summary>Delete item</summary>
             <description>Key to delete a focused clipboard item.</description>
-        </key>
-
-        <!-- Recent Items Limits -->
-        <key name="emoji-recents-max-items" type="i">
-            <default>45</default>
-            <range min="5" max="100"/>
-            <summary>Maximum Recent Emojis</summary>
-            <description>The maximum number of recently used emojis to store and display in the Emoji 'Recents' tab.</description>
-        </key>
-        <key name="kaomoji-recents-max-items" type="i">
-            <default>30</default>
-            <range min="5" max="100"/>
-            <summary>Maximum Recent Kaomojis</summary>
-            <description>The maximum number of recently used kaomojis to store and display in the Kaomoji 'Recents' tab.</description>
-        </key>
-        <key name="symbols-recents-max-items" type="i">
-            <default>45</default>
-            <range min="5" max="100"/>
-            <summary>Maximum Recent Symbols</summary>
-            <description>The maximum number of recently used symbols to store and display in the Symbols 'Recents' tab.</description>
-        </key>
-        <key name="gif-recents-max-items" type="i">
-            <default>30</default>
-            <range min="5" max="100"/>
-            <summary>Maximum Recent GIFs</summary>
-            <description>The maximum number of recently used GIFs to store and display in the GIF 'Recents' tab.</description>
-        </key>
-
-        <!-- Auto-Paste Settings -->
-        <key name="enable-auto-paste" type="b">
-            <default>false</default>
-            <summary>Enable auto-paste functionality</summary>
-            <description>When enabled, selected items will be automatically pasted instead of just copied to clipboard.</description>
-        </key>
-        <key name="auto-paste-emoji" type="b">
-            <default>true</default>
-            <summary>Auto-paste emojis</summary>
-            <description>Automatically paste emojis when selected (requires master toggle).</description>
-        </key>
-        <key name="auto-paste-gif" type="b">
-            <default>true</default>
-            <summary>Auto-paste GIFs</summary>
-            <description>Automatically paste GIFs when selected (requires master toggle).</description>
-        </key>
-        <key name="auto-paste-kaomoji" type="b">
-            <default>true</default>
-            <summary>Auto-paste kaomojis</summary>
-            <description>Automatically paste kaomojis when selected (requires master toggle).</description>
-        </key>
-        <key name="auto-paste-symbols" type="b">
-            <default>true</default>
-            <summary>Auto-paste symbols</summary>
-            <description>Automatically paste symbols when selected (requires master toggle).</description>
-        </key>
-        <key name="auto-paste-clipboard" type="b">
-            <default>true</default>
-            <summary>Auto-paste from clipboard history</summary>
-            <description>Automatically paste items from clipboard history when selected (requires master toggle).</description>
         </key>
 
         <!-- Grid Column Settings -->
@@ -256,6 +199,65 @@
             <range min="1" max="9"/>
             <summary>Clipboard Grid Max Columns</summary>
             <description>Maximum number of columns to show in the clipboard masonry grid when the limit is enabled.</description>
+        </key>
+
+        <!-- Features Page -->
+        <!-- Auto-Paste Settings -->
+        <key name="enable-auto-paste" type="b">
+            <default>false</default>
+            <summary>Enable auto-paste functionality</summary>
+            <description>When enabled, selected items will be automatically pasted instead of just copied to clipboard.</description>
+        </key>
+        <key name="auto-paste-emoji" type="b">
+            <default>true</default>
+            <summary>Auto-paste emojis</summary>
+            <description>Automatically paste emojis when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-gif" type="b">
+            <default>true</default>
+            <summary>Auto-paste GIFs</summary>
+            <description>Automatically paste GIFs when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-kaomoji" type="b">
+            <default>true</default>
+            <summary>Auto-paste kaomojis</summary>
+            <description>Automatically paste kaomojis when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-symbols" type="b">
+            <default>true</default>
+            <summary>Auto-paste symbols</summary>
+            <description>Automatically paste symbols when selected (requires master toggle).</description>
+        </key>
+        <key name="auto-paste-clipboard" type="b">
+            <default>true</default>
+            <summary>Auto-paste from clipboard history</summary>
+            <description>Automatically paste items from clipboard history when selected (requires master toggle).</description>
+        </key>
+
+        <!-- Recent Items Limits -->
+        <key name="emoji-recents-max-items" type="i">
+            <default>50</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Emojis</summary>
+            <description>The maximum number of recently used emojis to store and display in the Emoji 'Recents' tab.</description>
+        </key>
+        <key name="gif-recents-max-items" type="i">
+            <default>50</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent GIFs</summary>
+            <description>The maximum number of recently used GIFs to store and display in the GIF 'Recents' tab.</description>
+        </key>
+        <key name="kaomoji-recents-max-items" type="i">
+            <default>50</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Kaomojis</summary>
+            <description>The maximum number of recently used kaomojis to store and display in the Kaomoji 'Recents' tab.</description>
+        </key>
+        <key name="symbols-recents-max-items" type="i">
+            <default>50</default>
+            <range min="5" max="100"/>
+            <summary>Maximum Recent Symbols</summary>
+            <description>The maximum number of recently used symbols to store and display in the Symbols 'Recents' tab.</description>
         </key>
 
         <!-- Recently Used Settings -->
@@ -466,6 +468,7 @@
             <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
         </key>
 
+        <!-- Advanced Page -->
         <!-- Excluded Applications -->
         <key name="enable-atspi-exclusion" type="b">
             <default>false</default>

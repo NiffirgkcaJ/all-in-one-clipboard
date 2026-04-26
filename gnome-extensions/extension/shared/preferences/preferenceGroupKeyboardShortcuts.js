@@ -193,8 +193,8 @@ export function addPreferenceKeyboardShortcuts({ page, settings }) {
     group.add(itemActionExpander);
 
     const itemActionShortcuts = [
-        { key: 'clipboard-key-toggle-select', title: _('Select Item'), isSingle: true },
-        { key: 'clipboard-key-toggle-pin', title: _('Pin Item'), isSingle: true },
+        { key: 'clipboard-key-select', title: _('Select Item'), isSingle: true },
+        { key: 'clipboard-key-pin', title: _('Pin Item'), isSingle: true },
         { key: 'clipboard-key-delete', title: _('Delete Item'), isSingle: true },
     ];
 

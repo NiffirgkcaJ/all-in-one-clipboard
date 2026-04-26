@@ -6,8 +6,8 @@ import { resolveKeySymbol } from '../../../shared/utilities/utilityShortcutMatch
  * Settings keys for clipboard item keyboard shortcuts.
  */
 export const ClipboardKeySettings = {
-    TOGGLE_SELECT: 'clipboard-key-toggle-select',
-    TOGGLE_PIN: 'clipboard-key-toggle-pin',
+    SELECT: 'clipboard-key-select',
+    PIN: 'clipboard-key-pin',
     DELETE: 'clipboard-key-delete',
 };
 
@@ -36,8 +36,8 @@ export function handleClipboardItemKeyPress(event, options) {
     const keyName = event.get_key_symbol();
 
     // Get configured keys from settings
-    const selectKeyName = settings.get_string(ClipboardKeySettings.TOGGLE_SELECT);
-    const pinKeyName = settings.get_string(ClipboardKeySettings.TOGGLE_PIN);
+    const selectKeyName = settings.get_string(ClipboardKeySettings.SELECT);
+    const pinKeyName = settings.get_string(ClipboardKeySettings.PIN);
     const deleteKeyName = settings.get_string(ClipboardKeySettings.DELETE);
 
     const selectRecKey = resolveKeySymbol(selectKeyName);

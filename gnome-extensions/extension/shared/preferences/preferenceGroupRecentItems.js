@@ -21,9 +21,9 @@ export function addPreferenceRecentItems({ page, settings }) {
 
     const items = [
         { key: 'emoji-recents-max-items', title: _('Maximum Recent Emojis') },
+        { key: 'gif-recents-max-items', title: _('Maximum Recent GIFs') },
         { key: 'kaomoji-recents-max-items', title: _('Maximum Recent Kaomojis') },
         { key: 'symbols-recents-max-items', title: _('Maximum Recent Symbols') },
-        { key: 'gif-recents-max-items', title: _('Maximum Recent GIFs') },
     ];
 
     items.forEach((item) => {
