@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 11:36+0000\n"
+"POT-Creation-Date: 2026-04-26 14:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -913,11 +913,11 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
-msgid "Excluded Applications"
+msgid "Exclusions"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16
-msgid "Manage applications that should be ignored by the clipboard manager."
+msgid "Manage content that should be ignored by the clipboard manager."
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:22
@@ -929,19 +929,31 @@ msgid "Detects excluded applications inside browser windows and enables the syst
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:35
-msgid "Ignored Applications"
+msgid "Applications"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:36
-msgid "Prevent specific applications from saving content to the clipboard history."
+msgid "Prevent specific applications from being captured."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:78
-msgid "Add New Exclusion"
-msgstr ""
-
-#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:82
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:39
 msgid "Application Name or ID"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:43
+msgid "Addresses"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:44
+msgid "Prevent specific links or emails from being crawled."
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:47
+msgid "Link or Email Address"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:97
+msgid "Add New Exclusion"
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:19

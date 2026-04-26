@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 10:29+0000\n"
+"POT-Creation-Date: 2026-04-26 14:20+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -923,11 +923,13 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
-msgid "Excluded Applications"
-msgstr "Ausgenommene Anwendungen"
+#, fuzzy
+msgid "Exclusions"
+msgstr "Neue Ausnahme hinzufügen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16
-msgid "Manage applications that should be ignored by the clipboard manager."
+#, fuzzy
+msgid "Manage content that should be ignored by the clipboard manager."
 msgstr "Verwaltung von Anwendungen, die von der Zwischenablageverwaltung ignoriert werden sollen."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:22
@@ -939,20 +941,34 @@ msgid "Detects excluded applications inside browser windows and enables the syst
 msgstr "Erkennt ausgenommene Anwendungen in Browserfenstern und aktiviert den Barrierefreiheits-Service des Systems, wenn nötig."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:35
-msgid "Ignored Applications"
+#, fuzzy
+msgid "Applications"
 msgstr "Ignorierte Anwendungen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:36
-msgid "Prevent specific applications from saving content to the clipboard history."
+#, fuzzy
+msgid "Prevent specific applications from being captured."
 msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:78
-msgid "Add New Exclusion"
-msgstr "Neue Ausnahme hinzufügen"
-
-#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:82
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:39
 msgid "Application Name or ID"
 msgstr "Anwendungsnamen oder ID"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:43
+msgid "Addresses"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:44
+msgid "Prevent specific links or emails from being crawled."
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:47
+msgid "Link or Email Address"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:97
+msgid "Add New Exclusion"
+msgstr "Neue Ausnahme hinzufügen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:19
 msgid "General settings for the extension."
@@ -1365,6 +1381,9 @@ msgstr "Keine Elemente verfügbar."
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
+
+#~ msgid "Excluded Applications"
+#~ msgstr "Ausgenommene Anwendungen"
 
 #~ msgid "All-in-One Clipboard Settings"
 #~ msgstr "All-in-One Zwischenablage Einstellungen"
