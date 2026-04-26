@@ -11,6 +11,13 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 // Validation Patterns
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 const PREVIEW_MAX_SIZE = 192;
+const MIN_HEADER_SIZE = 4;
+
+// Magic Bytes for Image Format Validation
+const MAGIC_PNG = [0x89, 0x50, 0x4e, 0x47];
+const MAGIC_JPEG = [0xff, 0xd8, 0xff];
+const MAGIC_GIF = [0x47, 0x49, 0x46];
+const MAGIC_WEBP = [0x52, 0x49, 0x46, 0x46];
 
 /**
  * ImageProcessor - Handles image clipboard data
@@ -27,7 +34,11 @@ export class ImageProcessor {
     static async extract() {
         const tryMimetype = async (mimetype) => {
             const result = await clipboardGetContent(mimetype);
-            if (!result) return null;
+            if (!result || !result.data || result.data.length < MIN_HEADER_SIZE) return null;
+
+            if (!this._isValidImageHeader(result.data, mimetype)) {
+                return null;
+            }
 
             const hash = ProcessorUtils.computeHashForData(result.data);
             return { type: ClipboardType.IMAGE, data: result.data, hash, mimetype };
@@ -97,6 +108,32 @@ export class ImageProcessor {
         }
 
         return item;
+    }
+
+    /**
+     * Validates that the data starts with correct magic bytes for the given mimetype.
+     *
+     * @param {Uint8Array} data The raw bytes to check.
+     * @param {string} mimetype The expected mimetype.
+     * @returns {boolean} True if the header matches the mimetype.
+     * @private
+     */
+    static _isValidImageHeader(data, mimetype) {
+        if (!data || data.length < MIN_HEADER_SIZE) return false;
+
+        switch (mimetype) {
+            case 'image/png':
+                return MAGIC_PNG.every((byte, i) => data[i] === byte);
+            case 'image/jpeg':
+            case 'image/jpg':
+                return MAGIC_JPEG.every((byte, i) => data[i] === byte);
+            case 'image/gif':
+                return MAGIC_GIF.every((byte, i) => data[i] === byte);
+            case 'image/webp':
+                return MAGIC_WEBP.every((byte, i) => data[i] === byte);
+            default:
+                return false;
+        }
     }
 
     /**

@@ -25,8 +25,8 @@ import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
 const EXCLUDED_HASH_TTL_MS = 5000;
 const MAX_BLOCKED_HASHES = 50;
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 100;
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 200;
 
 /**
  * ClipboardManager
