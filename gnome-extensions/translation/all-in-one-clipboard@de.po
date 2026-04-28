@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-26 14:29+0000\n"
+"POT-Creation-Date: 2026-04-28 14:45+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -51,7 +51,7 @@ msgid "Symbols"
 msgstr "Symbole"
 
 #: gnome-extensions/extension/extension.js:118
-#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:6
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
 msgid "Clipboard"
 msgstr "Zwischenablage"
@@ -135,65 +135,65 @@ msgstr "Bildvorschau-Größe"
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr "Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:167
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:710
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:716
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:83
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:224
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
 msgid "Select All"
 msgstr "Alle auswählen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:191
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:360
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:107
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:243
 msgid "Switch to Grid View"
 msgstr "Zu Rasteransicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:191
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:360
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:107
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:243
 msgid "Switch to List View"
 msgstr "Zu Listenansicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:206
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:594
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:275
 msgid "Start Private Mode (Pause Recording)"
 msgstr "Privater Modus starten (Aufnahme pausieren)"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:216
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:731
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:133
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:187
 msgid "Pin/Unpin Selected"
 msgstr "Ausgewählte an-/abheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:224
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:141
 msgid "Delete Selected"
 msgstr "Ausgewählte löschen"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:594
-msgid "Stop Private Mode (Resume Recording)"
-msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
-
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:713
-msgid "Deselect All"
-msgstr "Alle abwählen"
-
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:738
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:193
 msgid "Pin Selected"
 msgstr "Ausgewählte anheften"
 
-#: gnome-extensions/extension/features/Clipboard/tabClipboard.js:738
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:193
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:144
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:227
+msgid "Deselect All"
+msgstr "Alle abwählen"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:275
+msgid "Stop Private Mode (Resume Recording)"
+msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:151
 msgid "No results found."
 msgstr "Keine Resultate gefunden."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:144
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:151
 msgid "Clipboard history is empty."
 msgstr "Zwischenablageverlauf ist leer."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:273
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:287
 msgid "Pinned"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:290
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:304
 msgid "History"
 msgstr "Geschichte"
 
