@@ -10,31 +10,44 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 // Validation Patterns
 const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
 
+// Configuration
 const SESSION_TIMEOUT = 5;
 const HTML_CHUNK_SIZE = 50000;
+const MAX_URL_LENGTH = 2048;
+const GOOGLE_FAVICON_SIZE = 64;
 
 /**
+ * LinkProcessor
+ *
  * Handles URL detection and metadata fetching with comprehensive favicon detection.
  */
 export class LinkProcessor {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * Initializes the LinkProcessor with a Soup session.
+     * Initialize the LinkProcessor with a Soup session.
      */
     constructor() {
         this._httpSession = new Soup.Session();
         this._httpSession.timeout = SESSION_TIMEOUT;
     }
 
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Extracts link data from the clipboard.
-     * @param {string} text - The text to process.
+     * Extract link data from the clipboard text.
+     *
+     * @param {string} text The text to process.
      * @returns {Object|null} An object containing URL data or null if not a URL.
      */
     static process(text) {
         if (!text) return null;
 
-        // URLs are usually short, so we can safely limit the length
-        if (text.length > 2048) return null;
+        if (text.length > MAX_URL_LENGTH) return null;
 
         const cleanText = text.trim();
 
@@ -48,19 +61,31 @@ export class LinkProcessor {
                 hash: hash,
             };
         }
+
         return null;
     }
 
     /**
-     * Fetches title and favicon URL with comprehensive detection.
-     * @param {string} url - The URL to fetch metadata for.
-     * @returns {Promise<Object>} { title: string|null, iconUrl: string|null }
+     * Fetch title and favicon URL for a given link.
+     *
+     * @param {string} url The URL to fetch metadata for.
+     * @returns {Promise<Object>} Metadata object containing title and iconUrl.
      */
     async fetchMetadata(url) {
         try {
             const message = Soup.Message.new('GET', url);
             if (!message) return { title: null, iconUrl: null };
-            const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+
+            const bytes = await new Promise((resolve, reject) => {
+                this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
+                    try {
+                        const result = session.send_and_read_finish(res);
+                        resolve(result);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
 
             if (message.status_code !== 200 || !bytes) return { title: null, iconUrl: null };
 
@@ -74,6 +99,7 @@ export class LinkProcessor {
             if (!iconUrl) {
                 iconUrl = await this._tryFaviconFallback(url);
             }
+
             if (!iconUrl) {
                 iconUrl = this._getGoogleFaviconUrl(url);
             }
@@ -85,17 +111,71 @@ export class LinkProcessor {
     }
 
     /**
-     * Extract page title with multiple fallback strategies.
-     * @param {string} html - The HTML content.
+     * Download a favicon to the local cache.
+     *
+     * @param {string} iconUrl The URL of the icon to download.
+     * @param {string} destinationDir Directory to save the icon.
+     * @param {string} fileBasename Base filename without extension.
+     * @returns {Promise<string|null>} The saved filename or null on failure.
+     */
+    async downloadFavicon(iconUrl, destinationDir, fileBasename) {
+        if (!iconUrl) return null;
+
+        try {
+            const result = await ServiceImage.download(this._httpSession, iconUrl);
+            if (!result?.bytes || result.bytes.length === 0) return null;
+
+            const ext = this._getExtensionFromContentType(result.contentType, iconUrl);
+            const filename = `${fileBasename}.${ext}`;
+            const filePath = GLib.build_filenamev([destinationDir, filename]);
+
+            const success = await IOFile.write(filePath, ServiceImage.encode(result.bytes));
+            if (!success) return null;
+
+            return filename;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Regenerate the icon for an existing clipboard item.
+     *
+     * @param {Object} item The clipboard item.
+     * @param {string} linkPreviewsDir Directory for link previews.
+     * @returns {Promise<string|null>} The new filename or null.
+     */
+    async regenerateIcon(item, linkPreviewsDir) {
+        if (!item.url || !this._httpSession) return null;
+
+        const { iconUrl } = await this.fetchMetadata(item.url);
+
+        if (iconUrl) {
+            return await this.downloadFavicon(iconUrl, linkPreviewsDir, item.id);
+        }
+
+        return null;
+    }
+
+    // ========================================================================
+    // Metadata Fetching
+    // ========================================================================
+
+    /**
+     * Extract the page title from HTML content using multiple strategies.
+     *
+     * @param {string} html HTML content.
      * @returns {string|null} The extracted title or null.
      * @private
      */
     _extractTitle(html) {
+        // Title
         const titleMatch = html.match(/<title[^>]*>([^]*?)<\/title>/i);
         if (titleMatch?.[1]?.trim()) {
             return this._decodeEntities(titleMatch[1].trim().replace(/\s+/g, ' '));
         }
 
+        // Open Graph
         const ogPatterns = [/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i];
         for (const pattern of ogPatterns) {
             const match = html.match(pattern);
@@ -104,6 +184,7 @@ export class LinkProcessor {
             }
         }
 
+        // Twitter
         const twitterPatterns = [/<meta[^>]+name=["']twitter:title["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:title["']/i];
         for (const pattern of twitterPatterns) {
             const match = html.match(pattern);
@@ -116,10 +197,10 @@ export class LinkProcessor {
     }
 
     /**
-     * Extract favicon URL with comprehensive multi-source detection.
-     * Priority order: manifest icons > apple-touch-icon > standard icon > MS tile > og:image
-     * @param {string} html - The HTML content.
-     * @param {string} baseUrl - The base URL for resolving relative paths.
+     * Extract the favicon URL from HTML content using multi-source detection.
+     *
+     * @param {string} html HTML content.
+     * @param {string} baseUrl Base URL for resolving relative paths.
      * @returns {Promise<string|null>} The resolved icon URL or null.
      * @private
      */
@@ -128,28 +209,28 @@ export class LinkProcessor {
         if (manifestUrl) return manifestUrl;
 
         const iconPatterns = [
-            // Apple Touch icons
+            // Apple Touch
             /<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["'][^>]+href=["']([^"']+)["']/i,
             /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i,
 
-            // Standard favicon with sizes
+            // Sizes
             /<link[^>]+rel=["']icon["'][^>]+sizes=["']\d+x\d+["'][^>]+href=["']([^"']+)["']/i,
             /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']icon["'][^>]+sizes=["']\d+x\d+["']/i,
             /<link[^>]+sizes=["']\d+x\d+["'][^>]+rel=["']icon["'][^>]+href=["']([^"']+)["']/i,
 
-            // Standard icon
+            // Shortcut
             /<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']+)["']/i,
             /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut )?icon["']/i,
 
-            // Safari mask-icon
+            // Safari Mask
             /<link[^>]+rel=["']mask-icon["'][^>]+href=["']([^"']+)["']/i,
             /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']mask-icon["']/i,
 
-            // Microsoft tile image
+            // Microsoft Tile
             /<meta[^>]+name=["']msapplication-TileImage["'][^>]+content=["']([^"']+)["']/i,
             /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']msapplication-TileImage["']/i,
 
-            // Open Graph image
+            // Open Graph
             /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
             /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
         ];
@@ -165,14 +246,15 @@ export class LinkProcessor {
     }
 
     /**
-     * Extract icon URL from web app manifest file.
-     * @param {string} html - The HTML content.
-     * @param {string} baseUrl - The base URL.
+     * Extract icon URL from a web app manifest file.
+     *
+     * @param {string} html HTML content.
+     * @param {string} baseUrl Base URL.
      * @returns {Promise<string|null>} The icon URL or null.
      * @private
      */
     async _extractManifestIconUrl(html, baseUrl) {
-        const manifestPatterns = [/<link[^>]+rel=["']manifest["'][^>]+href=["']([^"']+)["']/i, /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']manifest["']/i];
+        const manifestPatterns = [/<link[^>]+rel=["']manifest["'][^>]+href=["']([^"']+)["']/i, /<link[^>]+href=["']([^"']+)["']/i];
 
         let manifestPath = null;
         for (const pattern of manifestPatterns) {
@@ -191,7 +273,17 @@ export class LinkProcessor {
 
             const message = Soup.Message.new('GET', manifestUrl);
             if (!message) return null;
-            const bytes = await this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+
+            const bytes = await new Promise((resolve, reject) => {
+                this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
+                    try {
+                        const result = session.send_and_read_finish(res);
+                        resolve(result);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
 
             if (message.status_code !== 200 || !bytes) return null;
 
@@ -212,7 +304,7 @@ export class LinkProcessor {
                 return this._resolveUrl(sortedIcons[0].src, manifestUrl);
             }
         } catch {
-            // Manifest parsing failed
+            // Manifest parsing failed.
         }
 
         return null;
@@ -220,7 +312,8 @@ export class LinkProcessor {
 
     /**
      * Try fetching /favicon.ico from the domain root as a fallback.
-     * @param {string} baseUrl - The original URL.
+     *
+     * @param {string} baseUrl Original URL.
      * @returns {Promise<string|null>} The favicon URL if it exists, or null.
      * @private
      */
@@ -233,29 +326,44 @@ export class LinkProcessor {
             const message = Soup.Message.new('HEAD', faviconUrl);
 
             if (message) {
-                await this._httpSession.send_async(message, GLib.PRIORITY_DEFAULT, null);
+                await new Promise((resolve, reject) => {
+                    this._httpSession.send_async(message, GLib.PRIORITY_DEFAULT, null, (session, res) => {
+                        try {
+                            session.send_finish(res);
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                });
 
                 if (message.status_code === 200) {
                     return faviconUrl;
                 }
             }
         } catch {
-            // Ignore errors
+            // head request failed.
         }
+
         return null;
     }
 
+    // ========================================================================
+    // Internal Helpers
+    // ========================================================================
+
     /**
      * Get Google's S2 Favicon API URL as ultimate fallback.
-     * @param {string} url - The website URL.
-     * @returns {string} The Google favicon API URL.
+     *
+     * @param {string} url Website URL.
+     * @returns {string|null} The Google favicon API URL or null.
      * @private
      */
     _getGoogleFaviconUrl(url) {
         try {
             const uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
             const domain = uri.get_host();
-            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=${GOOGLE_FAVICON_SIZE}`;
         } catch {
             return null;
         }
@@ -263,8 +371,9 @@ export class LinkProcessor {
 
     /**
      * Resolve a relative URL against a base URL.
-     * @param {string} relativeUrl - The URL to resolve.
-     * @param {string} baseUrl - The base URL.
+     *
+     * @param {string} relativeUrl URL to resolve.
+     * @param {string} baseUrl Base URL.
      * @returns {string|null} The resolved URL or null.
      * @private
      */
@@ -290,36 +399,10 @@ export class LinkProcessor {
     }
 
     /**
-     * Downloads the icon to the cache directory.
-     * @param {string} iconUrl - The URL of the icon to download.
-     * @param {string} destinationDir - The directory to save the icon.
-     * @param {string} fileBasename - The base filename (without extension).
-     * @returns {Promise<string|null>} The saved filename, or null.
-     */
-    async downloadFavicon(iconUrl, destinationDir, fileBasename) {
-        if (!iconUrl) return null;
-
-        try {
-            const result = await ServiceImage.download(this._httpSession, iconUrl);
-            if (!result?.bytes || result.bytes.length === 0) return null;
-
-            const ext = this._getExtensionFromContentType(result.contentType, iconUrl);
-            const filename = `${fileBasename}.${ext}`;
-            const filePath = GLib.build_filenamev([destinationDir, filename]);
-
-            const success = await IOFile.write(filePath, ServiceImage.encode(result.bytes));
-            if (!success) return null;
-
-            return filename;
-        } catch {
-            return null;
-        }
-    }
-
-    /**
      * Determine file extension from Content-Type or URL.
-     * @param {string} contentType - The Content-Type header value.
-     * @param {string} url - The icon URL.
+     *
+     * @param {string} contentType Content-Type header value.
+     * @param {string} url Icon URL.
      * @returns {string} The file extension.
      * @private
      */
@@ -343,24 +426,9 @@ export class LinkProcessor {
     }
 
     /**
-     * Regenerate icon for an existing item.
-     * @param {Object} item - The clipboard item.
-     * @param {string} linkPreviewsDir - The directory for link previews.
-     * @returns {Promise<string|null>} The new filename or null.
-     */
-    async regenerateIcon(item, linkPreviewsDir) {
-        if (!item.url || !this._httpSession) return null;
-
-        const { iconUrl } = await this.fetchMetadata(item.url);
-        if (iconUrl) {
-            return await this.downloadFavicon(iconUrl, linkPreviewsDir, item.id);
-        }
-        return null;
-    }
-
-    /**
-     * Decode HTML entities
-     * @param {string} str - The string to decode.
+     * Decode HTML entities in a string.
+     *
+     * @param {string} str String to decode.
      * @returns {string} The decoded string.
      * @private
      */
@@ -378,8 +446,12 @@ export class LinkProcessor {
             .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
     }
 
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
     /**
-     * Cleanup resources
+     * Clean up resources and abort active network requests.
      */
     destroy() {
         if (this._httpSession) {

@@ -9,26 +9,26 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 const MAX_PREVIEW_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 /**
- * FileProcessor - Handles file URIs from clipboard
+ * FileProcessor
  *
- * Pattern: Single-phase (process)
- * - process(): Analyzes file URIs, delegates image files to ImageProcessor
+ * Analyzes file URIs from the clipboard, delegating image files to the ImageProcessor.
  */
 export class FileProcessor {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Analyzes a text string to see if it is a valid file URI.
+     * Analyze a text string to determine if it represents a valid file URI or path.
      *
-     * @param {string} text - The potential URI string.
-     * @returns {Promise<Object|null>}
-     *   - { type: 'image', data, hash, mimetype, file_uri }
-     *   - { type: 'file', file_uri, preview, hash }
-     *   - null
+     * @param {string} text Potential URI string.
+     * @returns {Promise<Object|null>} Processed file or image object, or null if invalid.
      */
     static async process(text) {
         if (!text) return null;
 
         const cleanText = text.trim();
-        // Must be a file URI or absolute path
+
         if (!cleanText.startsWith('file://') && !cleanText.startsWith('/')) {
             return null;
         }
@@ -37,8 +37,8 @@ export class FileProcessor {
         if (lines.length !== 1) return null;
 
         const uri = lines[0].startsWith('file://') ? lines[0] : `file://${lines[0]}`;
-
         let path = null;
+
         if (cleanText.startsWith('file://')) {
             try {
                 [path] = GLib.filename_from_uri(uri);
@@ -58,11 +58,13 @@ export class FileProcessor {
 
         const { mime, size, name: filename } = info;
 
-        // Image File
+        // Image
         if (mime && mime.startsWith('image/') && size <= MAX_PREVIEW_SIZE_BYTES) {
             const bytes = await IOFile.read(path);
+
             if (bytes && bytes.length > 0) {
                 const hash = ProcessorUtils.computeHashForData(bytes);
+
                 return {
                     type: ClipboardType.IMAGE,
                     data: bytes,
@@ -73,12 +75,13 @@ export class FileProcessor {
             }
         }
 
-        // Generic File
+        // Generic
         const uriHash = ProcessorUtils.computeHashForString(uri);
+
         return {
             type: ClipboardType.FILE,
             file_uri: uri,
-            preview: filename, // Store filename as the preview text
+            preview: filename,
             hash: uriHash,
         };
     }

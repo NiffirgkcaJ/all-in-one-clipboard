@@ -13,16 +13,22 @@ import { ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
 
 /**
  * ClipboardGridItemFactory
+ *
  * Factory for creating grid view clipboard items.
  * Creates vertical card widgets optimized for the masonry grid layout.
  */
 export class ClipboardGridItemFactory {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Get item view configuration.
-     * @param {Object} item The raw item data
-     * @param {string} imagesDir Directory where images are stored
-     * @param {string} linkPreviewsDir Directory where link previews are stored
-     * @returns {Object} The view configuration
+     * Get the item view configuration.
+     *
+     * @param {Object} item The raw item data.
+     * @param {string} imagesDir Directory where images are stored.
+     * @param {string} linkPreviewsDir Directory where link previews are stored.
+     * @returns {Object} The view configuration.
      */
     static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
         return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir);
@@ -31,19 +37,19 @@ export class ClipboardGridItemFactory {
     /**
      * Create a complete grid item with content and overlayed action buttons.
      *
-     * @param {Object} itemData The item data with _isPinned flag
-     * @param {Object} options Options for rendering
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored
-     * @param {number} options.imagePreviewSize Size for image preview
-     * @param {Function} options.onItemCopy Callback when card is clicked
-     * @param {Object} options.manager ClipboardManager for pin/delete actions
-     * @param {Set} options.selectedIds Set of selected item IDs
-     * @param {Function} options.onSelectionChanged Callback when selection changes
-     * @param {Map} options.checkboxIconsMap Map to register checkbox icons
-     * @param {Object} options.settings Extension settings
-     * @returns {St.Widget} The complete card widget
+     * @param {Object} itemData The item data.
+     * @param {Object} options Options for rendering.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
+     * @param {number} options.imagePreviewSize Size for image preview.
+     * @param {Function} options.onItemCopy Callback when card is clicked.
+     * @param {Object} options.manager ClipboardManager for pin or delete actions.
+     * @param {Set} options.selectedIds Set of selected item IDs.
+     * @param {Function} options.onSelectionChanged Callback when selection changes.
+     * @param {Map} options.checkboxIconsMap Map to register checkbox icons.
+     * @param {Object} options.settings Extension settings.
+     * @returns {St.Widget} The complete card widget.
      */
     static createItem(itemData, options) {
         const isPinned = options.isPinned !== undefined ? options.isPinned : itemData._isPinned;
@@ -83,6 +89,7 @@ export class ClipboardGridItemFactory {
         contentWrapper.set_child(contentWidget);
         cardStack.add_child(contentWrapper);
 
+        // Type Badge
         if (config.icon) {
             const typeBadge = new St.BoxLayout({
                 style_class: 'clipboard-grid-type-badge',
@@ -109,6 +116,7 @@ export class ClipboardGridItemFactory {
             itemWidget._typeBadge = typeBadge;
         }
 
+        // Actions Overlay
         const actionsOverlay = new St.BoxLayout({
             style_class: 'clipboard-grid-controls',
             x_expand: true,
@@ -198,13 +206,15 @@ export class ClipboardGridItemFactory {
 
     /**
      * Update an existing item widget with new data.
-     * @param {St.Widget} itemWidget The existing widget
-     * @param {Object} newItemData The new item data
-     * @param {Object} options Options for rendering
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored
-     * @param {number} options.imagePreviewSize Size for image preview
+     *
+     * @param {St.Widget} itemWidget The existing widget.
+     * @param {Object} newItemData The new item data.
+     * @param {Object} options Options for rendering.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
+     * @param {number} options.imagePreviewSize Size for image preview.
+     * @returns {boolean} True if the structure changed.
      */
     static updateItem(itemWidget, newItemData, options) {
         if (!itemWidget || !newItemData) return false;
@@ -279,37 +289,50 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Create content widget for a grid item.
+     * Create the content widget for a grid item.
      *
-     * @param {Object} config The view configuration from getItemViewConfig
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {number} options.imagePreviewSize Size of image preview
-     * @returns {St.Widget} The content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {number} options.imagePreviewSize Size of image preview.
+     * @returns {St.Widget} The content widget.
      */
     static createGridContent(config, itemData, options) {
+        // Image
         if (config.layoutMode === 'image') {
             return ClipboardGridItemFactory._createImageGridContent(config, itemData, options);
-        } else if (config.layoutMode === 'rich') {
+        }
+        // Rich
+        else if (config.layoutMode === 'rich') {
             return ClipboardGridItemFactory._createRichGridContent(config, itemData, options);
-        } else if (config.layoutMode === 'color') {
+        }
+        // Color
+        else if (config.layoutMode === 'color') {
             return ClipboardGridItemFactory._createColorGridContent(config, itemData, options);
-        } else if (config.layoutMode === 'code') {
+        }
+        // Code
+        else if (config.layoutMode === 'code') {
             return ClipboardGridItemFactory._createCodeGridContent(config, itemData, options);
         }
 
+        // Text
         return ClipboardGridItemFactory._createTextGridContent(config, itemData, options);
     }
+
+    // ========================================================================
+    // Internal Helpers
+    // ========================================================================
 
     /**
      * Create image content for the grid.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @returns {St.Widget} The image content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @returns {St.Widget} The image content widget.
+     * @private
      */
     static _createImageGridContent(config, itemData, options) {
         const previewPath = ClipboardBaseItemConfig.resolveImagePreviewPath(itemData, options.imagePreviewsDir);
@@ -332,10 +355,11 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Helper to create a rich icon for grid cards.
+     * Create a rich icon for grid cards.
      *
-     * @param {Object} config The view configuration
-     * @returns {St.Widget} The configured icon widget
+     * @param {Object} config The view configuration.
+     * @returns {St.Widget} The configured icon widget.
+     * @private
      */
     static _createRichIcon(config) {
         if (config.gicon) {
@@ -356,10 +380,11 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Helper to create a text column for grid cards.
+     * Create a text column for grid cards.
      *
-     * @param {Object} config The view configuration
-     * @returns {St.Widget} The vertically stacked text box
+     * @param {Object} config The view configuration.
+     * @returns {St.Widget} The vertically stacked text box.
+     * @private
      */
     static _createRichTextColumn(config) {
         const labelsContainer = new St.BoxLayout({
@@ -393,10 +418,11 @@ export class ClipboardGridItemFactory {
     /**
      * Create rich content with icons and text for the grid.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The rich content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The rich content widget.
+     * @private
      */
     static _createRichGridContent(config, itemData, _options) {
         const contentWidget = new St.BoxLayout({
@@ -433,10 +459,11 @@ export class ClipboardGridItemFactory {
     /**
      * Create color block content for the grid.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @returns {St.Widget} The color content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @returns {St.Widget} The color content widget.
+     * @private
      */
     static _createColorGridContent(config, itemData, options) {
         const contentWidget = new St.BoxLayout({
@@ -483,10 +510,11 @@ export class ClipboardGridItemFactory {
     /**
      * Create a structured code preview for the grid.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} _itemData Unused raw item data kept for signature consistency
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The code content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} _itemData Unused raw item data kept for signature consistency.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The code content widget.
+     * @private
      */
     static _createCodeGridContent(config, _itemData, _options) {
         const safeText = config.text || '';
@@ -506,10 +534,11 @@ export class ClipboardGridItemFactory {
     /**
      * Create standard text content for the grid.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} _itemData Unused raw item data kept for signature consistency
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The text content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} _itemData Unused raw item data kept for signature consistency.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The text content widget.
+     * @private
      */
     static _createTextGridContent(config, _itemData, _options) {
         const safeText = config.text || '';

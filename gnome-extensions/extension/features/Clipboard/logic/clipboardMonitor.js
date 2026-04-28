@@ -1,0 +1,243 @@
+import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
+
+import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+
+import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
+import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
+import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
+import { FileProcessor } from '../processors/clipboardFileProcessor.js';
+import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
+import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
+import { TextProcessor } from '../processors/clipboardTextProcessor.js';
+
+// Configuration
+const EXCLUDED_HASH_TTL_MS = 5000;
+const MAX_BLOCKED_HASHES = 50;
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 200;
+
+/**
+ * ClipboardMonitor
+ *
+ * Listens to system clipboard changes and performs content extraction/detection.
+ */
+export class ClipboardMonitor {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    /**
+     * Initialize the clipboard monitor.
+     *
+     * @param {ExclusionUtils} exclusionUtils Utility for handling exclusion rules.
+     * @param {string} imagesDir Path for generating color processor gradients.
+     * @param {Function} onContentCaptured Callback for when content is captured.
+     */
+    constructor(exclusionUtils, imagesDir, onContentCaptured) {
+        this._exclusionUtils = exclusionUtils;
+        this._imagesDir = imagesDir;
+        this._onContentCaptured = onContentCaptured;
+
+        this._selection = null;
+        this._isPaused = false;
+        this._processClipboardTimeoutId = 0;
+        this._retryTimeoutId = 0;
+
+        this._blockedContentHashes = new Map();
+    }
+
+    /**
+     * Start monitoring the system clipboard for changes.
+     */
+    start() {
+        this._selection = global.display.get_selection();
+        this._selectionOwnerChangedId = this._selection.connect('owner-changed', (selection, selectionType) => {
+            if (selectionType === Meta.SelectionType.SELECTION_CLIPBOARD) {
+                this._onClipboardChanged();
+            }
+        });
+    }
+
+    // ========================================================================
+    // Monitoring Logic
+    // ========================================================================
+
+    /**
+     * Handle clipboard change events with exclusion checks and debouncing.
+     *
+     * @private
+     */
+    _onClipboardChanged() {
+        if (this._isPaused) return;
+
+        const focusWindow = global.display.focus_window;
+
+        if (this._exclusionUtils.shouldBlockClipboardNow(focusWindow)) {
+            this._hashAndBlockClipboardContent();
+            return;
+        }
+
+        if (this._processClipboardTimeoutId) {
+            GLib.source_remove(this._processClipboardTimeoutId);
+        }
+
+        const processDelayMs = this._exclusionUtils.getClipboardCheckDelayMs();
+
+        this._processClipboardTimeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, processDelayMs, () => {
+            const currentFocusWindow = global.display.focus_window;
+
+            if (this._exclusionUtils.shouldBlockClipboardNow(currentFocusWindow)) {
+                this._hashAndBlockClipboardContent();
+                this._processClipboardTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
+
+            this._processClipboardContent(1).catch((e) => console.error(`[AIO-Clipboard] Monitor error: ${e.message}`));
+            this._processClipboardTimeoutId = 0;
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    /**
+     * Extract and identify clipboard content using various specialized processors.
+     *
+     * @param {number} attempt Current retry attempt number.
+     * @private
+     */
+    async _processClipboardContent(attempt = 1) {
+        try {
+            // Image
+            const imageResult = await ImageProcessor.extract();
+            if (imageResult) {
+                this._onContentCaptured(imageResult);
+                return;
+            }
+
+            // Text
+            const textResult = await TextProcessor.extract();
+            if (textResult) {
+                const text = textResult.text;
+                const hash = this._hashString(text);
+
+                if (this._blockedContentHashes.has(hash)) {
+                    const expiry = this._blockedContentHashes.get(hash);
+                    if (Date.now() < expiry) return;
+                    this._blockedContentHashes.delete(hash);
+                }
+
+                const fileResult = await FileProcessor.process(text);
+                if (fileResult) {
+                    this._onContentCaptured(fileResult);
+                    return;
+                }
+
+                const linkResult = LinkProcessor.process(text);
+                if (linkResult) {
+                    this._onContentCaptured(linkResult);
+                    return;
+                }
+
+                const contactResult = await ContactProcessor.process(text);
+                if (contactResult) {
+                    this._onContentCaptured(contactResult);
+                    return;
+                }
+
+                const colorResult = ColorProcessor.process(text, this._imagesDir);
+                if (colorResult) {
+                    this._onContentCaptured(colorResult);
+                    return;
+                }
+
+                const codeResult = CodeProcessor.process(text);
+                if (codeResult) {
+                    this._onContentCaptured(codeResult);
+                    return;
+                }
+
+                // Fallback
+                this._onContentCaptured(textResult);
+                return;
+            }
+
+            if (attempt <= MAX_RETRIES) {
+                if (this._retryTimeoutId) GLib.source_remove(this._retryTimeoutId);
+
+                this._retryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_DELAY_MS, () => {
+                    this._processClipboardContent(attempt + 1);
+                    this._retryTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                });
+            }
+        } catch (e) {
+            console.warn(`[AIO-Clipboard] Process error: ${e.message}`);
+        }
+    }
+
+    /**
+     * Capture the hash of the current clipboard content to prevent leakage from excluded applications.
+     *
+     * @private
+     */
+    _hashAndBlockClipboardContent() {
+        clipboardGetText()
+            .then((text) => {
+                if (text) {
+                    const hash = this._hashString(text);
+                    this._blockedContentHashes.set(hash, Date.now() + EXCLUDED_HASH_TTL_MS);
+
+                    if (this._blockedContentHashes.size > MAX_BLOCKED_HASHES) {
+                        const first = this._blockedContentHashes.keys().next().value;
+                        this._blockedContentHashes.delete(first);
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+
+    // ========================================================================
+    // Utilities
+    // ========================================================================
+
+    /**
+     * Generate a simple hash from a string.
+     *
+     * @param {string} str Input string.
+     * @returns {number} Generated hash.
+     * @private
+     */
+    _hashString(str) {
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+        }
+        return hash;
+    }
+
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
+    /**
+     * Set the paused state of the clipboard monitor.
+     *
+     * @param {boolean} isPaused Whether monitoring should be paused.
+     */
+    setPaused(isPaused) {
+        this._isPaused = isPaused;
+    }
+
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
+    /**
+     * Clean up resources and disconnect listeners before destruction.
+     */
+    destroy() {
+        if (this._processClipboardTimeoutId) GLib.source_remove(this._processClipboardTimeoutId);
+        if (this._retryTimeoutId) GLib.source_remove(this._retryTimeoutId);
+        if (this._selectionOwnerChangedId) this._selection.disconnect(this._selectionOwnerChangedId);
+    }
+}

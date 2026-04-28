@@ -1,14 +1,20 @@
 import { ClipboardType } from '../constants/clipboardConstants.js';
 
 /**
+ * ClipboardSearchUtils
+ *
  * Utility functions for filtering clipboard items based on search text.
  */
 export class ClipboardSearchUtils {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Checks if an item matches the given search text.
+     * Check if an item matches the given search text.
      *
-     * @param {Object} item - The clipboard item to check.
-     * @param {string} searchText - The search term (assumed to be lowercased by caller).
+     * @param {Object} item The clipboard item to check.
+     * @param {string} searchText The search term.
      * @returns {boolean} True if the item matches the search text.
      */
     static isMatch(item, searchText) {
@@ -20,10 +26,10 @@ export class ClipboardSearchUtils {
     }
 
     /**
-     * Generates a comprehensive search string from an item's fields.
+     * Generate a comprehensive search string from an item's fields.
      * Concatenates all relevant fields based on the item type to ensure inclusive search.
      *
-     * @param {Object} item - The clipboard item.
+     * @param {Object} item The clipboard item.
      * @returns {string} Lowercased string containing all searchable content.
      */
     static getItemSearchString(item) {
@@ -31,22 +37,28 @@ export class ClipboardSearchUtils {
 
         const parts = [];
 
-        // Add common fields if they exist
+        // Common Fields
         if (item.source_url) parts.push(item.source_url);
 
+        // Type Specific
         this._appendTypeSpecificFields(item, parts);
 
-        // Filter out null/undefined and join with space
+        // Concatenate
         return parts
             .filter((part) => part)
             .join(' ')
             .toLowerCase();
     }
 
+    // ========================================================================
+    // Internal Helpers
+    // ========================================================================
+
     /**
      * Helper to append type-specific fields to the parts array.
-     * @param {Object} item - The clipboard item.
-     * @param {string[]} parts - The array to append fields to.
+     *
+     * @param {Object} item The clipboard item.
+     * @param {string[]} parts The array to append fields to.
      * @private
      */
     static _appendTypeSpecificFields(item, parts) {

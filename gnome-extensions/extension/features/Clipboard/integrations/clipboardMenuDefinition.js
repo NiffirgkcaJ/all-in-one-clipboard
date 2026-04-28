@@ -1,6 +1,10 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// Clipboard tab definition
+/**
+ * MenuDefinitionClipboard
+ *
+ * Definition for the clipboard tab in the main menu.
+ */
 export const MenuDefinitionClipboard = {
     id: 'Clipboard',
     name: () => _('Clipboard'),
@@ -9,11 +13,16 @@ export const MenuDefinitionClipboard = {
     isFullView: false,
     settingKey: 'enable-clipboard-tab',
 
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Creates the content actor for the clipboard tab.
-     * @param {Extension} extension Parent extension instance.
+     * Create the content actor for the clipboard tab.
+     *
+     * @param {Object} extension Parent extension instance.
      * @param {Gio.Settings} settings Extension settings configuration.
-     * @param {object} clipboardManager Global clipboard manager state tracking.
+     * @param {Object} clipboardManager Global clipboard manager state tracking.
      * @returns {Promise<Clutter.Actor>} The content actor for the clipboard tab.
      */
     async createContentActor(extension, settings, clipboardManager) {

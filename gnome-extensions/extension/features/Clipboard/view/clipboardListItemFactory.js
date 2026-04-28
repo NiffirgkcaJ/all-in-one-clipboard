@@ -13,16 +13,22 @@ import { ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
 
 /**
  * ClipboardListItemFactory
+ *
  * Factory for creating list view clipboard items.
  * Creates horizontal row widgets optimized for the list layout.
  */
 export class ClipboardListItemFactory {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Get item view configuration.
-     * @param {Object} item The raw item data
-     * @param {string} imagesDir Directory where images are stored
-     * @param {string} linkPreviewsDir Directory where link previews are stored
-     * @returns {Object} The view configuration
+     * Get the item view configuration.
+     *
+     * @param {Object} item The raw item data.
+     * @param {string} imagesDir Directory where images are stored.
+     * @param {string} linkPreviewsDir Directory where link previews are stored.
+     * @returns {Object} The view configuration.
      */
     static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
         return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir);
@@ -31,19 +37,19 @@ export class ClipboardListItemFactory {
     /**
      * Create a complete list item row with content and action buttons.
      *
-     * @param {Object} itemData The item data with _isPinned flag
-     * @param {Object} options Options for rendering
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored
-     * @param {number} options.imagePreviewSize Size for image preview
-     * @param {Function} options.onItemCopy Callback when row is clicked
-     * @param {Object} options.manager ClipboardManager for pin/delete actions
-     * @param {Set} options.selectedIds Set of selected item IDs
-     * @param {Function} options.onSelectionChanged Callback when selection changes
-     * @param {Map} options.checkboxIconsMap Map to register checkbox icons
-     * @param {Object} options.settings Extension settings
-     * @returns {St.Widget} The complete row widget
+     * @param {Object} itemData The item data.
+     * @param {Object} options Options for rendering.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
+     * @param {number} options.imagePreviewSize Size for image preview.
+     * @param {Function} options.onItemCopy Callback when row is clicked.
+     * @param {Object} options.manager ClipboardManager for pin or delete actions.
+     * @param {Set} options.selectedIds Set of selected item IDs.
+     * @param {Function} options.onSelectionChanged Callback when selection changes.
+     * @param {Map} options.checkboxIconsMap Map to register checkbox icons.
+     * @param {Object} options.settings Extension settings.
+     * @returns {St.Widget} The complete row widget.
      */
     static createItem(itemData, options) {
         const isPinned = options.isPinned !== undefined ? options.isPinned : itemData._isPinned;
@@ -62,6 +68,7 @@ export class ClipboardListItemFactory {
         });
         itemWidget.set_child(mainBox);
 
+        // Checkbox
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
             itemData,
             {
@@ -79,6 +86,7 @@ export class ClipboardListItemFactory {
         mainBox.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 
+        // Content
         const config = ClipboardListItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir);
         const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
             imagesDir: options.imagesDir,
@@ -91,6 +99,7 @@ export class ClipboardListItemFactory {
             itemWidget.set_style(`min-height: ${options.imagePreviewSize}px;`);
         }
 
+        // Action Buttons
         const pinButton = ClipboardBaseWidgetFactory.createPinButton(
             itemData,
             isPinned,
@@ -118,6 +127,7 @@ export class ClipboardListItemFactory {
         buttonsBox.add_child(deleteButton);
         mainBox.add_child(buttonsBox);
 
+        // Focus Handlers
         const updateFocusState = () => {
             if (itemWidget.has_key_focus() || itemCheckbox.has_key_focus() || pinButton.has_key_focus() || deleteButton.has_key_focus()) {
                 itemWidget.add_style_pseudo_class('focused');
@@ -160,13 +170,14 @@ export class ClipboardListItemFactory {
 
     /**
      * Update an existing item widget with new data.
-     * @param {St.Widget} itemWidget The existing widget
-     * @param {Object} newItemData The new item data
-     * @param {Object} options Options for rendering
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored
-     * @param {number} options.imagePreviewSize Size for image preview
+     *
+     * @param {St.Widget} itemWidget The existing widget.
+     * @param {Object} newItemData The new item data.
+     * @param {Object} options Options for rendering.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
+     * @param {number} options.imagePreviewSize Size for image preview.
      */
     static updateItem(itemWidget, newItemData, options) {
         if (!itemWidget || !newItemData) return;
@@ -200,35 +211,48 @@ export class ClipboardListItemFactory {
     /**
      * Create a content widget for a list item based on its configuration.
      *
-     * @param {Object} config The view configuration from getItemViewConfig
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @param {string} options.imagesDir Directory where images are stored
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored
-     * @param {number} options.imagePreviewSize Size of image preview
-     * @returns {St.Widget} The content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @param {string} options.imagesDir Directory where images are stored.
+     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
+     * @param {number} options.imagePreviewSize Size of image preview.
+     * @returns {St.Widget} The content widget.
      */
     static createListContent(config, itemData, options) {
+        // Image
         if (config.layoutMode === 'image') {
             return ClipboardListItemFactory._createImageListContent(config, itemData, options);
-        } else if (config.layoutMode === 'rich') {
+        }
+        // Rich
+        else if (config.layoutMode === 'rich') {
             return ClipboardListItemFactory._createRichListContent(config, itemData, options);
-        } else if (config.layoutMode === 'color') {
+        }
+        // Color
+        else if (config.layoutMode === 'color') {
             return ClipboardListItemFactory._createColorListContent(config, itemData, options);
-        } else if (config.layoutMode === 'code') {
+        }
+        // Code
+        else if (config.layoutMode === 'code') {
             return ClipboardListItemFactory._createCodeListContent(config, itemData, options);
         }
 
+        // Text
         return ClipboardListItemFactory._createTextListContent(config, itemData, options);
     }
+
+    // ========================================================================
+    // Internal Helpers
+    // ========================================================================
 
     /**
      * Create image content for the list row.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @returns {St.Widget} The image content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @returns {St.Widget} The image content widget.
+     * @private
      */
     static _createImageListContent(config, itemData, options) {
         const previewPath = ClipboardBaseItemConfig.resolveImagePreviewPath(itemData, options.imagePreviewsDir);
@@ -254,10 +278,11 @@ export class ClipboardListItemFactory {
     }
 
     /**
-     * Helper to create a rich icon for list rows.
+     * Create a rich icon for list rows.
      *
-     * @param {Object} config The view configuration
-     * @returns {St.Widget} The configured icon widget
+     * @param {Object} config The view configuration.
+     * @returns {St.Widget} The configured icon widget.
+     * @private
      */
     static _createRichIcon(config) {
         if (config.gicon) {
@@ -278,10 +303,11 @@ export class ClipboardListItemFactory {
     }
 
     /**
-     * Helper to create a text column for list rows.
+     * Create a text column for list rows.
      *
-     * @param {Object} config The view configuration
-     * @returns {St.Widget} The vertically stacked text box
+     * @param {Object} config The view configuration.
+     * @returns {St.Widget} The vertically stacked text box.
+     * @private
      */
     static _createRichTextColumn(config) {
         const textCol = new St.BoxLayout({
@@ -314,10 +340,11 @@ export class ClipboardListItemFactory {
     /**
      * Create rich content for the list row.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} _itemData Unused raw item data kept for signature consistency
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The rich content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} _itemData Unused raw item data kept for signature consistency.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The rich content widget.
+     * @private
      */
     static _createRichListContent(config, _itemData, _options) {
         const contentWidget = new St.BoxLayout({
@@ -336,10 +363,11 @@ export class ClipboardListItemFactory {
     /**
      * Create color block content for the list row.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} itemData The raw item data
-     * @param {Object} options Display options
-     * @returns {St.Widget} The color content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} itemData The raw item data.
+     * @param {Object} options Display options.
+     * @returns {St.Widget} The color content widget.
+     * @private
      */
     static _createColorListContent(config, itemData, options) {
         const contentWidget = new St.BoxLayout({
@@ -382,10 +410,11 @@ export class ClipboardListItemFactory {
     /**
      * Create a structured code view for the list row.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} _itemData Unused raw item data kept for signature consistency
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The code content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} _itemData Unused raw item data kept for signature consistency.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The code content widget.
+     * @private
      */
     static _createCodeListContent(config, _itemData, _options) {
         const contentWidget = new St.BoxLayout({
@@ -432,10 +461,11 @@ export class ClipboardListItemFactory {
     /**
      * Create standard text content for the list row.
      *
-     * @param {Object} config The view configuration
-     * @param {Object} _itemData Unused raw item data kept for signature consistency
-     * @param {Object} _options Unused options kept for signature consistency
-     * @returns {St.Widget} The text content widget
+     * @param {Object} config The view configuration.
+     * @param {Object} _itemData Unused raw item data kept for signature consistency.
+     * @param {Object} _options Unused options kept for signature consistency.
+     * @returns {St.Widget} The text content widget.
+     * @private
      */
     static _createTextListContent(config, _itemData, _options) {
         const safeText = config.text || '';

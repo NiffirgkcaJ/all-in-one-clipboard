@@ -11,6 +11,7 @@ import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutCon
 
 /**
  * ClipboardGridView
+ *
  * Masonry grid layout for clipboard items.
  *
  * Renders clipboard items as cards in a Pinterest-style masonry grid.
@@ -21,9 +22,14 @@ import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutCon
  */
 export const ClipboardGridView = GObject.registerClass(
     class ClipboardGridView extends ClipboardBaseView {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
         /**
          * Initialize the grid view.
-         * @param {Object} options Configuration options
+         *
+         * @param {Object} options Configuration options.
          */
         constructor(options) {
             super(options, {
@@ -47,7 +53,8 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Create the container for pinned items.
-         * @returns {MasonryLayout} The masonry layout container
+         *
+         * @returns {MasonryLayout} The masonry layout container.
          * @override
          */
         _createPinnedContainer() {
@@ -67,7 +74,8 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Create the container for history items.
-         * @returns {MasonryLayout} The masonry layout container
+         *
+         * @returns {MasonryLayout} The masonry layout container.
          * @override
          */
         _createHistoryContainer() {
@@ -87,7 +95,8 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Get the item factory class.
-         * @returns {Class} ClipboardGridItemFactory
+         *
+         * @returns {Class} ClipboardGridItemFactory.
          * @override
          */
         _getItemFactory() {
@@ -96,16 +105,17 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Get item options.
-         * @param {boolean} isPinned
-         * @returns {Object}
+         *
+         * @param {boolean} isPinned Whether the item is pinned.
+         * @returns {Object} Options object.
          * @override
          */
         _getItemOptions(isPinned) {
             return {
                 isPinned: isPinned,
-                imagesDir: this._manager._imagesDir,
-                imagePreviewsDir: this._manager._imagePreviewsDir,
-                linkPreviewsDir: this._manager._linkPreviewsDir,
+                imagesDir: this._manager.imagesDir,
+                imagePreviewsDir: this._manager.imagePreviewsDir,
+                linkPreviewsDir: this._manager.linkPreviewsDir,
                 imagePreviewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
@@ -122,11 +132,11 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Render items into the grid view.
-         * Paint immediately using estimated dimensions, then refine the first viewport
-         * asynchronously once image metadata is available.
-         * @param {Object[]} pinnedItems Array of pinned items
-         * @param {Object[]} historyItems Array of history items
-         * @param {boolean} isSearching Whether a search filter is active
+         * Paint immediately using estimated dimensions, then refine the first viewport asynchronously once image metadata is available.
+         *
+         * @param {Object[]} pinnedItems Array of pinned items.
+         * @param {Object[]} historyItems Array of history items.
+         * @param {boolean} isSearching Whether a search filter is active.
          * @override
          */
         render(pinnedItems, historyItems, isSearching) {
@@ -156,7 +166,8 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Get all focusable items.
-         * @returns {Array} Array of focusable actors
+         *
+         * @returns {Array} Array of focusable actors.
          * @override
          */
         getFocusables() {
@@ -167,8 +178,9 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Hook for BaseView to resolve metrics before feeding masonry layout.
-         * @param {Array} batch The batch of items to prepare
-         * @returns {Promise<void>}
+         *
+         * @param {Array} batch The batch of items to prepare.
+         * @returns {Promise<void>} Preparation promise.
          * @protected
          * @override
          */
@@ -187,9 +199,10 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Create a single item widget for the masonry layout.
-         * @param {Object} itemData The item data with _isPinned flag
-         * @param {Object} _session Render session is unused
-         * @returns {St.Widget} The card widget
+         *
+         * @param {Object} itemData The item data with _isPinned flag.
+         * @param {Object} _session Render session is unused.
+         * @returns {St.Widget} The card widget.
          * @private
          */
         _createItemWidget(itemData, _session) {
@@ -200,7 +213,8 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Read the max columns setting when the limit is enabled.
-         * @returns {number|null} max columns or null for auto
+         *
+         * @returns {number|null} Max columns or null for auto.
          * @private
          */
         _getMaxColumnsSetting() {
@@ -211,6 +225,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Bind settings for grid column limits.
+         *
          * @private
          */
         _bindGridColumnSettings() {
@@ -224,6 +239,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Apply the current column limit to masonry containers.
+         *
          * @private
          */
         _applyColumnLimit() {
@@ -234,9 +250,10 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Calculate dimensions and prepare a single item for the masonry grid.
-         * @param {Object} item Item to process
-         * @param {boolean} isPinned Whether this item is pinned
-         * @returns {Object} Processed item
+         *
+         * @param {Object} item Item to process.
+         * @param {boolean} isPinned Whether this item is pinned.
+         * @returns {Object} Processed item.
          * @private
          */
         _prepareGridItem(item, isPinned) {
@@ -268,8 +285,9 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Estimate the relative height of a card based on item type.
-         * @param {Object} item The clipboard item
-         * @returns {number} Estimated relative height
+         *
+         * @param {Object} item The clipboard item.
+         * @returns {number} Estimated relative height.
          * @private
          */
         _estimateCardHeight(item) {
@@ -292,8 +310,9 @@ export const ClipboardGridView = GObject.registerClass(
         /**
          * Fetch image dimensions asynchronously in the background.
          * Allows the main thread to stay responsive without triggering massive layout recalculations.
-         * @param {string} filename The image filename
-         * @returns {Promise<void>} Resolves when cached
+         *
+         * @param {string} filename The image filename.
+         * @returns {Promise<void>} Resolves when cached.
          * @private
          */
         _resolveImageDimensionsAsync(filename) {
@@ -310,7 +329,7 @@ export const ClipboardGridView = GObject.registerClass(
                     }
 
                     try {
-                        const filePath = GLib.build_filenamev([this._manager._imagesDir, filename]);
+                        const filePath = GLib.build_filenamev([this._manager.imagesDir, filename]);
                         const [format, width, height] = GdkPixbuf.Pixbuf.get_file_info(filePath);
 
                         if (format) {
@@ -330,6 +349,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Cancel any pending render tasks.
+         *
          * @private
          */
         _cancelPendingRender() {}
@@ -340,9 +360,10 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Handle key press events for grid navigation.
-         * @param {Clutter.Actor} _actor The source actor
-         * @param {Clutter.Event} event The key event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         *
+         * @param {Clutter.Actor} _actor The source actor.
+         * @param {Clutter.Event} event The key event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
         _onKeyPress(_actor, event) {
@@ -355,8 +376,9 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Create a transfer token for cross-section grid navigation.
-         * @param {Clutter.Actor} currentFocus The currently focused actor
-         * @returns {number|undefined} Horizontal center position
+         *
+         * @param {Clutter.Actor} currentFocus The currently focused actor.
+         * @returns {number|undefined} Horizontal center position.
          * @private
          */
         _createTransferToken(currentFocus) {
@@ -377,6 +399,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Clear the view and caches.
+         *
          * @override
          */
         clear() {
@@ -390,6 +413,7 @@ export const ClipboardGridView = GObject.registerClass(
 
         /**
          * Destroy the view and clean up resources.
+         *
          * @override
          */
         destroy() {

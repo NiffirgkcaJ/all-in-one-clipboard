@@ -64,10 +64,10 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
     }
 
     const imagePreviewSize = imagePreviewSizeSettingKey ? runtimeContext?.settings?.get_int?.(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
-    const config = ClipboardListItemFactory.getItemViewConfig(itemData, clipboardManager._imagesDir, clipboardManager._linkPreviewsDir);
+    const config = ClipboardListItemFactory.getItemViewConfig(itemData, clipboardManager.imagesDir, clipboardManager.linkPreviewsDir);
     const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
-        imagesDir: clipboardManager._imagesDir,
-        imagePreviewsDir: clipboardManager._imagePreviewsDir,
+        imagesDir: clipboardManager.imagesDir,
+        imagePreviewsDir: clipboardManager.imagePreviewsDir,
         imagePreviewSize,
     });
 

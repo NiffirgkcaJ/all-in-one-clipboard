@@ -6,13 +6,15 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
 
+// Configuration
+const SCROLL_THRESHOLD_PX = 500;
+const RENDER_CHUNK_SIZE = 15;
+
 /**
- * Abstract base class for clipboard views.
+ * ClipboardBaseView
  *
- * Handles common functionality:
- * - UI scaffolding, like headers, separator, empty state
- * - Pagination / Lazy loading logic
- * - Common state management
+ * Abstract base class for clipboard views.
+ * Handles common functionality including UI scaffolding, pagination, lazy loading, and state management.
  */
 export const ClipboardBaseView = GObject.registerClass(
     {
@@ -24,15 +26,15 @@ export const ClipboardBaseView = GObject.registerClass(
         /**
          * Initialize the base view.
          *
-         * @param {Object} options Configuration options
-         * @param {ClipboardManager} options.manager The clipboard manager
-         * @param {number} options.imagePreviewSize Size for image previews
-         * @param {Function} options.onItemCopy Callback when item is clicked/copied
-         * @param {Function} options.onSelectionChanged Callback when selection changes
-         * @param {Set} options.selectedIds Set of selected item IDs
-         * @param {St.ScrollView} options.scrollView Parent scroll view for focus scrolling
-         * @param {Gio.Settings} options.settings Extension settings
-         * @param {Object} styleOptions St.BoxLayout style options
+         * @param {Object} options Configuration options.
+         * @param {ClipboardManager} options.manager The clipboard manager.
+         * @param {number} options.imagePreviewSize Size for image previews.
+         * @param {Function} options.onItemCopy Callback when item is clicked/copied.
+         * @param {Function} options.onSelectionChanged Callback when selection changes.
+         * @param {Set} options.selectedIds Set of selected item IDs.
+         * @param {St.ScrollView} options.scrollView Parent scroll view for focus scrolling.
+         * @param {Gio.Settings} options.settings Extension settings.
+         * @param {Object} styleOptions St.BoxLayout style options.
          */
         constructor(options, styleOptions = {}) {
             super({
@@ -69,18 +71,20 @@ export const ClipboardBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Create the container for pinned items. Must be implemented by subclass.
+         * Create the container for pinned items.
+         *
+         * @returns {St.Widget} The container widget.
          * @abstract
-         * @returns {St.Widget} The container widget
          */
         _createPinnedContainer() {
             throw new Error('Method _createPinnedContainer must be implemented by subclass');
         }
 
         /**
-         * Create the container for history items. Must be implemented by subclass.
+         * Create the container for history items.
+         *
+         * @returns {St.Widget} The container widget.
          * @abstract
-         * @returns {St.Widget} The container widget
          */
         _createHistoryContainer() {
             throw new Error('Method _createHistoryContainer must be implemented by subclass');
@@ -88,18 +92,20 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Get the item factory class for this view.
+         *
+         * @returns {Class} The factory class.
          * @abstract
-         * @returns {Class} The factory class
          */
         _getItemFactory() {
             throw new Error('Method _getItemFactory must be implemented by subclass');
         }
 
         /**
-         * Get options for creating/updating items.
+         * Get options for creating or updating items.
+         *
+         * @param {boolean} _isPinned Whether the item is pinned.
+         * @returns {Object} Options object.
          * @abstract
-         * @param {boolean} isPinned Whether the item is pinned
-         * @returns {Object} Options object
          */
         _getItemOptions(_isPinned) {
             throw new Error('Method _getItemOptions must be implemented by subclass');
@@ -107,9 +113,10 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Update an existing item widget.
-         * @param {St.Widget} widget The existing widget
-         * @param {Object} itemData The new item data
-         * @param {Object} [session] Render session
+         *
+         * @param {St.Widget} widget The existing widget.
+         * @param {Object} itemData The new item data.
+         * @param {Object} [session] Render session.
          * @protected
          */
         _updateItemWidget(widget, itemData, session) {
@@ -126,9 +133,9 @@ export const ClipboardBaseView = GObject.registerClass(
         /**
          * Render items into the view.
          *
-         * @param {Object[]} pinnedItems Array of pinned items
-         * @param {Object[]} historyItems Array of history items
-         * @param {boolean} isSearching Whether a search filter is active
+         * @param {Object[]} pinnedItems Array of pinned items.
+         * @param {Object[]} historyItems Array of history items.
+         * @param {boolean} isSearching Whether a search filter is active.
          */
         render(pinnedItems, historyItems, isSearching) {
             const focusState = this._captureFocusState();
@@ -187,7 +194,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Rebuild the checkbox map from existing widgets.
-         * Crucial for maintaining state sync when widgets are reused by the layout.
+         *
          * @private
          */
         _rebuildCheckboxMap() {
@@ -214,7 +221,9 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Get all items.
+         * Get all clipboard items.
+         *
+         * @returns {Object[]} Array of items.
          */
         getAllItems() {
             return this._allItems;
@@ -222,7 +231,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Get focusable items.
-         * @returns {Array} Array of focusable actors
+         *
+         * @returns {Array} Array of focusable actors.
          */
         getFocusables() {
             return [];
@@ -231,7 +241,7 @@ export const ClipboardBaseView = GObject.registerClass(
         /**
          * Focus the first content item using the container's focus API.
          *
-         * @returns {boolean} True if focus was moved
+         * @returns {boolean} True if focus was moved.
          */
         focusFirstContentItem() {
             if (this._pinnedContainer && this._pinnedContainer.getItemCount() > 0) {
@@ -246,15 +256,18 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Get checkbox icons map.
+         * Get the checkbox icons map.
+         *
+         * @returns {Map} Checkbox icons map.
          */
         getCheckboxIconsMap() {
             return this._checkboxIconsMap;
         }
 
         /**
-         * Update image preview size.
-         * @param {number} size
+         * Update the image preview size.
+         *
+         * @param {number} size New size.
          */
         setImagePreviewSize(size) {
             this._imagePreviewSize = size;
@@ -266,6 +279,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Build common UI components.
+         *
          * @private
          */
         _buildCommonUI() {
@@ -309,7 +323,8 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Setup scroll listener for pagination.
+         * Set up scroll listener for pagination.
+         *
          * @private
          */
         _setupScrollListener() {
@@ -323,6 +338,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Hide all section headers and containers.
+         *
          * @private
          */
         _hideAllSections() {
@@ -336,7 +352,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Show or hide the pinned items container.
-         * @param {boolean} visible Whether to show the container
+         *
+         * @param {boolean} visible Whether to show the container.
          * @private
          */
         _showPinnedContainer(visible) {
@@ -345,7 +362,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Show or hide the history items container.
-         * @param {boolean} visible Whether to show the container
+         *
+         * @param {boolean} visible Whether to show the container.
          * @private
          */
         _showHistoryContainer(visible) {
@@ -354,19 +372,22 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Get the number of items currently in the history container.
-         * @returns {number} Number of items
+         *
+         * @returns {number} Number of items.
          * @private
          */
         _getHistoryItemCount() {
             if (this._historyContainer && typeof this._historyContainer.getItemCount === 'function') {
                 return this._historyContainer.getItemCount();
             }
-            return 0; // Default fallback
+            return 0;
         }
 
         /**
          * Update pinned items in the container.
-         * @param {Array} items
+         *
+         * @param {Array} items Pinned items list.
+         * @private
          */
         _updatePinnedItems(items) {
             this._pinnedContainer.reconcile(items);
@@ -374,15 +395,19 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Update history items in the container.
-         * @param {Array} items
+         *
+         * @param {Array} items History items list.
+         * @private
          */
         _updateHistoryItems(items) {
             this._historyContainer.reconcile(items);
         }
 
         /**
-         * Append batch to history container.
-         * @param {Array} newBatch Just the new items
+         * Append a batch to the history container.
+         *
+         * @param {Array} newBatch Array of new items.
+         * @private
          */
         _appendHistoryBatch(newBatch) {
             this._historyContainer.addItems(newBatch);
@@ -391,7 +416,9 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Clear pinned container content.
+         *
          * @abstract
+         * @private
          */
         _clearPinnedContainer() {
             if (this._pinnedContainer && typeof this._pinnedContainer.clear === 'function') {
@@ -401,7 +428,9 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Clear history container content.
+         *
          * @abstract
+         * @private
          */
         _clearHistoryContainer() {
             if (this._historyContainer && typeof this._historyContainer.clear === 'function') {
@@ -411,7 +440,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Capture the current focus state.
-         * @returns {Object|null} The captured focus state including itemId
+         *
+         * @returns {Object|null} The captured focus state including itemId.
          * @private
          */
         _captureFocusState() {
@@ -436,7 +466,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Restore focus to the previously focused item.
-         * @param {Object|null} focusState The state to restore
+         *
+         * @param {Object|null} focusState The state to restore.
          * @private
          */
         _restoreFocusState(focusState) {
@@ -506,6 +537,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Load next batch of history items.
+         *
          * @private
          */
         async _loadNextHistoryBatch() {
@@ -536,7 +568,7 @@ export const ClipboardBaseView = GObject.registerClass(
                     if (this._renderSession !== currentSession) return;
                     if (!this._historyContainer) return;
 
-                    // Yield frame to prevent UI freeze during heavy renders
+                    // Yield frame to prevent UI freeze during heavy renders.
                     await new Promise((resolve) => {
                         GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                             resolve();
@@ -559,18 +591,19 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Hook for subclasses to prepare items asynchronously before rendering.
-         * Default implementation is a no-op.
-         * @param {Array} _batch The batch to prepare
-         * @returns {Promise<void>}
+         *
+         * @param {Array} _batch The batch to prepare.
+         * @returns {Promise<void>} Preparation promise.
          * @protected
          */
         async _prepareBatchAsync(_batch) {
-            // No-op in base class
+            // No-op in base class.
         }
 
         /**
          * Check if loading should be deferred.
-         * @returns {boolean} True if loading should be deferred
+         *
+         * @returns {boolean} True if loading should be deferred.
          * @private
          */
         _shouldDeferLoading() {
@@ -578,17 +611,14 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Handle shared up/down navigation contract across pinned/history sections.
-         * Invariants:
-         * - Containers own intra-section movement and return STOP when moved.
-         * - Base view owns section handoff and pagination back-pressure.
-         * - Down is consumed while history pagination is still catching up.
-         * @param {Clutter.Event} event Key event
-         * @param {object} options Navigation adapters
-         * @param {Function} options.createTransferToken Build a transfer token from current focus
-         * @param {Function} options.focusHistoryFromPinned Focus history entry from pinned section
-         * @param {Function} options.focusPinnedFromHistory Focus pinned entry from history section
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         * Handle shared up/down navigation contract across pinned and history sections.
+         *
+         * @param {Clutter.Event} event Key event.
+         * @param {Object} options Navigation adapters.
+         * @param {Function} options.createTransferToken Build a transfer token from current focus.
+         * @param {Function} options.focusHistoryFromPinned Focus history entry from pinned section.
+         * @param {Function} options.focusPinnedFromHistory Focus pinned entry from history section.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @protected
          */
         _handleArrowNavigation(event, options) {
@@ -618,8 +648,9 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Shared arrow-key predicate.
-         * @param {number} symbol Key symbol
-         * @returns {boolean}
+         *
+         * @param {number} symbol Key symbol.
+         * @returns {boolean} True if symbol is an arrow key.
          * @private
          */
         _isArrowKey(symbol) {
@@ -627,9 +658,10 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Handle arrow navigation while focus is inside pinned section.
-         * @param {object} context Navigation context
-         * @returns {number|null} Event result, or null when not in pinned section
+         * Handle arrow navigation while focus is inside the pinned section.
+         *
+         * @param {Object} context Navigation context.
+         * @returns {number|null} Event result or null when not in pinned section.
          * @private
          */
         _handlePinnedArrowNavigation(context) {
@@ -653,9 +685,10 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Handle arrow navigation while focus is inside history section.
-         * @param {object} context Navigation context
-         * @returns {number|null} Event result, or null when not in history section
+         * Handle arrow navigation while focus is inside the history section.
+         *
+         * @param {Object} context Navigation context.
+         * @returns {number|null} Event result or null when not in history section.
          * @private
          */
         _handleHistoryArrowNavigation(context) {
@@ -683,7 +716,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Consume Down key while there are unloaded history entries.
-         * @returns {boolean} True when down should be consumed
+         *
+         * @returns {boolean} True when down should be consumed.
          * @private
          */
         _consumeDownForHistoryPagination() {
@@ -699,7 +733,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Handle scroll events.
-         * @param {St.Adjustment} vadjustment
+         *
+         * @param {St.Adjustment} vadjustment Scroll adjustment.
          * @private
          */
         _onScroll(vadjustment) {
@@ -712,7 +747,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 return;
             }
 
-            const threshold = vadjustment.upper - vadjustment.page_size - 500;
+            const threshold = vadjustment.upper - vadjustment.page_size - SCROLL_THRESHOLD_PX;
             if (vadjustment.value >= threshold) {
                 if (this._scrollIdleId) return;
 
@@ -726,7 +761,8 @@ export const ClipboardBaseView = GObject.registerClass(
 
         /**
          * Sync viewport metrics to virtualized containers.
-         * @param {St.Adjustment} [vadjustment] Optional explicit adjustment
+         *
+         * @param {St.Adjustment} [vadjustment] Optional explicit adjustment.
          * @private
          */
         _syncVirtualizedViewports(vadjustment = null) {
@@ -776,7 +812,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * Destroy the view and clean up resources.
          */
         destroy() {
-            this._renderSession = {}; // invalidate session instantly
+            this._renderSession = {};
 
             if (this._restoreFocusTimeoutId) {
                 GLib.source_remove(this._restoreFocusTimeoutId);
@@ -809,7 +845,6 @@ export const ClipboardBaseView = GObject.registerClass(
             this._scrollView = null;
             this._scrollSignalIds = [];
 
-            // Detach heavy containers to prevent synchronous recursive destruction
             const pinnedContainer = this._pinnedContainer;
             const historyContainer = this._historyContainer;
 
@@ -827,11 +862,9 @@ export const ClipboardBaseView = GObject.registerClass(
 
             super.destroy();
 
-            // Destroy detached containers asynchronously in chunks
             const destroyAsync = (container) => {
                 if (!container) return;
 
-                // Cancel all pending layout work before async teardown
                 container.clear();
 
                 const children = container.get_children();
@@ -841,20 +874,19 @@ export const ClipboardBaseView = GObject.registerClass(
                 }
 
                 let i = 0;
-                const CHUNK_SIZE = 15;
 
                 GLib.idle_add(GLib.PRIORITY_LOW, () => {
-                    const chunk = children.slice(i, i + CHUNK_SIZE);
+                    const chunk = children.slice(i, i + RENDER_CHUNK_SIZE);
                     chunk.forEach((c) => {
                         if (c) c.destroy();
                     });
 
-                    i += CHUNK_SIZE;
+                    i += RENDER_CHUNK_SIZE;
                     if (i >= children.length) {
                         try {
                             container.destroy();
                         } catch {
-                            // Already destroyed or invalid
+                            // Already destroyed or invalid.
                         }
                         return GLib.SOURCE_REMOVE;
                     }

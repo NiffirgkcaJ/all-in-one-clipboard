@@ -11,15 +11,18 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 const MAX_PREVIEW_LENGTH = 500;
 
 /**
- * TextProcessor - Handles text clipboard data
+ * TextProcessor
  *
- * Pattern: Two-phase (extract + save)
- * - extract(): Reads raw text from clipboard
- * - save(): Persists long text to files, delegates to secondary processors (Code, Link, Contact, Color)
+ * Reads raw text from the clipboard, persists long text to files, and delegates to secondary processors.
  */
 export class TextProcessor {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Extracts text data from the clipboard.
+     * Extract text data from the clipboard.
+     *
      * @returns {Promise<Object|null>} An object containing text, hash, and bytes, or null if no text found.
      */
     static async extract() {
@@ -37,10 +40,12 @@ export class TextProcessor {
     }
 
     /**
-     * Saves text items. Required by ClipboardManager.
-     * @param {Object} item - The item to save
-     * @param {string} textsDir - Directory for text files
-     * @param {boolean} forceFileSave - If true, always save to file regardless of length
+     * Save text items to storage.
+     *
+     * @param {Object} item The item to save.
+     * @param {string} textsDir Directory for text files.
+     * @param {boolean} forceFileSave If true, always save to file regardless of length.
+     * @returns {Promise<Object>} The saved clipboard item.
      */
     static async save(item, textsDir, forceFileSave = false) {
         const { text, hash, type } = item;
@@ -48,10 +53,12 @@ export class TextProcessor {
 
         let has_full_content = false;
 
+        // File Persistence
         if (text && (forceFileSave || text.length > MAX_PREVIEW_LENGTH)) {
             const filename = `${id}.txt`;
             const destPath = GLib.build_filenamev([textsDir, filename]);
             const success = await IOFile.write(destPath, ServiceText.toBytes(text));
+
             if (success) {
                 has_full_content = true;
             } else {
@@ -76,7 +83,7 @@ export class TextProcessor {
             raw_lines: item.raw_lines || 0,
         };
 
-        // Preserve exact short text content since it bypasses file storage
+        // Inline Persistence
         if (!has_full_content && text) {
             resultItem.text = text;
         }

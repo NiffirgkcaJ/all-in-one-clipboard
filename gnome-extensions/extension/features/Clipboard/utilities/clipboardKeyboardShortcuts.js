@@ -2,29 +2,31 @@ import Clutter from 'gi://Clutter';
 
 import { resolveKeySymbol } from '../../../shared/utilities/utilityShortcutMatcher.js';
 
-/**
- * Settings keys for clipboard item keyboard shortcuts.
- */
+// Shortcut Keys
 export const ClipboardKeySettings = {
     SELECT: 'clipboard-key-select',
     PIN: 'clipboard-key-pin',
     DELETE: 'clipboard-key-delete',
 };
 
+// ========================================================================
+// Public API
+// ========================================================================
+
 /**
  * Handle keyboard shortcuts for clipboard item actions.
  * Used by both grid and list views for consistent behavior.
  *
- * @param {Clutter.Event} event - The key-press event
- * @param {Object} options - Handler options
- * @param {Gio.Settings} options.settings - Extension settings (required for key bindings)
- * @param {string} options.itemId - The item's ID
- * @param {boolean} options.isPinned - Whether the item is currently pinned
- * @param {Set} options.selectedIds - Set of selected item IDs
- * @param {Object} options.checkboxIcon - The checkbox icon with state property
- * @param {Object} options.manager - ClipboardManager for pin/delete actions
- * @param {Function} options.onSelectionChanged - Callback when selection changes
- * @returns {number} Clutter.EVENT_STOP if handled, Clutter.EVENT_PROPAGATE otherwise
+ * @param {Clutter.Event} event The key-press event.
+ * @param {Object} options Handler options.
+ * @param {Gio.Settings} options.settings Extension settings required for key bindings.
+ * @param {string} options.itemId The item's ID.
+ * @param {boolean} options.isPinned Whether the item is currently pinned.
+ * @param {Set} options.selectedIds Set of selected item IDs.
+ * @param {Object} options.checkboxIcon The checkbox icon with state property.
+ * @param {Object} options.manager ClipboardManager for pin or delete actions.
+ * @param {Function} options.onSelectionChanged Callback when selection changes.
+ * @returns {number} Clutter.EVENT_STOP if handled, Clutter.EVENT_PROPAGATE otherwise.
  */
 export function handleClipboardItemKeyPress(event, options) {
     const { settings, itemId, isPinned, selectedIds, checkboxIcon, manager, onSelectionChanged } = options;
@@ -35,7 +37,7 @@ export function handleClipboardItemKeyPress(event, options) {
 
     const keyName = event.get_key_symbol();
 
-    // Get configured keys from settings
+    // Settings
     const selectKeyName = settings.get_string(ClipboardKeySettings.SELECT);
     const pinKeyName = settings.get_string(ClipboardKeySettings.PIN);
     const deleteKeyName = settings.get_string(ClipboardKeySettings.DELETE);

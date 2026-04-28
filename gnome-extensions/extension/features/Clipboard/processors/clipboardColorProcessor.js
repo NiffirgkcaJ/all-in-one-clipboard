@@ -8,6 +8,8 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
 const MAX_COLOR_STRING_LENGTH = 200;
+const GRADIENT_WIDTH = 48;
+const GRADIENT_HEIGHT = 24;
 
 // Validation Patterns
 const HEX_REGEX = /^#(?:[0-9a-fA-F]{3,4}){1,2}$/;
@@ -36,17 +38,21 @@ const NAMED_COLORS = {
 };
 
 /**
- * ColorProcessor - Handles color value detection and gradient generation
+ * ColorProcessor
  *
- * Pattern: Single-phase (process)
- * - process(): Detects colors, generates gradient images for palettes
+ * Detects single colors or palettes and generates linear gradient images for previews.
  */
 export class ColorProcessor {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
-     * Extracts color data from the clipboard text.
-     * @param {string} text - The text to process.
-     * @param {string} imagesDir - Directory to save generated gradient images.
-     * @returns {Object|null} An object containing color data or null.
+     * Extract color data from the clipboard text and handle gradients or palettes.
+     *
+     * @param {string} text The text to process.
+     * @param {string} imagesDir Directory to save generated gradient images.
+     * @returns {Object|null} An object containing color data or null if no color was detected.
      */
     static process(text, imagesDir) {
         if (!text) return null;
@@ -67,8 +73,9 @@ export class ColorProcessor {
             return paletteResult;
         }
 
-        // Single color
         let format = null;
+
+        // Formats
         if (HEX_REGEX.test(cleanText)) {
             format = 'HEX';
         } else if (RGB_REGEX.test(cleanText)) {
@@ -79,6 +86,7 @@ export class ColorProcessor {
 
         if (format) {
             const hash = ProcessorUtils.computeHashForString(cleanText);
+
             return {
                 type: ClipboardType.COLOR,
                 subtype: 'single',
@@ -92,7 +100,42 @@ export class ColorProcessor {
     }
 
     /**
-     * Process CSS gradient
+     * Regenerate the gradient image for a color item during data healing.
+     *
+     * @param {Object} item The clipboard item to heal.
+     * @param {string} imagesDir The directory to save the image to.
+     * @returns {boolean} True if regeneration succeeded.
+     */
+    static regenerateGradient(item, imagesDir) {
+        if (!item.gradient_filename || !imagesDir) return false;
+
+        if (item.colors && item.colors.length >= 2) {
+            const filename = this._generateGradientImage(item.colors, item.hash, imagesDir);
+            return filename !== null;
+        }
+
+        if (item.color_value) {
+            const colors = this._extractColors(item.color_value);
+
+            if (colors.length >= 2) {
+                const filename = this._generateGradientImage(colors, item.hash, imagesDir);
+                return filename !== null;
+            }
+        }
+
+        return false;
+    }
+
+    // ========================================================================
+    // Internal Helpers
+    // ========================================================================
+
+    /**
+     * Process a CSS gradient string and generate a preview image.
+     *
+     * @param {string} text The gradient string.
+     * @param {string} imagesDir Directory to save the preview.
+     * @returns {Object|null} Color data object or null.
      * @private
      */
     static _processGradient(text, imagesDir) {
@@ -114,13 +157,17 @@ export class ColorProcessor {
     }
 
     /**
-     * Process color palette
+     * Process a potential color palette from text.
+     *
+     * @param {string} text Input text.
+     * @param {string} imagesDir Directory to save the preview.
+     * @returns {Object|null} Color data object or null.
      * @private
      */
     static _processPalette(text, imagesDir) {
         let colors = [];
 
-        // Try array format like ["#ff0000", "#00ff00", "#0000ff"]
+        // Array
         if (text.startsWith('[') && text.endsWith(']')) {
             try {
                 const parsed = JSON.parse(text);
@@ -128,16 +175,15 @@ export class ColorProcessor {
                     colors = parsed.filter((c) => typeof c === 'string' && this._isValidColor(c.trim()));
                 }
             } catch {
-                // Not valid JSON, continue
+                // Ignore parsing errors for non-JSON content.
             }
         }
 
-        // Try space or comma-separated format
+        // List
         if (colors.length === 0) {
             colors = this._extractColors(text);
         }
 
-        // Must have at least 2 colors to be a palette
         if (colors.length >= 2) {
             const hash = ProcessorUtils.computeHashForString(text);
             const filename = this._generateGradientImage(colors, hash, imagesDir);
@@ -157,22 +203,24 @@ export class ColorProcessor {
     }
 
     /**
-     * Parse a CSS color string to RGB values normalized to 0-1 range for Cairo
+     * Parse a CSS color string into RGB values normalized for Cairo.
+     *
+     * @param {string} colorStr CSS color string.
+     * @returns {Array<number>} Array of [r, g, b, a] values.
      * @private
      */
     static _parseColor(colorStr) {
         colorStr = colorStr.trim().toLowerCase();
 
-        // Named colors
+        // Named
         if (NAMED_COLORS[colorStr]) {
             colorStr = NAMED_COLORS[colorStr];
         }
 
-        // Hex colors
+        // HEX
         if (colorStr.startsWith('#')) {
             let hex = colorStr.substring(1);
 
-            // Convert 3-digit to 6-digit hex
             if (hex.length === 3) {
                 hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
             }
@@ -187,6 +235,7 @@ export class ColorProcessor {
 
         // RGB/RGBA
         const rgbMatch = colorStr.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/);
+
         if (rgbMatch) {
             const r = parseInt(rgbMatch[1]) / 255;
             const g = parseInt(rgbMatch[2]) / 255;
@@ -195,12 +244,52 @@ export class ColorProcessor {
             return [r, g, b, a];
         }
 
-        // Fallback to black
         return [0, 0, 0, 1];
     }
 
     /**
-     * Generate a gradient image using Cairo
+     * Extract all valid color strings from the given text.
+     *
+     * @param {string} text Input text.
+     * @returns {Array<string>} List of detected color strings.
+     * @private
+     */
+    static _extractColors(text) {
+        const matches = text.match(COLOR_IN_TEXT_REGEX);
+        if (!matches) return [];
+
+        const seen = new Set();
+
+        return matches.filter((color) => {
+            const normalized = color.toLowerCase();
+            if (seen.has(normalized)) return false;
+            seen.add(normalized);
+            return true;
+        });
+    }
+
+    /**
+     * Check if a string represents a valid CSS color format.
+     *
+     * @param {string} text Input string.
+     * @returns {boolean} True if valid.
+     * @private
+     */
+    static _isValidColor(text) {
+        return HEX_REGEX.test(text) || RGB_REGEX.test(text) || HSL_REGEX.test(text);
+    }
+
+    // ========================================================================
+    // Gradient Generation
+    // ========================================================================
+
+    /**
+     * Generate a linear gradient preview image using Cairo.
+     *
+     * @param {Array<string>} colors List of colors for the gradient.
+     * @param {string} hash Hash of the content for the filename.
+     * @param {string} imagesDir Directory to save the generated image.
+     * @returns {string|null} Filename of the generated image or null on failure.
      * @private
      */
     static _generateGradientImage(colors, hash, imagesDir) {
@@ -214,27 +303,20 @@ export class ColorProcessor {
         }
 
         try {
-            // Create 48x24 surface
-            const width = 48;
-            const height = 24;
-            const surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, width, height);
+            const surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, GRADIENT_WIDTH, GRADIENT_HEIGHT);
             const cr = new Cairo.Context(surface);
 
-            // Create left-to-right linear gradient
-            const pattern = new Cairo.LinearGradient(0, 0, width, 0);
+            const pattern = new Cairo.LinearGradient(0, 0, GRADIENT_WIDTH, 0);
 
-            // Add color stops
             colors.forEach((colorStr, index) => {
                 const offset = index / (colors.length - 1);
                 const [r, g, b, a] = this._parseColor(colorStr);
                 pattern.addColorStopRGBA(offset, r, g, b, a);
             });
 
-            // Fill background
             cr.setSource(pattern);
             cr.paint();
 
-            // Save to file
             surface.writeToPNG(filepath);
 
             return filename;
@@ -242,56 +324,5 @@ export class ColorProcessor {
             console.error(`[ColorProcessor] Failed to generate gradient image: ${e}`);
             return null;
         }
-    }
-
-    /**
-     * Extract all colors from text
-     * @private
-     */
-    static _extractColors(text) {
-        const matches = text.match(COLOR_IN_TEXT_REGEX);
-        if (!matches) return [];
-
-        // Deduplicate while preserving order
-        const seen = new Set();
-        return matches.filter((color) => {
-            const normalized = color.toLowerCase();
-            if (seen.has(normalized)) return false;
-            seen.add(normalized);
-            return true;
-        });
-    }
-
-    /**
-     * Check if a string is a valid color
-     * @private
-     */
-    static _isValidColor(text) {
-        return HEX_REGEX.test(text) || RGB_REGEX.test(text) || HSL_REGEX.test(text);
-    }
-
-    /**
-     * Regenerates the gradient image for a color item.
-     * @param {Object} item - The clipboard item to heal.
-     * @param {string} imagesDir - The directory to save the image to.
-     * @returns {boolean} True if regeneration succeeded.
-     */
-    static regenerateGradient(item, imagesDir) {
-        if (!item.gradient_filename || !imagesDir) return false;
-
-        if (item.colors && item.colors.length >= 2) {
-            const filename = this._generateGradientImage(item.colors, item.hash, imagesDir);
-            return filename !== null;
-        }
-
-        if (item.color_value) {
-            const colors = this._extractColors(item.color_value);
-            if (colors.length >= 2) {
-                const filename = this._generateGradientImage(colors, item.hash, imagesDir);
-                return filename !== null;
-            }
-        }
-
-        return false;
     }
 }

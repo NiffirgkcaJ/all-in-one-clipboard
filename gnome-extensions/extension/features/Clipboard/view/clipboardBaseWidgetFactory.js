@@ -3,19 +3,26 @@ import { createDynamicIconButton, createStaticIconButton } from '../../../shared
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 
 /**
+ * ClipboardBaseWidgetFactory
+ *
  * Shared factory for creating standard clipboard widgets.
  * Reduces duplication between List and Grid item factories.
  */
 export class ClipboardBaseWidgetFactory {
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
      * Create a selection checkbox with standard binding logic.
-     * @param {Object} itemData The item data
-     * @param {Object} options Render options
-     * @param {Set} options.selectedIds Set of selected item IDs
-     * @param {Map} [options.checkboxIconsMap] Map to register checkbox icons
-     * @param {Function} [options.onSelectionChanged] Callback when selection changes
-     * @param {Object} [styleOptions] Additional style options for the button
-     * @returns {St.Button} The configured checkbox button
+     *
+     * @param {Object} itemData The item data.
+     * @param {Object} options Render options.
+     * @param {Set} options.selectedIds Set of selected item IDs.
+     * @param {Map} [options.checkboxIconsMap] Map to register checkbox icons.
+     * @param {Function} [options.onSelectionChanged] Callback when selection changes.
+     * @param {Object} [styleOptions] Additional style options for the button.
+     * @returns {St.Button} The configured checkbox button.
      */
     static createCheckbox(itemData, options, styleOptions = {}) {
         const isChecked = options.selectedIds?.has(itemData.id) || false;
@@ -54,12 +61,13 @@ export class ClipboardBaseWidgetFactory {
 
     /**
      * Create a Pin/Unpin button.
-     * @param {Object} itemData The item data
-     * @param {boolean} isPinned Whether the item is currently pinned
-     * @param {Object} options Render options
-     * @param {Object} options.manager ClipboardManager instance
-     * @param {Object} [styleOptions] Additional style options
-     * @returns {St.Button} The configured pin button
+     *
+     * @param {Object} itemData The item data.
+     * @param {boolean} isPinned Whether the item is currently pinned.
+     * @param {Object} options Render options.
+     * @param {Object} options.manager ClipboardManager instance.
+     * @param {Object} [styleOptions] Additional style options.
+     * @returns {St.Button} The configured pin button.
      */
     static createPinButton(itemData, isPinned, options, styleOptions = {}) {
         const pinButton = createStaticIconButton(isPinned ? ClipboardIcons.STAR_FILLED : ClipboardIcons.STAR_UNFILLED, {
@@ -81,11 +89,12 @@ export class ClipboardBaseWidgetFactory {
 
     /**
      * Create a Delete button.
-     * @param {Object} itemData The item data
-     * @param {Object} options Render options
-     * @param {Object} options.manager ClipboardManager instance
-     * @param {Object} [styleOptions] Additional style options
-     * @returns {St.Button} The configured delete button
+     *
+     * @param {Object} itemData The item data.
+     * @param {Object} options Render options.
+     * @param {Object} options.manager ClipboardManager instance.
+     * @param {Object} [styleOptions] Additional style options.
+     * @returns {St.Button} The configured delete button.
      */
     static createDeleteButton(itemData, options, styleOptions = {}) {
         const deleteButton = createStaticIconButton(ClipboardIcons.DELETE, {

@@ -8,6 +8,7 @@ import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 
 /**
  * ClipboardListView
+ *
  * Stack layout for clipboard items.
  *
  * Renders clipboard items as cards in a vertical list.
@@ -18,9 +19,14 @@ import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
  */
 export const ClipboardListView = GObject.registerClass(
     class ClipboardListView extends ClipboardBaseView {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
         /**
          * Initialize the list view.
-         * @param {Object} options Configuration options
+         *
+         * @param {Object} options Configuration options.
          */
         constructor(options) {
             super(options, { style_class: 'clipboard-list-view' });
@@ -34,7 +40,8 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Create the container for pinned items.
-         * @returns {StackLayout} The stack layout container
+         *
+         * @returns {StackLayout} The stack layout container.
          * @override
          */
         _createPinnedContainer() {
@@ -52,7 +59,8 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Create the container for history items.
-         * @returns {StackLayout} The stack layout container
+         *
+         * @returns {StackLayout} The stack layout container.
          * @override
          */
         _createHistoryContainer() {
@@ -70,7 +78,8 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Get the item factory class.
-         * @returns {Class} BillboardListItemFactory
+         *
+         * @returns {Class} BillboardListItemFactory.
          * @override
          */
         _getItemFactory() {
@@ -79,16 +88,17 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Get item options.
-         * @param {boolean} isPinned
-         * @returns {Object}
+         *
+         * @param {boolean} isPinned Whether the item is pinned.
+         * @returns {Object} Options object.
          * @override
          */
         _getItemOptions(isPinned) {
             return {
                 isPinned: isPinned,
-                imagesDir: this._manager._imagesDir,
-                imagePreviewsDir: this._manager._imagePreviewsDir,
-                linkPreviewsDir: this._manager._linkPreviewsDir,
+                imagesDir: this._manager.imagesDir,
+                imagePreviewsDir: this._manager.imagePreviewsDir,
+                linkPreviewsDir: this._manager.linkPreviewsDir,
                 imagePreviewSize: this._imagePreviewSize,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
@@ -105,7 +115,8 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Get all focusable items.
-         * @returns {Array<St.Widget>} Array of focusable widgets
+         *
+         * @returns {Array<St.Widget>} Array of focusable widgets.
          * @override
          */
         getFocusables() {
@@ -117,11 +128,13 @@ export const ClipboardListView = GObject.registerClass(
         // ========================================================================
         // Private Helpers
         // ========================================================================
+
         /**
          * Create a single item widget for the stack layout.
-         * @param {Object} itemData The item data
-         * @param {boolean} isPinned Whether this item is pinned
-         * @returns {St.Widget} The created widget
+         *
+         * @param {Object} itemData The item data.
+         * @param {boolean} isPinned Whether this item is pinned.
+         * @returns {St.Widget} The created widget.
          * @private
          */
         _createItemWidget(itemData, isPinned) {
@@ -135,9 +148,10 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Handle key press events for navigation.
-         * @param {Clutter.Actor} _actor The source actor
-         * @param {Clutter.Event} event The key event
-         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE
+         *
+         * @param {Clutter.Actor} _actor The source actor.
+         * @param {Clutter.Event} event The key event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
         _onKeyPress(_actor, event) {
@@ -150,8 +164,9 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Create a transfer token for cross-section list navigation.
-         * @param {Clutter.Actor} currentFocus The currently focused actor
-         * @returns {Function|undefined} A function that locates the equivalent widget in a target item
+         *
+         * @param {Clutter.Actor} currentFocus The currently focused actor.
+         * @returns {Function|undefined} A function that locates the equivalent widget in a target item.
          * @private
          */
         _createTransferToken(currentFocus) {
@@ -180,6 +195,7 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Clear the view.
+         *
          * @override
          */
         clear() {
@@ -188,6 +204,7 @@ export const ClipboardListView = GObject.registerClass(
 
         /**
          * Destroy the view and clean up.
+         *
          * @override
          */
         destroy() {

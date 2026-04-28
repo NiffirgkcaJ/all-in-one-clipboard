@@ -1,41 +1,30 @@
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
 import Soup from 'gi://Soup';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ExclusionUtils } from '../../../shared/utilities/utilityExclusions.js';
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
-import { ServiceText } from '../../../shared/services/serviceText.js';
-import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
-import { clipboardSetText, clipboardSetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 
+import { ClipboardMonitor } from './clipboardMonitor.js';
+import { ClipboardStorage } from './clipboardStorage.js';
 import { ClipboardType } from '../constants/clipboardConstants.js';
-import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
-import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
 import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
-import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 
+// Configuration Keys
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
-const EXCLUDED_HASH_TTL_MS = 5000;
-const MAX_BLOCKED_HASHES = 50;
-const MAX_RETRIES = 5;
-const RETRY_DELAY_MS = 200;
 
 /**
  * ClipboardManager
  *
- * Manages clipboard history and pinned items, monitors system clipboard changes,
- * and processes various clipboard content types (text, code, images, files, links, colors).
+ * Orchestrates clipboard history and pinned items.
+ * This class connects the input monitor to the output storage and handles content-specific logic.
  *
- * @emits history-changed - Emitted when the clipboard history changes
- * @emits pinned-list-changed - Emitted when the pinned items list changes
+ * @emits history-changed Emitted when the clipboard history changes.
+ * @emits pinned-list-changed Emitted when the pinned items list changes.
  */
 export const ClipboardManager = GObject.registerClass(
     {
@@ -45,287 +34,138 @@ export const ClipboardManager = GObject.registerClass(
         },
     },
     class ClipboardManager extends GObject.Object {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
         /**
-         * Initialize the clipboard manager
+         * Initialize the clipboard manager.
          *
-         * @param {string} uuid - Extension UUID
-         * @param {Gio.Settings} settings - Extension settings
-         * @param {string} extensionPath - Path to extension directory
+         * @param {string} uuid Extension UUID.
+         * @param {Gio.Settings} settings Extension settings.
          */
         constructor(uuid, settings) {
             super();
             this._uuid = uuid;
             this._settings = settings;
+
+            this._storage = new ClipboardStorage(settings);
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
-            this._initialLoadSuccess = false;
 
-            this._linkPreviewsDir = FilePath.LINK_PREVIEWS;
-            this._imagesDir = FilePath.IMAGES;
-            this._imagePreviewsDir = FilePath.IMAGE_PREVIEWS;
-            this._textsDir = FilePath.TEXTS;
-            this._historyFilePath = FileItem.CLIPBOARD_HISTORY;
-            this._pinnedFilePath = FileItem.CLIPBOARD_PINNED;
+            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._processResult(result));
 
             this._history = [];
             this._pinned = [];
             this._lastContent = null;
-            this._selection = null;
-            this._debouncing = 0;
             this._isPaused = false;
-            this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
-            this._processClipboardTimeoutId = 0;
-            this._retryTimeoutId = 0;
             this._settingsSignalIds = [];
-            this._previewWarmupId = 0;
-            this._previewWarmupQueue = null;
 
-            // Hashes of clipboard content blocked by exclusion rules to prevent leakage on subsequent events.
-            this._blockedContentHashes = new Map();
-
-            this._ensureDirectories();
             this._setupSettingsMonitoring();
 
             this._linkProcessor = new LinkProcessor();
             this._httpSession = new Soup.Session();
         }
 
-        // ========================================================================
-        // Initialization
-        // ========================================================================
-
         /**
-         * Set up clipboard change monitoring
-         * @private
-         */
-        _setupClipboardMonitoring() {
-            this._selection = Shell.Global.get().get_display().get_selection();
-            this._selectionOwnerChangedId = this._selection.connect('owner-changed', (selection, selectionType) => {
-                if (selectionType === Meta.SelectionType.SELECTION_CLIPBOARD) {
-                    this._onClipboardChanged();
-                }
-            });
-        }
-
-        /**
-         * Set up settings change monitoring for max history items
+         * Set up listeners for settings changes.
+         *
          * @private
          */
         _setupSettingsMonitoring() {
             const maxHistorySignalId = this._settings.connect(`changed::${CLIPBOARD_HISTORY_MAX_ITEMS_KEY}`, () => {
-                this._maxHistory = this._settings.get_int(CLIPBOARD_HISTORY_MAX_ITEMS_KEY);
-                this._pruneHistory();
+                this._storage.pruneHistory(this._history);
+                this._saveHistory();
+                this.emit('history-changed');
             });
             this._settingsSignalIds.push(maxHistorySignalId);
         }
 
         /**
-         * Load clipboard data from disk and prepare the manager
+         * Load clipboard data from disk and start monitoring.
          *
-         * @returns {Promise<boolean>} True if data loaded successfully
+         * @returns {Promise<boolean>} True if data loaded successfully.
          */
         async loadAndPrepare() {
-            // Initialize ContactProcessor first before loading the history
             try {
                 ContactProcessor.init();
             } catch (e) {
-                console.error(`[AIO-Clipboard] ContactProcessor.init() failed: ${e.message}\n${e.stack}`);
+                console.error(`[AIO-Clipboard] ContactProcessor init failed: ${e.message}`);
             }
 
-            this._initialLoadSuccess = await this.loadData();
+            const data = await this._storage.loadData();
+            this._history = data.history;
+            this._pinned = data.pinned;
 
-            // Start monitoring only after data is loaded to prevent race conditions
-            this._setupClipboardMonitoring();
+            this.emit('history-changed');
+            this.emit('pinned-list-changed');
 
-            if (this._initialLoadSuccess) {
-                this._verifyAndHealData().catch((e) => {
-                    console.error(`[AIO-Clipboard] Healing failed: ${e.message}`);
-                });
-            }
+            this._monitor.start();
 
-            return this._initialLoadSuccess;
-        }
-
-        /**
-         * Ensure all required directories exist
-         * @private
-         */
-        _ensureDirectories() {
-            [this._imagesDir, this._imagePreviewsDir, this._textsDir, this._linkPreviewsDir].forEach((path) => {
-                IOFile.mkdir(path);
-            });
-        }
-
-        // ========================================================================
-        // Content Processing
-        // ========================================================================
-
-        /**
-         * Handle clipboard change events
-         * @private
-         */
-        _onClipboardChanged() {
-            if (this._isPaused) return;
-
-            // Exclude applications
-            const global = Shell.Global.get();
-            const focusWindow = global.display.focus_window;
-
-            // Early exclusion check for fast-path blocking.
-            if (this._exclusionUtils.shouldBlockClipboardNow(focusWindow)) {
-                this._hashAndBlockClipboardContent();
-                return;
-            }
-
-            if (this._processClipboardTimeoutId) {
-                GLib.source_remove(this._processClipboardTimeoutId);
-            }
-
-            const processDelayMs = this._exclusionUtils.getClipboardCheckDelayMs();
-
-            this._processClipboardTimeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, processDelayMs, () => {
-                // Re-check right before processing to catch first-event AT-SPI races.
-                const currentFocusWindow = Shell.Global.get().display.focus_window;
-                if (this._exclusionUtils.shouldBlockClipboardNow(currentFocusWindow)) {
-                    this._hashAndBlockClipboardContent();
-                    this._processClipboardTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                this._processClipboardContent(1).catch((e) => console.error(`[AIO-Clipboard] Unhandled error: ${e.message}`));
-                this._processClipboardTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
-            });
-        }
-
-        /**
-         * Read clipboard text and store its hash in the blocked set.
-         * Called when a clipboard event is excluded, so that the same content is rejected on subsequent events.
-         * @private
-         */
-        _hashAndBlockClipboardContent() {
-            clipboardGetText()
-                .then((text) => {
-                    if (text) {
-                        const hash = this._hashString(text);
-                        // Buffer hash with expiry to temporarily block identical subsequent copies
-                        this._blockedContentHashes.set(hash, Date.now() + EXCLUDED_HASH_TTL_MS);
-
-                        // Bound map size
-                        if (this._blockedContentHashes.size > MAX_BLOCKED_HASHES) {
-                            const first = this._blockedContentHashes.keys().next().value;
-                            this._blockedContentHashes.delete(first);
-                        }
+            this._storage
+                .verifyAndHealData(this._history, this._pinned, this._linkProcessor, this._httpSession)
+                .then((changed) => {
+                    if (changed) {
+                        this._saveAll();
+                        this.emit('history-changed');
+                        this.emit('pinned-list-changed');
                     }
                 })
-                .catch(() => {
-                    // Ignore clipboard read errors
+                .catch((e) => {
+                    console.error(`[AIO-Clipboard] Data healing failed: ${e.message}`);
                 });
+
+            return true;
         }
 
+        // ========================================================================
+        // Getters
+        // ========================================================================
+
         /**
-         * Simple djb2 hash for strings.
+         * Get the path to the images directory.
          *
-         * @param {string} str - The string to hash
-         * @returns {number} A numeric hash value
-         * @private
+         * @returns {string} Directory path.
          */
-        _hashString(str) {
-            let hash = 5381;
-            for (let i = 0; i < str.length; i++) {
-                hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
-            }
-            return hash;
+        get imagesDir() {
+            return this._storage.imagesDir;
         }
 
         /**
-         * Process clipboard content and detect its type
+         * Get the path to the image previews directory.
          *
-         * @param {number} attempt - Current retry attempt number
-         * @private
+         * @returns {string} Directory path.
          */
-        async _processClipboardContent(attempt = 1) {
-            try {
-                // Image
-                const imageResult = await ImageProcessor.extract();
-                if (imageResult) {
-                    this._processResult(imageResult);
-                    return;
-                }
-
-                // Text Extraction
-                const textResult = await TextProcessor.extract();
-
-                if (textResult) {
-                    const text = textResult.text;
-
-                    // Check if this text was previously blocked by an exclusion rule
-                    const hash = this._hashString(text);
-                    if (this._blockedContentHashes.has(hash)) {
-                        const expiry = this._blockedContentHashes.get(hash);
-                        if (Date.now() < expiry) return;
-                        this._blockedContentHashes.delete(hash);
-                    }
-
-                    // File
-                    const fileResult = await FileProcessor.process(text);
-                    if (fileResult) {
-                        this._processResult(fileResult);
-                        return;
-                    }
-
-                    // Link
-                    const linkResult = LinkProcessor.process(text);
-                    if (linkResult) {
-                        this._processResult(linkResult);
-                        return;
-                    }
-
-                    // Contact
-                    const contactResult = await ContactProcessor.process(text);
-                    if (contactResult) {
-                        this._processResult(contactResult);
-                        return;
-                    }
-
-                    // Color
-                    const colorResult = ColorProcessor.process(text, this._imagesDir);
-                    if (colorResult) {
-                        this._processResult(colorResult);
-                        return;
-                    }
-
-                    // Code
-                    const codeResult = CodeProcessor.process(text);
-                    if (codeResult) {
-                        this._processResult(codeResult);
-                        return;
-                    }
-
-                    // Fallback Text
-                    this._processResult(textResult);
-                    return;
-                }
-
-                if (attempt <= MAX_RETRIES) {
-                    if (this._retryTimeoutId) {
-                        GLib.source_remove(this._retryTimeoutId);
-                    }
-                    this._retryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_DELAY_MS, () => {
-                        this._processClipboardContent(attempt + 1);
-                        this._retryTimeoutId = 0;
-                        return GLib.SOURCE_REMOVE;
-                    });
-                }
-            } catch (e) {
-                console.warn(`[AIO-Clipboard] Could not process clipboard content: ${e.message}\n${e.stack}`);
-            }
+        get imagePreviewsDir() {
+            return this._storage.imagePreviewsDir;
         }
 
         /**
-         * Process extracted clipboard content and route to appropriate handler
+         * Get the path to the link previews directory.
          *
-         * @param {Object} result - Extracted clipboard content with type and hash
+         * @returns {string} Directory path.
+         */
+        get linkPreviewsDir() {
+            return this._storage.linkPreviewsDir;
+        }
+
+        /**
+         * Get the path to the texts directory.
+         *
+         * @returns {string} Directory path.
+         */
+        get textsDir() {
+            return this._storage.textsDir;
+        }
+
+        // ========================================================================
+        // Internal Processing
+        // ========================================================================
+
+        /**
+         * Process captured clipboard content and route it to the appropriate handler.
+         *
+         * @param {Object} result Extracted clipboard content.
          * @private
          */
         _processResult(result) {
@@ -334,7 +174,7 @@ export const ClipboardManager = GObject.registerClass(
 
             switch (result.type) {
                 case ClipboardType.IMAGE:
-                    this._handleExtractedContent(result, ImageProcessor, this._imagesDir);
+                    this._handleExtractedContent(result, ImageProcessor, this._storage.imagesDir);
                     break;
                 case ClipboardType.FILE:
                     this._handleGenericFileItem(result);
@@ -352,10 +192,10 @@ export const ClipboardManager = GObject.registerClass(
                     this._handleCodeItem(result);
                     break;
                 case ClipboardType.TEXT:
-                    this._handleExtractedContent(result, TextProcessor, this._textsDir);
+                    this._handleExtractedContent(result, TextProcessor, this._storage.textsDir);
                     break;
                 default:
-                    console.warn(`[AIO-Clipboard] Unknown result type: ${result.type}`);
+                    console.warn(`[AIO-Clipboard] Unknown type: ${result.type}`);
             }
         }
 
@@ -364,9 +204,9 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Handle file clipboard items
+         * Handle generic file items captured from the clipboard.
          *
-         * @param {Object} fileResult - Extracted file content
+         * @param {Object} fileResult Extracted file content.
          * @private
          */
         _handleGenericFileItem(fileResult) {
@@ -378,13 +218,14 @@ export const ClipboardManager = GObject.registerClass(
                 file_uri: fileResult.file_uri,
                 hash: fileResult.hash,
             };
+
             this._addItemToHistory(newItem);
         }
 
         /**
-         * Handle URL/link clipboard items and fetch metadata
+         * Handle link items and fetch their metadata.
          *
-         * @param {Object} linkResult - Extracted link content
+         * @param {Object} linkResult Extracted link content.
          * @private
          */
         _handleLinkItem(linkResult) {
@@ -400,10 +241,7 @@ export const ClipboardManager = GObject.registerClass(
 
             this._addItemToHistory(newItem);
 
-            // Check if URL is blacklisted for crawling
-            if (this._exclusionUtils.isAddressExcluded(newItem.url)) {
-                return;
-            }
+            if (this._exclusionUtils.isAddressExcluded(newItem.url)) return;
 
             this._linkProcessor.fetchMetadata(newItem.url).then(async (metadata) => {
                 let updated = false;
@@ -414,13 +252,15 @@ export const ClipboardManager = GObject.registerClass(
                     item.title = metadata.title;
                     updated = true;
                 }
+
                 if (metadata.iconUrl) {
-                    const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
+                    const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._storage.linkPreviewsDir, newItem.id);
                     if (filename) {
                         item.icon_filename = filename;
                         updated = true;
                     }
                 }
+
                 if (updated) {
                     this._saveHistory();
                     this.emit('history-changed');
@@ -429,9 +269,9 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Handle contact clipboard items
+         * Handle contact items and attempt to fetch favicon if it's an email.
          *
-         * @param {Object} contactResult - Extracted contact content
+         * @param {Object} contactResult Extracted contact content.
          * @private
          */
         _handleContactItem(contactResult) {
@@ -445,25 +285,20 @@ export const ClipboardManager = GObject.registerClass(
                 hash: contactResult.hash,
                 metadata: contactResult.metadata,
             };
+
             this._addItemToHistory(newItem);
 
-            // For emails, try to fetch the provider's icon
             if (newItem.subtype === 'email') {
-                // Check if email/domain is blacklisted for crawling
-                if (this._exclusionUtils.isAddressExcluded(newItem.text)) {
-                    return;
-                }
+                if (this._exclusionUtils.isAddressExcluded(newItem.text)) return;
 
                 const parts = newItem.text.split('@');
                 if (parts.length === 2) {
-                    const domain = parts[1];
-                    const url = `https://${domain}`;
-
+                    const url = `https://${parts[1]}`;
                     this._linkProcessor
                         .fetchMetadata(url)
                         .then(async (metadata) => {
                             if (metadata.iconUrl) {
-                                const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._linkPreviewsDir, newItem.id);
+                                const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._storage.linkPreviewsDir, newItem.id);
                                 if (filename) {
                                     newItem.icon_filename = filename;
                                     this._saveHistory();
@@ -471,17 +306,15 @@ export const ClipboardManager = GObject.registerClass(
                                 }
                             }
                         })
-                        .catch(() => {
-                            // Ignore errors for icon fetching
-                        });
+                        .catch(() => {});
                 }
             }
         }
 
         /**
-         * Handle color clipboard items
+         * Handle color items.
          *
-         * @param {Object} colorResult - Extracted color content
+         * @param {Object} colorResult Extracted color content.
          * @private
          */
         _handleColorItem(colorResult) {
@@ -496,26 +329,27 @@ export const ClipboardManager = GObject.registerClass(
                 gradient_filename: colorResult.gradient_filename || null,
                 subtype: colorResult.subtype || 'single',
             };
+
             this._addItemToHistory(newItem);
         }
 
         /**
-         * Handle code clipboard items
+         * Handle code items by treating them as extracted text.
          *
-         * @param {Object} codeResult - Extracted code content
+         * @param {Object} codeResult Extracted code content.
          * @private
          */
         _handleCodeItem(codeResult) {
-            this._handleExtractedContent(codeResult, TextProcessor, this._textsDir, true);
+            this._handleExtractedContent(codeResult, TextProcessor, this._storage.textsDir, true);
         }
 
         /**
-         * Handle extracted content using processor class
+         * Save extracted content to disk and update history.
          *
-         * @param {Object} extraction - Extracted content
-         * @param {Object} ProcessorClass - Processor class with save method
-         * @param {string} storageDir - Directory to store content
-         * @param {boolean} forceFileSave - If true, always save to file
+         * @param {Object} extraction Extracted content.
+         * @param {class} ProcessorClass Processor class for saving.
+         * @param {string} storageDir Target storage directory.
+         * @param {boolean} forceFileSave Whether to force saving to a file.
          * @private
          */
         async _handleExtractedContent(extraction, ProcessorClass, storageDir, forceFileSave = false) {
@@ -536,31 +370,16 @@ export const ClipboardManager = GObject.registerClass(
             }
 
             const newItem =
-                ProcessorClass === ImageProcessor ? await ProcessorClass.save(extraction, storageDir, this._imagePreviewsDir) : await ProcessorClass.save(extraction, storageDir, forceFileSave);
+                ProcessorClass === ImageProcessor
+                    ? await ProcessorClass.save(extraction, storageDir, this._storage.imagePreviewsDir)
+                    : await ProcessorClass.save(extraction, storageDir, forceFileSave);
+
             if (newItem) {
                 this._history.unshift(newItem);
-                this._pruneHistory();
+                this._storage.pruneHistory(this._history);
                 this._saveHistory();
                 this.emit('history-changed');
             }
-        }
-
-        /**
-         * Add an item to history from an external source
-         * @param {Object} item - The item to add
-         */
-        addExternalItem(item) {
-            this._addItemToHistory(item);
-        }
-
-        /**
-         * Find an existing item by its source URL
-         * @param {string} url - The source URL to search for
-         * @returns {Object|null} The found item or null
-         */
-        getItemBySourceUrl(url) {
-            if (!url) return null;
-            return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
         }
 
         // ========================================================================
@@ -568,9 +387,9 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Add a new item to clipboard history
+         * Add a new item to the history, handling duplicates and pinning.
          *
-         * @param {Object} newItem - Item to add to history
+         * @param {Object} newItem The new item to add.
          * @private
          */
         _addItemToHistory(newItem) {
@@ -591,35 +410,37 @@ export const ClipboardManager = GObject.registerClass(
             }
 
             this._history.unshift(newItem);
-            this._pruneHistory();
+            this._storage.pruneHistory(this._history);
             this._saveHistory();
             this.emit('history-changed');
         }
 
         /**
-         * Promote an existing item to the top of a list
+         * Promote an existing item to the top of its list.
          *
-         * @param {number} index - Index of item to promote
-         * @param {Array} list - List containing the item
+         * @param {number} index Item index.
+         * @param {Array} list Target list.
          * @private
          */
         _promoteExistingItem(index, list) {
             const [item] = list.splice(index, 1);
             list.unshift(item);
+
             if (list === this._history) this._saveHistory();
             this.emit('history-changed');
         }
 
         /**
-         * Promote a pinned item, optionally unpinning it based on settings
+         * Promote a pinned item, unpinning it if configured.
          *
-         * @param {number} index - Index of pinned item to promote
+         * @param {number} index Pinned item index.
          * @private
          */
         _promotePinnedItem(index) {
             if (this._settings.get_boolean('unpin-on-paste')) {
                 const [item] = this._pinned.splice(index, 1);
                 this._history.unshift(item);
+
                 this._saveAll();
                 this.emit('history-changed');
                 this.emit('pinned-list-changed');
@@ -627,83 +448,34 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         // ========================================================================
-        // Persistence
+        // Persistence Proxies
         // ========================================================================
 
         /**
-         * Load clipboard history and pinned items from disk
+         * Save clipboard history to storage.
          *
-         * @returns {Promise<boolean>} True if load was successful
-         */
-        async loadData() {
-            this._history = ServiceJson.parse(await IOFile.read(this._historyFilePath)) || [];
-            this._pinned = ServiceJson.parse(await IOFile.read(this._pinnedFilePath)) || [];
-
-            this.emit('history-changed');
-            this.emit('pinned-list-changed');
-            return true;
-        }
-
-        /**
-         * Save clipboard history to disk
          * @private
          */
         _saveHistory() {
-            if (!this._initialLoadSuccess) return;
-            IOFile.write(this._historyFilePath, ServiceJson.stringify(this._history));
+            this._storage.saveHistory(this._history);
         }
 
         /**
-         * Save pinned items to disk
+         * Save pinned items to storage.
+         *
          * @private
          */
         _savePinned() {
-            if (!this._initialLoadSuccess) return;
-            IOFile.write(this._pinnedFilePath, ServiceJson.stringify(this._pinned));
+            this._storage.savePinned(this._pinned);
         }
 
         /**
-         * Save both history and pinned items to disk
+         * Save both history and pinned items to storage.
+         *
          * @private
          */
         _saveAll() {
-            this._saveHistory();
-            this._savePinned();
-        }
-
-        /**
-         * Remove oldest items from history when exceeding max limit
-         * @private
-         */
-        _pruneHistory() {
-            if (!this._initialLoadSuccess || this._history.length <= this._maxHistory) return;
-
-            // Identify items to remove
-            const itemsToRemove = [];
-            while (this._history.length > this._maxHistory) {
-                itemsToRemove.push(this._history.pop());
-            }
-
-            // Process deletions in idle time to avoid flooding IO/locking UI
-            const batchSize = 5;
-            const processBatch = () => {
-                if (itemsToRemove.length === 0) return GLib.SOURCE_REMOVE;
-
-                const batch = itemsToRemove.splice(0, batchSize);
-                for (const item of batch) {
-                    if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
-                    if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                    if (item.type === ClipboardType.IMAGE) {
-                        this._deleteImageFile(item.image_filename);
-                        this._deleteImagePreviewFile(item.preview_filename);
-                    }
-                    if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
-                }
-
-                return itemsToRemove.length > 0 ? GLib.SOURCE_CONTINUE : GLib.SOURCE_REMOVE;
-            };
-
-            GLib.idle_add(GLib.PRIORITY_LOW, processBatch);
+            this._storage.saveAll(this._history, this._pinned);
         }
 
         // ========================================================================
@@ -711,103 +483,74 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Get clipboard history items
+         * Get all clipboard history items.
          *
-         * @returns {Array} Array of clipboard history items
+         * @returns {Array} List of history items.
          */
         getHistoryItems() {
             return this._history;
         }
 
         /**
-         * Get pinned clipboard items
+         * Get all pinned clipboard items.
          *
-         * @returns {Array} Array of pinned clipboard items
+         * @returns {Array} List of pinned items.
          */
         getPinnedItems() {
             return this._pinned;
         }
 
         /**
-         * Get full content for a text or code item
+         * Get the full content for a specific item by ID.
          *
-         * @param {string} id - Item ID
-         * @returns {Promise<string|null>} Full content or null if not found
+         * @param {string} id Item ID.
+         * @returns {Promise<string|null>} Item content.
          */
         async getContent(id) {
-            const item = [...this._history, ...this._pinned].find((i) => i.id === id);
-
-            // Support both TEXT and CODE types since CODE items are stored like TEXT items
-            if (!item || (item.type !== ClipboardType.TEXT && item.type !== ClipboardType.CODE)) {
-                return null;
-            }
-
-            // For long content saved to file
-            if (item.has_full_content) {
-                try {
-                    const fullPath = GLib.build_filenamev([this._textsDir, `${item.id}.txt`]);
-                    const bytes = await IOFile.read(fullPath);
-                    return bytes ? ServiceText.fromBytes(bytes) : null;
-                } catch {
-                    return null;
-                }
-            }
-
-            // For short content, return the text field if available
-            return item.text || null;
+            return await this._storage.getContent(id, [...this._history, ...this._pinned]);
         }
 
         /**
-         * Copy a clipboard item to the system clipboard.
-         * Handles all item types: IMAGE, FILE, URL, CONTACT, COLOR, CODE, TEXT.
+         * Copy an item's content to the system clipboard.
          *
-         * @param {Object} itemData - The clipboard item data
-         * @returns {Promise<boolean>} True if copy was successful
+         * @param {Object} itemData Data of the item to copy.
+         * @returns {Promise<boolean>} True if successful.
          */
         async copyToSystemClipboard(itemData) {
             try {
                 switch (itemData.type) {
                     case ClipboardType.IMAGE: {
                         if (itemData.file_uri) {
-                            const uriList = itemData.file_uri + '\r\n';
-                            const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                            const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
                             clipboardSetContent('text/uri-list', bytes);
                             return true;
                         }
-                        const imagePath = GLib.build_filenamev([this._imagesDir, itemData.image_filename]);
-                        const bytes = ServiceImage.decode(await IOFile.read(imagePath));
+
+                        const imagePath = GLib.build_filenamev([this._storage.imagesDir, itemData.image_filename]);
+                        const bytes = ServiceImage.decode(await this._storage.readRaw(imagePath));
+
                         if (!bytes) return false;
-                        const mimetype = ServiceImage.getMimeType(itemData.image_filename);
-                        clipboardSetContent(mimetype, bytes);
+                        clipboardSetContent(ServiceImage.getMimeType(itemData.image_filename), bytes);
                         return true;
                     }
                     case ClipboardType.FILE: {
-                        const uriList = itemData.file_uri + '\r\n';
-                        const bytes = new GLib.Bytes(new TextEncoder().encode(uriList));
+                        const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
                         clipboardSetContent('text/uri-list', bytes);
                         return true;
                     }
                     case ClipboardType.URL:
-                        clipboardSetText(itemData.url);
-                        return true;
-                    case ClipboardType.CONTACT: {
-                        let content = itemData.text;
-                        if (!content) content = await this.getContent(itemData.id);
-                        if (!content) return false;
-                        clipboardSetText(content);
-                        return true;
-                    }
                     case ClipboardType.COLOR:
-                        clipboardSetText(itemData.color_value);
+                        clipboardSetText(itemData.url || itemData.color_value);
                         return true;
+                    case ClipboardType.CONTACT:
                     case ClipboardType.CODE:
                     case ClipboardType.TEXT: {
-                        let content = itemData.text;
-                        if (!content) content = await this.getContent(itemData.id);
-                        // CODE preview has HTML markup so use text only, TEXT can fall back to preview
+                        let content = itemData.text || (await this.getContent(itemData.id));
+
                         if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
                             content = itemData.preview;
                         }
+
                         if (!content) return false;
                         clipboardSetText(content);
                         return true;
@@ -816,46 +559,99 @@ export const ClipboardManager = GObject.registerClass(
                         return false;
                 }
             } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to copy item to system clipboard: ${e.message}`);
+                console.error(`[AIO-Clipboard] Copy failed: ${e.message}`);
                 return false;
             }
         }
 
         /**
-         * Pin an item from history to the pinned list
+         * Pin an item from the history.
          *
-         * @param {string} id - Item ID to pin
+         * @param {string} id Item ID.
          */
         pinItem(id) {
             const index = this._history.findIndex((item) => item.id === id);
             if (index === -1) return;
+
             const [item] = this._history.splice(index, 1);
             this._pinned.unshift(item);
+
             this._saveAll();
             this.emit('history-changed');
             this.emit('pinned-list-changed');
         }
 
         /**
-         * Unpin an item and move it back to history
+         * Pin multiple items from the history.
          *
-         * @param {string} id - Item ID to unpin
+         * @param {Array<string>} ids List of item IDs.
+         */
+        pinItems(ids) {
+            let changed = false;
+
+            for (const id of ids.reverse()) {
+                const index = this._history.findIndex((item) => item.id === id);
+                if (index > -1) {
+                    const [item] = this._history.splice(index, 1);
+                    this._pinned.unshift(item);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                this._saveAll();
+                this.emit('history-changed');
+                this.emit('pinned-list-changed');
+            }
+        }
+
+        /**
+         * Unpin an item and move it back to history.
+         *
+         * @param {string} id Item ID.
          */
         unpinItem(id) {
             const index = this._pinned.findIndex((item) => item.id === id);
             if (index === -1) return;
+
             const [item] = this._pinned.splice(index, 1);
             this._history.unshift(item);
-            this._pruneHistory();
+            this._storage.pruneHistory(this._history);
+
             this._saveAll();
             this.emit('history-changed');
             this.emit('pinned-list-changed');
         }
 
         /**
-         * Promote an item to the top of its list, either history or pinned
+         * Unpin multiple items and move them back to history.
          *
-         * @param {string} id - Item ID to promote
+         * @param {Array<string>} ids List of item IDs.
+         */
+        unpinItems(ids) {
+            let changed = false;
+
+            for (const id of ids.reverse()) {
+                const index = this._pinned.findIndex((item) => item.id === id);
+                if (index > -1) {
+                    const [item] = this._pinned.splice(index, 1);
+                    this._history.unshift(item);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                this._storage.pruneHistory(this._history);
+                this._saveAll();
+                this.emit('history-changed');
+                this.emit('pinned-list-changed');
+            }
+        }
+
+        /**
+         * Promote an item to the top of its respective list.
+         *
+         * @param {string} id Item ID.
          */
         promoteItemToTop(id) {
             const pinnedIndex = this._pinned.findIndex((item) => item.id === id);
@@ -863,6 +659,7 @@ export const ClipboardManager = GObject.registerClass(
                 this._promotePinnedItem(pinnedIndex);
                 return;
             }
+
             const historyIndex = this._history.findIndex((item) => item.id === id);
             if (historyIndex > -1) {
                 if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
@@ -872,32 +669,23 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Delete an item from history or pinned list
+         * Delete an item from history or pinned items.
          *
-         * @param {string} id - Item ID to delete
+         * @param {string} id Item ID.
          */
         deleteItem(id) {
             let wasDeleted = false;
+
             const deleteLogic = (list) => {
                 const index = list.findIndex((item) => item.id === id);
                 if (index > -1) {
                     const [item] = list.splice(index, 1);
-
-                    // If you delete the most recently copied item, clear the memory
-                    if (item.hash === this._lastContent) {
-                        this._lastContent = null;
-                    }
-
-                    if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
-                    if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                    if (item.type === ClipboardType.IMAGE) {
-                        this._deleteImageFile(item.image_filename);
-                        this._deleteImagePreviewFile(item.preview_filename);
-                    }
-                    if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
+                    if (item.hash === this._lastContent) this._lastContent = null;
+                    this._storage.deleteItemFiles(item);
                     wasDeleted = true;
                 }
             };
+
             deleteLogic(this._history);
             deleteLogic(this._pinned);
 
@@ -909,307 +697,29 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Clear all clipboard history
-         */
-        clearHistory() {
-            if (!this._initialLoadSuccess) return;
-            this._history.forEach((item) => {
-                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
-                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                if (item.type === ClipboardType.IMAGE) {
-                    this._deleteImageFile(item.image_filename);
-                    this._deleteImagePreviewFile(item.preview_filename);
-                }
-                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
-            });
-            this._history = [];
-            this._saveHistory();
-            this.emit('history-changed');
-        }
-
-        /**
-         * Clear all pinned items
-         */
-        clearPinned() {
-            if (!this._initialLoadSuccess) return;
-            this._pinned.forEach((item) => {
-                if (item.icon_filename) this._deletePreviewFile(item.icon_filename);
-                if (item.gradient_filename) this._deleteImageFile(item.gradient_filename);
-                if (item.type === ClipboardType.IMAGE) {
-                    this._deleteImageFile(item.image_filename);
-                    this._deleteImagePreviewFile(item.preview_filename);
-                }
-                if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) this._deleteTextFile(item.id);
-            });
-            this._pinned = [];
-            this._savePinned();
-            this.emit('pinned-list-changed');
-        }
-
-        // ========================================================================
-        // File Operations
-        // ========================================================================
-
-        /**
-         * Helper to delete a file from disk
+         * Delete multiple items by their IDs.
          *
-         * @param {string} dirPath - Directory path where the file is located
-         * @param {string} filename - Filename to delete
-         * @private
+         * @param {Array<string>} ids List of item IDs.
          */
-        _deleteFile(dirPath, filename) {
-            if (!filename) return;
-            const fullPath = GLib.build_filenamev([dirPath, filename]);
-            IOFile.delete(fullPath).catch(() => {});
-        }
+        deleteItems(ids) {
+            let wasDeleted = false;
 
-        /**
-         * Delete an image file from disk
-         *
-         * @param {string} filename - Image filename to delete
-         * @private
-         */
-        _deleteImageFile(filename) {
-            if (!filename) return;
-            this._deleteFile(this._imagesDir, filename);
-        }
-
-        /**
-         * Delete an image preview file from disk
-         *
-         * @param {string} filename - Preview filename to delete
-         * @private
-         */
-        _deleteImagePreviewFile(filename) {
-            if (!filename) return;
-            this._deleteFile(this._imagePreviewsDir, filename);
-        }
-
-        /**
-         * Delete a text/code file from disk
-         *
-         * @param {string} id - Item ID whose text file should be deleted
-         * @private
-         */
-        _deleteTextFile(id) {
-            if (!id) return;
-            this._deleteFile(this._textsDir, `${id}.txt`);
-        }
-
-        /**
-         * Delete a preview file from disk
-         *
-         * @param {string} filename - Preview filename to delete
-         * @private
-         */
-        _deletePreviewFile(filename) {
-            if (!filename) return;
-            this._deleteFile(this._linkPreviewsDir, filename);
-        }
-
-        // ========================================================================
-        // Data Integrity & Maintenance
-        // ========================================================================
-
-        /**
-         * Verify and heal image items
-         * @param {Object} item - Clipboard item
-         * @returns {Promise<boolean>} True if healed
-         * @private
-         */
-        async _verifyAndHealImage(item) {
-            if (item.type !== ClipboardType.IMAGE || !item.image_filename) return false;
-
-            const missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
-            if (!missingFile) {
-                if (!this._imagePreviewsDir) return false;
-
-                if (item.preview_filename) {
-                    const previewMissing = !this._checkFileExists(this._imagePreviewsDir, item.preview_filename);
-                    if (!previewMissing) return false;
+            const deleteLogic = (list, id) => {
+                const index = list.findIndex((item) => item.id === id);
+                if (index > -1) {
+                    const [item] = list.splice(index, 1);
+                    if (item.hash === this._lastContent) this._lastContent = null;
+                    this._storage.deleteItemFiles(item);
+                    wasDeleted = true;
                 }
-
-                return ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
-            }
-
-            // Try healing from local file first
-            if (item.file_uri) {
-                const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
-                if (item.file_uri !== cacheUri) {
-                    return ImageProcessor.regenerateThumbnail(item, this._imagesDir, this._imagePreviewsDir);
-                }
-            }
-            // If still missing and has source URL, try downloading
-            if (item.source_url) {
-                return ImageProcessor.regenerateFromUrl(this._httpSession, item, this._imagesDir, this._imagePreviewsDir);
-            }
-            return false;
-        }
-
-        /**
-         * Verify and heal URL items
-         * @param {Object} item - Clipboard item
-         * @returns {Promise<boolean>} True if healed
-         * @private
-         */
-        async _verifyAndHealUrl(item) {
-            if (item.type !== ClipboardType.URL || !item.icon_filename) return false;
-
-            const missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
-            if (missingFile) {
-                return this._healIconFile(item, this._linkPreviewsDir);
-            }
-            return false;
-        }
-
-        /**
-         * Verify and heal Contact items
-         * @param {Object} item - Clipboard item
-         * @returns {Promise<boolean>} True if healed
-         * @private
-         */
-        async _verifyAndHealContact(item) {
-            if (item.type !== ClipboardType.CONTACT || item.subtype !== 'email' || !item.icon_filename) return false;
-
-            const missingFile = !this._checkFileExists(this._linkPreviewsDir, item.icon_filename);
-            if (missingFile) {
-                return this._healIconFile(item, this._linkPreviewsDir);
-            }
-            return false;
-        }
-
-        /**
-         * Gradually generate missing image previews in the background.
-         * Intended to reduce UI jank by using cached thumbnails for image-heavy histories.
-         */
-        scheduleImagePreviewWarmup() {
-            if (!this._imagePreviewsDir || this._previewWarmupId) return;
-
-            const queue = [...this._pinned, ...this._history].filter((item) => item.type === ClipboardType.IMAGE && item.image_filename);
-            if (queue.length === 0) return;
-
-            this._previewWarmupQueue = queue;
-            let didUpdate = false;
-            const batchSize = 1;
-
-            this._previewWarmupId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
-                let processed = 0;
-                while (this._previewWarmupQueue.length > 0 && processed < batchSize) {
-                    const item = this._previewWarmupQueue.shift();
-                    processed += 1;
-                    if (!item) continue;
-
-                    const updated = ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
-                    if (updated) didUpdate = true;
-                }
-
-                if (this._previewWarmupQueue.length === 0) {
-                    if (didUpdate) {
-                        this._saveAll();
-                    }
-                    this._previewWarmupQueue = null;
-                    this._previewWarmupId = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                return GLib.SOURCE_CONTINUE;
-            });
-        }
-
-        /**
-         * Verify and heal Color items
-         * @param {Object} item - Clipboard item
-         * @returns {boolean} True if healed
-         * @private
-         */
-        _verifyAndHealColor(item) {
-            if (item.type !== ClipboardType.COLOR || !item.gradient_filename) return false;
-
-            const missingFile = !this._checkFileExists(this._imagesDir, item.gradient_filename);
-            if (missingFile) {
-                return ColorProcessor.regenerateGradient(item, this._imagesDir);
-            }
-            return false;
-        }
-
-        /**
-         * Verify integrity of Text/Code items
-         * @param {Object} item - Clipboard item
-         * @returns {boolean} True if missing file detected
-         * @private
-         */
-        _verifyTextIntegrity(item) {
-            if ((item.type !== ClipboardType.TEXT && item.type !== ClipboardType.CODE) || !item.has_full_content) return false;
-            return !this._checkFileExists(this._textsDir, `${item.id}.txt`);
-        }
-
-        /**
-         * Verify integrity of clipboard items and attempt self-healing
-         * @private
-         */
-        async _verifyAndHealData() {
-            let changed = false;
-
-            const processItem = async (item) => {
-                let healed = false;
-                let isCorrupted = false;
-
-                switch (item.type) {
-                    case ClipboardType.IMAGE:
-                        healed = await this._verifyAndHealImage(item);
-                        // If we tried to heal but failed, check if the file is still missing to set corruption state
-                        if (!healed && item.image_filename) {
-                            isCorrupted = !this._checkFileExists(this._imagesDir, item.image_filename);
-                        }
-                        break;
-                    case ClipboardType.URL:
-                        healed = await this._verifyAndHealUrl(item);
-                        // URLs aren't "corrupted" if icon missing, just missing decoration
-                        break;
-                    case ClipboardType.CONTACT:
-                        healed = await this._verifyAndHealContact(item);
-                        break;
-                    case ClipboardType.COLOR:
-                        healed = this._verifyAndHealColor(item);
-                        if (!healed && item.gradient_filename) {
-                            isCorrupted = !this._checkFileExists(this._imagesDir, item.gradient_filename);
-                        }
-                        break;
-                    case ClipboardType.CODE:
-                    case ClipboardType.TEXT:
-                        if (this._verifyTextIntegrity(item)) {
-                            isCorrupted = true;
-                        }
-                        break;
-                }
-
-                if (healed) return true;
-
-                // Update corrupted state
-                const wasCorrupted = item.is_corrupted || false;
-                if (isCorrupted !== wasCorrupted) {
-                    item.is_corrupted = isCorrupted;
-                    return true;
-                }
-
-                return false;
             };
 
-            const allItems = [...this._history, ...this._pinned];
+            for (const id of ids) {
+                deleteLogic(this._history, id);
+                deleteLogic(this._pinned, id);
+            }
 
-            const processChunks = async (items, chunkSize) => {
-                if (items.length === 0) return false;
-                const chunk = items.slice(0, chunkSize);
-                const rest = items.slice(chunkSize);
-                const results = await Promise.all(chunk.map(processItem));
-                const chunkChanged = results.some((r) => r);
-                const restChanged = await processChunks(rest, chunkSize);
-                return chunkChanged || restChanged;
-            };
-
-            if (await processChunks(allItems, 5)) changed = true;
-
-            if (changed) {
+            if (wasDeleted) {
                 this._saveAll();
                 this.emit('history-changed');
                 this.emit('pinned-list-changed');
@@ -1217,88 +727,71 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Check if a file exists in the given directory
-         * @private
+         * Clear all items from the clipboard history.
          */
-        _checkFileExists(dirPath, filename) {
-            if (!filename) return true;
-            return IOFile.existsSync(GLib.build_filenamev([dirPath, filename]));
+        clearHistory() {
+            this._history.forEach((item) => this._storage.deleteItemFiles(item));
+            this._history = [];
+
+            this._saveHistory();
+            this.emit('history-changed');
         }
 
         /**
-         * Attempt to heal a missing icon file for URL or Contact items
-         * @param {Object} item - The item to heal
-         * @param {string} directory - The directory to save the icon to
-         * @returns {Promise<boolean>} True if healed by updating or clearing filename
-         * @private
+         * Clear all pinned clipboard items.
          */
-        async _healIconFile(item, directory) {
-            const newFilename = await this._linkProcessor.regenerateIcon(item, directory);
-            if (newFilename) {
-                item.icon_filename = newFilename;
-                return true;
-            }
-            // Clear the stale reference if can't recover
-            item.icon_filename = null;
-            return true; // Not a corruption, just cleared stale reference
+        clearPinned() {
+            this._pinned.forEach((item) => this._storage.deleteItemFiles(item));
+            this._pinned = [];
+
+            this._savePinned();
+            this.emit('pinned-list-changed');
         }
 
         /**
-         * Run garbage collection to remove orphaned files
+         * Run garbage collection to clean up orphaned files.
          */
-        async runGarbageCollection() {
-            try {
-                const validImages = new Set();
-                const validTexts = new Set();
-                const validLinks = new Set();
-                const validImagePreviews = new Set();
-
-                const collect = (list) => {
-                    list.forEach((item) => {
-                        if (item.type === ClipboardType.IMAGE) validImages.add(item.image_filename);
-                        if (item.type === ClipboardType.IMAGE && item.preview_filename) validImagePreviews.add(item.preview_filename);
-                        if ((item.type === ClipboardType.TEXT || item.type === ClipboardType.CODE) && item.has_full_content) {
-                            validTexts.add(`${item.id}.txt`);
-                        }
-                        if (item.type === ClipboardType.URL && item.icon_filename) validLinks.add(item.icon_filename);
-                        if (item.type === ClipboardType.CONTACT && item.icon_filename) validLinks.add(item.icon_filename);
-                        if (item.type === ClipboardType.COLOR && item.gradient_filename) validImages.add(item.gradient_filename);
-                    });
-                };
-                collect(this._pinned);
-                collect(this._history);
-
-                const cleanDir = async (dirPath, validSet) => {
-                    const files = await IOFile.list(dirPath);
-                    if (!files) return;
-
-                    const deletePromises = [];
-                    for (const file of files) {
-                        if (!validSet.has(file.name)) {
-                            deletePromises.push(IOFile.delete(file.path));
-                        }
-                    }
-                    await Promise.all(deletePromises);
-                };
-
-                await Promise.all([
-                    cleanDir(this._imagesDir, validImages),
-                    cleanDir(this._imagePreviewsDir, validImagePreviews),
-                    cleanDir(this._textsDir, validTexts),
-                    cleanDir(this._linkPreviewsDir, validLinks),
-                ]);
-            } catch (e) {
-                console.error(`[AIO-Clipboard] GC Error: ${e.message}`);
-            }
+        runGarbageCollection() {
+            this._storage.runGarbageCollection(this._history, this._pinned);
         }
 
         /**
-         * Pause or resume clipboard monitoring
+         * Schedule the background generation of image previews.
+         */
+        scheduleImagePreviewWarmup() {
+            this._storage.scheduleImagePreviewWarmup(this._history, this._pinned, () => {
+                this._saveAll();
+            });
+        }
+
+        /**
+         * Set the paused state of clipboard monitoring.
          *
-         * @param {boolean} isPaused - True to pause, false to resume
+         * @param {boolean} isPaused Whether monitoring should be paused.
          */
         setPaused(isPaused) {
             this._isPaused = isPaused;
+            this._monitor.setPaused(isPaused);
+        }
+
+        /**
+         * Add an externally created item to the clipboard history.
+         *
+         * @param {Object} item The item to add.
+         */
+        addExternalItem(item) {
+            this._addItemToHistory(item);
+        }
+
+        /**
+         * Find a clipboard item by its source URL.
+         *
+         * @param {string} url Source URL.
+         * @returns {Object|null} Matching item or null.
+         */
+        getItemBySourceUrl(url) {
+            if (!url) return null;
+            return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
         }
 
         // ========================================================================
@@ -1306,51 +799,19 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Cleanup resources
+         * Clean up resources and disconnect listeners before destruction.
          */
         destroy() {
-            if (this._processClipboardTimeoutId) {
-                GLib.source_remove(this._processClipboardTimeoutId);
-                this._processClipboardTimeoutId = 0;
-            }
-
-            if (this._retryTimeoutId) {
-                GLib.source_remove(this._retryTimeoutId);
-                this._retryTimeoutId = 0;
-            }
-
-            if (this._previewWarmupId) {
-                GLib.source_remove(this._previewWarmupId);
-                this._previewWarmupId = 0;
-            }
-            this._previewWarmupQueue = null;
-
-            if (this._selectionOwnerChangedId) {
-                this._selection.disconnect(this._selectionOwnerChangedId);
-                this._selectionOwnerChangedId = 0;
-            }
-
             if (this._settingsSignalIds?.length) {
-                this._settingsSignalIds.forEach((id) => {
-                    if (id) this._settings.disconnect(id);
-                });
-                this._settingsSignalIds = [];
+                this._settingsSignalIds.forEach((id) => this._settings.disconnect(id));
             }
 
-            if (this._linkProcessor) {
-                this._linkProcessor.destroy();
-                this._linkProcessor = null;
-            }
+            this._monitor.destroy();
+            this._storage.destroy();
 
-            if (this._httpSession) {
-                this._httpSession.abort();
-                this._httpSession = null;
-            }
-
-            if (this._exclusionUtils) {
-                this._exclusionUtils.destroy();
-                this._exclusionUtils = null;
-            }
+            this._linkProcessor?.destroy();
+            this._httpSession?.abort();
+            this._exclusionUtils?.destroy();
         }
     },
 );

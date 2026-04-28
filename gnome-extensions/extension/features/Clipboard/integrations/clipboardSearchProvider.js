@@ -3,12 +3,20 @@ import { registerSearchProvider } from '../../../shared/services/serviceSearchHu
 import { ClipboardProvider } from '../constants/clipboardConstants.js';
 import { ClipboardSearchUtils } from '../utilities/clipboardSearchUtils.js';
 
+// ========================================================================
+// State
+// ========================================================================
+
 let _isProviderRegistered = false;
 
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
 /**
- * Collects clipboard items from the extension's clipboard manager, ensuring uniqueness.
+ * Collect clipboard items from the extension's clipboard manager and ensure uniqueness.
  *
- * @param {object} extension The extension instance containing the clipboard manager.
+ * @param {Object} extension The extension instance containing the clipboard manager.
  * @returns {Array} An array of unique clipboard items.
  */
 function collectClipboardItems(extension) {
@@ -36,10 +44,14 @@ function collectClipboardItems(extension) {
     return uniqueItems;
 }
 
+// ========================================================================
+// Public API
+// ========================================================================
+
 /**
- * Registers the Clipboard search provider in the shared Search Hub.
+ * Register the Clipboard search provider in the shared search hub.
  *
- * @returns {string} Provider id.
+ * @returns {string} Provider ID.
  */
 export function ensureClipboardSearchProviderRegistered() {
     if (_isProviderRegistered) {
