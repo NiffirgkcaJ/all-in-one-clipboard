@@ -11,14 +11,18 @@ import { GifGenericProvider } from './gifGenericProvider.js';
  * Scans the directory for JSON configurations.
  */
 export class GifProviderRegistry {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * @param {string} extensionPath - Path to the extension root
-     * @param {Soup.Session} httpSession - Shared HTTP session
-     * @param {Gio.Settings} settings - Extension settings
+     * @param {string} extensionPath Path to the extension root.
+     * @param {GifHttpService} httpService The shared HTTP service.
+     * @param {Gio.Settings} settings Extension settings.
      */
-    constructor(extensionPath, httpSession, settings) {
+    constructor(extensionPath, httpService, settings) {
         this._extensionPath = extensionPath;
-        this._httpSession = httpSession;
+        this._httpService = httpService;
         this._settings = settings;
         this._providers = new Map();
 
@@ -51,7 +55,7 @@ export class GifProviderRegistry {
 
     /**
      * Loads a single provider from a JSON file.
-     * @param {Gio.File} file
+     * @param {Gio.File} file The file to load.
      */
     _loadProviderFromFile(file) {
         try {
@@ -73,13 +77,14 @@ export class GifProviderRegistry {
 
     /**
      * Validates that a definition has the minimum required fields.
+     * @param {Object} def The definition to validate.
      */
     _validateDefinition(def) {
         return def && def.id && def.name && def.base_url && def.endpoints;
     }
 
     /**
-     * Returns a list of available provider definitions (for UI/Settings).
+     * Returns a list of available provider definitions for the UI or Settings.
      * @returns {Array<{id: string, name: string, hasProxy: boolean}>}
      */
     getAvailableProviders() {
@@ -92,8 +97,8 @@ export class GifProviderRegistry {
 
     /**
      * Returns the raw JSON definition for a provider.
-     * @param {string} providerId
-     * @returns {Object|null} The provider definition or null
+     * @param {string} providerId The provider ID.
+     * @returns {Object|null} The provider definition or null.
      */
     getProviderDefinition(providerId) {
         return this._providers.get(providerId) || null;
@@ -101,13 +106,13 @@ export class GifProviderRegistry {
 
     /**
      * Instantiates the requested provider.
-     * @param {string} providerId
+     * @param {string} providerId The provider ID.
      * @returns {GifGenericProvider|null}
      */
     createProvider(providerId) {
         const def = this._providers.get(providerId);
         if (!def) return null;
 
-        return new GifGenericProvider(def, this._httpSession, this._settings);
+        return new GifGenericProvider(def, this._httpService, this._settings);
     }
 }

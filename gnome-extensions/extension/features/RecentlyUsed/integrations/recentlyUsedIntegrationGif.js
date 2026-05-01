@@ -1,11 +1,10 @@
-import Soup from 'gi://Soup';
-
 import { FilePath } from '../../../shared/constants/storagePaths.js';
 
 import { getGifCacheManager } from '../../GIF/logic/gifCacheManager.js';
-import { GifDownloadService } from '../../GIF/logic/gifDownloadService.js';
+import { GifDownloadService } from '../../GIF/services/gifDownloadService.js';
+import { GifHttpService } from '../../GIF/services/gifHttpService.js';
 
-let httpSession = null;
+let httpService = null;
 let gifDownloadService = null;
 
 // ========================================================================
@@ -18,12 +17,12 @@ let gifDownloadService = null;
  * @returns {object} GIF runtime context.
  */
 export function getRecentlyUsedGifRuntime() {
-    if (!httpSession) {
-        httpSession = new Soup.Session();
+    if (!httpService) {
+        httpService = new GifHttpService();
     }
 
     if (!gifDownloadService) {
-        gifDownloadService = new GifDownloadService(httpSession);
+        gifDownloadService = new GifDownloadService(httpService);
     }
 
     return {
@@ -37,12 +36,12 @@ export function getRecentlyUsedGifRuntime() {
  * Destroys the GIF runtime services.
  */
 export function destroyRecentlyUsedGifRuntime() {
-    if (httpSession) {
-        httpSession.abort();
-        httpSession = null;
-    }
-
     gifDownloadService = null;
+
+    if (httpService) {
+        httpService.destroy();
+        httpService = null;
+    }
 }
 
 // ========================================================================

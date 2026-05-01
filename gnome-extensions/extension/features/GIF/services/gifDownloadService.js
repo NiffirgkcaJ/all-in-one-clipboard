@@ -1,5 +1,4 @@
 import GLib from 'gi://GLib';
-import Soup from 'gi://Soup';
 
 import { FilePath } from '../../../shared/constants/storagePaths.js';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
@@ -12,24 +11,28 @@ import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
  * GifDownloadService
  *
  * Handles downloading images and saving them to disk.
- * Maintains its own HTTP session for request lifecycle management.
+ * Uses the shared GifHttpService for all network operations.
  */
 export class GifDownloadService {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * @param {Soup.Session} httpSession - The HTTP session to use for requests
+     * @param {GifHttpService} httpService The shared HTTP service.
      */
-    constructor(httpSession) {
-        this._httpSession = httpSession || new Soup.Session();
+    constructor(httpService) {
+        this._httpService = httpService;
     }
 
     /**
      * Fetch image bytes from a URL.
      *
-     * @param {string} url - The image URL
-     * @returns {Promise<Uint8Array>} The image bytes
+     * @param {string} url The image URL.
+     * @returns {Promise<Uint8Array>} The image bytes.
      */
     async fetchImageBytes(url) {
-        const result = await ServiceImage.download(this._httpSession, url);
+        const result = await ServiceImage.download(this._httpService.getSession(), url);
         return result?.bytes || null;
     }
 
@@ -37,9 +40,9 @@ export class GifDownloadService {
      * Downloads and caches a preview image if not already cached.
      * Uses URL hash as filename for deduplication.
      *
-     * @param {string} url - The image URL
-     * @param {string} cacheDir - The cache directory path
-     * @returns {Promise<string>} The cached file path
+     * @param {string} url The image URL.
+     * @param {string} cacheDir The cache directory path.
+     * @returns {Promise<string>} The cached file path.
      */
     async downloadPreviewCached(url, cacheDir) {
         const hash = GLib.compute_checksum_for_string(GLib.ChecksumType.SHA256, url, -1);
@@ -58,9 +61,9 @@ export class GifDownloadService {
     /**
      * Helper to download and save an image to a specific path.
      *
-     * @param {string} url - The URL to download
-     * @param {string} destPath - The absolute path to save to
-     * @returns {Promise<Uint8Array>} The downloaded bytes
+     * @param {string} url The URL to download.
+     * @param {string} destPath The absolute path to save to.
+     * @returns {Promise<Uint8Array>} The downloaded bytes.
      */
     async downloadAndSave(url, destPath) {
         const bytes = await this.fetchImageBytes(url);
@@ -70,13 +73,13 @@ export class GifDownloadService {
 
     /**
      * Copy a GIF to clipboard, respecting paste behavior setting.
-     * Image Mode: Downloads GIF, saves to images dir, adds to clipboard history.
-     * Link Mode: Copies URL as text.
+     * Image Mode downloads GIF, saves to images dir, adds to clipboard history.
+     * Link Mode copies URL as text.
      *
-     * @param {Object} gifObject - GIF data with full_url, width, height
-     * @param {Gio.Settings} settings - Extension settings
-     * @param {ClipboardManager} clipboardManager - Clipboard manager instance
-     * @returns {Promise<boolean>} True if successful
+     * @param {Object} gifObject GIF data with full_url, width, height.
+     * @param {Gio.Settings} settings Extension settings.
+     * @param {ClipboardManager} clipboardManager Clipboard manager instance.
+     * @returns {Promise<boolean>} True if successful.
      */
     async copyToClipboard(gifObject, settings, clipboardManager) {
         if (!gifObject?.full_url) return false;
@@ -129,9 +132,9 @@ export class GifDownloadService {
     }
 
     /**
-     * Set the clipboard to a URI list
+     * Set the clipboard to a URI list.
      *
-     * @param {string} fileUri - The file URI to set
+     * @param {string} fileUri The file URI to set.
      */
     _setClipboardUri(fileUri) {
         const uriList = fileUri + '\r\n';
@@ -139,13 +142,14 @@ export class GifDownloadService {
         clipboardSetContent('text/uri-list', uriBytes);
     }
 
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
     /**
-     * Cancel any pending requests
+     * Clean up resources.
      */
     destroy() {
-        if (this._httpSession) {
-            this._httpSession.abort();
-            this._httpSession = null;
-        }
+        this._httpService = null;
     }
 }

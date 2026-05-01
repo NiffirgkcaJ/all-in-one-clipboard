@@ -18,6 +18,13 @@ const SearchIcons = {
  * mechanism to notify a listener of search text changes.
  */
 export const SearchComponent = GObject.registerClass(
+    {
+        Signals: {
+            'search-changed': { param_types: [GObject.TYPE_STRING] },
+            'navigate-down': { param_types: [] },
+            'navigate-up': { param_types: [] },
+        },
+    },
     class SearchComponent extends GObject.Object {
         /**
          * Initialize the search component.

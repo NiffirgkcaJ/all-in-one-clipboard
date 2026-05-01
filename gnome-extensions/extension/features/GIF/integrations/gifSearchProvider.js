@@ -1,10 +1,28 @@
-import { GifManager } from '../logic/gifManager.js';
-import { GifProvider } from '../constants/gifConstants.js';
 import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
+
+import { GifManager } from '../managers/gifManager.js';
+import { GifProvider } from '../constants/gifConstants.js';
+
+// ========================================================================
+// State
+// ========================================================================
 
 let _isProviderRegistered = false;
 let _gifManager = null;
 
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
+/**
+ * Ensures the GIF manager is initialized.
+ *
+ * @param {object} params Initialization parameters.
+ * @param {Gio.Settings} params.settings Extension settings object.
+ * @param {string} params.extensionUuid Extension UUID.
+ * @param {string} params.extensionPath Extension absolute path.
+ * @returns {GifManager|null} The GIF manager instance or null.
+ */
 function ensureGifManager({ settings, extensionUuid, extensionPath } = {}) {
     if (_gifManager || !settings || !extensionUuid || !extensionPath) {
         return _gifManager;
@@ -14,6 +32,10 @@ function ensureGifManager({ settings, extensionUuid, extensionPath } = {}) {
     return _gifManager;
 }
 
+// ========================================================================
+// Public API
+// ========================================================================
+
 /**
  * Registers the GIF search provider in the shared Search Hub.
  *
@@ -21,10 +43,15 @@ function ensureGifManager({ settings, extensionUuid, extensionPath } = {}) {
  * @param {object} params.settings Extension settings object.
  * @param {string} params.extensionUuid Extension UUID.
  * @param {string} params.extensionPath Extension absolute path.
+ * @param {GifManager} [params.gifManager] Optional existing GifManager to reuse.
  * @returns {string} Provider id.
  */
-export function ensureGifSearchProviderRegistered({ settings, extensionUuid, extensionPath } = {}) {
-    ensureGifManager({ settings, extensionUuid, extensionPath });
+export function ensureGifSearchProviderRegistered({ settings, extensionUuid, extensionPath, gifManager } = {}) {
+    if (gifManager) {
+        _gifManager = gifManager;
+    } else {
+        ensureGifManager({ settings, extensionUuid, extensionPath });
+    }
 
     if (_isProviderRegistered) {
         return GifProvider.SEARCH_PROVIDER_ID;

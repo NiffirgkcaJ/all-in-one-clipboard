@@ -1,6 +1,10 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// GIF tab definition
+/**
+ * MenuDefinitionGif
+ *
+ * Definition for the GIF tab in the main menu.
+ */
 export const MenuDefinitionGif = {
     id: 'GIF',
     name: () => _('GIF'),
@@ -8,6 +12,10 @@ export const MenuDefinitionGif = {
     iconSize: 16,
     isFullView: true,
     settingKey: 'enable-gif-tab',
+
+    // ========================================================================
+    // Public API
+    // ========================================================================
 
     /**
      * Creates the content actor for the GIF tab.
