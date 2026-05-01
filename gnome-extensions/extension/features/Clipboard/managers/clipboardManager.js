@@ -1,18 +1,12 @@
-import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
-import Soup from 'gi://Soup';
 
 import { ExclusionUtils } from '../../../shared/utilities/utilityExclusions.js';
-import { ServiceImage } from '../../../shared/services/serviceImage.js';
-import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 
-import { ClipboardMonitor } from './clipboardMonitor.js';
-import { ClipboardStorage } from './clipboardStorage.js';
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardContentRouter } from '../services/clipboardContentRouter.js';
+import { ClipboardCopyService } from '../services/clipboardCopyService.js';
+import { ClipboardMonitor } from '../logic/clipboardMonitor.js';
+import { ClipboardStorage } from '../logic/clipboardStorage.js';
 import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
-import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
-import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
-import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 
 // Configuration Keys
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
@@ -21,7 +15,7 @@ const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
  * ClipboardManager
  *
  * Orchestrates clipboard history and pinned items.
- * This class connects the input monitor to the output storage and handles content-specific logic.
+ * Delegates content routing to ClipboardContentRouter and clipboard I/O to ClipboardCopyService.
  *
  * @emits history-changed Emitted when the clipboard history changes.
  * @emits pinned-list-changed Emitted when the pinned items list changes.
@@ -53,7 +47,7 @@ export const ClipboardManager = GObject.registerClass(
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
 
-            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._processResult(result));
+            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._contentRouter.processResult(result));
 
             this._history = [];
             this._pinned = [];
@@ -61,10 +55,9 @@ export const ClipboardManager = GObject.registerClass(
             this._isPaused = false;
             this._settingsSignalIds = [];
 
-            this._setupSettingsMonitoring();
+            this._contentRouter = new ClipboardContentRouter(this, this._storage, this._exclusionUtils);
 
-            this._linkProcessor = new LinkProcessor();
-            this._httpSession = new Soup.Session();
+            this._setupSettingsMonitoring();
         }
 
         /**
@@ -103,7 +96,7 @@ export const ClipboardManager = GObject.registerClass(
             this._monitor.start();
 
             this._storage
-                .verifyAndHealData(this._history, this._pinned, this._linkProcessor, this._httpSession)
+                .verifyAndHealData(this._history, this._pinned, this._contentRouter.linkProcessor, this._contentRouter.httpSession)
                 .then((changed) => {
                     if (changed) {
                         this._saveAll();
@@ -158,228 +151,22 @@ export const ClipboardManager = GObject.registerClass(
             return this._storage.textsDir;
         }
 
-        // ========================================================================
-        // Internal Processing
-        // ========================================================================
-
         /**
-         * Process captured clipboard content and route it to the appropriate handler.
+         * Get the extension settings.
          *
-         * @param {Object} result Extracted clipboard content.
-         * @private
+         * @returns {Gio.Settings} Extension settings.
          */
-        _processResult(result) {
-            if (!result || result.hash === this._lastContent) return;
-            this._lastContent = result.hash;
-
-            switch (result.type) {
-                case ClipboardType.IMAGE:
-                    this._handleExtractedContent(result, ImageProcessor, this._storage.imagesDir);
-                    break;
-                case ClipboardType.FILE:
-                    this._handleGenericFileItem(result);
-                    break;
-                case ClipboardType.URL:
-                    this._handleLinkItem(result);
-                    break;
-                case ClipboardType.CONTACT:
-                    this._handleContactItem(result);
-                    break;
-                case ClipboardType.COLOR:
-                    this._handleColorItem(result);
-                    break;
-                case ClipboardType.CODE:
-                    this._handleCodeItem(result);
-                    break;
-                case ClipboardType.TEXT:
-                    this._handleExtractedContent(result, TextProcessor, this._storage.textsDir);
-                    break;
-                default:
-                    console.warn(`[AIO-Clipboard] Unknown type: ${result.type}`);
-            }
-        }
-
-        // ========================================================================
-        // Content Type Handlers
-        // ========================================================================
-
-        /**
-         * Handle generic file items captured from the clipboard.
-         *
-         * @param {Object} fileResult Extracted file content.
-         * @private
-         */
-        _handleGenericFileItem(fileResult) {
-            const newItem = {
-                id: GLib.uuid_string_random(),
-                type: ClipboardType.FILE,
-                timestamp: Math.floor(Date.now() / 1000),
-                preview: fileResult.preview,
-                file_uri: fileResult.file_uri,
-                hash: fileResult.hash,
-            };
-
-            this._addItemToHistory(newItem);
+        get settings() {
+            return this._settings;
         }
 
         /**
-         * Handle link items and fetch their metadata.
+         * Get the storage instance.
          *
-         * @param {Object} linkResult Extracted link content.
-         * @private
+         * @returns {ClipboardStorage} Storage instance.
          */
-        _handleLinkItem(linkResult) {
-            const newItem = {
-                id: GLib.uuid_string_random(),
-                type: ClipboardType.URL,
-                timestamp: Math.floor(Date.now() / 1000),
-                url: linkResult.url,
-                title: linkResult.title,
-                hash: linkResult.hash,
-                icon_filename: null,
-            };
-
-            this._addItemToHistory(newItem);
-
-            if (this._exclusionUtils.isAddressExcluded(newItem.url)) return;
-
-            this._linkProcessor.fetchMetadata(newItem.url).then(async (metadata) => {
-                let updated = false;
-                const item = this._history.find((i) => i.id === newItem.id);
-                if (!item) return;
-
-                if (metadata.title) {
-                    item.title = metadata.title;
-                    updated = true;
-                }
-
-                if (metadata.iconUrl) {
-                    const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._storage.linkPreviewsDir, newItem.id);
-                    if (filename) {
-                        item.icon_filename = filename;
-                        updated = true;
-                    }
-                }
-
-                if (updated) {
-                    this._saveHistory();
-                    this.emit('history-changed');
-                }
-            });
-        }
-
-        /**
-         * Handle contact items and attempt to fetch favicon if it's an email.
-         *
-         * @param {Object} contactResult Extracted contact content.
-         * @private
-         */
-        _handleContactItem(contactResult) {
-            const newItem = {
-                id: GLib.uuid_string_random(),
-                type: ClipboardType.CONTACT,
-                timestamp: Math.floor(Date.now() / 1000),
-                subtype: contactResult.subtype,
-                text: contactResult.text,
-                preview: contactResult.preview,
-                hash: contactResult.hash,
-                metadata: contactResult.metadata,
-            };
-
-            this._addItemToHistory(newItem);
-
-            if (newItem.subtype === 'email') {
-                if (this._exclusionUtils.isAddressExcluded(newItem.text)) return;
-
-                const parts = newItem.text.split('@');
-                if (parts.length === 2) {
-                    const url = `https://${parts[1]}`;
-                    this._linkProcessor
-                        .fetchMetadata(url)
-                        .then(async (metadata) => {
-                            if (metadata.iconUrl) {
-                                const filename = await this._linkProcessor.downloadFavicon(metadata.iconUrl, this._storage.linkPreviewsDir, newItem.id);
-                                if (filename) {
-                                    newItem.icon_filename = filename;
-                                    this._saveHistory();
-                                    this.emit('history-changed');
-                                }
-                            }
-                        })
-                        .catch(() => {});
-                }
-            }
-        }
-
-        /**
-         * Handle color items.
-         *
-         * @param {Object} colorResult Extracted color content.
-         * @private
-         */
-        _handleColorItem(colorResult) {
-            const newItem = {
-                id: GLib.uuid_string_random(),
-                type: ClipboardType.COLOR,
-                timestamp: Math.floor(Date.now() / 1000),
-                color_value: colorResult.color_value,
-                format_type: colorResult.format_type,
-                hash: colorResult.hash,
-                preview: colorResult.color_value,
-                gradient_filename: colorResult.gradient_filename || null,
-                subtype: colorResult.subtype || 'single',
-            };
-
-            this._addItemToHistory(newItem);
-        }
-
-        /**
-         * Handle code items by treating them as extracted text.
-         *
-         * @param {Object} codeResult Extracted code content.
-         * @private
-         */
-        _handleCodeItem(codeResult) {
-            this._handleExtractedContent(codeResult, TextProcessor, this._storage.textsDir, true);
-        }
-
-        /**
-         * Save extracted content to disk and update history.
-         *
-         * @param {Object} extraction Extracted content.
-         * @param {class} ProcessorClass Processor class for saving.
-         * @param {string} storageDir Target storage directory.
-         * @param {boolean} forceFileSave Whether to force saving to a file.
-         * @private
-         */
-        async _handleExtractedContent(extraction, ProcessorClass, storageDir, forceFileSave = false) {
-            const hash = extraction.hash;
-
-            const historyIndex = this._history.findIndex((item) => item.hash === hash);
-            if (historyIndex > -1) {
-                if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
-                    this._promoteExistingItem(historyIndex, this._history);
-                }
-                return;
-            }
-
-            const pinnedIndex = this._pinned.findIndex((item) => item.hash === hash);
-            if (pinnedIndex > -1) {
-                this._promotePinnedItem(pinnedIndex);
-                return;
-            }
-
-            const newItem =
-                ProcessorClass === ImageProcessor
-                    ? await ProcessorClass.save(extraction, storageDir, this._storage.imagePreviewsDir)
-                    : await ProcessorClass.save(extraction, storageDir, forceFileSave);
-
-            if (newItem) {
-                this._history.unshift(newItem);
-                this._storage.pruneHistory(this._history);
-                this._saveHistory();
-                this.emit('history-changed');
-            }
+        get storage() {
+            return this._storage;
         }
 
         // ========================================================================
@@ -390,9 +177,8 @@ export const ClipboardManager = GObject.registerClass(
          * Add a new item to the history, handling duplicates and pinning.
          *
          * @param {Object} newItem The new item to add.
-         * @private
          */
-        _addItemToHistory(newItem) {
+        addItemToHistory(newItem) {
             const hash = newItem.hash;
 
             const historyIndex = this._history.findIndex((item) => item.hash === hash);
@@ -445,6 +231,30 @@ export const ClipboardManager = GObject.registerClass(
                 this.emit('history-changed');
                 this.emit('pinned-list-changed');
             }
+        }
+
+        /**
+         * Handle duplicate check and recency promotion for extracted content.
+         *
+         * @param {string} hash Content hash.
+         * @returns {boolean} True if content is a duplicate and was handled.
+         */
+        handleDuplicateCheck(hash) {
+            const historyIndex = this._history.findIndex((item) => item.hash === hash);
+            if (historyIndex > -1) {
+                if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
+                    this._promoteExistingItem(historyIndex, this._history);
+                }
+                return true;
+            }
+
+            const pinnedIndex = this._pinned.findIndex((item) => item.hash === hash);
+            if (pinnedIndex > -1) {
+                this._promotePinnedItem(pinnedIndex);
+                return true;
+            }
+
+            return false;
         }
 
         // ========================================================================
@@ -517,51 +327,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if successful.
          */
         async copyToSystemClipboard(itemData) {
-            try {
-                switch (itemData.type) {
-                    case ClipboardType.IMAGE: {
-                        if (itemData.file_uri) {
-                            const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
-                            clipboardSetContent('text/uri-list', bytes);
-                            return true;
-                        }
-
-                        const imagePath = GLib.build_filenamev([this._storage.imagesDir, itemData.image_filename]);
-                        const bytes = ServiceImage.decode(await this._storage.readRaw(imagePath));
-
-                        if (!bytes) return false;
-                        clipboardSetContent(ServiceImage.getMimeType(itemData.image_filename), bytes);
-                        return true;
-                    }
-                    case ClipboardType.FILE: {
-                        const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
-                        clipboardSetContent('text/uri-list', bytes);
-                        return true;
-                    }
-                    case ClipboardType.URL:
-                    case ClipboardType.COLOR:
-                        clipboardSetText(itemData.url || itemData.color_value);
-                        return true;
-                    case ClipboardType.CONTACT:
-                    case ClipboardType.CODE:
-                    case ClipboardType.TEXT: {
-                        let content = itemData.text || (await this.getContent(itemData.id));
-
-                        if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
-                            content = itemData.preview;
-                        }
-
-                        if (!content) return false;
-                        clipboardSetText(content);
-                        return true;
-                    }
-                    default:
-                        return false;
-                }
-            } catch (e) {
-                console.error(`[AIO-Clipboard] Copy failed: ${e.message}`);
-                return false;
-            }
+            return ClipboardCopyService.copy(itemData, this._storage, this);
         }
 
         /**
@@ -780,7 +546,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Object} item The item to add.
          */
         addExternalItem(item) {
-            this._addItemToHistory(item);
+            this.addItemToHistory(item);
         }
 
         /**
@@ -792,6 +558,19 @@ export const ClipboardManager = GObject.registerClass(
         getItemBySourceUrl(url) {
             if (!url) return null;
             return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
+        }
+
+        /**
+         * Get or set the last content hash for deduplication.
+         *
+         * @type {string|null}
+         */
+        get lastContent() {
+            return this._lastContent;
+        }
+
+        set lastContent(value) {
+            this._lastContent = value;
         }
 
         // ========================================================================
@@ -808,9 +587,7 @@ export const ClipboardManager = GObject.registerClass(
 
             this._monitor.destroy();
             this._storage.destroy();
-
-            this._linkProcessor?.destroy();
-            this._httpSession?.abort();
+            this._contentRouter?.destroy();
             this._exclusionUtils?.destroy();
         }
     },

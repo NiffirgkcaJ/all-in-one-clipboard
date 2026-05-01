@@ -1,3 +1,4 @@
+// Layout Constants
 export const GridMetrics = {
     FAST_PAINT_BATCH_SIZE: 6,
     MIN_ASPECT_RATIO: 9 / 16,
@@ -11,12 +12,14 @@ export const GridMetrics = {
     },
 };
 
+// Grid Virtualization Metrics
 export const GridVirtualization = {
     HISTORY_MIN_ITEMS: 120,
     PINNED_MIN_ITEMS: 300,
     OVERSCAN_PX: 1400,
 };
 
+// List Virtualization Metrics
 export const ListVirtualization = {
     HISTORY_MIN_ITEMS: 120,
     PINNED_MIN_ITEMS: 300,

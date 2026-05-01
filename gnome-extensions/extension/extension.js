@@ -12,7 +12,7 @@ import { ServiceJson } from './shared/services/serviceJson.js';
 import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
 import { initStorage, FileItem } from './shared/constants/storagePaths.js';
 
-import { ClipboardManager } from './features/Clipboard/logic/clipboardManager.js';
+import { ClipboardManager } from './features/Clipboard/managers/clipboardManager.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 

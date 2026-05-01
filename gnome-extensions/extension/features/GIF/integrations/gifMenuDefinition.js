@@ -19,6 +19,7 @@ export const MenuDefinitionGif = {
 
     /**
      * Creates the content actor for the GIF tab.
+     *
      * @param {Extension} extension Parent extension instance.
      * @param {Gio.Settings} settings Extension settings configuration.
      * @param {object} clipboardManager Global clipboard manager state tracking.

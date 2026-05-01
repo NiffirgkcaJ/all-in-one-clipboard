@@ -3,15 +3,14 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-import { Debouncer } from '../../shared/utilities/utilityDebouncer.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
 import { ClipboardActionBar } from './view/clipboardActionBar.js';
-import { ClipboardConfig } from './constants/clipboardConstants.js';
 import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
-import { ClipboardSearchUtils } from './utilities/clipboardSearchUtils.js';
+import { ClipboardSearchService } from './services/clipboardSearchService.js';
+import { ClipboardSelectionService } from './services/clipboardSelectionService.js';
 import { ensureClipboardSearchProviderRegistered } from './integrations/clipboardSearchProvider.js';
 
 // Configuration
@@ -21,6 +20,7 @@ const RETRY_INTERVAL_MS = 16;
  * ClipboardTabContent
  *
  * Main UI container for the clipboard feature.
+ * Delegates search orchestration to ClipboardSearchService and selection management to ClipboardSelectionService.
  */
 export const ClipboardTabContent = GObject.registerClass(
     class ClipboardTabContent extends St.Bin {
@@ -50,12 +50,9 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
-            this._selectedIds = new Set();
-            this._currentSearchText = '';
             this._hasRenderedOnce = false;
 
-            this._setupSettingsSignals();
-            this._searchDebouncer = new Debouncer(() => this._redraw(), ClipboardConfig.SEARCH_DEBOUNCE_MS);
+            this._selectionService = new ClipboardSelectionService();
 
             this._mainBox = new St.BoxLayout({
                 vertical: true,
@@ -64,11 +61,21 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             this.set_child(this._mainBox);
 
+            this._searchService = new ClipboardSearchService({
+                onSearchChanged: () => this._scheduleRedraw(true),
+            });
+
             this._buildSearchComponent();
             this._buildActionBar();
             this._buildScrollableList();
+
+            this._setupSettingsSignals();
             this._connectManagerSignals();
         }
+
+        // ========================================================================
+        // UI Construction
+        // ========================================================================
 
         /**
          * Set up listeners for settings changes.
@@ -99,22 +106,15 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _buildSearchComponent() {
-            this._searchComponent = new SearchComponent(
-                (text) => {
-                    this._currentSearchText = text.toLowerCase().trim();
-                    if (this._suppressSearchEffects) return;
-                    this._searchDebouncer?.trigger();
+            this._searchComponent = new SearchComponent((text) => this._searchService?.handleSearchInput(text), {
+                onNavigateDown: () => {
+                    if (this._actionBar?.visible) {
+                        this._actionBar.grabFocus();
+                        return true;
+                    }
+                    return this._focusFirstContentItem();
                 },
-                {
-                    onNavigateDown: () => {
-                        if (this._actionBar?.visible) {
-                            this._actionBar.grabFocus();
-                            return true;
-                        }
-                        return this._focusFirstContentItem();
-                    },
-                },
-            );
+            });
 
             this._mainBox.add_child(this._searchComponent.getWidget());
         }
@@ -125,7 +125,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _buildActionBar() {
-            this._actionBar = new ClipboardActionBar(this._settings, this._manager, this._selectedIds);
+            this._actionBar = new ClipboardActionBar(this._settings, this._manager, this._selectionService.selectedIds);
 
             this._actionBar.connect('layout-toggled', () => {
                 const next = this._layoutMode === 'list' ? 'grid' : 'list';
@@ -174,7 +174,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 imagePreviewSize: this._imagePreviewSize,
                 onItemCopy: (data) => this._onItemCopyToClipboard(data),
                 onSelectionChanged: () => this._updateSelectionState(),
-                selectedIds: this._selectedIds,
+                selectedIds: this._selectionService.selectedIds,
                 scrollView: this._scrollView,
                 settings: this._settings,
             };
@@ -218,24 +218,10 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _onSelectAllClicked() {
-            const allItems = this._currentView?.getAllItems() || [];
-            const iconsMap = this._currentView?.getCheckboxIconsMap() || new Map();
-            const shouldSelectAll = this._selectedIds.size < allItems.length;
-
-            if (shouldSelectAll) {
-                allItems.forEach((item) => {
-                    this._selectedIds.add(item.id);
-                    const icon = iconsMap.get(item.id);
-                    if (icon) icon.state = 'checked';
-                });
-            } else {
-                this._selectedIds.clear();
-                allItems.forEach((item) => {
-                    const icon = iconsMap.get(item.id);
-                    if (icon) icon.state = 'unchecked';
-                });
-            }
-
+            this._selectionService.toggleSelectAll(
+                () => this._currentView?.getAllItems() || [],
+                () => this._currentView?.getCheckboxIconsMap() || new Map(),
+            );
             this._updateSelectionState();
         }
 
@@ -245,16 +231,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _updateSelectionState() {
-            const allItems = this._currentView?.getAllItems() || [];
-            const validIds = new Set(allItems.map((i) => i.id));
-
-            for (const id of this._selectedIds) {
-                if (!validIds.has(id)) {
-                    this._selectedIds.delete(id);
-                }
-            }
-
-            this._actionBar.updateSelectionState(allItems.length);
+            this._selectionService.updateSelectionState(() => this._currentView?.getAllItems() || [], this._actionBar);
         }
 
         /**
@@ -366,17 +343,10 @@ export const ClipboardTabContent = GObject.registerClass(
                 return;
             }
 
-            let pinned = this._manager.getPinnedItems();
-            let history = this._manager.getHistoryItems();
-            const searching = this._currentSearchText.length > 0;
+            const pinned = this._searchService.filterItems(this._manager.getPinnedItems());
+            const history = this._searchService.filterItems(this._manager.getHistoryItems());
 
-            if (searching) {
-                const match = (i) => ClipboardSearchUtils.isMatch(i, this._currentSearchText);
-                pinned = pinned.filter(match);
-                history = history.filter(match);
-            }
-
-            this._currentView.render(pinned, history, searching);
+            this._currentView.render(pinned, history, this._searchService.isSearching);
             this._hasRenderedOnce = true;
         }
 
@@ -398,15 +368,9 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle the event when the clipboard tab is selected.
          */
         onTabSelected() {
-            const needs = this._deferredRedrawPending || this._pendingReset || !this._hasRenderedOnce;
+            const needs = this._deferredRedrawPending || this._searchService.pendingReset || !this._hasRenderedOnce;
 
-            if (this._pendingReset) {
-                this._suppressSearchEffects = true;
-                this._searchComponent?.clearSearch();
-                this._suppressSearchEffects = false;
-                this._pendingReset = false;
-                this._currentSearchText = '';
-            }
+            this._searchService.onTabSelected(this._searchComponent);
 
             if (needs) {
                 this._currentView?.resetScrollAndPagination?.();
@@ -424,19 +388,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {Promise<boolean>} True if the search was applied successfully.
          */
         async applyExternalSearch(query) {
-            const q = typeof query === 'string' ? query.trim() : '';
-
-            this._pendingReset = false;
-            this._searchDebouncer?.cancel();
-
-            this._suppressSearchEffects = true;
-            this._searchComponent?.setSearchText(q, { focus: false });
-            this._suppressSearchEffects = false;
-
-            this._currentSearchText = q.toLowerCase();
-            this._scheduleRedraw(true);
-
-            return true;
+            return this._searchService.applyExternalSearch(this._searchComponent, query);
         }
 
         /**
@@ -445,7 +397,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {Promise<boolean>} True if the search was cleared successfully.
          */
         async clearExternalSearch() {
-            return this.applyExternalSearch('');
+            return this._searchService.clearExternalSearch(this._searchComponent);
         }
 
         /**
@@ -453,16 +405,13 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         onMenuClosed() {
             this._deferredRedrawPending = false;
-            this._searchDebouncer?.cancel();
+            this._searchService.onMenuClosed();
 
             if (this._redrawIdleId) {
                 GLib.source_remove(this._redrawIdleId);
                 this._redrawIdleId = 0;
                 this._redrawScheduled = false;
             }
-
-            this._pendingReset = this._currentSearchText.length > 0;
-            if (!this._pendingReset) this._currentSearchText = '';
         }
 
         // ========================================================================
@@ -476,7 +425,9 @@ export const ClipboardTabContent = GObject.registerClass(
             if (this._redrawIdleId) GLib.source_remove(this._redrawIdleId);
             if (this._retryId) GLib.source_remove(this._retryId);
 
-            this._searchDebouncer?.destroy();
+            this._searchService?.destroy();
+            this._selectionService?.destroy();
+
             this._settingSignalIds.forEach((id) => this._settings.disconnect(id));
             this._managerSignalIds?.forEach((id) => this._manager.disconnect(id));
 

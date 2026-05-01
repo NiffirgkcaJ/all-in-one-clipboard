@@ -18,7 +18,7 @@ export const MenuDefinitionClipboard = {
     // ========================================================================
 
     /**
-     * Create the content actor for the clipboard tab.
+     * Creates the content actor for the clipboard tab.
      *
      * @param {Object} extension Parent extension instance.
      * @param {Gio.Settings} settings Extension settings configuration.

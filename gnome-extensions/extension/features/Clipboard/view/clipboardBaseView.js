@@ -23,6 +23,10 @@ export const ClipboardBaseView = GObject.registerClass(
         },
     },
     class ClipboardBaseView extends St.BoxLayout {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
         /**
          * Initialize the base view.
          *
