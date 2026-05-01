@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 10:52+0000\n"
+"POT-Creation-Date: 2026-05-01 12:51+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -181,19 +181,19 @@ msgstr "Alle abwählen"
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:151
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:155
 msgid "No results found."
 msgstr "Keine Resultate gefunden."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:151
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:155
 msgid "Clipboard history is empty."
 msgstr "Zwischenablageverlauf ist leer."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:287
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:291
 msgid "Pinned"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:304
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:308
 msgid "History"
 msgstr "Geschichte"
 
