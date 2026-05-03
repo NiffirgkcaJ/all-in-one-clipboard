@@ -1,26 +1,33 @@
 import { dgettext } from 'gettext';
 
+// Private Constant
 const DATA_DOMAIN = 'all-in-one-clipboard-content';
 
 /**
- * Parses the categorized `emojis.json` format into a flat list of
- * standardized emoji objects that the application can easily use.
+ * EmojiJsonParser
+ *
+ * Parses the categorized emojis.json format into a flat list of standardized emoji objects.
  * Applies localization to category names, emoji names, and keywords.
  */
 export class EmojiJsonParser {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * @param {string} [extensionUUID] - The UUID of the extension, for logging purposes.
+     * Initializes the parser.
+     *
+     * @param {string} [extensionUUID] The UUID of the extension, for logging purposes.
      */
     constructor(extensionUUID = 'EmojiJsonParser') {
         this._uuid = extensionUUID;
     }
 
     /**
-     * Transforms the raw parsed data from the `emojis.json` file.
+     * Transforms the raw parsed data from the emojis.json file.
      *
-     * @param {Array<object>} rawCategoryData - The array parsed directly from `emojis.json`.
-     * @returns {Array<object>} A flattened array of standardized emoji objects.
-     *   Each object includes `category`, `char`, `name`, `skinToneSupport`, and `keywords`.
+     * @param {Array<object>} jsonData The array parsed directly from emojis.json.
+     * @returns {Array<object>} A flattened array of standardized emoji objects. Each object includes category, char, name, skinToneSupport, and keywords.
      */
     parse(jsonData) {
         const rawCategoryData = jsonData.data;

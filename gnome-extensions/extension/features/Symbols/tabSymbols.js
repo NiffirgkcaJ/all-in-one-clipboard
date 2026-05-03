@@ -14,13 +14,13 @@ import { SymbolsViewRenderer } from './view/symbolsViewRenderer.js';
 import { SymbolsSettings, SymbolsUI } from './constants/symbolsConstants.js';
 
 /**
+ * SymbolsTabContent
+ *
  * A content widget for the "Symbols" tab.
+ * This class acts as a controller that configures and manages a CategorizedItemViewer component to display and interact with symbols.
  *
- * This class acts as a controller that configures and manages a
- * `CategorizedItemViewer` component to display and interact with symbols.
- *
- * @fires set-main-tab-bar-visibility - Requests to show or hide the main tab bar.
- * @fires navigate-to-main-tab - Requests a navigation to a different main tab.
+ * @fires set-main-tab-bar-visibility Requests to show or hide the main tab bar.
+ * @fires navigate-to-main-tab Requests a navigation to a different main tab.
  */
 export const SymbolsTabContent = GObject.registerClass(
     {
@@ -30,6 +30,16 @@ export const SymbolsTabContent = GObject.registerClass(
         },
     },
     class SymbolsTabContent extends St.Bin {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
+        /**
+         * Initialize the Symbols tab content.
+         *
+         * @param {object} extension The main extension instance.
+         * @param {Gio.Settings} settings The GSettings instance for the extension.
+         */
         constructor(extension, settings) {
             super({
                 style_class: 'symbols-tab-content',
@@ -84,6 +94,7 @@ export const SymbolsTabContent = GObject.registerClass(
 
         /**
          * Applies the user's preference for always showing the main tab back button.
+         *
          * @private
          */
         _applyBackButtonPreference() {
@@ -98,8 +109,9 @@ export const SymbolsTabContent = GObject.registerClass(
         /**
          * Handles the 'item-selected' signal from the viewer.
          * Copies the selected symbol string to the clipboard.
-         * @param {string} jsonPayload - The JSON string payload from the signal.
-         * @param {Extension} extension - The main extension instance.
+         *
+         * @param {string} jsonPayload The JSON string payload from the signal.
+         * @param {Extension} extension The main extension instance.
          * @private
          */
         async _onItemSelected(jsonPayload, extension) {
@@ -122,7 +134,7 @@ export const SymbolsTabContent = GObject.registerClass(
         }
 
         // ========================================================================
-        // Public Methods & Lifecycle
+        // Public Methods
         // ========================================================================
 
         /**
@@ -148,6 +160,10 @@ export const SymbolsTabContent = GObject.registerClass(
         async clearExternalSearch() {
             this._viewer?.clearExternalSearch({ focus: false });
         }
+
+        // ========================================================================
+        // Lifecycle
+        // ========================================================================
 
         /**
          * Cleans up resources when the widget is destroyed.

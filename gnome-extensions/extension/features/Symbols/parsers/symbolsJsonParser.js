@@ -1,28 +1,33 @@
 import { dgettext } from 'gettext';
 
+// Private Constant
 const DATA_DOMAIN = 'all-in-one-clipboard-content';
 
 /**
- * Parses the `symbols.json` format into a flat list of standardized
- * symbol objects that the application can easily use.
+ * SymbolsJsonParser
+ *
+ * Parses the symbols.json format into a flat list of standardized symbol objects.
  * Applies localization to category and symbol names.
  */
 export class SymbolsJsonParser {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * @param {string} [extensionUUID] - The UUID of the extension, for logging purposes.
+     * Initializes the parser.
+     *
+     * @param {string} [extensionUUID] The UUID of the extension, for logging purposes.
      */
     constructor(extensionUUID = 'SymbolsJsonParser') {
         this._uuid = extensionUUID;
     }
 
     /**
-     * Transforms the raw parsed data from the `symbols.json` file.
-     * The input format is an array of objects, where each object has a 'name'
-     * for the category and a 'symbols' array of symbol objects.
+     * Transforms the raw parsed data from the symbols.json file.
      *
-     * @param {Array<object>} rawCategoryData - The array parsed directly from `symbols.json`.
-     * @returns {Array<object>} A flattened array of standardized symbol objects.
-     *   Each object includes `symbol`, `name`, `category`, `codepoint`, and `keywords`.
+     * @param {Array<object>} jsonData The array parsed directly from symbols.json.
+     * @returns {Array<object>} A flattened array of standardized symbol objects. Each object includes symbol, name, category, codepoint, and keywords.
      */
     parse(jsonData) {
         const rawCategoryData = jsonData.data;

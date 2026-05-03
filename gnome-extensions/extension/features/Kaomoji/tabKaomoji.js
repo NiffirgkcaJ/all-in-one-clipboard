@@ -14,13 +14,13 @@ import { KaomojiViewRenderer } from './view/kaomojiViewRenderer.js';
 import { KaomojiSettings, KaomojiUI } from './constants/kaomojiConstants.js';
 
 /**
+ * KaomojiTabContent
+ *
  * A content widget for the "Kaomoji" tab.
+ * This class acts as a controller that configures and manages a CategorizedItemViewer component to display and interact with kaomojis.
  *
- * This class acts as a controller that configures and manages a
- * `CategorizedItemViewer` component to display and interact with kaomojis.
- *
- * @fires set-main-tab-bar-visibility - Requests to show or hide the main tab bar.
- * @fires navigate-to-main-tab - Requests a navigation to a different main tab.
+ * @fires set-main-tab-bar-visibility Requests to show or hide the main tab bar.
+ * @fires navigate-to-main-tab Requests a navigation to a different main tab.
  */
 export const KaomojiTabContent = GObject.registerClass(
     {
@@ -30,6 +30,16 @@ export const KaomojiTabContent = GObject.registerClass(
         },
     },
     class KaomojiTabContent extends St.Bin {
+        // ========================================================================
+        // Initialization
+        // ========================================================================
+
+        /**
+         * Initialize the Kaomoji tab content.
+         *
+         * @param {object} extension The main extension instance.
+         * @param {Gio.Settings} settings The GSettings instance for the extension.
+         */
         constructor(extension, settings) {
             super({
                 style_class: 'kaomoji-tab-content',
@@ -84,6 +94,7 @@ export const KaomojiTabContent = GObject.registerClass(
 
         /**
          * Applies the user's preference for always showing the main tab back button.
+         *
          * @private
          */
         _applyBackButtonPreference() {
@@ -98,8 +109,9 @@ export const KaomojiTabContent = GObject.registerClass(
         /**
          * Handles the 'item-selected' signal from the viewer.
          * Copies the selected kaomoji string to the clipboard.
-         * @param {string} jsonPayload - The JSON string payload from the signal.
-         * @param {Extension} extension - The main extension instance.
+         *
+         * @param {string} jsonPayload The JSON string payload from the signal.
+         * @param {Extension} extension The main extension instance.
          * @private
          */
         async _onItemSelected(jsonPayload, extension) {
@@ -122,7 +134,7 @@ export const KaomojiTabContent = GObject.registerClass(
         }
 
         // ========================================================================
-        // Public Methods & Lifecycle
+        // Public Methods
         // ========================================================================
 
         /**
@@ -148,6 +160,10 @@ export const KaomojiTabContent = GObject.registerClass(
         async clearExternalSearch() {
             this._viewer?.clearExternalSearch({ focus: false });
         }
+
+        // ========================================================================
+        // Lifecycle
+        // ========================================================================
 
         /**
          * Cleans up resources when the widget is destroyed.

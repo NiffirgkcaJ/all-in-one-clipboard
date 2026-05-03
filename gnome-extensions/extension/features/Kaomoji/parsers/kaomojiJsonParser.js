@@ -1,26 +1,33 @@
 import { dgettext } from 'gettext';
 
+// Private Constant
 const DATA_DOMAIN = 'all-in-one-clipboard-content';
 
 /**
- * Parses the nested `kaomojis.json` format into a flat list of
- * standardized kaomoji objects that the application can easily use.
+ * KaomojiJsonParser
+ *
+ * Parses the nested kaomojis.json format into a flat list of standardized kaomoji objects.
  * Applies localization to category names, descriptions, and keywords.
  */
 export class KaomojiJsonParser {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * @param {string} [extensionUUID] - The UUID of the extension, for logging purposes.
+     * Initializes the parser.
+     *
+     * @param {string} [extensionUUID] The UUID of the extension, for logging purposes.
      */
     constructor(extensionUUID = 'KaomojiJsonParser') {
         this._uuid = extensionUUID;
     }
 
     /**
-     * Transforms the raw parsed data from the `kaomojis.json` file.
+     * Transforms the raw parsed data from the kaomojis.json file.
      *
-     * @param {Array<object>} rawGreaterCategoryData - The array parsed directly from `kaomojis.json`.
-     * @returns {Array<object>} A flattened array of standardized kaomoji objects.
-     *   Each object includes `kaomoji`, `description`, `innerCategory`, `greaterCategory`, and `keywords`.
+     * @param {Array<object>} jsonData The array parsed directly from kaomojis.json.
+     * @returns {Array<object>} A flattened array of standardized kaomoji objects. Each object includes kaomoji, description, innerCategory, greaterCategory, and keywords.
      */
     parse(jsonData) {
         const rawGreaterCategoryData = jsonData.data;

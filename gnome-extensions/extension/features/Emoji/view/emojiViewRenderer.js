@@ -8,27 +8,34 @@ import { EmojiModifier } from '../logic/emojiModifier.js';
 import { EmojiCategoryIcons, EmojiUI } from '../constants/emojiConstants.js';
 
 /**
- * EmojiViewRenderer - Handles rendering of emoji UI components
+ * EmojiViewRenderer
  *
- * This class encapsulates all view rendering logic for the Emoji tab,
- * including grid items, category buttons, and search filtering.
+ * This class encapsulates all view rendering logic for the Emoji tab, including grid items, category buttons, and search filtering.
  */
 export class EmojiViewRenderer {
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+
     /**
-     * Initialize the view renderer
+     * Initialize the view renderer.
      *
-     * @param {object} context - The parent tab context with necessary data
+     * @param {object} context The parent tab context with necessary data.
      */
     constructor(context) {
         this._context = context;
     }
 
+    // ========================================================================
+    // Rendering
+    // ========================================================================
+
     /**
-     * Search filter function for emojis
+     * Search filter function for emojis.
      *
-     * @param {object} item - The emoji data object
-     * @param {string} searchText - The user's search text
-     * @returns {boolean} True if the item matches the search
+     * @param {object} item The emoji data object.
+     * @param {string} searchText The user's search text.
+     * @returns {boolean} True if the item matches the search.
      */
     searchFilter(item, searchText) {
         const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
@@ -45,10 +52,10 @@ export class EmojiViewRenderer {
     }
 
     /**
-     * Renders a grid item button for an emoji
+     * Renders a grid item button for an emoji.
      *
-     * @param {object} itemData - The emoji data object
-     * @returns {St.Button} The configured button for the grid
+     * @param {object} itemData The emoji data object.
+     * @returns {St.Button} The configured button for the grid.
      */
     renderGridItem(itemData) {
         const originalChar = itemData.char || itemData.value;
@@ -73,10 +80,10 @@ export class EmojiViewRenderer {
     }
 
     /**
-     * Renders a category tab button
+     * Renders a category tab button.
      *
-     * @param {string} categoryId - The name of the category
-     * @returns {St.Button} The configured button for the category tab bar
+     * @param {string} categoryId The name of the category.
+     * @returns {St.Button} The configured button for the category tab bar.
      */
     renderCategoryButton(categoryId) {
         const lower = categoryId.toLowerCase();

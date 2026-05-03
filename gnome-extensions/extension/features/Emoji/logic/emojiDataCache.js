@@ -4,11 +4,16 @@ import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
 
-let _skinnableCharSetCache = null;
-let _cachePromise = null;
-
+// Unicode Control Characters
 const ZWJ_CHAR = '\u200D';
 const VS16_CHAR = '\uFE0F';
+
+// ========================================================================
+// State
+// ========================================================================
+
+let _skinnableCharSetCache = null;
+let _cachePromise = null;
 
 /**
  * A singleton cache for the pre-processed set of skinnable emoji characters.
@@ -27,7 +32,7 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            // Use IOResource.read() which handles resource:// URIs correctly
+            // Use IOResource.read() which handles resource:// URIs correctly.
             const bytes = await IOResource.read(ResourceItem.EMOJI);
             if (!bytes) {
                 throw new Error('Failed to load emojis.json from GResource.');
@@ -60,8 +65,8 @@ export function getSkinnableCharSet() {
 
 /**
  * Resets the singleton cache.
- * This should be called from the main extension's disable() method to ensure
- * a clean state on extension reload, which is crucial for development.
+ * This should be called from the main extension's disable() method.
+ * It ensures a clean state on extension reload, which is crucial for development.
  */
 export function destroySkinnableCharSetCache() {
     _skinnableCharSetCache = null;

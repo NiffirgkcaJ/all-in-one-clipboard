@@ -1,6 +1,10 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// Symbols tab definition
+/**
+ * MenuDefinitionSymbols
+ *
+ * Definition for the symbols tab in the main menu.
+ */
 export const MenuDefinitionSymbols = {
     id: 'Symbols',
     name: () => _('Symbols'),
@@ -9,8 +13,13 @@ export const MenuDefinitionSymbols = {
     isFullView: true,
     settingKey: 'enable-symbols-tab',
 
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
      * Creates the content actor for the symbols tab.
+     *
      * @param {Extension} extension Parent extension instance.
      * @param {Gio.Settings} settings Extension settings configuration.
      * @returns {Promise<Clutter.Actor>} The content actor for the symbols tab.

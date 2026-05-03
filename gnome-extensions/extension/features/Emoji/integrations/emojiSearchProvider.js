@@ -6,11 +6,21 @@ import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
 import { EmojiProvider } from '../constants/emojiConstants.js';
 import { EmojiViewRenderer } from '../view/emojiViewRenderer.js';
 
+// Private Resources
 const _emojiSearchRenderer = new EmojiViewRenderer(null);
+
+// ========================================================================
+// State
+// ========================================================================
+
 let _emojiCatalogItems = [];
 let _emojiCatalogPromise = null;
 let _emojiExtensionUuid = 'EmojiSearchProvider';
 let _isProviderRegistered = false;
+
+// ========================================================================
+// Internal Helpers
+// ========================================================================
 
 /**
  * Loads the emoji catalog from the extension's resources, parsing it into searchable items.
@@ -41,6 +51,10 @@ async function loadEmojiCatalog() {
 
     return _emojiCatalogPromise;
 }
+
+// ========================================================================
+// Public API
+// ========================================================================
 
 /**
  * Registers the Emoji search provider in the shared Search Hub.

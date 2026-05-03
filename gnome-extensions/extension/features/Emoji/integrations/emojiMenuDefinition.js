@@ -1,6 +1,10 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// Emoji tab definition
+/**
+ * MenuDefinitionEmoji
+ *
+ * Definition for the emoji tab in the main menu.
+ */
 export const MenuDefinitionEmoji = {
     id: 'Emoji',
     name: () => _('Emoji'),
@@ -9,8 +13,13 @@ export const MenuDefinitionEmoji = {
     isFullView: true,
     settingKey: 'enable-emoji-tab',
 
+    // ========================================================================
+    // Public API
+    // ========================================================================
+
     /**
      * Creates the content actor for the emoji tab.
+     *
      * @param {Extension} extension Parent extension instance.
      * @param {Gio.Settings} settings Extension settings configuration.
      * @returns {Promise<Clutter.Actor>} The content actor for the emoji tab.

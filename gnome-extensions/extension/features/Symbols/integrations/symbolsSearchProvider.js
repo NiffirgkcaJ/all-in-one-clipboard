@@ -6,11 +6,21 @@ import { SymbolsJsonParser } from '../parsers/symbolsJsonParser.js';
 import { SymbolsProvider } from '../constants/symbolsConstants.js';
 import { SymbolsViewRenderer } from '../view/symbolsViewRenderer.js';
 
+// Private Resource
 const _symbolsSearchRenderer = new SymbolsViewRenderer();
+
+// ========================================================================
+// State
+// ========================================================================
+
 let _symbolsCatalogItems = [];
 let _symbolsCatalogPromise = null;
 let _symbolsExtensionUuid = 'SymbolsSearchProvider';
 let _isProviderRegistered = false;
+
+// ========================================================================
+// Internal Helpers
+// ========================================================================
 
 /**
  * Loads the symbols catalog from the extension's resources, parsing it into searchable items.
@@ -41,6 +51,10 @@ async function loadSymbolsCatalog() {
 
     return _symbolsCatalogPromise;
 }
+
+// ========================================================================
+// Public API
+// ========================================================================
 
 /**
  * Registers the Symbols search provider in the shared Search Hub.

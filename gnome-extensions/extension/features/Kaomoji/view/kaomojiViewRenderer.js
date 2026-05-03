@@ -3,41 +3,37 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 /**
- * KaomojiViewRenderer - Handles rendering of kaomoji UI components
+ * KaomojiViewRenderer
  *
- * This class encapsulates all view rendering logic for the Kaomoji tab,
- * including grid items, category buttons, and search filtering.
+ * This class encapsulates all view rendering logic for the Kaomoji tab, including grid items, category buttons, and search filtering.
  */
 export class KaomojiViewRenderer {
+    // ========================================================================
+    // Rendering
+    // ========================================================================
+
     /**
-     * Search filter function for kaomojis
+     * Search filter function for kaomojis.
      *
-     * @param {object} item - The kaomoji data object
-     * @param {string} searchText - The user's search text
-     * @returns {boolean} True if the item matches the search
+     * @param {object} item The kaomoji data object.
+     * @param {string} searchText The user's search text.
+     * @returns {boolean} True if the item matches the search.
      */
     searchFilter(item, searchText) {
         const lowerSearchText = searchText.toLowerCase();
 
-        // Check for the new 'keywords' array first for efficient searching
         if (item.keywords && Array.isArray(item.keywords)) {
             return item.keywords.some((k) => k.toLowerCase().includes(lowerSearchText));
         }
 
-        // Fallback search for very old cache items that might not have a keywords array
-        const kaomojiString = item.kaomoji || item.char || item.value || '';
-        return (
-            kaomojiString.toLowerCase().includes(lowerSearchText) ||
-            (item.innerCategory && item.innerCategory.toLowerCase().includes(lowerSearchText)) ||
-            (item.greaterCategory && item.greaterCategory.toLowerCase().includes(lowerSearchText))
-        );
+        return false;
     }
 
     /**
-     * Renders a grid item button for a kaomoji
+     * Renders a grid item button for a kaomoji.
      *
-     * @param {object} itemData - The kaomoji data object
-     * @returns {St.Button} The configured button for the grid
+     * @param {object} itemData The kaomoji data object.
+     * @returns {St.Button} The configured button for the grid.
      */
     renderGridItem(itemData) {
         const displayString = itemData.kaomoji || itemData.char || itemData.value;
@@ -61,10 +57,10 @@ export class KaomojiViewRenderer {
     }
 
     /**
-     * Renders a category tab button
+     * Renders a category tab button.
      *
-     * @param {string} categoryId - The name of the category
-     * @returns {St.Button} The configured button for the category tab bar
+     * @param {string} categoryId The name of the category.
+     * @returns {St.Button} The configured button for the category tab bar.
      */
     renderCategoryButton(categoryId) {
         const button = new St.Button({

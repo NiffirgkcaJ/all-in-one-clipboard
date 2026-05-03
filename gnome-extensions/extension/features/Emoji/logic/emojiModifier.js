@@ -1,27 +1,35 @@
+// Unicode Control Characters
 const ZWJ = '\u200D'; // Zero Width Joiner
-const VS16 = '\uFE0F'; // Variation Selector-16 for emoji presentation
-const HANDSHAKE_CHAR = '\u{1F91D}'; // Handshake Emoji
+const VS16 = '\uFE0F'; // Variation Selector-16
+const HANDSHAKE_CHAR = '\u{1F91D}'; // Handshake
 
 // Standard Unicode Skin Tone Modifiers
 const SKIN_TONE_MODIFIERS = ['🏻', '🏼', '🏽', '🏾', '🏿'];
 
-// Map precomposed multi-person emojis to ZWJ equivalents for applying dual skin tones
+// Map precomposed multi-person emojis to ZWJ equivalents for applying dual skin tones.
 const PRECOMPOSED_TO_ZWJ_MAP = {
-    '\u{1F46D}': '👩‍🤝‍👩', // Women Holding Hands
-    '\u{1F46B}': '👩‍🤝‍👨', // Woman and Man Holding Hands
-    '\u{1F46C}': '👨‍🤝‍👨', // Men Holding Hands
-    '\u{1F48F}': '🧑‍❤️‍💋‍🧑', // Kiss: People
-    '\u{1F491}': '🧑‍❤️‍🧑', // Couple with Heart: People
+    '\u{1F46B}': '👩‍🤝‍👨', // Man and Woman Holding Hands
+    '\u{1F46C}': '👨‍🤝‍👨', // Two Men Holding Hands
+    '\u{1F46D}': '👩‍🤝‍👩', // Two Women Holding Hands
+    '\u{1F48F}': '🧑‍❤️‍💋‍🧑', // Kiss
+    '\u{1F491}': '🧑‍❤️‍🧑', // Couple with Heart
 };
 
 /**
- * A static utility class for analyzing and modifying emoji characters,
- * particularly for applying and removing skin tones.
+ * EmojiModifier
+ *
+ * A static utility class for analyzing and modifying emoji characters.
+ * It is used for applying and removing skin tones.
  */
 export class EmojiModifier {
+    // ========================================================================
+    // Static Methods
+    // ========================================================================
+
     /**
      * Checks if a given emoji character string already contains a skin tone modifier.
-     * @param {string} char - The emoji string to check.
+     *
+     * @param {string} char The emoji string to check.
      * @returns {boolean} True if a skin tone modifier is found.
      */
     static hasSkinTone(char) {
@@ -31,14 +39,13 @@ export class EmojiModifier {
 
     /**
      * Applies custom skin tones to an emoji character based on user settings.
-     * This method handles single characters, ZWJ sequences, and on-the-fly
-     * conversion of older precomposed emojis.
+     * This method handles single characters, ZWJ sequences, and on-the-fly conversion of older precomposed emojis.
      *
-     * @param {string} originalEmojiChar - The base emoji character.
-     * @param {boolean} useCustomTones - Whether custom skin tones are enabled.
-     * @param {string|null} primaryTone - The user's preferred primary skin tone modifier.
-     * @param {string|null} secondaryTone - The user's preferred secondary skin tone modifier.
-     * @param {Set<string>} skinToneableBaseChars - A Set of single base characters known to support skin tones.
+     * @param {string} originalEmojiChar The base emoji character.
+     * @param {boolean} useCustomTones Whether custom skin tones are enabled.
+     * @param {string|null} primaryTone The user's preferred primary skin tone modifier.
+     * @param {string|null} secondaryTone The user's preferred secondary skin tone modifier.
+     * @param {Set<string>} skinToneableBaseChars A Set of single base characters that support skin tones.
      * @returns {string} The emoji character with applied/removed skin tones.
      */
     static applyCustomTones(originalEmojiChar, useCustomTones, primaryTone, secondaryTone, skinToneableBaseChars) {

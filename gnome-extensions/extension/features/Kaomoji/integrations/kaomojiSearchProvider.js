@@ -6,11 +6,21 @@ import { KaomojiJsonParser } from '../parsers/kaomojiJsonParser.js';
 import { KaomojiProvider } from '../constants/kaomojiConstants.js';
 import { KaomojiViewRenderer } from '../view/kaomojiViewRenderer.js';
 
+// Private Resource
 const _kaomojiSearchRenderer = new KaomojiViewRenderer();
+
+// ========================================================================
+// State
+// ========================================================================
+
 let _kaomojiCatalogItems = [];
 let _kaomojiCatalogPromise = null;
 let _kaomojiExtensionUuid = 'KaomojiSearchProvider';
 let _isProviderRegistered = false;
+
+// ========================================================================
+// Internal Helpers
+// ========================================================================
 
 /**
  * Loads the kaomoji catalog from the extension's resources, parsing it into searchable items.
@@ -41,6 +51,10 @@ async function loadKaomojiCatalog() {
 
     return _kaomojiCatalogPromise;
 }
+
+// ========================================================================
+// Public API
+// ========================================================================
 
 /**
  * Registers the Kaomoji search provider in the shared Search Hub.
