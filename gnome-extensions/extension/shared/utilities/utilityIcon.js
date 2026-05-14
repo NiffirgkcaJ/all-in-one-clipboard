@@ -217,57 +217,104 @@ function _setIcon(iconWidget, iconName, options = {}) {
 export function createLogo(config) {
     const basePath = config.basePath || ResourcePath.LOGOS;
     const resourceUri = `${basePath}/${config.icon}`;
-    const file = Gio.File.new_for_uri(resourceUri);
-    let [, contents] = file.load_contents(null);
+    const height = config.height;
+    const area = new St.DrawingArea({ width: height, height });
 
-    const svgText = new TextDecoder().decode(contents);
-    const usesCurrentColor = svgText.includes('currentColor');
+    let disposed = false;
+    area.connect('destroy', () => {
+        disposed = true;
+    });
 
-    if (config.color && usesCurrentColor) {
-        contents = new TextEncoder().encode(svgText.replaceAll('currentColor', config.color));
-    }
+    let handle = null;
+    let dim = null;
+    let svgText = null;
+    let usesCurrentColor = false;
+    let resolvedColor = config.color || null;
 
-    try {
-        let handle = Rsvg.Handle.new_from_data(contents);
-        const dim = handle.get_dimensions();
-        const aspectRatio = dim.width / dim.height;
-        const height = config.height;
-        const width = Math.round(height * aspectRatio);
+    const applySvgContents = (contents) => {
+        svgText = new TextDecoder().decode(contents);
+        usesCurrentColor = svgText.includes('currentColor');
 
-        let resolvedColor = config.color || null;
+        let svgBytes = contents;
+        if (config.color && usesCurrentColor) {
+            svgBytes = new TextEncoder().encode(svgText.replaceAll('currentColor', config.color));
+        }
 
-        const area = new St.DrawingArea({ width, height });
-        area.connect('repaint', () => {
-            const cr = area.get_context();
+        handle = Rsvg.Handle.new_from_data(svgBytes);
+        dim = handle.get_dimensions();
 
-            if (usesCurrentColor && !config.color) {
-                let parentColor = null;
-                try {
-                    const parent = area.get_parent();
-                    if (parent?.get_theme_node) {
-                        const c = parent.get_theme_node().get_color('color');
-                        parentColor = `rgba(${c.red},${c.green},${c.blue},${c.alpha / 255})`;
-                    }
-                } catch {
-                    // Ignore theme node errors
+        if (dim.width > 0 && dim.height > 0) {
+            const aspectRatio = dim.width / dim.height;
+            const width = Math.round(height * aspectRatio);
+            area.set_size(width, height);
+        }
+
+        area.queue_repaint();
+    };
+
+    area.connect('repaint', () => {
+        if (!handle || !dim) {
+            return;
+        }
+
+        const cr = area.get_context();
+
+        if (usesCurrentColor && !config.color) {
+            let parentColor = null;
+            try {
+                const parent = area.get_parent();
+                if (parent?.get_theme_node) {
+                    const c = parent.get_theme_node().get_color('color');
+                    parentColor = `rgba(${c.red},${c.green},${c.blue},${c.alpha / 255})`;
                 }
-
-                if (parentColor && parentColor !== resolvedColor) {
-                    resolvedColor = parentColor;
-                    const resolved = svgText.replaceAll('currentColor', resolvedColor);
-                    handle = Rsvg.Handle.new_from_data(new TextEncoder().encode(resolved));
-                }
+            } catch {
+                // Ignore theme node errors
             }
 
-            const [w, h] = area.get_surface_size();
-            cr.scale(w / dim.width, h / dim.height);
-            handle.render_cairo(cr);
-            cr.$dispose();
-        });
+            if (parentColor && parentColor !== resolvedColor) {
+                resolvedColor = parentColor;
+                const resolved = svgText.replaceAll('currentColor', resolvedColor);
+                try {
+                    handle = Rsvg.Handle.new_from_data(new TextEncoder().encode(resolved));
+                } catch (e) {
+                    console.error(`Failed to update logo color for ${config.icon}:`, e);
+                }
+            }
+        }
 
-        return area;
-    } catch (e) {
-        console.error(`Failed to create logo for ${config.icon}:`, e);
-        return null;
+        const [w, h] = area.get_surface_size();
+        cr.scale(w / dim.width, h / dim.height);
+        handle.render_cairo(cr);
+        cr.$dispose();
+    });
+
+    if (resourceUri.startsWith('resource://')) {
+        try {
+            const resourcePath = resourceUri.replace('resource://', '');
+            const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
+            applySvgContents(bytes.get_data());
+        } catch (e) {
+            console.error(`Failed to create logo for ${config.icon}:`, e);
+        }
+    } else {
+        const file = Gio.File.new_for_uri(resourceUri);
+        file.load_contents_async(null, (source, res) => {
+            if (disposed) {
+                return;
+            }
+
+            try {
+                const [ok, contents] = source.load_contents_finish(res);
+                if (!ok) {
+                    throw new Error('Failed to read logo contents.');
+                }
+
+                applySvgContents(contents);
+            } catch (e) {
+                console.error(`Failed to create logo for ${config.icon}:`, e);
+            }
+        });
     }
+
+    return area;
 }
