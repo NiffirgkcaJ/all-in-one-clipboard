@@ -4,6 +4,9 @@ import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { ServiceJson } from '../services/serviceJson.js';
+import { ServiceText } from '../services/serviceText.js';
+
 /**
  * Adds the "Settings Management" preferences group to the page.
  *
@@ -101,10 +104,16 @@ function handleExportSettings(settings, window) {
                 dataToExport[key] = gvar.deep_unpack();
             }
 
-            const jsonStr = JSON.stringify(dataToExport, null, 4);
-            const bytes = new GLib.Bytes(jsonStr);
+            const jsonStr = ServiceJson.stringifyText(dataToExport, 4);
+            if (!jsonStr) {
+                return;
+            }
+            const bytes = ServiceText.stringifyBytes(jsonStr);
+            if (!bytes) {
+                return;
+            }
 
-            file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.NONE, null, (fileSource, saveResult) => {
+            file.replace_contents_bytes_async(new GLib.Bytes(bytes), null, false, Gio.FileCreateFlags.NONE, null, (fileSource, saveResult) => {
                 try {
                     fileSource.replace_contents_finish(saveResult);
                     showToast(window, _('Settings successfully exported.'));
@@ -158,8 +167,10 @@ function handleImportSettings(settings, window) {
                         throw new Error('Failed to read file contents.');
                     }
 
-                    const jsonStr = new TextDecoder('utf-8').decode(contents);
-                    const importedData = JSON.parse(jsonStr);
+                    const importedData = ServiceJson.parseBytes(contents);
+                    if (!importedData) {
+                        throw new Error('Failed to parse JSON.');
+                    }
                     applyImportedSettings(settings, importedData);
                     showToast(window, _('Settings successfully imported.'));
                 } catch (err) {

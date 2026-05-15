@@ -51,14 +51,14 @@ export const ServiceText = {
      * @param {string} [encoding='utf-8'] Character encoding.
      * @returns {string|null} String or null on error.
      */
-    fromBytes(bytes, encoding = 'utf-8') {
+    parseBytes(bytes, encoding = 'utf-8') {
         if (!bytes) return null;
         try {
             const decrypted = this.decode(bytes);
             const decoder = new TextDecoder(encoding);
             return decoder.decode(decrypted);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceText.fromBytes failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceText.parseBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -69,15 +69,35 @@ export const ServiceText = {
      * @param {string} text String to convert.
      * @returns {Uint8Array|null} Bytes or null on error.
      */
-    toBytes(text) {
+    stringifyBytes(text) {
         if (text === null || text === undefined) return null;
         try {
             const encoder = new TextEncoder();
             const bytes = encoder.encode(text);
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceText.toBytes failed: ${e.message}`);
+            console.error(`[AIO-Clipboard] ServiceText.stringifyBytes failed: ${e.message}`);
             return null;
         }
+    },
+
+    /**
+     * Identity function for text parsing symmetry.
+     *
+     * @param {string} text Input text.
+     * @returns {string} Same text.
+     */
+    parseText(text) {
+        return text;
+    },
+
+    /**
+     * Identity function for text stringification symmetry.
+     *
+     * @param {string} text Input text.
+     * @returns {string} Same text.
+     */
+    stringifyText(text) {
+        return text;
     },
 };

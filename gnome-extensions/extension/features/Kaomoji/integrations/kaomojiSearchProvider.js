@@ -38,7 +38,7 @@ async function loadKaomojiCatalog() {
 
     _kaomojiCatalogPromise = (async () => {
         const resourceContents = await IOResource.read(ResourceItem.KAOMOJI);
-        const rawJsonData = ServiceJson.parse(resourceContents);
+        const rawJsonData = ServiceJson.parseBytes(resourceContents);
         const parser = new KaomojiJsonParser(_kaomojiExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _kaomojiCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

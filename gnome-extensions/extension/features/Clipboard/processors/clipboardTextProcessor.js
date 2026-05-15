@@ -57,7 +57,7 @@ export class TextProcessor {
         if (text && (forceFileSave || text.length > MAX_PREVIEW_LENGTH)) {
             const filename = `${id}.txt`;
             const destPath = GLib.build_filenamev([textsDir, filename]);
-            const success = await IOFile.write(destPath, ServiceText.toBytes(text));
+            const success = await IOFile.write(destPath, ServiceText.stringifyBytes(text));
 
             if (success) {
                 has_full_content = true;

@@ -80,7 +80,7 @@ export const RecentItemsManager = GObject.registerClass(
         async _load() {
             try {
                 if (!this._settings) return;
-                const recents = ServiceJson.parse(await IOFile.read(this._cacheFilePath));
+                const recents = await IOFile.readJson(this._cacheFilePath);
                 if (Array.isArray(recents)) {
                     this._recents = recents;
                     this._pruneRecents();
@@ -106,7 +106,7 @@ export const RecentItemsManager = GObject.registerClass(
          */
         async _save() {
             if (!this._settings) return;
-            await IOFile.write(this._cacheFilePath, ServiceJson.stringify(this._recents));
+            await IOFile.writeJson(this._cacheFilePath, this._recents);
         }
 
         /**
@@ -117,7 +117,8 @@ export const RecentItemsManager = GObject.registerClass(
         addItem(item) {
             if (!this._settings) return;
             if (!item || typeof item.value !== 'string' || item.value.trim() === '') {
-                console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${JSON.stringify(item)}`);
+                const serialized = ServiceJson.stringifyText(item);
+                console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${serialized ?? 'null'}`);
                 return;
             }
             const existingIndex = this._recents.findIndex((r) => r.value === item.value);

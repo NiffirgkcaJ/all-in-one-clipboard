@@ -67,7 +67,7 @@ export class ImageProcessor {
         const filename = `${Date.now()}_${id.substring(0, 8)}.${extension}`;
         const filePath = GLib.build_filenamev([imagesDir, filename]);
 
-        const success = await IOFile.write(filePath, ServiceImage.encode(data));
+        const success = await IOFile.write(filePath, ServiceImage.stringifyBytes(data));
 
         if (!success) {
             console.error('[AIO-Clipboard] ImageProcessor: Failed to save image file');
@@ -160,7 +160,7 @@ export class ImageProcessor {
             if (!bytes) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const success = await IOFile.write(destPath, ServiceImage.encode(bytes));
+            const success = await IOFile.write(destPath, ServiceImage.stringifyBytes(bytes));
 
             if (success && previewsDir) {
                 const previewFilename = item.preview_filename || this._generatePreviewFilename(item.image_filename);
@@ -192,7 +192,7 @@ export class ImageProcessor {
             if (!result?.bytes || result.bytes.length === 0) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const success = await IOFile.write(destPath, ServiceImage.encode(result.bytes));
+            const success = await IOFile.write(destPath, ServiceImage.stringifyBytes(result.bytes));
 
             if (success && previewsDir) {
                 const previewFilename = item.preview_filename || this._generatePreviewFilename(item.image_filename);

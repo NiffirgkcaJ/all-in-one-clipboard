@@ -38,7 +38,7 @@ async function loadEmojiCatalog() {
 
     _emojiCatalogPromise = (async () => {
         const resourceContents = await IOResource.read(ResourceItem.EMOJI);
-        const rawJsonData = ServiceJson.parse(resourceContents);
+        const rawJsonData = ServiceJson.parseBytes(resourceContents);
         const parser = new EmojiJsonParser(_emojiExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _emojiCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

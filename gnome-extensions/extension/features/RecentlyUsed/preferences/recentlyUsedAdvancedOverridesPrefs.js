@@ -2,6 +2,7 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
 
 /**
@@ -174,7 +175,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         }
 
         try {
-            const parsed = JSON.parse(rawValue);
+            const parsed = ServiceJson.parseText(rawValue);
             if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
                 return fallback;
             }
@@ -200,7 +201,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         };
 
         try {
-            settings.set_string(advancedOverridesKey, JSON.stringify(safeRoot));
+            settings.set_string(advancedOverridesKey, ServiceJson.stringifyText(safeRoot));
         } catch (e) {
             console.warn(`[AIO-Clipboard] Failed to write Recently Used advanced overrides: ${e?.message ?? String(e)}`);
         }

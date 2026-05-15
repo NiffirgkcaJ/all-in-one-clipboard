@@ -38,7 +38,7 @@ async function loadSymbolsCatalog() {
 
     _symbolsCatalogPromise = (async () => {
         const resourceContents = await IOResource.read(ResourceItem.SYMBOLS);
-        const rawJsonData = ServiceJson.parse(resourceContents);
+        const rawJsonData = ServiceJson.parseBytes(resourceContents);
         const parser = new SymbolsJsonParser(_symbolsExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _symbolsCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

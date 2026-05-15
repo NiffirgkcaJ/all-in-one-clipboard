@@ -1,6 +1,7 @@
 import GLib from 'gi://GLib';
 
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
+import { ServiceText } from '../../../shared/services/serviceText.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -62,13 +63,14 @@ export class ClipboardCopyService {
      */
     static async _copyImage(itemData, storage) {
         if (itemData.file_uri) {
-            const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
-            clipboardSetContent('text/uri-list', bytes);
+            const uriBytes = ServiceText.stringifyBytes(itemData.file_uri + '\r\n');
+            if (!uriBytes) return false;
+            clipboardSetContent('text/uri-list', new GLib.Bytes(uriBytes));
             return true;
         }
 
         const imagePath = GLib.build_filenamev([storage.imagesDir, itemData.image_filename]);
-        const bytes = ServiceImage.decode(await storage.readRaw(imagePath));
+        const bytes = ServiceImage.parseBytes(await storage.readRaw(imagePath));
 
         if (!bytes) return false;
         clipboardSetContent(ServiceImage.getMimeType(itemData.image_filename), bytes);
@@ -83,8 +85,9 @@ export class ClipboardCopyService {
      * @private
      */
     static _copyFile(itemData) {
-        const bytes = new GLib.Bytes(new TextEncoder().encode(itemData.file_uri + '\r\n'));
-        clipboardSetContent('text/uri-list', bytes);
+        const uriBytes = ServiceText.stringifyBytes(itemData.file_uri + '\r\n');
+        if (!uriBytes) return false;
+        clipboardSetContent('text/uri-list', new GLib.Bytes(uriBytes));
         return true;
     }
 

@@ -26,6 +26,46 @@ export const ServiceImage = {
     },
 
     /**
+     * Parses bytes as image data (alias for decode for symmetry).
+     *
+     * @param {Uint8Array} bytes Raw bytes to parse.
+     * @returns {Uint8Array|null} Decoded image bytes or null.
+     */
+    parseBytes(bytes) {
+        return this.decode(bytes);
+    },
+
+    /**
+     * Serializes image data to bytes (alias for encode for symmetry).
+     *
+     * @param {Uint8Array} bytes Image data to serialize.
+     * @returns {Uint8Array|null} Encoded bytes or null.
+     */
+    stringifyBytes(bytes) {
+        return this.encode(bytes);
+    },
+
+    /**
+     * Identity function for image parsing symmetry.
+     *
+     * @param {Uint8Array} bytes Input bytes.
+     * @returns {Uint8Array} Same bytes.
+     */
+    parseText(bytes) {
+        return bytes;
+    },
+
+    /**
+     * Identity function for image stringification symmetry.
+     *
+     * @param {Uint8Array} bytes Input bytes.
+     * @returns {Uint8Array} Same bytes.
+     */
+    stringifyText(bytes) {
+        return bytes;
+    },
+
+    /**
      * Encrypts image bytes for storage.
      *
      * @param {Uint8Array} bytes Raw image bytes.

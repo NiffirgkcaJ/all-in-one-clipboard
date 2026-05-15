@@ -38,7 +38,7 @@ export function getSkinnableCharSet() {
                 throw new Error('Failed to load emojis.json from GResource.');
             }
 
-            const rawData = ServiceJson.parse(bytes);
+            const rawData = ServiceJson.parseBytes(bytes);
 
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);

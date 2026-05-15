@@ -545,7 +545,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     });
                 });
 
-                const rawData = ServiceJson.parse(contents);
+                const rawData = ServiceJson.parseBytes(contents);
 
                 this._mainData = this._parser.parse(rawData);
                 if (!this._mainData) throw new Error('Parser returned invalid data.');
@@ -909,7 +909,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     const recentItem = { ...itemData, value: clickedValue, char: clickedValue };
                     this._recentItemsManager.addItem(recentItem);
                     const payload = this._config.createSignalPayload(recentItem);
-                    this.emit('item-selected', JSON.stringify(payload));
+                    this.emit('item-selected', ServiceJson.stringifyText(payload));
                 });
 
                 itemButton.connect('key-focus-in', () => {

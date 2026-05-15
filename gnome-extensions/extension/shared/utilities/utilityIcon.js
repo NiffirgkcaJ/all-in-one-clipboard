@@ -3,6 +3,7 @@ import Rsvg from 'gi://Rsvg';
 import St from 'gi://St';
 
 import { ResourcePath } from '../constants/storagePaths.js';
+import { ServiceText } from '../services/serviceText.js';
 
 /**
  * Create a static icon.
@@ -232,12 +233,19 @@ export function createLogo(config) {
     let resolvedColor = config.color || null;
 
     const applySvgContents = (contents) => {
-        svgText = new TextDecoder().decode(contents);
+        const decoded = ServiceText.parseBytes(contents);
+        if (!decoded) {
+            return;
+        }
+        svgText = decoded;
         usesCurrentColor = svgText.includes('currentColor');
 
         let svgBytes = contents;
         if (config.color && usesCurrentColor) {
-            svgBytes = new TextEncoder().encode(svgText.replaceAll('currentColor', config.color));
+            const encoded = ServiceText.stringifyBytes(svgText.replaceAll('currentColor', config.color));
+            if (encoded) {
+                svgBytes = encoded;
+            }
         }
 
         handle = Rsvg.Handle.new_from_data(svgBytes);
@@ -275,7 +283,10 @@ export function createLogo(config) {
                 resolvedColor = parentColor;
                 const resolved = svgText.replaceAll('currentColor', resolvedColor);
                 try {
-                    handle = Rsvg.Handle.new_from_data(new TextEncoder().encode(resolved));
+                    const encoded = ServiceText.stringifyBytes(resolved);
+                    if (encoded) {
+                        handle = Rsvg.Handle.new_from_data(encoded);
+                    }
                 } catch (e) {
                     console.error(`Failed to update logo color for ${config.icon}:`, e);
                 }

@@ -3,6 +3,8 @@ import Soup from 'gi://Soup';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ServiceImage } from '../../../shared/services/serviceImage.js';
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { ServiceText } from '../../../shared/services/serviceText.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -91,7 +93,7 @@ export class LinkProcessor {
 
             const data = bytes.get_data();
             const chunk = data instanceof Uint8Array ? data : new Uint8Array(data);
-            const html = new TextDecoder('utf-8').decode(chunk.slice(0, HTML_CHUNK_SIZE));
+            const html = ServiceText.parseBytes(chunk.slice(0, HTML_CHUNK_SIZE)) || '';
 
             const title = this._extractTitle(html);
             let iconUrl = await this._extractIconUrl(html, url);
@@ -129,7 +131,7 @@ export class LinkProcessor {
             const filename = `${fileBasename}.${ext}`;
             const filePath = GLib.build_filenamev([destinationDir, filename]);
 
-            const success = await IOFile.write(filePath, ServiceImage.encode(result.bytes));
+            const success = await IOFile.write(filePath, ServiceImage.stringifyBytes(result.bytes));
             if (!success) return null;
 
             return filename;
@@ -287,8 +289,8 @@ export class LinkProcessor {
 
             if (message.status_code !== 200 || !bytes) return null;
 
-            const manifestText = new TextDecoder('utf-8').decode(bytes.get_data());
-            const manifest = JSON.parse(manifestText);
+            const manifest = ServiceJson.parseBytes(bytes.get_data());
+            if (!manifest) return null;
 
             if (!manifest.icons || !Array.isArray(manifest.icons)) return null;
 

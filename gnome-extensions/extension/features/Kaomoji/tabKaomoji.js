@@ -6,6 +6,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
+import { ServiceJson } from '../../shared/services/serviceJson.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureKaomojiSearchProviderRegistered } from './integrations/kaomojiSearchProvider.js';
@@ -116,7 +117,7 @@ export const KaomojiTabContent = GObject.registerClass(
          */
         async _onItemSelected(jsonPayload, extension) {
             try {
-                const data = JSON.parse(jsonPayload);
+                const data = ServiceJson.parseText(jsonPayload);
                 const kaomojiToCopy = data.kaomoji;
                 if (!kaomojiToCopy) return;
 

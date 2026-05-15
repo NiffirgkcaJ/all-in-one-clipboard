@@ -38,7 +38,7 @@ export class ContactProcessor {
                 const bytes = await IOResource.read(ResourceItem.COUNTRIES);
 
                 if (bytes) {
-                    const countriesArray = ServiceJson.parse(bytes);
+                    const countriesArray = ServiceJson.parseBytes(bytes);
                     this._countryByDialCode = new Map();
 
                     for (const country of countriesArray) {

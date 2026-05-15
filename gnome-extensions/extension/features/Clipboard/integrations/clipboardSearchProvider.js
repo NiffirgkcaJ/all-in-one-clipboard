@@ -1,3 +1,4 @@
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { ClipboardProvider } from '../constants/clipboardConstants.js';
@@ -32,7 +33,8 @@ function collectClipboardItems(extension) {
     const seenItemIds = new Set();
 
     combinedItems.forEach((item) => {
-        const key = item?.id || item?.value || JSON.stringify(item || {});
+        const fallbackKey = ServiceJson.stringifyText(item || {}) || '{}';
+        const key = item?.id || item?.value || fallbackKey;
         if (seenItemIds.has(key)) {
             return;
         }

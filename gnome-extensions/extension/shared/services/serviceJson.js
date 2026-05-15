@@ -50,14 +50,14 @@ export const ServiceJson = {
      * @param {Uint8Array} bytes Raw bytes to parse.
      * @returns {any|null} Parsed object or null on error.
      */
-    parse(bytes) {
+    parseBytes(bytes) {
         if (!bytes) return null;
         try {
             const decrypted = this.decode(bytes);
             const decoder = new TextDecoder('utf-8');
             return JSON.parse(decoder.decode(decrypted));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceJson.parse failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceJson.parseBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -68,13 +68,45 @@ export const ServiceJson = {
      * @param {any} data Object to serialize.
      * @returns {Uint8Array|null} JSON bytes or null on error.
      */
-    stringify(data) {
+    stringifyBytes(data) {
         try {
             const encoder = new TextEncoder();
             const bytes = encoder.encode(JSON.stringify(data));
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceJson.stringify failed: ${e.message}`);
+            console.error(`[AIO-Clipboard] ServiceJson.stringifyBytes failed: ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Parses a JSON string.
+     *
+     * @param {string} text JSON string to parse.
+     * @returns {any|null} Parsed object or null on error.
+     */
+    parseText(text) {
+        if (typeof text !== 'string' || text.trim().length === 0) return null;
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.warn(`[AIO-Clipboard] ServiceJson.parseText failed: ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Serializes an object to JSON text.
+     *
+     * @param {any} data Object to serialize.
+     * @param {number|string} [space] Indentation for pretty printing.
+     * @returns {string|null} JSON text or null on error.
+     */
+    stringifyText(data, space) {
+        try {
+            return JSON.stringify(data, null, space);
+        } catch (e) {
+            console.error(`[AIO-Clipboard] ServiceJson.stringifyText failed: ${e.message}`);
             return null;
         }
     },

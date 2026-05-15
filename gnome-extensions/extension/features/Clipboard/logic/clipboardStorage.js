@@ -2,7 +2,6 @@ import GLib from 'gi://GLib';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { ServiceText } from '../../../shared/services/serviceText.js';
 import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
 
@@ -119,8 +118,8 @@ export class ClipboardStorage {
      * @returns {Promise<Object>} Object containing history and pinned arrays.
      */
     async loadData() {
-        const history = ServiceJson.parse(await IOFile.read(this._historyFilePath)) || [];
-        const pinned = ServiceJson.parse(await IOFile.read(this._pinnedFilePath)) || [];
+        const history = (await IOFile.readJson(this._historyFilePath)) || [];
+        const pinned = (await IOFile.readJson(this._pinnedFilePath)) || [];
 
         return { history, pinned };
     }
@@ -131,7 +130,7 @@ export class ClipboardStorage {
      * @param {Array} history The history array to save.
      */
     async saveHistory(history) {
-        await IOFile.write(this._historyFilePath, ServiceJson.stringify(history));
+        await IOFile.writeJson(this._historyFilePath, history);
     }
 
     /**
@@ -140,7 +139,7 @@ export class ClipboardStorage {
      * @param {Array} pinned The pinned array to save.
      */
     async savePinned(pinned) {
-        await IOFile.write(this._pinnedFilePath, ServiceJson.stringify(pinned));
+        await IOFile.writeJson(this._pinnedFilePath, pinned);
     }
 
     /**
@@ -175,7 +174,7 @@ export class ClipboardStorage {
             try {
                 const fullPath = GLib.build_filenamev([this._textsDir, `${item.id}.txt`]);
                 const bytes = await IOFile.read(fullPath);
-                return bytes ? ServiceText.fromBytes(bytes) : null;
+                return bytes ? ServiceText.parseBytes(bytes) : null;
             } catch {
                 return null;
             }

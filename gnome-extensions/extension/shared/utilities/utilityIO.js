@@ -1,6 +1,9 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import { ServiceJson } from '../services/serviceJson.js';
+import { ServiceText } from '../services/serviceText.js';
+
 /**
  * File operations for the local filesystem.
  * All methods work with raw bytes.
@@ -32,6 +35,31 @@ export const IOFile = {
             console.error(`[AIO-Clipboard] IOFile.read failed for '${path}': ${e.message}`);
             return null;
         }
+    },
+
+    /**
+     * Reads a file and returns its contents as a UTF-8 string.
+     * @param {string} path Absolute path to the file.
+     * @returns {Promise<string|null>} File contents or null if not found.
+     */
+    async readText(path) {
+        try {
+            const bytes = await this.read(path);
+            return ServiceText.parseBytes(bytes);
+        } catch (e) {
+            console.error(`[AIO-Clipboard] IOFile.readText failed for '${path}': ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Reads a JSON file and parses it using ServiceJson.
+     * @param {string} path Absolute path to the file.
+     * @returns {Promise<any|null>} Parsed object or null on error.
+     */
+    async readJson(path) {
+        const bytes = await this.read(path);
+        return ServiceJson.parseBytes(bytes);
     },
 
     /**
@@ -70,6 +98,30 @@ export const IOFile = {
             console.error(`[AIO-Clipboard] IOFile.write failed for '${path}': ${e.message}`);
             return false;
         }
+    },
+
+    /**
+     * Writes a UTF-8 string to a file and creates parent directories if needed.
+     * @param {string} path Absolute path.
+     * @param {string} text Text to write.
+     * @returns {Promise<boolean>} True if successful.
+     */
+    async writeText(path, text) {
+        const bytes = ServiceText.stringifyBytes(text);
+        if (!bytes) return false;
+        return this.write(path, bytes);
+    },
+
+    /**
+     * Serializes JSON using ServiceJson and writes it to disk.
+     * @param {string} path Absolute path.
+     * @param {any} data Data to serialize.
+     * @returns {Promise<boolean>} True if successful.
+     */
+    async writeJson(path, data) {
+        const bytes = ServiceJson.stringifyBytes(data);
+        if (!bytes) return false;
+        return this.write(path, bytes);
     },
 
     /**
@@ -427,35 +479,38 @@ export const IOFile = {
                     });
                 });
 
-                const deleteChildren = async () => {
-                    return new Promise((resolve, reject) => {
+                const processNextBatch = async () => {
+                    const files = await new Promise((resolve, reject) => {
                         enumerator.next_files_async(50, GLib.PRIORITY_DEFAULT, null, (obj, res) => {
                             try {
-                                const files = obj.next_files_finish(res);
-                                if (files.length === 0) {
-                                    resolve();
-                                    return;
-                                }
-                                const promises = files.map((fileInfo) => {
-                                    const child = fileOrDir.get_child(fileInfo.get_name());
-                                    return this._deleteRecursively(child, true);
-                                });
-                                Promise.all(promises)
-                                    .then(() => {
-                                        deleteChildren().then(resolve).catch(reject);
-                                    })
-                                    .catch(reject);
+                                resolve(obj.next_files_finish(res));
                             } catch (e) {
                                 reject(e);
                             }
                         });
                     });
+
+                    if (!files || files.length === 0) {
+                        return;
+                    }
+
+                    await Promise.all(
+                        files.map((fileInfo) => {
+                            const child = fileOrDir.get_child(fileInfo.get_name());
+                            return this._deleteRecursively(child, true);
+                        }),
+                    );
+
+                    await processNextBatch();
                 };
 
-                await deleteChildren();
-                await new Promise((resolve) => {
-                    enumerator.close_async(GLib.PRIORITY_DEFAULT, null, resolve);
-                });
+                try {
+                    await processNextBatch();
+                } finally {
+                    await new Promise((resolve) => {
+                        enumerator.close_async(GLib.PRIORITY_DEFAULT, null, resolve);
+                    });
+                }
             }
 
             if (deleteSelf) {
@@ -480,6 +535,14 @@ export const IOFile = {
  * Resource operations for read-only GResource bundles.
  */
 export const IOResource = {
+    _normalizePath(uri) {
+        if (!uri) return null;
+        if (uri.startsWith('resource://')) {
+            return uri.replace('resource://', '');
+        }
+        return uri;
+    },
+
     /**
      * Reads a resource from a GResource bundle.
      * @param {string} uri Full resource URI.
@@ -502,5 +565,94 @@ export const IOResource = {
             console.error(`[AIO-Clipboard] IOResource.read failed for '${uri}': ${e.message}`);
             return null;
         }
+    },
+
+    /**
+     * Reads a resource synchronously from a GResource bundle.
+     * @param {string} uri Full resource URI or resource path.
+     * @returns {Uint8Array|null} Contents or null if not found.
+     */
+    readSync(uri) {
+        try {
+            const path = this._normalizePath(uri);
+            if (!path) return null;
+            const bytes = Gio.resources_lookup_data(path, Gio.ResourceLookupFlags.NONE);
+            return bytes.get_data();
+        } catch (e) {
+            console.error(`[AIO-Clipboard] IOResource.readSync failed for '${uri}': ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Checks if a resource exists in the bundle.
+     * @param {string} uri Full resource URI or resource path.
+     * @returns {boolean} True if the resource exists.
+     */
+    exists(uri) {
+        try {
+            const path = this._normalizePath(uri);
+            if (!path) return false;
+            Gio.resources_lookup_data(path, Gio.ResourceLookupFlags.NONE);
+            return true;
+        } catch {
+            return false;
+        }
+    },
+
+    /**
+     * Lists children of a resource directory.
+     * @param {string} uri Full resource URI or resource path.
+     * @returns {Array<string>|null} Array of child names or null on error.
+     */
+    list(uri) {
+        try {
+            const path = this._normalizePath(uri);
+            if (!path) return null;
+            return Gio.resources_enumerate_children(path, Gio.ResourceLookupFlags.NONE) ?? [];
+        } catch (e) {
+            console.warn(`[AIO-Clipboard] IOResource.list failed for '${uri}': ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Reads a resource as UTF-8 text.
+     * @param {string} uri Full resource URI.
+     * @returns {Promise<string|null>} Text contents or null.
+     */
+    async readText(uri) {
+        const bytes = await this.read(uri);
+        return ServiceText.parseBytes(bytes);
+    },
+
+    /**
+     * Reads a resource synchronously as UTF-8 text.
+     * @param {string} uri Full resource URI or resource path.
+     * @returns {string|null} Text contents or null.
+     */
+    readTextSync(uri) {
+        const bytes = this.readSync(uri);
+        return ServiceText.parseBytes(bytes);
+    },
+
+    /**
+     * Reads a resource and parses JSON using ServiceJson.
+     * @param {string} uri Full resource URI.
+     * @returns {Promise<any|null>} Parsed object or null.
+     */
+    async readJson(uri) {
+        const bytes = await this.read(uri);
+        return ServiceJson.parseBytes(bytes);
+    },
+
+    /**
+     * Reads a resource synchronously and parses JSON using ServiceJson.
+     * @param {string} uri Full resource URI or resource path.
+     * @returns {any|null} Parsed object or null.
+     */
+    readJsonSync(uri) {
+        const bytes = this.readSync(uri);
+        return ServiceJson.parseBytes(bytes);
     },
 };

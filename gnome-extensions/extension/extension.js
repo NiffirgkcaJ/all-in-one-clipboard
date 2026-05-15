@@ -8,7 +8,6 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 import { initializeMenuRegistry } from './shared/menu/menuRegistry.js';
 import { IOFile } from './shared/utilities/utilityIO.js';
 import { MenuIndicator } from './shared/menu/menuIndicator.js';
-import { ServiceJson } from './shared/services/serviceJson.js';
 import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
 import { initStorage, FileItem } from './shared/constants/storagePaths.js';
 
@@ -91,7 +90,7 @@ export default class AllInOneClipboardExtension extends Extension {
      * @private
      */
     async _clearRecentFile(absolutePath) {
-        await IOFile.write(absolutePath, ServiceJson.stringify([]));
+        await IOFile.writeJson(absolutePath, []);
     }
 
     // ========================================================================

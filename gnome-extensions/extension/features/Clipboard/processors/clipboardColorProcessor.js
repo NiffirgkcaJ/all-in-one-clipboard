@@ -2,6 +2,7 @@ import Cairo from 'cairo';
 import GLib from 'gi://GLib';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -170,7 +171,7 @@ export class ColorProcessor {
         // Array
         if (text.startsWith('[') && text.endsWith(']')) {
             try {
-                const parsed = JSON.parse(text);
+                const parsed = ServiceJson.parseText(text);
                 if (Array.isArray(parsed)) {
                     colors = parsed.filter((c) => typeof c === 'string' && this._isValidColor(c.trim()));
                 }

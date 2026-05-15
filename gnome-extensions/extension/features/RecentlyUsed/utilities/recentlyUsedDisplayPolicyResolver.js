@@ -1,3 +1,4 @@
+import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { RecentlyUsedLimitMode, RecentlyUsedDisplayMode, RecentlyUsedDefaultPolicy, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
 
 const LIMIT_MODE = RecentlyUsedLimitMode;
@@ -101,7 +102,7 @@ function getSettingsJsonObject(settings, key) {
     }
 
     try {
-        const parsed = JSON.parse(rawValue);
+        const parsed = ServiceJson.parseText(rawValue);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             return null;
         }
@@ -125,7 +126,7 @@ function setSettingsJsonObject(settings, key, value) {
     }
 
     try {
-        settings.set_string(key, JSON.stringify(value));
+        settings.set_string(key, ServiceJson.stringifyText(value));
     } catch {
         // Keep runtime resilient on write failures.
     }
