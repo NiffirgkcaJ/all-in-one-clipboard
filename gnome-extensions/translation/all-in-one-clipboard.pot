@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-15 07:02+0000\n"
+"POT-Creation-Date: 2026-05-17 08:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -364,7 +364,7 @@ msgstr ""
 
 #: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:175
 #: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:184
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:657
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:656
 msgid "Recents"
 msgstr ""
 
@@ -378,7 +378,7 @@ msgid "Trending GIFs"
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
 msgid "No recent items yet."
 msgstr ""
 
@@ -830,7 +830,7 @@ msgid "The selected data will be permanently deleted."
 msgstr ""
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:58
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:203
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:202
 msgid "Cancel"
 msgstr ""
 
@@ -1161,88 +1161,88 @@ msgstr ""
 msgid "Maximum Recent Symbols"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:20
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:19
 msgid "Settings Management"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:21
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:20
 msgid "Manage your extension preferences."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:27
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:74
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:26
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:73
 msgid "Export Settings"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:28
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:27
 msgid "Export your preferences to a JSON file."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:31
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:30
 msgid "Export"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:40
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:141
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:39
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:140
 msgid "Import Settings"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:41
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:40
 msgid "Import your preferences from a JSON file."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:44
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:43
 msgid "Import"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:53
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:52
 msgid "Reset Settings"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:54
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:53
 msgid "Restore all extension settings back to their default values."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:57
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:204
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:56
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:203
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:238
 msgid "Reset"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:81
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:147
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:80
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:146
 msgid "JSON Files"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:119
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:118
 msgid "Settings successfully exported."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:122
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:121
 msgid "Failed to export settings."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:175
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:174
 msgid "Settings successfully imported."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:178
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:177
 msgid "Failed to import settings. Invalid file."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:197
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:196
 msgid "Reset All Settings?"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:198
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:197
 msgid "Are you sure you want to restore all extension settings to their defaults? This action cannot be undone."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:214
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:213
 msgid "Settings successfully reset to defaults."
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:217
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:216
 msgid "Failed to reset settings."
 msgstr ""
 
@@ -1338,18 +1338,18 @@ msgstr ""
 msgid "Restore the original tab order."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:87
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:86
 msgid "Component configuration is invalid. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:582
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:581
 msgid "Error loading data. Check logs."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:859
 msgid "No items available."
 msgstr ""
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
 msgid "No items match your search."
 msgstr ""
