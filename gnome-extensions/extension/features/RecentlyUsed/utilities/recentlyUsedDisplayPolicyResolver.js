@@ -1,4 +1,4 @@
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { IOJson } from '../../../shared/utilities/utilityIO.js';
 import { RecentlyUsedLimitMode, RecentlyUsedDisplayMode, RecentlyUsedDefaultPolicy, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
 
 const LIMIT_MODE = RecentlyUsedLimitMode;
@@ -102,7 +102,7 @@ function getSettingsJsonObject(settings, key) {
     }
 
     try {
-        const parsed = ServiceJson.parseText(rawValue);
+        const parsed = IOJson.parseText(rawValue);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             return null;
         }
@@ -126,7 +126,7 @@ function setSettingsJsonObject(settings, key, value) {
     }
 
     try {
-        settings.set_string(key, ServiceJson.stringifyText(value));
+        settings.set_string(key, IOJson.stringifyText(value));
     } catch {
         // Keep runtime resilient on write failures.
     }

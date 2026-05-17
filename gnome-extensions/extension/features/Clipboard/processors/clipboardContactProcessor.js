@@ -1,6 +1,5 @@
 import { IOResource } from '../../../shared/utilities/utilityIO.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -35,10 +34,9 @@ export class ContactProcessor {
 
         this._initPromise = (async () => {
             try {
-                const bytes = await IOResource.read(ResourceItem.COUNTRIES);
+                const countriesArray = await IOResource.readJson(ResourceItem.COUNTRIES);
 
-                if (bytes) {
-                    const countriesArray = ServiceJson.parseBytes(bytes);
+                if (countriesArray) {
                     this._countryByDialCode = new Map();
 
                     for (const country of countriesArray) {

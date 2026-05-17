@@ -1,10 +1,8 @@
 import GLib from 'gi://GLib';
 
 import { FilePath } from '../../../shared/constants/storagePaths.js';
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceImage } from '../../../shared/services/serviceImage.js';
-import { ServiceText } from '../../../shared/services/serviceText.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
 
@@ -33,7 +31,7 @@ export class GifDownloadService {
      * @returns {Promise<Uint8Array>} The image bytes.
      */
     async fetchImageBytes(url) {
-        const result = await ServiceImage.download(this._httpService.getSession(), url);
+        const result = await IOImage.download(this._httpService.getSession(), url);
         return result?.bytes || null;
     }
 
@@ -55,7 +53,7 @@ export class GifDownloadService {
         }
 
         const bytes = await this.fetchImageBytes(url);
-        await IOFile.write(filePath, ServiceImage.stringifyBytes(bytes));
+        await IOFile.write(filePath, IOImage.stringifyBytes(bytes));
         return filePath;
     }
 
@@ -68,7 +66,7 @@ export class GifDownloadService {
      */
     async downloadAndSave(url, destPath) {
         const bytes = await this.fetchImageBytes(url);
-        await IOFile.write(destPath, ServiceImage.stringifyBytes(bytes));
+        await IOFile.write(destPath, IOImage.stringifyBytes(bytes));
         return bytes;
     }
 
@@ -139,7 +137,7 @@ export class GifDownloadService {
      */
     _setClipboardUri(fileUri) {
         const uriList = fileUri + '\r\n';
-        const bytes = ServiceText.stringifyBytes(uriList);
+        const bytes = IOText.stringifyBytes(uriList);
         if (!bytes) return;
         clipboardSetContent('text/uri-list', new GLib.Bytes(bytes));
     }

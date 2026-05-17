@@ -10,10 +10,9 @@ import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
 import { getRecentItemsManager } from './utilityRecents.js';
-import { IOResource } from './utilityIO.js';
 import { SearchComponent } from './utilitySearch.js';
-import { ServiceJson } from '../services/serviceJson.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
+import { IOJson, IOResource } from './utilityIO.js';
 
 const WIDTH_CHANGE_DEBOUNCE_MS = 200;
 const TAB_SCROLL_POLICY_DEBOUNCE_MS = 50;
@@ -545,7 +544,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     });
                 });
 
-                const rawData = ServiceJson.parseBytes(contents);
+                const rawData = IOJson.parseBytes(contents);
 
                 this._mainData = this._parser.parse(rawData);
                 if (!this._mainData) throw new Error('Parser returned invalid data.');
@@ -909,7 +908,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     const recentItem = { ...itemData, value: clickedValue, char: clickedValue };
                     this._recentItemsManager.addItem(recentItem);
                     const payload = this._config.createSignalPayload(recentItem);
-                    this.emit('item-selected', ServiceJson.stringifyText(payload));
+                    this.emit('item-selected', IOJson.stringifyText(payload));
                 });
 
                 itemButton.connect('key-focus-in', () => {

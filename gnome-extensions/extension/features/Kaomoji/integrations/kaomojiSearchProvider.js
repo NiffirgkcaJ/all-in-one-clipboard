@@ -1,5 +1,4 @@
 import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
 
 import { KaomojiJsonParser } from '../parsers/kaomojiJsonParser.js';
@@ -37,8 +36,7 @@ async function loadKaomojiCatalog() {
     }
 
     _kaomojiCatalogPromise = (async () => {
-        const resourceContents = await IOResource.read(ResourceItem.KAOMOJI);
-        const rawJsonData = ServiceJson.parseBytes(resourceContents);
+        const rawJsonData = await IOResource.readJson(ResourceItem.KAOMOJI);
         const parser = new KaomojiJsonParser(_kaomojiExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _kaomojiCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

@@ -1,7 +1,7 @@
 /**
- * Text encoding and decoding service for byte-level integration with files.
+ * Core text encoding and decoding service for byte-level integration with files.
  */
-export const ServiceText = {
+export const ServiceCoreText = {
     /**
      * Encodes bytes for storage.
      *
@@ -45,7 +45,7 @@ export const ServiceText = {
     },
 
     /**
-     * Converts bytes to a string.
+     * Parses bytes as text.
      *
      * @param {Uint8Array} bytes Raw bytes to convert.
      * @param {string} [encoding='utf-8'] Character encoding.
@@ -58,13 +58,13 @@ export const ServiceText = {
             const decoder = new TextDecoder(encoding);
             return decoder.decode(decrypted);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceText.parseBytes failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceCoreText.parseBytes failed: ${e.message}`);
             return null;
         }
     },
 
     /**
-     * Converts a string to bytes.
+     * Serializes text to bytes.
      *
      * @param {string} text String to convert.
      * @returns {Uint8Array|null} Bytes or null on error.
@@ -76,13 +76,13 @@ export const ServiceText = {
             const bytes = encoder.encode(text);
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceText.stringifyBytes failed: ${e.message}`);
+            console.error(`[AIO-Clipboard] ServiceCoreText.stringifyBytes failed: ${e.message}`);
             return null;
         }
     },
 
     /**
-     * Identity function for text parsing symmetry.
+     * Parses text as text.
      *
      * @param {string} text Input text.
      * @returns {string} Same text.
@@ -92,7 +92,7 @@ export const ServiceText = {
     },
 
     /**
-     * Identity function for text stringification symmetry.
+     * Serializes text to text.
      *
      * @param {string} text Input text.
      * @returns {string} Same text.

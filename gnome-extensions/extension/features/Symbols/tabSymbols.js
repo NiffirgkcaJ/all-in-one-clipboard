@@ -6,7 +6,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
-import { ServiceJson } from '../../shared/services/serviceJson.js';
+import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureSymbolsSearchProviderRegistered } from './integrations/symbolsSearchProvider.js';
@@ -117,7 +117,7 @@ export const SymbolsTabContent = GObject.registerClass(
          */
         async _onItemSelected(jsonPayload, extension) {
             try {
-                const data = ServiceJson.parseText(jsonPayload);
+                const data = IOJson.parseText(jsonPayload);
                 const symbolToCopy = data.symbol;
                 if (!symbolToCopy) return;
 

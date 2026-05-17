@@ -2,8 +2,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 
 import { clipboardGetContent } from '../../../shared/utilities/utilityClipboard.js';
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceImage } from '../../../shared/services/serviceImage.js';
+import { IOFile, IOImage } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -63,11 +62,11 @@ export class ImageProcessor {
         const { data, hash, mimetype, file_uri } = extractedData;
         const id = ProcessorUtils.generateUUID();
 
-        const extension = ServiceImage.getExtension(mimetype);
+        const extension = IOImage.getExtension(mimetype);
         const filename = `${Date.now()}_${id.substring(0, 8)}.${extension}`;
         const filePath = GLib.build_filenamev([imagesDir, filename]);
 
-        const success = await IOFile.write(filePath, ServiceImage.stringifyBytes(data));
+        const success = await IOFile.write(filePath, IOImage.stringifyBytes(data));
 
         if (!success) {
             console.error('[AIO-Clipboard] ImageProcessor: Failed to save image file');
@@ -160,7 +159,7 @@ export class ImageProcessor {
             if (!bytes) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const success = await IOFile.write(destPath, ServiceImage.stringifyBytes(bytes));
+            const success = await IOFile.write(destPath, IOImage.stringifyBytes(bytes));
 
             if (success && previewsDir) {
                 const previewFilename = item.preview_filename || this._generatePreviewFilename(item.image_filename);
@@ -188,11 +187,11 @@ export class ImageProcessor {
         if (!httpSession || !item.source_url || !item.image_filename) return false;
 
         try {
-            const result = await ServiceImage.download(httpSession, item.source_url);
+            const result = await IOImage.download(httpSession, item.source_url);
             if (!result?.bytes || result.bytes.length === 0) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
-            const success = await IOFile.write(destPath, ServiceImage.stringifyBytes(result.bytes));
+            const success = await IOFile.write(destPath, IOImage.stringifyBytes(result.bytes));
 
             if (success && previewsDir) {
                 const previewFilename = item.preview_filename || this._generatePreviewFilename(item.image_filename);

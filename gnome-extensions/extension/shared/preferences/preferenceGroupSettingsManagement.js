@@ -4,8 +4,7 @@ import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import { ServiceJson } from '../services/serviceJson.js';
-import { ServiceText } from '../services/serviceText.js';
+import { IOJson, IOText } from '../utilities/utilityIO.js';
 
 /**
  * Adds the "Settings Management" preferences group to the page.
@@ -104,11 +103,11 @@ function handleExportSettings(settings, window) {
                 dataToExport[key] = gvar.deep_unpack();
             }
 
-            const jsonStr = ServiceJson.stringifyText(dataToExport, 4);
+            const jsonStr = IOJson.stringifyText(dataToExport, 4);
             if (!jsonStr) {
                 return;
             }
-            const bytes = ServiceText.stringifyBytes(jsonStr);
+            const bytes = IOText.stringifyBytes(jsonStr);
             if (!bytes) {
                 return;
             }
@@ -167,7 +166,7 @@ function handleImportSettings(settings, window) {
                         throw new Error('Failed to read file contents.');
                     }
 
-                    const importedData = ServiceJson.parseBytes(contents);
+                    const importedData = IOJson.parseBytes(contents);
                     if (!importedData) {
                         throw new Error('Failed to parse JSON.');
                     }

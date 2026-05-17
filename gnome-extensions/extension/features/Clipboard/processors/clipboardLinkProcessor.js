@@ -1,10 +1,7 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceImage } from '../../../shared/services/serviceImage.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
-import { ServiceText } from '../../../shared/services/serviceText.js';
+import { IOFile, IOImage, IOJson, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -93,7 +90,7 @@ export class LinkProcessor {
 
             const data = bytes.get_data();
             const chunk = data instanceof Uint8Array ? data : new Uint8Array(data);
-            const html = ServiceText.parseBytes(chunk.slice(0, HTML_CHUNK_SIZE)) || '';
+            const html = IOText.parseBytes(chunk.slice(0, HTML_CHUNK_SIZE)) || '';
 
             const title = this._extractTitle(html);
             let iconUrl = await this._extractIconUrl(html, url);
@@ -124,14 +121,14 @@ export class LinkProcessor {
         if (!iconUrl) return null;
 
         try {
-            const result = await ServiceImage.download(this._httpSession, iconUrl);
+            const result = await IOImage.download(this._httpSession, iconUrl);
             if (!result?.bytes || result.bytes.length === 0) return null;
 
             const ext = this._getExtensionFromContentType(result.contentType, iconUrl);
             const filename = `${fileBasename}.${ext}`;
             const filePath = GLib.build_filenamev([destinationDir, filename]);
 
-            const success = await IOFile.write(filePath, ServiceImage.stringifyBytes(result.bytes));
+            const success = await IOFile.write(filePath, IOImage.stringifyBytes(result.bytes));
             if (!success) return null;
 
             return filename;
@@ -289,7 +286,7 @@ export class LinkProcessor {
 
             if (message.status_code !== 200 || !bytes) return null;
 
-            const manifest = ServiceJson.parseBytes(bytes.get_data());
+            const manifest = IOJson.parseBytes(bytes.get_data());
             if (!manifest) return null;
 
             if (!manifest.icons || !Array.isArray(manifest.icons)) return null;

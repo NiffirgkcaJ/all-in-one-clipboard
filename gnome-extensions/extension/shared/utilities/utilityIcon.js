@@ -2,8 +2,9 @@ import Gio from 'gi://Gio';
 import Rsvg from 'gi://Rsvg';
 import St from 'gi://St';
 
+import { IOText } from './utilityIO.js';
+
 import { ResourcePath } from '../constants/storagePaths.js';
-import { ServiceText } from '../services/serviceText.js';
 
 /**
  * Create a static icon.
@@ -233,7 +234,7 @@ export function createLogo(config) {
     let resolvedColor = config.color || null;
 
     const applySvgContents = (contents) => {
-        const decoded = ServiceText.parseBytes(contents);
+        const decoded = IOText.parseBytes(contents);
         if (!decoded) {
             return;
         }
@@ -242,7 +243,7 @@ export function createLogo(config) {
 
         let svgBytes = contents;
         if (config.color && usesCurrentColor) {
-            const encoded = ServiceText.stringifyBytes(svgText.replaceAll('currentColor', config.color));
+            const encoded = IOText.stringifyBytes(svgText.replaceAll('currentColor', config.color));
             if (encoded) {
                 svgBytes = encoded;
             }
@@ -283,7 +284,7 @@ export function createLogo(config) {
                 resolvedColor = parentColor;
                 const resolved = svgText.replaceAll('currentColor', resolvedColor);
                 try {
-                    const encoded = ServiceText.stringifyBytes(resolved);
+                    const encoded = IOText.stringifyBytes(resolved);
                     if (encoded) {
                         handle = Rsvg.Handle.new_from_data(encoded);
                     }

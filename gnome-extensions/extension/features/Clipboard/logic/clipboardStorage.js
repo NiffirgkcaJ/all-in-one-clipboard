@@ -1,9 +1,8 @@
 import GLib from 'gi://GLib';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
-import { ServiceText } from '../../../shared/services/serviceText.js';
 import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
+import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
@@ -174,7 +173,7 @@ export class ClipboardStorage {
             try {
                 const fullPath = GLib.build_filenamev([this._textsDir, `${item.id}.txt`]);
                 const bytes = await IOFile.read(fullPath);
-                return bytes ? ServiceText.parseBytes(bytes) : null;
+                return bytes ? IOText.parseBytes(bytes) : null;
             } catch {
                 return null;
             }

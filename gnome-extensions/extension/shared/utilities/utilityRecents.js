@@ -1,7 +1,6 @@
 import GObject from 'gi://GObject';
 
-import { IOFile } from './utilityIO.js';
-import { ServiceJson } from '../services/serviceJson.js';
+import { IOFile, IOJson } from './utilityIO.js';
 
 const DEFAULT_MAX_RECENTS_FALLBACK = 45;
 
@@ -117,7 +116,7 @@ export const RecentItemsManager = GObject.registerClass(
         addItem(item) {
             if (!this._settings) return;
             if (!item || typeof item.value !== 'string' || item.value.trim() === '') {
-                const serialized = ServiceJson.stringifyText(item);
+                const serialized = IOJson.stringifyText(item);
                 console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${serialized ?? 'null'}`);
                 return;
             }

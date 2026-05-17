@@ -2,11 +2,11 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 /**
- * Image encoding and decoding service for byte-level integration with files.
+ * Core image encoding and decoding service for byte-level integration with files.
  */
-export const ServiceImage = {
+export const ServiceCoreImage = {
     /**
-     * Encodes image bytes for storage.
+     * Encodes bytes for storage.
      *
      * @param {Uint8Array} bytes Raw image bytes.
      * @returns {Uint8Array} Encoded image bytes.
@@ -16,7 +16,7 @@ export const ServiceImage = {
     },
 
     /**
-     * Decodes image bytes from storage.
+     * Decodes bytes from storage.
      *
      * @param {Uint8Array} bytes Stored image bytes.
      * @returns {Uint8Array} Decoded image bytes.
@@ -26,47 +26,7 @@ export const ServiceImage = {
     },
 
     /**
-     * Parses bytes as image data (alias for decode for symmetry).
-     *
-     * @param {Uint8Array} bytes Raw bytes to parse.
-     * @returns {Uint8Array|null} Decoded image bytes or null.
-     */
-    parseBytes(bytes) {
-        return this.decode(bytes);
-    },
-
-    /**
-     * Serializes image data to bytes (alias for encode for symmetry).
-     *
-     * @param {Uint8Array} bytes Image data to serialize.
-     * @returns {Uint8Array|null} Encoded bytes or null.
-     */
-    stringifyBytes(bytes) {
-        return this.encode(bytes);
-    },
-
-    /**
-     * Identity function for image parsing symmetry.
-     *
-     * @param {Uint8Array} bytes Input bytes.
-     * @returns {Uint8Array} Same bytes.
-     */
-    parseText(bytes) {
-        return bytes;
-    },
-
-    /**
-     * Identity function for image stringification symmetry.
-     *
-     * @param {Uint8Array} bytes Input bytes.
-     * @returns {Uint8Array} Same bytes.
-     */
-    stringifyText(bytes) {
-        return bytes;
-    },
-
-    /**
-     * Encrypts image bytes for storage.
+     * Encrypts bytes for storage.
      *
      * @param {Uint8Array} bytes Raw image bytes.
      * @returns {Uint8Array} Encoded image bytes.
@@ -77,13 +37,64 @@ export const ServiceImage = {
     },
 
     /**
-     * Decrypts image bytes from storage.
+     * Decrypts bytes from storage.
      *
      * @param {Uint8Array} bytes Stored image bytes.
      * @returns {Uint8Array} Decoded image bytes.
      */
     _decrypt(bytes) {
         if (!bytes) return null;
+        return bytes;
+    },
+
+    /**
+     * Parses bytes as image.
+     *
+     * @param {Uint8Array} bytes Raw bytes to parse.
+     * @returns {Uint8Array|null} Decoded image bytes or null.
+     */
+    parseBytes(bytes) {
+        if (!bytes) return null;
+        try {
+            return this.decode(bytes);
+        } catch (e) {
+            console.warn(`[AIO-Clipboard] ServiceCoreImage.parseBytes failed: ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Serializes image to bytes.
+     *
+     * @param {Uint8Array} bytes Image data to serialize.
+     * @returns {Uint8Array|null} Encoded bytes or null.
+     */
+    stringifyBytes(bytes) {
+        try {
+            return this.encode(bytes);
+        } catch (e) {
+            console.error(`[AIO-Clipboard] ServiceCoreImage.stringifyBytes failed: ${e.message}`);
+            return null;
+        }
+    },
+
+    /**
+     * Parses text as image.
+     *
+     * @param {Uint8Array} bytes Input bytes.
+     * @returns {Uint8Array} Same bytes.
+     */
+    parseText(bytes) {
+        return bytes;
+    },
+
+    /**
+     * Serializes image to text.
+     *
+     * @param {Uint8Array} bytes Input bytes.
+     * @returns {Uint8Array} Same bytes.
+     */
+    stringifyText(bytes) {
         return bytes;
     },
 
@@ -136,7 +147,7 @@ export const ServiceImage = {
                 });
             });
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceImage.download failed for '${url}': ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceCoreImage.download failed for '${url}': ${e.message}`);
             return null;
         }
     },
@@ -154,7 +165,7 @@ export const ServiceImage = {
             checksum.update(bytes);
             return checksum.get_string();
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceImage.hash failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceCoreImage.hash failed: ${e.message}`);
             return null;
         }
     },

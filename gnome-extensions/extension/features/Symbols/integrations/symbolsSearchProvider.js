@@ -1,5 +1,4 @@
 import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
 
 import { SymbolsJsonParser } from '../parsers/symbolsJsonParser.js';
@@ -37,8 +36,7 @@ async function loadSymbolsCatalog() {
     }
 
     _symbolsCatalogPromise = (async () => {
-        const resourceContents = await IOResource.read(ResourceItem.SYMBOLS);
-        const rawJsonData = ServiceJson.parseBytes(resourceContents);
+        const rawJsonData = await IOResource.readJson(ResourceItem.SYMBOLS);
         const parser = new SymbolsJsonParser(_symbolsExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _symbolsCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

@@ -1,7 +1,7 @@
 /**
- * JSON parsing and serialization service for byte-level integration with files.
+ * Core JSON parsing and serialization service for byte-level integration with files.
  */
-export const ServiceJson = {
+export const ServiceCoreJson = {
     /**
      * Encodes bytes for storage.
      *
@@ -57,13 +57,13 @@ export const ServiceJson = {
             const decoder = new TextDecoder('utf-8');
             return JSON.parse(decoder.decode(decrypted));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceJson.parseBytes failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceCoreJson.parseBytes failed: ${e.message}`);
             return null;
         }
     },
 
     /**
-     * Serializes an object to JSON bytes.
+     * Serializes JSON to bytes.
      *
      * @param {any} data Object to serialize.
      * @returns {Uint8Array|null} JSON bytes or null on error.
@@ -74,13 +74,13 @@ export const ServiceJson = {
             const bytes = encoder.encode(JSON.stringify(data));
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceJson.stringifyBytes failed: ${e.message}`);
+            console.error(`[AIO-Clipboard] ServiceCoreJson.stringifyBytes failed: ${e.message}`);
             return null;
         }
     },
 
     /**
-     * Parses a JSON string.
+     * Parses text as JSON.
      *
      * @param {string} text JSON string to parse.
      * @returns {any|null} Parsed object or null on error.
@@ -90,13 +90,13 @@ export const ServiceJson = {
         try {
             return JSON.parse(text);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceJson.parseText failed: ${e.message}`);
+            console.warn(`[AIO-Clipboard] ServiceCoreJson.parseText failed: ${e.message}`);
             return null;
         }
     },
 
     /**
-     * Serializes an object to JSON text.
+     * Serializes JSON to text.
      *
      * @param {any} data Object to serialize.
      * @param {number|string} [space] Indentation for pretty printing.
@@ -106,7 +106,7 @@ export const ServiceJson = {
         try {
             return JSON.stringify(data, null, space);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceJson.stringifyText failed: ${e.message}`);
+            console.error(`[AIO-Clipboard] ServiceCoreJson.stringifyText failed: ${e.message}`);
             return null;
         }
     },

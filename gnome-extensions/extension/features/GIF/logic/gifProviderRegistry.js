@@ -1,7 +1,7 @@
 import Gio from 'gi://Gio';
 
 import { ResourcePath } from '../../../shared/constants/storagePaths.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { IOJson } from '../../../shared/utilities/utilityIO.js';
 
 import { GifGenericProvider } from './gifGenericProvider.js';
 
@@ -63,7 +63,7 @@ export class GifProviderRegistry {
             const [success, contents] = file.load_contents(null);
             if (!success) return;
 
-            const definition = ServiceJson.parseBytes(contents);
+            const definition = IOJson.parseBytes(contents);
 
             if (this._validateDefinition(definition)) {
                 this._providers.set(definition.id, definition);

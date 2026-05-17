@@ -1,5 +1,4 @@
 import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
@@ -37,8 +36,7 @@ async function loadEmojiCatalog() {
     }
 
     _emojiCatalogPromise = (async () => {
-        const resourceContents = await IOResource.read(ResourceItem.EMOJI);
-        const rawJsonData = ServiceJson.parseBytes(resourceContents);
+        const rawJsonData = await IOResource.readJson(ResourceItem.EMOJI);
         const parser = new EmojiJsonParser(_emojiExtensionUuid);
         const parsedItems = parser.parse(rawJsonData || {});
         _emojiCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];

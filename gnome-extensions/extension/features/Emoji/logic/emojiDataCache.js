@@ -1,6 +1,5 @@
 import { IOResource } from '../../../shared/utilities/utilityIO.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
 
@@ -32,13 +31,10 @@ export function getSkinnableCharSet() {
 
     _cachePromise = (async () => {
         try {
-            // Use IOResource.read() which handles resource:// URIs correctly.
-            const bytes = await IOResource.read(ResourceItem.EMOJI);
-            if (!bytes) {
+            const rawData = await IOResource.readJson(ResourceItem.EMOJI);
+            if (!rawData) {
                 throw new Error('Failed to load emojis.json from GResource.');
             }
-
-            const rawData = ServiceJson.parseBytes(bytes);
 
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);

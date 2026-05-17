@@ -2,7 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
-import { ServiceJson } from '../../../shared/services/serviceJson.js';
+import { IOJson } from '../../../shared/utilities/utilityIO.js';
 
 import { GifProvider } from '../constants/gifConstants.js';
 
@@ -141,7 +141,7 @@ export class GifHttpService {
         });
 
         if (!bytes) throw new GifHttpError('No data received');
-        const parsed = ServiceJson.parseBytes(bytes.get_data());
+        const parsed = IOJson.parseBytes(bytes.get_data());
         if (!parsed) {
             throw new GifHttpError('Invalid JSON response');
         }

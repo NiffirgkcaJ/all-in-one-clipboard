@@ -6,7 +6,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
-import { ServiceJson } from '../../shared/services/serviceJson.js';
+import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
@@ -145,7 +145,7 @@ export const EmojiTabContent = GObject.registerClass(
          * @private
          */
         async _onItemSelected(jsonPayload, extension) {
-            const data = ServiceJson.parseText(jsonPayload);
+            const data = IOJson.parseText(jsonPayload);
             const originalChar = data.char || data.value;
             let charToCopy;
 
