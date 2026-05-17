@@ -1,6 +1,8 @@
 import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 /**
  * GifFetchService
  *
@@ -94,7 +96,7 @@ export const GifFetchService = GObject.registerClass(
             try {
                 return await this._gifManager.getCategories();
             } catch (e) {
-                console.warn(`[AIO-Clipboard] Could not fetch GIF categories: ${e.message}`);
+                Logger.warn(`Could not fetch GIF categories: ${e.message}`);
                 return null;
             }
         }

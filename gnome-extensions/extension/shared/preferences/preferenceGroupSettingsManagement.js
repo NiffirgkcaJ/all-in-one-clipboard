@@ -4,6 +4,8 @@ import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { Logger } from '../utilities/utilityLogger.js';
+
 import { IOJson, IOText } from '../utilities/utilityIO.js';
 
 /**
@@ -83,7 +85,7 @@ function handleExportSettings(settings, window) {
         filters.append(jsonFilter);
         dialog.set_filters(filters);
     } catch (e) {
-        console.warn(`[AIO-Clipboard] Could not setup file filter: ${e.message}`);
+        Logger.warn(`Could not setup file filter: ${e.message}`);
     }
 
     dialog.save(window, null, (source, result) => {
@@ -117,13 +119,13 @@ function handleExportSettings(settings, window) {
                     fileSource.replace_contents_finish(saveResult);
                     showToast(window, _('Settings successfully exported.'));
                 } catch (err) {
-                    console.error(`[AIO-Clipboard] Failed to write settings file: ${err.message}`);
+                    Logger.error(`Failed to write settings file: ${err.message}`);
                     showToast(window, _('Failed to export settings.'));
                 }
             });
         } catch (e) {
             if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
-                console.error(`[AIO-Clipboard] Error during export dialog: ${e.message}`);
+                Logger.error(`Error during export dialog: ${e.message}`);
             }
         }
     });
@@ -149,7 +151,7 @@ function handleImportSettings(settings, window) {
         filters.append(jsonFilter);
         dialog.set_filters(filters);
     } catch (e) {
-        console.warn(`[AIO-Clipboard] Could not setup file filter: ${e.message}`);
+        Logger.warn(`Could not setup file filter: ${e.message}`);
     }
 
     dialog.open(window, null, (source, result) => {
@@ -173,13 +175,13 @@ function handleImportSettings(settings, window) {
                     applyImportedSettings(settings, importedData);
                     showToast(window, _('Settings successfully imported.'));
                 } catch (err) {
-                    console.error(`[AIO-Clipboard] Failed to parse imported settings: ${err.message}`);
+                    Logger.error(`Failed to parse imported settings: ${err.message}`);
                     showToast(window, _('Failed to import settings. Invalid file.'));
                 }
             });
         } catch (e) {
             if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
-                console.error(`[AIO-Clipboard] Error during import dialog: ${e.message}`);
+                Logger.error(`Error during import dialog: ${e.message}`);
             }
         }
     });
@@ -212,7 +214,7 @@ function handleResetSettings(settings, window) {
                 }
                 showToast(window, _('Settings successfully reset to defaults.'));
             } catch (err) {
-                console.error(`[AIO-Clipboard] Failed to reset settings: ${err.message}`);
+                Logger.error(`Failed to reset settings: ${err.message}`);
                 showToast(window, _('Failed to reset settings.'));
             }
         }
@@ -239,7 +241,7 @@ function applyImportedSettings(settings, importedData) {
         }
 
         if (!availableKeys.includes(key)) {
-            console.warn(`[AIO-Clipboard] Ignoring unknown config key: ${key}`);
+            Logger.warn(`Ignoring unknown config key: ${key}`);
             continue;
         }
 
@@ -250,7 +252,7 @@ function applyImportedSettings(settings, importedData) {
             const newVal = new GLib.Variant(typeStr, value);
             settings.set_value(key, newVal);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] Failed to set config key ${key}: ${e.message}`);
+            Logger.warn(`Failed to set config key ${key}: ${e.message}`);
         }
     }
 }

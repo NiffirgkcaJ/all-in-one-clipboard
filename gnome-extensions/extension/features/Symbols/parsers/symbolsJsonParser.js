@@ -1,5 +1,7 @@
 import { dgettext } from 'gettext';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 // Private Constant
 const DATA_DOMAIN = 'all-in-one-clipboard-content';
 
@@ -34,7 +36,7 @@ export class SymbolsJsonParser {
         const standardizedData = [];
 
         if (!Array.isArray(rawCategoryData)) {
-            console.error(`[AIO-Clipboard] Symbols data is not an array of categories.`);
+            Logger.error(`Symbols data is not an array of categories.`);
             return [];
         }
 

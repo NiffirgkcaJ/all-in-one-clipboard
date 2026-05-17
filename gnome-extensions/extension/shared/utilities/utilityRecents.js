@@ -1,5 +1,6 @@
 import GObject from 'gi://GObject';
 
+import { Logger } from './utilityLogger.js';
 import { IOFile, IOJson } from './utilityIO.js';
 
 const DEFAULT_MAX_RECENTS_FALLBACK = 45;
@@ -54,7 +55,7 @@ export const RecentItemsManager = GObject.registerClass(
                 this._maxItems = this._settings.get_int(this._maxItemsSettingKey);
                 if (this._isLoaded) {
                     this._pruneRecents();
-                    this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after maxItems change failed for ${this._cacheFilePath}: ${e.message}`));
+                    this._save().catch((e) => Logger.warn(`Save after maxItems change failed for ${this._cacheFilePath}: ${e.message}`));
                 }
             });
 
@@ -64,7 +65,7 @@ export const RecentItemsManager = GObject.registerClass(
                 })
                 .catch((e) => {
                     this._isLoaded = true;
-                    console.warn(`[AIO-Clipboard] Initial load of recents from ${this._cacheFilePath} failed: ${e.message}. Recents will be empty.`);
+                    Logger.warn(`Initial load of recents from ${this._cacheFilePath} failed: ${e.message}. Recents will be empty.`);
                     if (this._settings) {
                         this._recents = [];
                         this.emit('recents-changed');
@@ -86,12 +87,12 @@ export const RecentItemsManager = GObject.registerClass(
                 } else {
                     this._recents = [];
                     if (recents !== null) {
-                        console.warn(`[AIO-Clipboard] Recents file ${this._cacheFilePath} content is not an array. Initializing as empty.`);
+                        Logger.warn(`Recents file ${this._cacheFilePath} content is not an array. Initializing as empty.`);
                     }
                 }
             } catch (e) {
                 this._recents = [];
-                console.warn(`[AIO-Clipboard] Error loading recents from ${this._cacheFilePath}: ${e.message}. Initializing as empty.`);
+                Logger.warn(`Error loading recents from ${this._cacheFilePath}: ${e.message}. Initializing as empty.`);
             } finally {
                 if (this._settings) {
                     this.emit('recents-changed');
@@ -117,7 +118,7 @@ export const RecentItemsManager = GObject.registerClass(
             if (!this._settings) return;
             if (!item || typeof item.value !== 'string' || item.value.trim() === '') {
                 const serialized = IOJson.stringifyText(item);
-                console.warn(`[AIO-Clipboard] Attempted to add invalid item to recents for ${this._cacheFilePath}: ${serialized ?? 'null'}`);
+                Logger.warn(`Attempted to add invalid item to recents for ${this._cacheFilePath}: ${serialized ?? 'null'}`);
                 return;
             }
             const existingIndex = this._recents.findIndex((r) => r.value === item.value);
@@ -125,7 +126,7 @@ export const RecentItemsManager = GObject.registerClass(
 
             this._recents.unshift({ ...item });
             this._pruneRecents();
-            this._save().catch((e) => console.warn(`[AIO-Clipboard] Save after addItem failed for ${this._cacheFilePath}: ${e.message}`));
+            this._save().catch((e) => Logger.warn(`Save after addItem failed for ${this._cacheFilePath}: ${e.message}`));
             this.emit('recents-changed');
         }
 

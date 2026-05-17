@@ -1,5 +1,7 @@
 import { dgettext } from 'gettext';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 // Private Constant
 const DATA_DOMAIN = 'all-in-one-clipboard-content';
 
@@ -34,7 +36,7 @@ export class KaomojiJsonParser {
         const standardizedData = [];
 
         if (!Array.isArray(rawGreaterCategoryData)) {
-            console.error(`[AIO-Clipboard] Input data is not an array of greater categories.`);
+            Logger.error(`Input data is not an array of greater categories.`);
             return [];
         }
 

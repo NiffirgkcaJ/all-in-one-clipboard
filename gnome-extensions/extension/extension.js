@@ -7,6 +7,7 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 
 import { initializeMenuRegistry } from './shared/menu/menuRegistry.js';
 import { IOFile } from './shared/utilities/utilityIO.js';
+import { Logger } from './shared/utilities/utilityLogger.js';
 import { MenuIndicator } from './shared/menu/menuIndicator.js';
 import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
 import { initStorage, FileItem } from './shared/constants/storagePaths.js';
@@ -173,7 +174,7 @@ export default class AllInOneClipboardExtension extends Extension {
             this._resource = Gio.Resource.load(this.path + '/resources.gresource');
             Gio.resources_register(this._resource);
         } catch (e) {
-            console.error(`[AIO-Clipboard] FATAL: Could not load GResource file: ${e}`);
+            Logger.error(`Could not load GResource file: ${e}`, 'FATAL');
             return;
         }
 
@@ -193,7 +194,7 @@ export default class AllInOneClipboardExtension extends Extension {
         try {
             this._clipboardManager = new ClipboardManager(this.uuid, this._settings);
         } catch (e) {
-            console.error('[AIO-Clipboard] FATAL: FAILED to initialize ClipboardManager:', e);
+            Logger.error('FAILED to initialize ClipboardManager', 'FATAL', e);
             return;
         }
 

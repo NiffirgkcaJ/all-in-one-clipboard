@@ -2,6 +2,7 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 
 import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
 import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
@@ -93,7 +94,7 @@ export class ClipboardMonitor {
                 return GLib.SOURCE_REMOVE;
             }
 
-            this._processClipboardContent(1).catch((e) => console.error(`[AIO-Clipboard] Monitor error: ${e.message}`));
+            this._processClipboardContent(1).catch((e) => Logger.error(`Monitor error: ${e.message}`));
             this._processClipboardTimeoutId = 0;
             return GLib.SOURCE_REMOVE;
         });
@@ -171,7 +172,7 @@ export class ClipboardMonitor {
                 });
             }
         } catch (e) {
-            console.warn(`[AIO-Clipboard] Process error: ${e.message}`);
+            Logger.warn(`Process error: ${e.message}`);
         }
     }
 

@@ -1,5 +1,7 @@
 import Gio from 'gi://Gio';
 
+import { Logger } from '../utilities/utilityLogger.js';
+
 /**
  * Service-level resource operations for read-only GResource bundles.
  */
@@ -32,7 +34,7 @@ export const ServiceStorageResource = {
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageResource.read failed for '${uri}': ${e.message}`);
+            Logger.error(`ServiceStorageResource.read failed for '${uri}': ${e.message}`);
             return null;
         }
     },
@@ -50,7 +52,7 @@ export const ServiceStorageResource = {
             const bytes = Gio.resources_lookup_data(path, Gio.ResourceLookupFlags.NONE);
             return bytes.get_data();
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageResource.readSync failed for '${uri}': ${e.message}`);
+            Logger.error(`ServiceStorageResource.readSync failed for '${uri}': ${e.message}`);
             return null;
         }
     },
@@ -84,7 +86,7 @@ export const ServiceStorageResource = {
             if (!path) return null;
             return Gio.resources_enumerate_children(path, Gio.ResourceLookupFlags.NONE) ?? [];
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageResource.list failed for '${uri}': ${e.message}`);
+            Logger.warn(`ServiceStorageResource.list failed for '${uri}': ${e.message}`);
             return null;
         }
     },

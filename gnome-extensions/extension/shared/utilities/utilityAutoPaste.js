@@ -1,6 +1,8 @@
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 
+import { Logger } from './utilityLogger.js';
+
 let _instance = null;
 
 /**
@@ -50,7 +52,7 @@ class AutoPaster {
                     keyboard.notify_key(timestamp + 20, KEY_INSERT, Clutter.KeyState.RELEASED);
                     keyboard.notify_key(timestamp + 30, KEY_LEFTSHIFT, Clutter.KeyState.RELEASED);
                 } catch (e) {
-                    console.error('[AIO-Clipboard] Failed to trigger paste:', e);
+                    Logger.error('Failed to trigger paste', e);
                 }
 
                 this._pasteTimeoutId = 0;

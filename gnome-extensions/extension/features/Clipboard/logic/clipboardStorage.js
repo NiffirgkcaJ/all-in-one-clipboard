@@ -1,6 +1,7 @@
 import GLib from 'gi://GLib';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
@@ -554,7 +555,7 @@ export class ClipboardStorage {
                 cleanDir(this._linkPreviewsDir, validLinks),
             ]);
         } catch (e) {
-            console.error(`[AIO-Clipboard] GC Error: ${e.message}`);
+            Logger.error(`GC Error: ${e.message}`);
         }
     }
 

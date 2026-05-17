@@ -1,10 +1,12 @@
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
-import { resolveRecentlyUsedSectionPolicy } from '../utilities/recentlyUsedDisplayPolicyResolver.js';
 import { RecentlyUsedDisplayMode } from '../constants/recentlyUsedPolicyConstants.js';
-import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolveRecentlyUsedSectionLayouts } from './recentlyUsedLayoutResolver.js';
 import { RecentlyUsedSearchStateManager } from './recentlyUsedSearchStateManager.js';
 import { RecentlyUsedSignalManager } from './recentlyUsedSignalManager.js';
+import { resolveRecentlyUsedSectionPolicy } from '../utilities/recentlyUsedDisplayPolicyResolver.js';
 import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
+import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolveRecentlyUsedSectionLayouts } from './recentlyUsedLayoutResolver.js';
 
 /**
  * Normalizes a value to a positive integer, returning fallback when invalid.
@@ -126,13 +128,13 @@ export class RecentlyUsedRuntimeService {
         try {
             const instance = sectionDefinition.createInstance();
             if (!instance || typeof instance !== 'object') {
-                console.warn(`[AIO-Clipboard] Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned a non-object value.`);
+                Logger.warn(`Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned a non-object value.`);
                 return sectionDefinition;
             }
 
             const instanceId = typeof instance.id === 'string' && instance.id.length > 0 ? instance.id : sectionDefinition.id;
             if (instanceId !== sectionDefinition.id) {
-                console.warn(`[AIO-Clipboard] Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned mismatched id '${instanceId}'. Using template id.`);
+                Logger.warn(`Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned mismatched id '${instanceId}'. Using template id.`);
             }
 
             return {
@@ -142,7 +144,7 @@ export class RecentlyUsedRuntimeService {
             };
         } catch (e) {
             const message = e?.message ?? String(e);
-            console.warn(`[AIO-Clipboard] Failed to instantiate Recently Used section '${sectionDefinition.id || '<unknown>'}': ${message}`);
+            Logger.warn(`Failed to instantiate Recently Used section '${sectionDefinition.id || '<unknown>'}': ${message}`);
             return sectionDefinition;
         }
     }
@@ -179,7 +181,7 @@ export class RecentlyUsedRuntimeService {
                         settings: this._settings,
                     });
                 } catch (e) {
-                    console.error(`[AIO-Clipboard] Failed to initialize plugin ${section.id}:`, e);
+                    Logger.error(`Failed to initialize plugin ${section.id}`, e);
                 }
             }),
         );
@@ -301,7 +303,7 @@ export class RecentlyUsedRuntimeService {
                 }),
             );
         } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to process click for ${sectionId}:`, e);
+            Logger.error(`Failed to process click for ${sectionId}`, e);
             return false;
         }
     }

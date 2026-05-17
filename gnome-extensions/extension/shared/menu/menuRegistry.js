@@ -1,3 +1,5 @@
+import { Logger } from '../utilities/utilityLogger.js';
+
 import { getMenuOrder } from './menuOrder.js';
 
 const menuRegistry = new Map();
@@ -28,7 +30,7 @@ async function loadMenuDefinition(orderEntry) {
         return module?.[exportName] || null;
     } catch (e) {
         const message = e?.message ?? String(e);
-        console.error(`[AIO-Clipboard] Failed to load main menu definition '${sectionId}': ${message}`);
+        Logger.error(`Failed to load main menu definition '${sectionId}': ${message}`);
         return null;
     }
 }
@@ -81,7 +83,7 @@ export function registerMenuOrder(sectionEntries = []) {
 
         if (!hasValidId || !hasValidModulePath || !hasValidExportName) {
             const sectionId = hasValidId ? entry.id : '<unknown>';
-            console.warn(`[AIO-Clipboard] Ignoring invalid menu order entry '${sectionId}'. Required fields: id, modulePath, exportName.`);
+            Logger.warn(`Ignoring invalid menu order entry '${sectionId}'. Required fields: id, modulePath, exportName.`);
             return;
         }
 
@@ -104,7 +106,7 @@ export async function initializeMenuRegistry() {
         menuRegistry.clear();
 
         if (menuOrderRegistry.length === 0) {
-            console.warn('[AIO-Clipboard] Menu registry initialized without any registered order entries.');
+            Logger.warn('Menu registry initialized without any registered order entries.');
             return;
         }
 

@@ -1,6 +1,8 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import { Logger } from '../utilities/utilityLogger.js';
+
 /**
  * Service-level file operations for the local filesystem.
  * Owns disk access for raw bytes.
@@ -30,7 +32,7 @@ export const ServiceStorageFile = {
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageFile.read failed for '${path}': ${e.message}`);
+            Logger.error(`ServiceStorageFile.read failed for '${path}': ${e.message}`);
             return null;
         }
     },
@@ -63,13 +65,13 @@ export const ServiceStorageFile = {
                         source.replace_contents_finish(res);
                         resolve(true);
                     } catch (e) {
-                        console.error(`[AIO-Clipboard] ServiceStorageFile.write failed for '${path}': ${e.message}`);
+                        Logger.error(`ServiceStorageFile.write failed for '${path}': ${e.message}`);
                         resolve(false);
                     }
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageFile.write failed for '${path}': ${e.message}`);
+            Logger.error(`ServiceStorageFile.write failed for '${path}': ${e.message}`);
             return false;
         }
     },
@@ -92,14 +94,14 @@ export const ServiceStorageFile = {
                         if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND)) {
                             resolve(true);
                         } else {
-                            console.warn(`[AIO-Clipboard] ServiceStorageFile.delete failed for '${path}': ${e.message}`);
+                            Logger.warn(`ServiceStorageFile.delete failed for '${path}': ${e.message}`);
                             resolve(false);
                         }
                     }
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageFile.delete failed for '${path}': ${e.message}`);
+            Logger.error(`ServiceStorageFile.delete failed for '${path}': ${e.message}`);
             return false;
         }
     },
@@ -186,7 +188,7 @@ export const ServiceStorageFile = {
             return true;
         } catch (e) {
             if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) return true;
-            console.error(`[AIO-Clipboard] ServiceStorageFile.mkdir failed for '${path}': ${e.message}`);
+            Logger.error(`ServiceStorageFile.mkdir failed for '${path}': ${e.message}`);
             return false;
         }
     },
@@ -236,7 +238,7 @@ export const ServiceStorageFile = {
             });
             return files;
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageFile.list failed for '${path}': ${e.message}`);
+            Logger.warn(`ServiceStorageFile.list failed for '${path}': ${e.message}`);
             return null;
         }
     },
@@ -253,7 +255,7 @@ export const ServiceStorageFile = {
             const dir = Gio.File.new_for_path(path);
             await this._deleteRecursively(dir, false);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageFile.empty failed for '${path}': ${e.message}`);
+            Logger.warn(`ServiceStorageFile.empty failed for '${path}': ${e.message}`);
         }
     },
 
@@ -270,7 +272,7 @@ export const ServiceStorageFile = {
             await this._deleteRecursively(file, true);
             return true;
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageFile.remove failed for '${path}': ${e.message}`);
+            Logger.warn(`ServiceStorageFile.remove failed for '${path}': ${e.message}`);
             return false;
         }
     },
@@ -297,13 +299,13 @@ export const ServiceStorageFile = {
                         source.copy_finish(res);
                         resolve(true);
                     } catch (e) {
-                        console.error(`[AIO-Clipboard] ServiceStorageFile.copy failed: ${e.message}`);
+                        Logger.error(`ServiceStorageFile.copy failed: ${e.message}`);
                         resolve(false);
                     }
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageFile.copy failed: ${e.message}`);
+            Logger.error(`ServiceStorageFile.copy failed: ${e.message}`);
             return false;
         }
     },
@@ -330,13 +332,13 @@ export const ServiceStorageFile = {
                         source.move_finish(res);
                         resolve(true);
                     } catch (e) {
-                        console.error(`[AIO-Clipboard] ServiceStorageFile.move failed: ${e.message}`);
+                        Logger.error(`ServiceStorageFile.move failed: ${e.message}`);
                         resolve(false);
                     }
                 });
             });
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceStorageFile.move failed: ${e.message}`);
+            Logger.error(`ServiceStorageFile.move failed: ${e.message}`);
             return false;
         }
     },
@@ -407,7 +409,7 @@ export const ServiceStorageFile = {
 
             await Promise.all(toDelete.map((f) => this.delete(f.path)));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageFile.prune failed for '${path}': ${e.message}`);
+            Logger.warn(`ServiceStorageFile.prune failed for '${path}': ${e.message}`);
         }
     },
 
@@ -488,7 +490,7 @@ export const ServiceStorageFile = {
                 });
             }
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceStorageFile._deleteRecursively failed: ${e.message}`);
+            Logger.warn(`ServiceStorageFile._deleteRecursively failed: ${e.message}`);
         }
     },
 };

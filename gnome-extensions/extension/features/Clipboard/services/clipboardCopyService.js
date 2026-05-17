@@ -1,5 +1,6 @@
 import GLib from 'gi://GLib';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
@@ -43,7 +44,7 @@ export class ClipboardCopyService {
                     return false;
             }
         } catch (e) {
-            console.error(`[AIO-Clipboard] Copy failed: ${e.message}`);
+            Logger.error(`Copy failed: ${e.message}`);
             return false;
         }
     }

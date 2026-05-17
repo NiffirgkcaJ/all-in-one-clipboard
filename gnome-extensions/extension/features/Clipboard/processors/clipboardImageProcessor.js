@@ -2,6 +2,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 
 import { clipboardGetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOImage } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -69,7 +70,7 @@ export class ImageProcessor {
         const success = await IOFile.write(filePath, IOImage.stringifyBytes(data));
 
         if (!success) {
-            console.error('[AIO-Clipboard] ImageProcessor: Failed to save image file');
+            Logger.error('Failed to save image file', 'ImageProcessor');
             return null;
         }
 
@@ -169,7 +170,7 @@ export class ImageProcessor {
 
             return success;
         } catch (e) {
-            console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal image: ${e.message}`);
+            Logger.error(`Failed to heal image: ${e.message}`, 'ImageProcessor');
             return false;
         }
     }
@@ -201,7 +202,7 @@ export class ImageProcessor {
 
             return success;
         } catch (e) {
-            console.error(`[AIO-Clipboard] ImageProcessor: Failed to heal from URL: ${e.message}`);
+            Logger.error(`Failed to heal from URL: ${e.message}`, 'ImageProcessor');
             return false;
         }
     }
@@ -270,7 +271,7 @@ export class ImageProcessor {
             if (!pixbuf) return;
             pixbuf.savev(previewPath, 'png', [], []);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ImageProcessor: Failed to generate preview: ${e.message}`);
+            Logger.warn(`Failed to generate preview: ${e.message}`, 'ImageProcessor');
         }
     }
 }

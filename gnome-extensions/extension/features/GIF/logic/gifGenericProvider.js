@@ -1,3 +1,5 @@
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { GifProvider } from '../constants/gifConstants.js';
 
 /**
@@ -98,7 +100,7 @@ export class GifGenericProvider {
             const json = await this._httpService.fetchJson(url, cancellable);
             return this._parseCategories(json);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] Failed to fetch categories: ${e.message}`);
+            Logger.warn(`Failed to fetch categories: ${e.message}`);
             return [];
         }
     }

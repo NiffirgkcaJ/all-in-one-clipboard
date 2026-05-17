@@ -1,6 +1,7 @@
 import GLib from 'gi://GLib';
 
 import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -61,7 +62,7 @@ export class TextProcessor {
             if (success) {
                 has_full_content = true;
             } else {
-                console.error(`[AIO-Clipboard] TextProcessor: Failed to save text file`);
+                Logger.error(`Failed to save text file`, 'TextProcessor');
             }
         }
 

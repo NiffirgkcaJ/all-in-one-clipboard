@@ -4,6 +4,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { Logger } from './utilityLogger.js';
+
 const MasonryDefaults = {
     COLUMNS: 4,
     SPACING: 2,
@@ -1307,7 +1309,7 @@ export const MasonryLayout = GObject.registerClass(
          */
         _isValidEffectiveWidth(effectiveWidth) {
             if (effectiveWidth <= 0) {
-                console.error('[AIO-Clipboard] Invalid effective width in MasonryLayout, aborting render');
+                Logger.error('Invalid effective width in MasonryLayout, aborting render');
                 return false;
             }
             return true;
@@ -1321,7 +1323,7 @@ export const MasonryLayout = GObject.registerClass(
          */
         _isValidColumnWidth(columnWidth) {
             if (columnWidth <= 0 || !isFinite(columnWidth)) {
-                console.error('[AIO-Clipboard] Invalid column width in MasonryLayout, aborting render');
+                Logger.error('Invalid column width in MasonryLayout, aborting render');
                 return false;
             }
             return true;

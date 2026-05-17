@@ -1,6 +1,7 @@
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FilePath } from '../../../shared/constants/storagePaths.js';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 // ========================================================================
 // State
@@ -52,9 +53,9 @@ class GifCacheManager {
     _runCleanup() {
         try {
             const cacheLimit = this._settings.get_int('gif-cache-limit-mb');
-            IOFile.prune(this._gifCacheDir, cacheLimit).catch((e) => console.warn(`[AIO-Clipboard] GIF cache management failed: ${e.message}`));
+            IOFile.prune(this._gifCacheDir, cacheLimit).catch((e) => Logger.warn(`GIF cache management failed: ${e.message}`));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] Could not initiate GIF cache management: ${e.message}`);
+            Logger.warn(`Could not initiate GIF cache management: ${e.message}`);
         }
     }
 

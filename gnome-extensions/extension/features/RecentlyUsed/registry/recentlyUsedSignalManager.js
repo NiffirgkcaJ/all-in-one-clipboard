@@ -1,3 +1,5 @@
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { RecentlyUsedPolicySettingKeys } from '../constants/recentlyUsedPolicyConstants.js';
 
 /**
@@ -40,14 +42,14 @@ export class RecentlyUsedSignalManager {
 
         if (!obj || typeof obj.disconnect !== 'function') {
             if (warn) {
-                console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used signal descriptor${contextSuffix}: missing disconnect-capable object.`);
+                Logger.warn(`Ignoring invalid Recently Used signal descriptor${contextSuffix}: missing disconnect-capable object.`);
             }
             return null;
         }
 
         if (!Number.isInteger(id) || id <= 0) {
             if (warn) {
-                console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used signal descriptor${contextSuffix}: invalid signal id '${id}'.`);
+                Logger.warn(`Ignoring invalid Recently Used signal descriptor${contextSuffix}: invalid signal id '${id}'.`);
             }
             return null;
         }
@@ -79,12 +81,12 @@ export class RecentlyUsedSignalManager {
                     }) || [];
             } catch (e) {
                 const message = e?.message ?? String(e);
-                console.warn(`[AIO-Clipboard] Recently Used section '${sectionId}' failed to provide signals: ${message}`);
+                Logger.warn(`Recently Used section '${sectionId}' failed to provide signals: ${message}`);
                 continue;
             }
 
             if (!Array.isArray(signals)) {
-                console.warn(`[AIO-Clipboard] Recently Used section '${sectionId}' returned a non-array getSignals() result. Expected Array<{obj,id}>.`);
+                Logger.warn(`Recently Used section '${sectionId}' returned a non-array getSignals() result. Expected Array<{obj,id}>.`);
                 continue;
             }
 

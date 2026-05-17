@@ -1,6 +1,7 @@
 import GObject from 'gi://GObject';
 
 import { ExclusionUtils } from '../../../shared/utilities/utilityExclusions.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { ClipboardContentRouter } from '../services/clipboardContentRouter.js';
 import { ClipboardCopyService } from '../services/clipboardCopyService.js';
@@ -83,7 +84,7 @@ export const ClipboardManager = GObject.registerClass(
             try {
                 ContactProcessor.init();
             } catch (e) {
-                console.error(`[AIO-Clipboard] ContactProcessor init failed: ${e.message}`);
+                Logger.error(`ContactProcessor init failed: ${e.message}`);
             }
 
             const data = await this._storage.loadData();
@@ -105,7 +106,7 @@ export const ClipboardManager = GObject.registerClass(
                     }
                 })
                 .catch((e) => {
-                    console.error(`[AIO-Clipboard] Data healing failed: ${e.message}`);
+                    Logger.error(`Data healing failed: ${e.message}`);
                 });
 
             return true;

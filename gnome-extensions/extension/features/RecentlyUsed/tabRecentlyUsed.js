@@ -3,6 +3,8 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import { Logger } from '../../shared/utilities/utilityLogger.js';
+
 import { RecentlyUsedBaseView } from './view/recentlyUsedBaseView.js';
 import { RecentlyUsedRuntimeService } from './registry/recentlyUsedRuntimeService.js';
 
@@ -66,7 +68,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
 
                 this._createView();
             } catch (e) {
-                console.error('[AIO-Clipboard] Failed to initialize RecentlyUsed tab:', e);
+                Logger.error('Failed to initialize RecentlyUsed tab', e);
             }
         }
 

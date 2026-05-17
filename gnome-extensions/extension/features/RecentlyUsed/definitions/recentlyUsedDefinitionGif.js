@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import St from 'gi://St';
 
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
@@ -226,7 +227,7 @@ function createRecentlyUsedDefinitionGifInstance() {
             } catch (e) {
                 const message = e?.message ?? String(e);
                 if (!message.startsWith('Recently Used Tab')) {
-                    console.warn(`[AIO-Clipboard] Failed to load recent GIF preview: ${message}`);
+                    Logger.warn(`Failed to load recent GIF preview: ${message}`);
                 }
             }
         };

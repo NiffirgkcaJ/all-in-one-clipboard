@@ -3,6 +3,7 @@ import Rsvg from 'gi://Rsvg';
 import St from 'gi://St';
 
 import { IOText } from './utilityIO.js';
+import { Logger } from './utilityLogger.js';
 
 import { ResourcePath } from '../constants/storagePaths.js';
 
@@ -289,7 +290,7 @@ export function createLogo(config) {
                         handle = Rsvg.Handle.new_from_data(encoded);
                     }
                 } catch (e) {
-                    console.error(`Failed to update logo color for ${config.icon}:`, e);
+                    Logger.error(`Failed to update logo color for ${config.icon}`, e);
                 }
             }
         }
@@ -306,7 +307,7 @@ export function createLogo(config) {
             const bytes = Gio.resources_lookup_data(resourcePath, Gio.ResourceLookupFlags.NONE);
             applySvgContents(bytes.get_data());
         } catch (e) {
-            console.error(`Failed to create logo for ${config.icon}:`, e);
+            Logger.error(`Failed to create logo for ${config.icon}`, e);
         }
     } else {
         const file = Gio.File.new_for_uri(resourceUri);
@@ -323,7 +324,7 @@ export function createLogo(config) {
 
                 applySvgContents(contents);
             } catch (e) {
-                console.error(`Failed to create logo for ${config.icon}:`, e);
+                Logger.error(`Failed to create logo for ${config.icon}`, e);
             }
         });
     }

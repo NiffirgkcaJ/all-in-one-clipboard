@@ -6,6 +6,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
 import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
@@ -572,7 +573,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 const payload = itemData.__recentlyUsedClickPayload ?? itemData;
                 Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
                     const message = e?.message ?? String(e);
-                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                    Logger.error(`Recently Used item click failed: ${message}`);
                 });
             });
             this._connectStandardFocusHandler(button);
@@ -602,7 +603,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 const payload = itemData.__recentlyUsedClickPayload ?? itemData;
                 Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
                     const message = e?.message ?? String(e);
-                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                    Logger.error(`Recently Used item click failed: ${message}`);
                 });
             });
             this._connectStandardFocusHandler(button);
@@ -638,7 +639,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 const payload = itemData.__recentlyUsedClickPayload ?? itemData;
                 Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
                     const message = e?.message ?? String(e);
-                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                    Logger.error(`Recently Used item click failed: ${message}`);
                 });
             });
 
@@ -668,7 +669,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 const payload = itemData.__recentlyUsedClickPayload ?? itemData;
                 Promise.resolve(this._onItemClicked(payload, sectionId)).catch((e) => {
                     const message = e?.message ?? String(e);
-                    console.error(`[AIO-Clipboard] Recently Used item click failed: ${message}`);
+                    Logger.error(`Recently Used item click failed: ${message}`);
                 });
             });
 

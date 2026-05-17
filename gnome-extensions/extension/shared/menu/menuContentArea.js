@@ -7,6 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { applySearchHandoffToTab } from '../services/serviceSearchHub.js';
 import { FilePath } from '../constants/storagePaths.js';
 import { IOFile } from '../utilities/utilityIO.js';
+import { Logger } from '../utilities/utilityLogger.js';
 
 import { getMenuSectionByLocalizedName, getMenuOrderedSections } from './menuRegistry.js';
 
@@ -65,7 +66,7 @@ export const MenuContentArea = GObject.registerClass(
                 this._preloadIdleId = 0;
                 if (!this._isDestroyed) {
                     this._preloadAllTabs().catch((e) => {
-                        console.error(`[AIO-Clipboard] Background tab preload failed: ${e.message}`);
+                        Logger.error(`Background tab preload failed: ${e.message}`);
                     });
                 }
                 return GLib.SOURCE_REMOVE;
@@ -124,7 +125,7 @@ export const MenuContentArea = GObject.registerClass(
                 this._swapToTab(newContentActor, oldActor);
                 this._deferSearchHandoff(tabName, newContentActor);
             } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to load tab '${tabName}': ${e.message}\n${e.stack}`);
+                Logger.error(`Failed to load tab '${tabName}': ${e.message}\n${e.stack}`);
 
                 this.emit('set-main-tab-bar-visibility', true);
 
@@ -180,7 +181,7 @@ export const MenuContentArea = GObject.registerClass(
                 targetTab: tabName,
                 tabActor,
             }).catch((e) => {
-                console.error(`[AIO-Clipboard] Search handoff failed for '${tabName}': ${e?.message || e}`);
+                Logger.error(`Search handoff failed for '${tabName}': ${e?.message || e}`);
             });
         }
 
@@ -249,7 +250,7 @@ export const MenuContentArea = GObject.registerClass(
                 })
                 .catch((e) => {
                     this._tabLoadPromises.delete(tabName);
-                    console.error(`[AIO-Clipboard] Failed to cache tab '${tabName}':`, e);
+                    Logger.error(`Failed to cache tab '${tabName}'`, e);
                     throw e;
                 });
 
@@ -376,7 +377,7 @@ export const MenuContentArea = GObject.registerClass(
 
             if (typeof afterTabSelected === 'function') {
                 Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
-                    console.error(`[AIO-Clipboard] Failed to apply tab post-selection hook: ${e?.message || e}`);
+                    Logger.error(`Failed to apply tab post-selection hook: ${e?.message || e}`);
                 });
             }
         }

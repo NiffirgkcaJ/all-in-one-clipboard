@@ -1,3 +1,5 @@
+import { Logger } from '../utilities/utilityLogger.js';
+
 /**
  * Core text encoding and decoding service for byte-level integration with files.
  */
@@ -58,7 +60,7 @@ export const ServiceCoreText = {
             const decoder = new TextDecoder(encoding);
             return decoder.decode(decrypted);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreText.parseBytes failed: ${e.message}`);
+            Logger.warn(`ServiceCoreText.parseBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -76,7 +78,7 @@ export const ServiceCoreText = {
             const bytes = encoder.encode(text);
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceCoreText.stringifyBytes failed: ${e.message}`);
+            Logger.error(`ServiceCoreText.stringifyBytes failed: ${e.message}`);
             return null;
         }
     },

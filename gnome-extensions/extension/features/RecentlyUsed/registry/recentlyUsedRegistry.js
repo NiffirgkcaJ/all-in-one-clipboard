@@ -1,5 +1,7 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
 
 const recentlyUsedRegistry = new Map();
@@ -30,7 +32,7 @@ async function loadSectionDefinition(orderEntry) {
         return module?.[exportName] || null;
     } catch (e) {
         const message = e?.message ?? String(e);
-        console.error(`[AIO-Clipboard] Failed to load section definition '${sectionId}': ${message}`);
+        Logger.error(`Failed to load section definition '${sectionId}': ${message}`);
         return null;
     }
 }
@@ -78,7 +80,7 @@ export async function initializeRecentlyUsedRegistry() {
         recentlyUsedRegistry.clear();
 
         if (recentlyUsedOrderRegistry.length === 0) {
-            console.warn('[AIO-Clipboard] Recently Used registry initialized without any registered order entries.');
+            Logger.warn('Recently Used registry initialized without any registered order entries.');
             return;
         }
 
@@ -113,7 +115,7 @@ export function registerRecentlyUsedOrder(sectionEntries = []) {
 
     sectionEntries.forEach((entry) => {
         if (typeof entry === 'string') {
-            console.warn(`[AIO-Clipboard] Ignoring Recently Used order string entry '${entry}'. Expected object with id/modulePath/exportName.`);
+            Logger.warn(`Ignoring Recently Used order string entry '${entry}'. Expected object with id/modulePath/exportName.`);
             return;
         }
 
@@ -127,7 +129,7 @@ export function registerRecentlyUsedOrder(sectionEntries = []) {
 
         if (!hasValidId || !hasValidModulePath || !hasValidExportName) {
             const sectionId = hasValidId ? entry.id : '<unknown>';
-            console.warn(`[AIO-Clipboard] Ignoring invalid Recently Used order entry '${sectionId}'. Required fields: id, modulePath, exportName.`);
+            Logger.warn(`Ignoring invalid Recently Used order entry '${sectionId}'. Required fields: id, modulePath, exportName.`);
             return;
         }
 

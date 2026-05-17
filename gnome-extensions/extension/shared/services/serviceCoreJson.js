@@ -1,3 +1,5 @@
+import { Logger } from '../utilities/utilityLogger.js';
+
 /**
  * Core JSON parsing and serialization service for byte-level integration with files.
  */
@@ -57,7 +59,7 @@ export const ServiceCoreJson = {
             const decoder = new TextDecoder('utf-8');
             return JSON.parse(decoder.decode(decrypted));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreJson.parseBytes failed: ${e.message}`);
+            Logger.warn(`ServiceCoreJson.parseBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -74,7 +76,7 @@ export const ServiceCoreJson = {
             const bytes = encoder.encode(JSON.stringify(data));
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceCoreJson.stringifyBytes failed: ${e.message}`);
+            Logger.error(`ServiceCoreJson.stringifyBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -90,7 +92,7 @@ export const ServiceCoreJson = {
         try {
             return JSON.parse(text);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreJson.parseText failed: ${e.message}`);
+            Logger.warn(`ServiceCoreJson.parseText failed: ${e.message}`);
             return null;
         }
     },
@@ -106,7 +108,7 @@ export const ServiceCoreJson = {
         try {
             return JSON.stringify(data, null, space);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceCoreJson.stringifyText failed: ${e.message}`);
+            Logger.error(`ServiceCoreJson.stringifyText failed: ${e.message}`);
             return null;
         }
     },

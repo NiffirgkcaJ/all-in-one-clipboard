@@ -1,4 +1,5 @@
 import { IOResource } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
@@ -50,7 +51,7 @@ export function getSkinnableCharSet() {
             _skinnableCharSetCache = skinnableChars;
             return _skinnableCharSetCache;
         } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to build skinnable character set cache: ${e.message}`);
+            Logger.error(`Failed to build skinnable character set cache: ${e.message}`);
             _cachePromise = null;
             return new Set();
         }

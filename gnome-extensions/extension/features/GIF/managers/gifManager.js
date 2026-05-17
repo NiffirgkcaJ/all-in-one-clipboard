@@ -1,5 +1,7 @@
 import GObject from 'gi://GObject';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { GifProviderRegistry } from '../logic/gifProviderRegistry.js';
 import { GifSettings } from '../constants/gifConstants.js';
 
@@ -55,7 +57,7 @@ export const GifManager = GObject.registerClass(
             this._activeProvider = this._registry.createProvider(providerId);
 
             if (!this._activeProvider) {
-                console.warn(`[AIO-Clipboard] Provider '${providerId}' not found in registry.`);
+                Logger.warn(`Provider '${providerId}' not found in registry.`);
             }
         }
 
@@ -76,7 +78,7 @@ export const GifManager = GObject.registerClass(
                     nextPos: response.next_offset,
                 };
             } catch (e) {
-                console.error(`[AIO-Clipboard] Search failed: ${e.message}`);
+                Logger.error(`Search failed: ${e.message}`);
                 throw e;
             }
         }
@@ -97,7 +99,7 @@ export const GifManager = GObject.registerClass(
                     nextPos: response.next_offset,
                 };
             } catch (e) {
-                console.error(`[AIO-Clipboard] Trending failed: ${e.message}`);
+                Logger.error(`Trending failed: ${e.message}`);
                 throw e;
             }
         }
@@ -117,7 +119,7 @@ export const GifManager = GObject.registerClass(
                     searchTerm: c.keyword || c.name,
                 }));
             } catch (e) {
-                console.error(`[AIO-Clipboard] Categories failed: ${e.message}`);
+                Logger.error(`Categories failed: ${e.message}`);
                 return [];
             }
         }

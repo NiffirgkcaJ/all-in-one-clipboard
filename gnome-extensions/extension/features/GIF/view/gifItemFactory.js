@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
 import { GifIcons } from '../constants/gifConstants.js';
@@ -53,7 +54,7 @@ export class GifItemFactory {
      */
     createItem(itemData, onSelected) {
         if (!this._isValidItemData(itemData)) {
-            console.warn('[AIO-Clipboard] Skipping item with invalid data:', itemData);
+            Logger.warn('Skipping item with invalid data', itemData);
             return null;
         }
 
@@ -158,7 +159,7 @@ export class GifItemFactory {
         });
 
         if (!error.message.startsWith('GIF Tab') && !error.message.startsWith('Render session')) {
-            console.warn(`[AIO-Clipboard] Failed to load GIF preview: ${error.message}`);
+            Logger.warn(`Failed to load GIF preview: ${error.message}`);
         }
     }
 

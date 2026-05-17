@@ -1,6 +1,7 @@
 import Cairo from 'cairo';
 import GLib from 'gi://GLib';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOJson } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -321,7 +322,7 @@ export class ColorProcessor {
 
             return filename;
         } catch (e) {
-            console.error(`[ColorProcessor] Failed to generate gradient image: ${e}`);
+            Logger.error(`Failed to generate gradient image: ${e}`, 'ColorProcessor');
             return null;
         }
     }

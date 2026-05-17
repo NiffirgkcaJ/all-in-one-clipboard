@@ -10,6 +10,7 @@ import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
 import { getRecentItemsManager } from './utilityRecents.js';
+import { Logger } from './utilityLogger.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 import { IOJson, IOResource } from './utilityIO.js';
@@ -194,7 +195,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             ];
             for (const key of requiredKeys) {
                 if (!(key in config)) {
-                    console.error(`[AIO-Clipboard] Missing required configuration key in CategorizedItemViewer: ${key}`);
+                    Logger.error(`Missing required configuration key in CategorizedItemViewer: ${key}`);
                     return false;
                 }
             }
@@ -576,7 +577,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                     this.applyExternalSearch(pendingQuery, { focus: false });
                 }
             } catch (e) {
-                console.error(`[AIO-Clipboard] Critical error loading or parsing data in CategorizedItemViewer: ${e.message}`);
+                Logger.error(`Critical error loading or parsing data in CategorizedItemViewer: ${e.message}`);
                 this._isContentLoaded = false;
                 this._renderErrorState(_('Error loading data. Check logs.'));
             } finally {

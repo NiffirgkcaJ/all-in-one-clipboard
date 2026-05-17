@@ -4,6 +4,7 @@ import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 
 import { Debouncer } from './utilityDebouncer.js';
+import { Logger } from './utilityLogger.js';
 
 const ATSPI_PARENT_DEPTH = 12;
 const ATSPI_CLEAR_DELAY_MS = 500;
@@ -236,7 +237,7 @@ export class ExclusionUtils {
             this._atspiInitialized = true;
             return true;
         } catch (e) {
-            console.warn(`[AIO-Clipboard] AT-SPI init error ${e.message}`);
+            Logger.warn(`AT-SPI init error ${e.message}`);
             return false;
         }
     }
@@ -265,7 +266,7 @@ export class ExclusionUtils {
             this._atspiListener.register('object:state-changed:focused');
             this._atspiListenerActive = true;
         } catch (e) {
-            console.warn(`[AIO-Clipboard] AT-SPI listener init error ${e.message}`);
+            Logger.warn(`AT-SPI listener init error ${e.message}`);
         }
     }
 

@@ -7,6 +7,7 @@ import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorized
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
+import { Logger } from '../../shared/utilities/utilityLogger.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureSymbolsSearchProviderRegistered } from './integrations/symbolsSearchProvider.js';
@@ -130,7 +131,7 @@ export const SymbolsTabContent = GObject.registerClass(
                     menu: extension._indicator.menu,
                 });
             } catch (e) {
-                console.error('[AIO-Clipboard] Error in symbols item selection:', e);
+                Logger.error('Error in symbols item selection', e);
             }
         }
 

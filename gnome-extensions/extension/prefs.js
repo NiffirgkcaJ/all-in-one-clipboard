@@ -11,10 +11,11 @@ import { addPreferenceGeneral } from './shared/preferences/preferenceGroupGenera
 import { addPreferenceGridLayout } from './shared/preferences/preferenceGroupGridLayout.js';
 import { addPreferenceKeyboardShortcuts } from './shared/preferences/preferenceGroupKeyboardShortcuts.js';
 import { addPreferenceRecentItems } from './shared/preferences/preferenceGroupRecentItems.js';
+import { addPreferenceSettingsManagement } from './shared/preferences/preferenceGroupSettingsManagement.js';
 import { addPreferenceTabManagement } from './shared/preferences/preferenceGroupTabManagement.js';
 import { getIconName } from './shared/preferences/preferenceUtilities.js';
+import { Logger } from './shared/utilities/utilityLogger.js';
 import { initStorage, ExtensionPath } from './shared/constants/storagePaths.js';
-import { addPreferenceSettingsManagement } from './shared/preferences/preferenceGroupSettingsManagement.js';
 
 import { addPreferenceClipboardSettings } from './features/Clipboard/preferences/clipboardPreferenceGroup.js';
 import { addPreferenceEmojiSettings } from './features/Emoji/preferences/emojiPreferenceGroup.js';
@@ -54,10 +55,10 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
                     const resource = Gio.Resource.load(resourceFile.get_path());
                     Gio.resources_register(resource);
                 } else {
-                    console.warn(`[AIO-Clipboard] GResource not found at: ${resourceFile.get_path()}`);
+                    Logger.warn(`GResource not found at: ${resourceFile.get_path()}`);
                 }
             } catch (e) {
-                console.warn(`[AIO-Clipboard] Failed to register GResource: ${e.message}`);
+                Logger.warn(`Failed to register GResource: ${e.message}`);
             }
         }
 

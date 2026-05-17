@@ -1,6 +1,8 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { ClipboardType } from '../constants/clipboardConstants.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
@@ -87,7 +89,7 @@ export class ClipboardContentRouter {
                 this._handleExtractedContent(result, TextProcessor, this._storage.textsDir);
                 break;
             default:
-                console.warn(`[AIO-Clipboard] Unknown type: ${result.type}`);
+                Logger.warn(`Unknown type: ${result.type}`);
         }
     }
 

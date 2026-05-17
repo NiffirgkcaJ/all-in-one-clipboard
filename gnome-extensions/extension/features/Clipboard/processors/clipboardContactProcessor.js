@@ -1,4 +1,5 @@
 import { IOResource } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
@@ -45,10 +46,10 @@ export class ContactProcessor {
                         }
                     }
                 } else {
-                    console.error('[AIO-Clipboard] ContactProcessor: Failed to load countries.json from GResource');
+                    Logger.error('Failed to load countries.json from GResource', 'ContactProcessor');
                 }
             } catch (e) {
-                console.warn(`[AIO-Clipboard] ContactProcessor: Failed to load country data: ${e.message}`);
+                Logger.warn(`Failed to load country data: ${e.message}`, 'ContactProcessor');
             }
         })();
 
@@ -86,7 +87,7 @@ export class ContactProcessor {
             if (this._initPromise) {
                 await this._initPromise;
             } else {
-                console.warn('[AIO-Clipboard] ContactProcessor: process() called before init()! Cannot load country data.');
+                Logger.warn('process() called before init()! Cannot load country data.', 'ContactProcessor');
             }
 
             const dialCodeMatch = cleanText.match(/^(\+\d+)/);

@@ -2,6 +2,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
 import { ClipboardBaseView } from './clipboardBaseView.js';
@@ -338,7 +339,7 @@ export const ClipboardGridView = GObject.registerClass(
                             this._dimensionCache.set(filename, null);
                         }
                     } catch (e) {
-                        console.warn(`[AIO-Clipboard] Failed to read dimensions for ${filename}: ${e.message}`);
+                        Logger.warn(`Failed to read dimensions for ${filename}: ${e.message}`);
                         this._dimensionCache.set(filename, null);
                     }
                     resolve();

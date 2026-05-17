@@ -1,6 +1,8 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
+import { Logger } from '../utilities/utilityLogger.js';
+
 /**
  * Core image encoding and decoding service for byte-level integration with files.
  */
@@ -58,7 +60,7 @@ export const ServiceCoreImage = {
         try {
             return this.decode(bytes);
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreImage.parseBytes failed: ${e.message}`);
+            Logger.warn(`ServiceCoreImage.parseBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -73,7 +75,7 @@ export const ServiceCoreImage = {
         try {
             return this.encode(bytes);
         } catch (e) {
-            console.error(`[AIO-Clipboard] ServiceCoreImage.stringifyBytes failed: ${e.message}`);
+            Logger.error(`ServiceCoreImage.stringifyBytes failed: ${e.message}`);
             return null;
         }
     },
@@ -113,7 +115,7 @@ export const ServiceCoreImage = {
             try {
                 uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
             } catch (e) {
-                console.warn(`[AIO-Clipboard] Invalid URI '${url}': ${e.message}`);
+                Logger.warn(`Invalid URI '${url}': ${e.message}`);
                 return null;
             }
 
@@ -147,7 +149,7 @@ export const ServiceCoreImage = {
                 });
             });
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreImage.download failed for '${url}': ${e.message}`);
+            Logger.warn(`ServiceCoreImage.download failed for '${url}': ${e.message}`);
             return null;
         }
     },
@@ -165,7 +167,7 @@ export const ServiceCoreImage = {
             checksum.update(bytes);
             return checksum.get_string();
         } catch (e) {
-            console.warn(`[AIO-Clipboard] ServiceCoreImage.hash failed: ${e.message}`);
+            Logger.warn(`ServiceCoreImage.hash failed: ${e.message}`);
             return null;
         }
     },

@@ -7,6 +7,7 @@ import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorized
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
+import { Logger } from '../../shared/utilities/utilityLogger.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
@@ -63,7 +64,7 @@ export const EmojiTabContent = GObject.registerClass(
 
             this._setupPromise = this._setup(extension, settings);
             this._setupPromise.catch((e) => {
-                console.error('[AIO-Clipboard] Failed to setup Emoji tab:', e);
+                Logger.error('Failed to setup Emoji tab', e);
             });
         }
 
@@ -222,7 +223,7 @@ export const EmojiTabContent = GObject.registerClass(
                         this.emit('set-main-tab-bar-visibility', false);
                         this._viewer?.onSelected();
                     })
-                    .catch((e) => console.error(e));
+                    .catch((e) => Logger.error(e));
             }
         }
 

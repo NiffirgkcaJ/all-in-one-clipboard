@@ -1,6 +1,7 @@
 import GLib from 'gi://GLib';
 
 import { FilePath } from '../../../shared/constants/storagePaths.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
@@ -117,7 +118,7 @@ export class GifDownloadService {
                     success = true;
                 }
             } catch (e) {
-                console.error(`[AIO-Clipboard] Failed to paste GIF as image: ${e.message}`);
+                Logger.error(`Failed to paste GIF as image: ${e.message}`);
             }
         }
 

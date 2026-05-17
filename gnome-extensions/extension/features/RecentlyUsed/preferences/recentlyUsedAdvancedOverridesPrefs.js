@@ -3,6 +3,8 @@ import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
 
 /**
@@ -203,7 +205,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         try {
             settings.set_string(advancedOverridesKey, IOJson.stringifyText(safeRoot));
         } catch (e) {
-            console.warn(`[AIO-Clipboard] Failed to write Recently Used advanced overrides: ${e?.message ?? String(e)}`);
+            Logger.warn(`Failed to write Recently Used advanced overrides: ${e?.message ?? String(e)}`);
         }
     };
 

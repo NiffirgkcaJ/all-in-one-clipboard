@@ -1,7 +1,8 @@
 import Gio from 'gi://Gio';
 
-import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 
 import { GifGenericProvider } from './gifGenericProvider.js';
 
@@ -68,10 +69,10 @@ export class GifProviderRegistry {
             if (this._validateDefinition(definition)) {
                 this._providers.set(definition.id, definition);
             } else {
-                console.warn(`[AIO-Clipboard] Invalid provider definition in ${file.get_basename()}`);
+                Logger.warn(`Invalid provider definition in ${file.get_basename()}`);
             }
         } catch (e) {
-            console.error(`[AIO-Clipboard] Failed to load provider ${file.get_basename()}: ${e.message}`);
+            Logger.error(`Failed to load provider ${file.get_basename()}: ${e.message}`);
         }
     }
 
