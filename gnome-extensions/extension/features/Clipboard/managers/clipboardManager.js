@@ -3,6 +3,7 @@ import GObject from 'gi://GObject';
 import { ExclusionUtils } from '../../../shared/utilities/utilityExclusions.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
+import { ClipboardCaptureGuardService } from '../services/clipboardCaptureGuardService.js';
 import { ClipboardContentRouter } from '../services/clipboardContentRouter.js';
 import { ClipboardCopyService } from '../services/clipboardCopyService.js';
 import { ClipboardMonitor } from '../logic/clipboardMonitor.js';
@@ -48,7 +49,8 @@ export const ClipboardManager = GObject.registerClass(
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
 
-            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._contentRouter.processResult(result));
+            this._captureGuard = new ClipboardCaptureGuardService();
+            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._contentRouter.processResult(result), this._captureGuard);
 
             this._history = [];
             this._pinned = [];
@@ -590,6 +592,7 @@ export const ClipboardManager = GObject.registerClass(
             this._storage.destroy();
             this._contentRouter?.destroy();
             this._exclusionUtils?.destroy();
+            this._captureGuard?.destroy();
         }
     },
 );

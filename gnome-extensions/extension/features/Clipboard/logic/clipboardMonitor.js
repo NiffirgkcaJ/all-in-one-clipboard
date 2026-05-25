@@ -13,8 +13,6 @@ import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 
 // Configuration
-const EXCLUDED_HASH_TTL_MS = 5000;
-const MAX_BLOCKED_HASHES = 50;
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 200;
 
@@ -34,18 +32,18 @@ export class ClipboardMonitor {
      * @param {ExclusionUtils} exclusionUtils Utility for handling exclusion rules.
      * @param {string} imagesDir Path for generating color processor gradients.
      * @param {Function} onContentCaptured Callback for when content is captured.
+     * @param {ClipboardCaptureGuardService} captureGuard Guard for suppression decisions.
      */
-    constructor(exclusionUtils, imagesDir, onContentCaptured) {
+    constructor(exclusionUtils, imagesDir, onContentCaptured, captureGuard) {
         this._exclusionUtils = exclusionUtils;
         this._imagesDir = imagesDir;
         this._onContentCaptured = onContentCaptured;
+        this._captureGuard = captureGuard;
 
         this._selection = null;
         this._isPaused = false;
         this._processClipboardTimeoutId = 0;
         this._retryTimeoutId = 0;
-
-        this._blockedContentHashes = new Map();
     }
 
     /**
@@ -111,7 +109,9 @@ export class ClipboardMonitor {
             // Image
             const imageResult = await ImageProcessor.extract();
             if (imageResult) {
-                this._onContentCaptured(imageResult);
+                if (!this._shouldSuppress(imageResult)) {
+                    this._onContentCaptured(imageResult);
+                }
                 return;
             }
 
@@ -119,46 +119,51 @@ export class ClipboardMonitor {
             const textResult = await TextProcessor.extract();
             if (textResult) {
                 const text = textResult.text;
-                const hash = this._hashString(text);
-
-                if (this._blockedContentHashes.has(hash)) {
-                    const expiry = this._blockedContentHashes.get(hash);
-                    if (Date.now() < expiry) return;
-                    this._blockedContentHashes.delete(hash);
-                }
 
                 const fileResult = await FileProcessor.process(text);
                 if (fileResult) {
-                    this._onContentCaptured(fileResult);
+                    if (!this._shouldSuppress(fileResult)) {
+                        this._onContentCaptured(fileResult);
+                    }
                     return;
                 }
 
                 const linkResult = LinkProcessor.process(text);
                 if (linkResult) {
-                    this._onContentCaptured(linkResult);
+                    if (!this._shouldSuppress(linkResult)) {
+                        this._onContentCaptured(linkResult);
+                    }
                     return;
                 }
 
                 const contactResult = await ContactProcessor.process(text);
                 if (contactResult) {
-                    this._onContentCaptured(contactResult);
+                    if (!this._shouldSuppress(contactResult)) {
+                        this._onContentCaptured(contactResult);
+                    }
                     return;
                 }
 
                 const colorResult = ColorProcessor.process(text, this._imagesDir);
                 if (colorResult) {
-                    this._onContentCaptured(colorResult);
+                    if (!this._shouldSuppress(colorResult)) {
+                        this._onContentCaptured(colorResult);
+                    }
                     return;
                 }
 
                 const codeResult = CodeProcessor.process(text);
                 if (codeResult) {
-                    this._onContentCaptured(codeResult);
+                    if (!this._shouldSuppress(codeResult)) {
+                        this._onContentCaptured(codeResult);
+                    }
                     return;
                 }
 
                 // Fallback
-                this._onContentCaptured(textResult);
+                if (!this._shouldSuppress(textResult)) {
+                    this._onContentCaptured(textResult);
+                }
                 return;
             }
 
@@ -184,15 +189,7 @@ export class ClipboardMonitor {
     _hashAndBlockClipboardContent() {
         clipboardGetText()
             .then((text) => {
-                if (text) {
-                    const hash = this._hashString(text);
-                    this._blockedContentHashes.set(hash, Date.now() + EXCLUDED_HASH_TTL_MS);
-
-                    if (this._blockedContentHashes.size > MAX_BLOCKED_HASHES) {
-                        const first = this._blockedContentHashes.keys().next().value;
-                        this._blockedContentHashes.delete(first);
-                    }
-                }
+                if (text) this._captureGuard?.registerText(text);
             })
             .catch(() => {});
     }
@@ -202,18 +199,19 @@ export class ClipboardMonitor {
     // ========================================================================
 
     /**
-     * Generate a simple hash from a string.
+     * Decide whether a capture should be suppressed and register allowed hashes.
      *
-     * @param {string} str Input string.
-     * @returns {number} Generated hash.
+     * @param {Object} result Extracted result with hash.
+     * @returns {boolean} True if suppressed.
      * @private
      */
-    _hashString(str) {
-        let hash = 5381;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
-        }
-        return hash;
+    _shouldSuppress(result) {
+        if (!this._captureGuard || !result?.hash) return false;
+
+        if (this._captureGuard.shouldBlockHash(result.hash)) return true;
+
+        this._captureGuard.registerHash(result.hash);
+        return false;
     }
 
     // ========================================================================
