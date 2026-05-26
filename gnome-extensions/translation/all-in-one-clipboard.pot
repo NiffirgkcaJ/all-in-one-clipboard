@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 01:28+0000\n"
+"POT-Creation-Date: 2026-05-26 01:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -135,49 +135,117 @@ msgstr ""
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:83
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:224
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:118
+msgid "Merge Selected Items"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:119
+msgid "Allow selecting and merging multiple items using checkboxes."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:144
+msgid "Newline"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:145
+msgid "Double Newline"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:146
+msgid "Space"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:147
+msgid "Comma"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:148
+msgid "Tab"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:149
+msgid "Custom"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:153
+msgid "Delimiter"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:154
+msgid "Delimiter used to separate text items when merging."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:175
+msgid "Custom Delimiter"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:198
+msgid "Selection Order"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:199
+msgid "Chronological Order"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:203
+msgid "Insertion Order"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:204
+msgid "Order of items when merging selection."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:96
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:277
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:283
 msgid "Select All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:107
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:243
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
 msgid "Switch to Grid View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:107
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:243
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
 msgid "Switch to List View"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:275
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:135
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
 msgid "Start Private Mode (Pause Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:133
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:187
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:154
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:214
 msgid "Pin/Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:141
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:162
 msgid "Delete Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:193
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
 msgid "Pin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:193
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
 msgid "Unpin Selected"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:227
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+msgid "Merge and Paste"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+msgid "Merge and Copy"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:280
 msgid "Deselect All"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:275
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
