@@ -73,16 +73,47 @@ export const ClipboardStyling = {
 
 // UI Control Icons
 export const ClipboardIcons = {
-    CHECKBOX_CHECKED: {
-        icon: 'clipboard-checkbox-checked-symbolic.svg',
-        iconSize: 16,
-    },
     CHECKBOX_UNCHECKED: {
         icon: 'clipboard-checkbox-unchecked-symbolic.svg',
         iconSize: 16,
     },
+    CHECKBOX_CHECKED: {
+        icon: 'clipboard-checkbox-checked-symbolic.svg',
+        iconSize: 16,
+    },
     CHECKBOX_MIXED: {
         icon: 'clipboard-checkbox-mixed-symbolic.svg',
+        iconSize: 16,
+    },
+
+    LAYOUT_LIST: {
+        icon: 'clipboard-view-list-symbolic.svg',
+        iconSize: 16,
+    },
+    LAYOUT_GRID: {
+        icon: 'clipboard-view-grid-symbolic.svg',
+        iconSize: 16,
+    },
+
+    ACTION_PRIVATE: {
+        icon: 'clipboard-eye-reveal-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PUBLIC: {
+        icon: 'clipboard-eye-conceal-symbolic.svg',
+        iconSize: 16,
+    },
+
+    ACTION_MERGE: {
+        icon: 'clipboard-merge-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PIN: {
+        icon: 'clipboard-pin-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_DELETE: {
+        icon: 'clipboard-delete-symbolic.svg',
         iconSize: 16,
     },
 
@@ -97,23 +128,6 @@ export const ClipboardIcons = {
             opacity: 0.5,
         },
     },
-    DELETE: {
-        icon: 'clipboard-delete-symbolic.svg',
-        iconSize: 16,
-    },
-
-    ACTION_PIN: {
-        icon: 'clipboard-pin-symbolic.svg',
-        iconSize: 16,
-    },
-    ACTION_PRIVATE: {
-        icon: 'clipboard-eye-reveal-symbolic.svg',
-        iconSize: 16,
-    },
-    ACTION_PUBLIC: {
-        icon: 'clipboard-eye-conceal-symbolic.svg',
-        iconSize: 16,
-    },
 
     ERROR_WARNING: {
         icon: 'clipboard-warning-symbolic.svg',
@@ -121,15 +135,6 @@ export const ClipboardIcons = {
         iconOptions: {
             color: '#f5793e',
         },
-    },
-
-    LAYOUT_LIST: {
-        icon: 'clipboard-view-list-symbolic.svg',
-        iconSize: 16,
-    },
-    LAYOUT_GRID: {
-        icon: 'clipboard-view-grid-symbolic.svg',
-        iconSize: 16,
     },
 };
 

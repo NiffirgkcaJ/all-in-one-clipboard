@@ -20,9 +20,10 @@ const BUTTON_SPACING = 4;
 export const ClipboardActionBar = GObject.registerClass(
     {
         Signals: {
-            'layout-toggled': {},
-            'selection-cleared': {},
             'select-all-requested': {},
+            'layout-toggled': {},
+            'merge-selected-requested': {},
+            'selection-cleared': {},
             'navigate-up': {},
             'navigate-down': {},
         },
@@ -57,6 +58,18 @@ export const ClipboardActionBar = GObject.registerClass(
 
             this._settingsSignalId = this._settings.connect('changed::clipboard-show-action-bar', () => {
                 this._syncVisibility();
+            });
+
+            this._mergeSelectionSignalId = this._settings.connect('changed::enable-clipboard-merge-selection', () => {
+                this._updateMergeSelectionButtonVisibility();
+            });
+
+            this._autoPasteSignalId = this._settings.connect('changed::auto-paste-clipboard', () => {
+                this._updateMergeSelectedButtonTooltip();
+            });
+
+            this._enableAutoPasteSignalId = this._settings.connect('changed::enable-auto-paste', () => {
+                this._updateMergeSelectedButtonTooltip();
             });
         }
 
@@ -126,6 +139,14 @@ export const ClipboardActionBar = GObject.registerClass(
             actionButtonsBox.add_child(this._privateModeButton);
 
             // Selection Actions
+            this._mergeSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_MERGE, {
+                style_class: 'button clipboard-icon-button',
+                can_focus: false,
+                reactive: false,
+            });
+            this._mergeSelectedButton.connect('clicked', () => this.emit('merge-selected-requested'));
+            this._updateMergeSelectedButtonTooltip();
+
             this._pinSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_PIN, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
@@ -134,7 +155,7 @@ export const ClipboardActionBar = GObject.registerClass(
             });
             this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
-            this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.DELETE, {
+            this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_DELETE, {
                 style_class: 'button clipboard-icon-button',
                 can_focus: false,
                 reactive: false,
@@ -142,8 +163,11 @@ export const ClipboardActionBar = GObject.registerClass(
             });
             this._deleteSelectedButton.connect('clicked', () => this._onDeleteSelected());
 
+            actionButtonsBox.add_child(this._mergeSelectedButton);
             actionButtonsBox.add_child(this._pinSelectedButton);
             actionButtonsBox.add_child(this._deleteSelectedButton);
+
+            this._updateMergeSelectionButtonVisibility();
 
             this.set_reactive(true);
             this.connect('key-press-event', this._onKeyPress.bind(this));
@@ -158,7 +182,8 @@ export const ClipboardActionBar = GObject.registerClass(
             if (this._settings.get_boolean('clipboard-show-action-bar')) {
                 this.show();
             } else {
-                if (this.contains(global.stage.get_key_focus())) {
+                const currentFocus = global.stage.get_key_focus();
+                if (currentFocus && this.contains(currentFocus)) {
                     this.emit('layout-toggled');
                 }
                 this._selectedIds.clear();
@@ -174,7 +199,9 @@ export const ClipboardActionBar = GObject.registerClass(
          * @private
          */
         _getHeaderButtons() {
-            return [this._selectAllButton, this._layoutToggleButton, this._privateModeButton, this._pinSelectedButton, this._deleteSelectedButton].filter((b) => b.can_focus && b.visible);
+            return [this._selectAllButton, this._layoutToggleButton, this._privateModeButton, this._mergeSelectedButton, this._pinSelectedButton, this._deleteSelectedButton].filter(
+                (b) => b.can_focus && b.visible,
+            );
         }
 
         /**
@@ -193,6 +220,26 @@ export const ClipboardActionBar = GObject.registerClass(
             this._pinSelectedButton.tooltip_text = hasUnpinned ? _('Pin Selected') : _('Unpin Selected');
         }
 
+        /**
+         * Update the tooltip of the merge button based on Auto-Paste setting.
+         *
+         * @private
+         */
+        _updateMergeSelectedButtonTooltip() {
+            const autoPaste = this._settings.get_boolean('enable-auto-paste') && this._settings.get_boolean('auto-paste-clipboard');
+            this._mergeSelectedButton.tooltip_text = autoPaste ? _('Merge and Paste') : _('Merge and Copy');
+        }
+
+        /**
+         * Update merge selection button visibility based on settings.
+         *
+         * @private
+         */
+        _updateMergeSelectionButtonVisibility() {
+            const enabled = this._settings.get_boolean('enable-clipboard-merge-selection');
+            this._mergeSelectedButton.visible = enabled;
+        }
+
         // ========================================================================
         // Public API
         // ========================================================================
@@ -208,16 +255,22 @@ export const ClipboardActionBar = GObject.registerClass(
             const canSelect = totalItemCount > 0;
 
             const currentFocus = global.stage.get_key_focus();
-            if (!hasSelection && (currentFocus === this._pinSelectedButton || currentFocus === this._deleteSelectedButton)) {
-                this._selectAllButton.grab_key_focus();
+            if (!hasSelection && (currentFocus === this._mergeSelectedButton || currentFocus === this._pinSelectedButton || currentFocus === this._deleteSelectedButton)) {
+                if (canSelect) {
+                    this._selectAllButton.grab_key_focus();
+                } else {
+                    global.stage.set_key_focus(null);
+                }
             }
 
+            this._selectAllButton.set_reactive(canSelect);
+            this._selectAllButton.set_can_focus(canSelect);
+            this._mergeSelectedButton.set_reactive(hasSelection);
+            this._mergeSelectedButton.set_can_focus(hasSelection);
             this._pinSelectedButton.set_reactive(hasSelection);
             this._pinSelectedButton.set_can_focus(hasSelection);
             this._deleteSelectedButton.set_reactive(hasSelection);
             this._deleteSelectedButton.set_can_focus(hasSelection);
-
-            this._selectAllButton.set_reactive(canSelect);
 
             if (!canSelect || numSelected === 0) {
                 this._selectAllIcon.state = 'unchecked';
@@ -351,6 +404,9 @@ export const ClipboardActionBar = GObject.registerClass(
          */
         destroy() {
             if (this._settingsSignalId) this._settings.disconnect(this._settingsSignalId);
+            if (this._mergeSelectionSignalId) this._settings.disconnect(this._mergeSelectionSignalId);
+            if (this._autoPasteSignalId) this._settings.disconnect(this._autoPasteSignalId);
+            if (this._enableAutoPasteSignalId) this._settings.disconnect(this._enableAutoPasteSignalId);
             super.destroy();
         }
     },

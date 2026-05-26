@@ -9,12 +9,12 @@ import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 
 /**
- * ClipboardContentRouter
+ * ClipboardContentRouterService
  *
  * Routes captured clipboard content to the appropriate processor and saves
  * the resulting item to the manager's history.
  */
-export class ClipboardContentRouter {
+export class ClipboardContentRouterService {
     // ========================================================================
     // Initialization
     // ========================================================================

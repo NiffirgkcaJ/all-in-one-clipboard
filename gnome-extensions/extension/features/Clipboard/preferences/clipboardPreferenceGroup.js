@@ -112,4 +112,119 @@ export function addPreferenceClipboardSettings({ page, settings }) {
     });
     group.add(previewRow);
     settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+    // Merge Selected Items
+    const mergeSelectionExpander = new Adw.ExpanderRow({
+        title: _('Merge Selected Items'),
+        subtitle: _('Allow selecting and merging multiple items using checkboxes.'),
+        show_enable_switch: true,
+    });
+    group.add(mergeSelectionExpander);
+
+    settings.bind('enable-clipboard-merge-selection', mergeSelectionExpander, 'enable-expansion', Gio.SettingsBindFlags.DEFAULT);
+
+    const syncExpanderSensitivity = () => {
+        const sensitive = settings.get_boolean('clipboard-show-action-bar');
+        mergeSelectionExpander.sensitive = sensitive;
+    };
+    syncExpanderSensitivity();
+    settings.connect('changed::clipboard-show-action-bar', syncExpanderSensitivity);
+
+    const syncExpandedState = () => {
+        if ((!mergeSelectionExpander.enable_expansion || !mergeSelectionExpander.sensitive) && mergeSelectionExpander.expanded) {
+            mergeSelectionExpander.expanded = false;
+        }
+    };
+    syncExpandedState();
+    mergeSelectionExpander.connect('notify::enable-expansion', syncExpandedState);
+    mergeSelectionExpander.connect('notify::sensitive', syncExpandedState);
+
+    // Delimiter
+    const delimiterTypes = [
+        { id: 'newline', label: _('Newline') },
+        { id: 'double-newline', label: _('Double Newline') },
+        { id: 'space', label: _('Space') },
+        { id: 'comma', label: _('Comma') },
+        { id: 'tab', label: _('Tab') },
+        { id: 'custom', label: _('Custom') },
+    ];
+
+    const delimiterRow = new Adw.ComboRow({
+        title: _('Delimiter'),
+        subtitle: _('Delimiter used to separate text items when merging.'),
+        model: new Gtk.StringList({ strings: delimiterTypes.map((d) => d.label) }),
+    });
+    mergeSelectionExpander.add_row(delimiterRow);
+
+    const currentDelimiterType = settings.get_string('clipboard-merge-selection-delimiter-type') || 'newline';
+    const initialDelimiterIndex = delimiterTypes.findIndex((d) => d.id === currentDelimiterType);
+    delimiterRow.set_selected(initialDelimiterIndex > -1 ? initialDelimiterIndex : 0);
+
+    delimiterRow.connect('notify::selected', () => {
+        const index = delimiterRow.get_selected();
+        if (index >= 0 && index < delimiterTypes.length) {
+            const newType = delimiterTypes[index].id;
+            if (settings.get_string('clipboard-merge-selection-delimiter-type') !== newType) {
+                settings.set_string('clipboard-merge-selection-delimiter-type', newType);
+            }
+        }
+    });
+
+    // Custom Delimiter
+    const customDelimiterRow = new Adw.EntryRow({
+        title: _('Custom Delimiter'),
+    });
+    mergeSelectionExpander.add_row(customDelimiterRow);
+    settings.bind('clipboard-merge-selection-delimiter-custom', customDelimiterRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+
+    const updateCustomVisibility = () => {
+        const isCustom = settings.get_string('clipboard-merge-selection-delimiter-type') === 'custom';
+        customDelimiterRow.set_visible(isCustom);
+    };
+
+    settings.connect('changed::clipboard-merge-selection-delimiter-type', () => {
+        const newType = settings.get_string('clipboard-merge-selection-delimiter-type');
+        const newIndex = delimiterTypes.findIndex((d) => d.id === newType);
+        if (newIndex > -1 && delimiterRow.get_selected() !== newIndex) {
+            delimiterRow.set_selected(newIndex);
+        }
+        updateCustomVisibility();
+    });
+
+    updateCustomVisibility();
+
+    // Insertion Order
+    const orderModes = [
+        { id: 'selection', label: _('Selection Order') },
+        { id: 'chronological', label: _('Chronological Order') },
+    ];
+
+    const orderRow = new Adw.ComboRow({
+        title: _('Insertion Order'),
+        subtitle: _('Order of items when merging selection.'),
+        model: new Gtk.StringList({ strings: orderModes.map((o) => o.label) }),
+    });
+    mergeSelectionExpander.add_row(orderRow);
+
+    const currentOrder = settings.get_string('clipboard-merge-selection-order') || 'selection';
+    const initialOrderIndex = orderModes.findIndex((o) => o.id === currentOrder);
+    orderRow.set_selected(initialOrderIndex > -1 ? initialOrderIndex : 0);
+
+    orderRow.connect('notify::selected', () => {
+        const index = orderRow.get_selected();
+        if (index >= 0 && index < orderModes.length) {
+            const newOrder = orderModes[index].id;
+            if (settings.get_string('clipboard-merge-selection-order') !== newOrder) {
+                settings.set_string('clipboard-merge-selection-order', newOrder);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-merge-selection-order', () => {
+        const newOrder = settings.get_string('clipboard-merge-selection-order');
+        const newIndex = orderModes.findIndex((o) => o.id === newOrder);
+        if (newIndex > -1 && orderRow.get_selected() !== newIndex) {
+            orderRow.set_selected(newIndex);
+        }
+    });
 }

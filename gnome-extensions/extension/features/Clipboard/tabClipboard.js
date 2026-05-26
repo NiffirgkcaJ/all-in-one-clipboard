@@ -7,6 +7,7 @@ import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
 import { ClipboardActionBar } from './view/clipboardActionBar.js';
+import { ClipboardCopyService } from './services/clipboardCopyService.js';
 import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchService } from './services/clipboardSearchService.js';
@@ -134,6 +135,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._actionBar.connect('selection-cleared', () => this._scheduleRedraw());
             this._actionBar.connect('select-all-requested', () => this._onSelectAllClicked());
+            this._actionBar.connect('merge-selected-requested', () => this._onMergeSelectedRequested());
             this._actionBar.connect('navigate-up', () => this._searchComponent?.grabFocus());
             this._actionBar.connect('navigate-down', () => this._focusFirstContentItem());
 
@@ -248,6 +250,26 @@ export const ClipboardTabContent = GObject.registerClass(
                 autoPasteKey: 'auto-paste-clipboard',
                 menu: this._extension._indicator?.menu,
             });
+        }
+
+        /**
+         * Handle merging of selected items.
+         *
+         * @private
+         */
+        async _onMergeSelectedRequested() {
+            const selectedIds = [...this._selectionService.selectedIds];
+            if (selectedIds.length === 0) return;
+
+            const mergeSuccess = await ClipboardCopyService.mergeMultiple(selectedIds, this._manager, {
+                settings: this._settings,
+                menu: this._extension._indicator?.menu,
+            });
+            if (!mergeSuccess) return;
+
+            this._selectionService.clearSelection(() => this._currentView?.getCheckboxIconsMap() || new Map());
+            this._updateSelectionState();
+            this._scheduleRedraw();
         }
 
         /**
@@ -411,6 +433,11 @@ export const ClipboardTabContent = GObject.registerClass(
                 GLib.source_remove(this._redrawIdleId);
                 this._redrawIdleId = 0;
                 this._redrawScheduled = false;
+            }
+
+            const currentFocus = global.stage.get_key_focus();
+            if (currentFocus && (currentFocus === this || this.contains(currentFocus))) {
+                global.stage.set_key_focus(null);
             }
         }
 

@@ -97,7 +97,7 @@ export class ClipboardBaseWidgetFactory {
      * @returns {St.Button} The configured delete button.
      */
     static createDeleteButton(itemData, options, styleOptions = {}) {
-        const deleteButton = createStaticIconButton(ClipboardIcons.DELETE, {
+        const deleteButton = createStaticIconButton(ClipboardIcons.ACTION_DELETE, {
             style_class: 'button clipboard-control-button',
             can_focus: false,
             ...styleOptions,

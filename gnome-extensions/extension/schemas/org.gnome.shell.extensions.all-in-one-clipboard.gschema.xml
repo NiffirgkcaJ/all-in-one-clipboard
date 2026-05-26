@@ -471,6 +471,38 @@
             <summary>Clipboard image preview size</summary>
             <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
         </key>
+        <key name="enable-clipboard-merge-selection" type="b">
+            <default>true</default>
+            <summary>Enable merging selected items</summary>
+            <description>When enabled, allows selecting and merging multiple clipboard items.</description>
+        </key>
+        <key name="clipboard-merge-selection-delimiter-type" type="s">
+            <default>'newline'</default>
+            <choices>
+                <choice value='newline'/>
+                <choice value='double-newline'/>
+                <choice value='space'/>
+                <choice value='comma'/>
+                <choice value='tab'/>
+                <choice value='custom'/>
+            </choices>
+            <summary>Merge selection delimiter type</summary>
+            <description>The type of delimiter used to separate text items when merging selection.</description>
+        </key>
+        <key name="clipboard-merge-selection-delimiter-custom" type="s">
+            <default>''</default>
+            <summary>Custom merge selection delimiter</summary>
+            <description>Custom string delimiter used when type is set to 'custom'.</description>
+        </key>
+        <key name="clipboard-merge-selection-order" type="s">
+            <default>'selection'</default>
+            <choices>
+                <choice value='selection'/>
+                <choice value='chronological'/>
+            </choices>
+            <summary>Merge selection order</summary>
+            <description>Order in which items are merged.</description>
+        </key>
 
         <!-- Advanced Page -->
         <!-- Exclusions Management -->
