@@ -9,8 +9,6 @@ import { ensureKaomojiSearchProviderRegistered } from '../../Kaomoji/integration
 import { KaomojiProvider } from '../../Kaomoji/constants/kaomojiConstants.js';
 import { KaomojiViewRenderer } from '../../Kaomoji/view/kaomojiViewRenderer.js';
 
-const _kaomojiSearchRenderer = new KaomojiViewRenderer();
-
 /**
  * Creates a runtime-scoped kaomoji section definition.
  *
@@ -18,6 +16,7 @@ const _kaomojiSearchRenderer = new KaomojiViewRenderer();
  */
 function createRecentlyUsedDefinitionKaomojiInstance() {
     let recentManager = null;
+    let kaomojiSearchRenderer = null;
 
     const definition = {
         id: 'kaomoji',
@@ -55,11 +54,7 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
         ensureKaomojiSearchProviderRegistered({ extensionUuid });
 
         if (recentManager) {
-            try {
-                recentManager.destroy();
-            } catch {
-                // Ignore stale manager teardown errors before re-init.
-            }
+            recentManager.destroy();
             recentManager = null;
         }
 
@@ -155,11 +150,12 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
             return true;
         }
 
-        try {
-            return _kaomojiSearchRenderer.searchFilter(item || {}, query);
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        if (!kaomojiSearchRenderer) {
+            kaomojiSearchRenderer = new KaomojiViewRenderer();
         }
+
+        const fallback = fallbackMatch(item);
+        return kaomojiSearchRenderer.searchFilter(item || {}, query) || fallback;
     };
 
     /**
@@ -192,4 +188,4 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
 /**
  * Section definition template for recently used kaomoji items.
  */
-export const RecentlyUsedDefinitionKaomoji = createRecentlyUsedDefinitionKaomojiInstance();
+export const RecentlyUsedDefinitionKaomoji = () => createRecentlyUsedDefinitionKaomojiInstance();

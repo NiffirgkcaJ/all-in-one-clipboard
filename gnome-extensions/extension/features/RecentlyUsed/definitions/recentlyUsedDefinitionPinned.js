@@ -150,11 +150,8 @@ function createRecentlyUsedDefinitionPinnedInstance() {
             return true;
         }
 
-        try {
-            return ClipboardSearchUtils.isMatch(item, query);
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
-        }
+        const fallback = fallbackMatch(item);
+        return ClipboardSearchUtils.isMatch(item, query) || fallback;
     };
 
     /**
@@ -201,4 +198,4 @@ function createRecentlyUsedDefinitionPinnedInstance() {
 /**
  * Section definition template for clipboard pinned items.
  */
-export const RecentlyUsedDefinitionPinned = createRecentlyUsedDefinitionPinnedInstance();
+export const RecentlyUsedDefinitionPinned = () => createRecentlyUsedDefinitionPinnedInstance();

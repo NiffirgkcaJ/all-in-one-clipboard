@@ -9,8 +9,6 @@ import { EmojiProvider } from '../../Emoji/constants/emojiConstants.js';
 import { EmojiViewRenderer } from '../../Emoji/view/emojiViewRenderer.js';
 import { ensureEmojiSearchProviderRegistered } from '../../Emoji/integrations/emojiSearchProvider.js';
 
-const _emojiSearchRenderer = new EmojiViewRenderer(null);
-
 /**
  * Creates a runtime-scoped emoji section definition.
  *
@@ -18,6 +16,7 @@ const _emojiSearchRenderer = new EmojiViewRenderer(null);
  */
 function createRecentlyUsedDefinitionEmojiInstance() {
     let recentManager = null;
+    let emojiSearchRenderer = null;
 
     const definition = {
         id: 'emoji',
@@ -49,11 +48,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
         ensureEmojiSearchProviderRegistered({ extensionUuid });
 
         if (recentManager) {
-            try {
-                recentManager.destroy();
-            } catch {
-                // Ignore stale manager teardown errors before re-init.
-            }
+            recentManager.destroy();
             recentManager = null;
         }
 
@@ -146,11 +141,12 @@ function createRecentlyUsedDefinitionEmojiInstance() {
             return true;
         }
 
-        try {
-            return _emojiSearchRenderer.searchFilter(item || {}, query);
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        if (!emojiSearchRenderer) {
+            emojiSearchRenderer = new EmojiViewRenderer(null);
         }
+
+        const fallback = fallbackMatch(item);
+        return emojiSearchRenderer.searchFilter(item || {}, query) || fallback;
     };
 
     /**
@@ -183,4 +179,4 @@ function createRecentlyUsedDefinitionEmojiInstance() {
 /**
  * Section definition template for recently used emoji items.
  */
-export const RecentlyUsedDefinitionEmoji = createRecentlyUsedDefinitionEmojiInstance();
+export const RecentlyUsedDefinitionEmoji = () => createRecentlyUsedDefinitionEmojiInstance();

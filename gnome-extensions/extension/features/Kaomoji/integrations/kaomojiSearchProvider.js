@@ -1,18 +1,15 @@
-import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { KaomojiJsonParser } from '../parsers/kaomojiJsonParser.js';
 import { KaomojiProvider } from '../constants/kaomojiConstants.js';
 import { KaomojiViewRenderer } from '../view/kaomojiViewRenderer.js';
 
-// Private Resource
-const _kaomojiSearchRenderer = new KaomojiViewRenderer();
-
 // ========================================================================
 // State
 // ========================================================================
 
-let _kaomojiCatalogItems = [];
+let _kaomojiCatalogItems = null;
 let _kaomojiCatalogPromise = null;
 let _kaomojiExtensionUuid = 'KaomojiSearchProvider';
 let _isProviderRegistered = false;
@@ -27,7 +24,7 @@ let _isProviderRegistered = false;
  * @returns {Promise<Array>} A promise that resolves to an array of kaomoji catalog items.
  */
 async function loadKaomojiCatalog() {
-    if (_kaomojiCatalogItems.length > 0) {
+    if (Array.isArray(_kaomojiCatalogItems)) {
         return _kaomojiCatalogItems;
     }
 
@@ -70,6 +67,8 @@ export function ensureKaomojiSearchProviderRegistered({ extensionUuid } = {}) {
         return KaomojiProvider.SEARCH_PROVIDER_ID;
     }
 
+    let kaomojiSearchRenderer = null;
+
     registerSearchProvider({
         id: KaomojiProvider.SEARCH_PROVIDER_ID,
         targetTabs: ['Kaomoji'],
@@ -78,11 +77,15 @@ export function ensureKaomojiSearchProviderRegistered({ extensionUuid } = {}) {
                 return [];
             }
 
+            if (!kaomojiSearchRenderer) {
+                kaomojiSearchRenderer = new KaomojiViewRenderer();
+            }
+
             const catalogItems = await loadKaomojiCatalog();
-            return catalogItems.filter((item) => _kaomojiSearchRenderer.searchFilter(item || {}, query));
+            return catalogItems.filter((item) => kaomojiSearchRenderer.searchFilter(item || {}, query));
         },
         applyToTab: async ({ tabActor, query }) => {
-            if (!tabActor || typeof tabActor.applyExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -90,7 +93,7 @@ export function ensureKaomojiSearchProviderRegistered({ extensionUuid } = {}) {
             return true;
         },
         clearOnTab: async ({ tabActor }) => {
-            if (!tabActor || typeof tabActor.clearExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -101,4 +104,17 @@ export function ensureKaomojiSearchProviderRegistered({ extensionUuid } = {}) {
 
     _isProviderRegistered = true;
     return KaomojiProvider.SEARCH_PROVIDER_ID;
+}
+
+/**
+ * Unregisters the Kaomoji provider and clears cached module state.
+ *
+ * @returns {void}
+ */
+export function resetKaomojiSearchProvider() {
+    unregisterSearchProvider(KaomojiProvider.SEARCH_PROVIDER_ID);
+    _kaomojiCatalogItems = null;
+    _kaomojiCatalogPromise = null;
+    _kaomojiExtensionUuid = 'KaomojiSearchProvider';
+    _isProviderRegistered = false;
 }

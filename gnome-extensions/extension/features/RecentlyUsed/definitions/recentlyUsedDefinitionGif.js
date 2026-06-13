@@ -56,11 +56,7 @@ function createRecentlyUsedDefinitionGifInstance() {
      */
     definition.initialize = ({ extensionUuid, extensionPath, settings }) => {
         if (recentManager) {
-            try {
-                recentManager.destroy();
-            } catch {
-                // Ignore stale manager teardown errors before re-init.
-            }
+            recentManager.destroy();
             recentManager = null;
         }
 
@@ -94,7 +90,7 @@ function createRecentlyUsedDefinitionGifInstance() {
             signals.push({ obj: recentManager, id: recentManager.connect('recents-changed', onRender) });
         }
 
-        if (settings && typeof settings.connect === 'function') {
+        if (settings) {
             signals.push({ obj: settings, id: settings.connect('changed::gif-provider', onRender) });
         }
 
@@ -167,16 +163,15 @@ function createRecentlyUsedDefinitionGifInstance() {
             return true;
         }
 
-        try {
-            return matchesRecentlyUsedSearch({
+        const fallback = fallbackMatch(item);
+        return (
+            matchesRecentlyUsedSearch({
                 item,
                 query,
                 preferredKeys: ['search_query', 'description', 'title', 'name', 'provider', 'id', 'value', 'full_url', 'preview_url'],
                 extraValues: [item?.search_query, item?.provider],
-            });
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
-        }
+            }) || fallback
+        );
     };
 
     /**
@@ -215,7 +210,7 @@ function createRecentlyUsedDefinitionGifInstance() {
                 const filePath = await context.gifDownloadService.downloadPreviewCached(previewUrl, context.gifCacheDir);
                 context.getGifCacheManager().triggerDebouncedCleanup();
 
-                if (typeof context.currentRenderSession === 'function' && renderSession !== context.currentRenderSession()) {
+                if (renderSession !== context.currentRenderSession()) {
                     return;
                 }
 
@@ -259,4 +254,4 @@ function createRecentlyUsedDefinitionGifInstance() {
 /**
  * Section definition template for recently used GIF items.
  */
-export const RecentlyUsedDefinitionGif = createRecentlyUsedDefinitionGifInstance();
+export const RecentlyUsedDefinitionGif = () => createRecentlyUsedDefinitionGifInstance();

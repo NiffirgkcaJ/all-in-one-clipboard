@@ -5,14 +5,21 @@ import * as Gettext from 'gettext';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { destroyAllRecentItemsManagers } from './shared/utilities/utilityRecents.js';
 import { initializeMenuRegistry } from './shared/menu/menuRegistry.js';
 import { IOFile } from './shared/utilities/utilityIO.js';
 import { Logger } from './shared/utilities/utilityLogger.js';
 import { MenuIndicator } from './shared/menu/menuIndicator.js';
+import { resetSearchHub } from './shared/services/serviceSearchHub.js';
 import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
 import { initStorage, FileItem } from './shared/constants/storagePaths.js';
 
 import { ClipboardManager } from './features/Clipboard/managers/clipboardManager.js';
+import { resetClipboardSearchProvider } from './features/Clipboard/integrations/clipboardSearchProvider.js';
+import { resetEmojiSearchProvider } from './features/Emoji/integrations/emojiSearchProvider.js';
+import { resetGifSearchProvider } from './features/GIF/integrations/gifSearchProvider.js';
+import { resetKaomojiSearchProvider } from './features/Kaomoji/integrations/kaomojiSearchProvider.js';
+import { resetSymbolsSearchProvider } from './features/Symbols/integrations/symbolsSearchProvider.js';
 import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
 import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
 
@@ -258,6 +265,14 @@ export default class AllInOneClipboardExtension extends Extension {
 
         this._clipboardManager?.destroy();
         this._clipboardManager = null;
+
+        resetClipboardSearchProvider();
+        resetEmojiSearchProvider();
+        resetGifSearchProvider();
+        resetKaomojiSearchProvider();
+        resetSymbolsSearchProvider();
+        resetSearchHub();
+        destroyAllRecentItemsManagers();
 
         if (this._resource) {
             Gio.resources_unregister(this._resource);

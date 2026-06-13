@@ -20,6 +20,16 @@ function resolvePositiveInt(value, fallback) {
 }
 
 /**
+ * Checks whether a value can be called.
+ *
+ * @param {*} value Value to inspect.
+ * @returns {boolean} True when the value is a function.
+ */
+function isCallable(value) {
+    return typeof value === 'function';
+}
+
+/**
  * Manages Recently Used section lifecycle, rendering data, and signal wiring.
  */
 export class RecentlyUsedRuntimeService {
@@ -38,7 +48,7 @@ export class RecentlyUsedRuntimeService {
     constructor({ extension, settings, onRender }) {
         this._extension = extension;
         this._settings = settings;
-        this._onRender = typeof onRender === 'function' ? onRender : null;
+        this._onRender = isCallable(onRender) ? onRender : null;
         this._started = false;
         this._orderedSections = [];
         this._sectionsById = new Map();
@@ -76,7 +86,7 @@ export class RecentlyUsedRuntimeService {
     stop() {
         const sectionDefinitions = this.getOrderedSections();
         for (const section of sectionDefinitions) {
-            if (typeof section.destroy !== 'function') {
+            if (!isCallable(section.destroy)) {
                 continue;
             }
 
@@ -121,7 +131,7 @@ export class RecentlyUsedRuntimeService {
             return null;
         }
 
-        if (typeof sectionDefinition.createInstance !== 'function') {
+        if (!isCallable(sectionDefinition.createInstance)) {
             return sectionDefinition;
         }
 
@@ -170,7 +180,7 @@ export class RecentlyUsedRuntimeService {
 
         await Promise.all(
             sectionDefinitions.map(async (section) => {
-                if (typeof section.initialize !== 'function') {
+                if (!isCallable(section.initialize)) {
                     return;
                 }
 
@@ -255,7 +265,7 @@ export class RecentlyUsedRuntimeService {
             searchQuery,
         };
 
-        if (typeof sectionConfig.isEnabled === 'function' && !sectionConfig.isEnabled(runtimeContext)) {
+        if (isCallable(sectionConfig.isEnabled) && !sectionConfig.isEnabled(runtimeContext)) {
             return invisibleModel;
         }
 
@@ -264,7 +274,7 @@ export class RecentlyUsedRuntimeService {
             return invisibleModel;
         }
 
-        const mapItem = typeof sectionConfig.mapItem === 'function' ? sectionConfig.mapItem : (item) => item;
+        const mapItem = isCallable(sectionConfig.mapItem) ? sectionConfig.mapItem : (item) => item;
         const mappedItems = sourceItems.map((item) => mapItem(item));
         const filteredItems = searchQuery.length > 0 ? mappedItems.filter((item) => this._searchStateManager.matchesSectionSearch(sectionConfig, item, searchQuery, runtimeContext)) : mappedItems;
 
@@ -290,7 +300,7 @@ export class RecentlyUsedRuntimeService {
     async handleItemClick(itemData, sectionId) {
         const sectionDefinition = this._getSectionById(sectionId);
 
-        if (typeof sectionDefinition?.onClick !== 'function') {
+        if (!isCallable(sectionDefinition?.onClick)) {
             return false;
         }
 
@@ -352,19 +362,18 @@ export class RecentlyUsedRuntimeService {
             gridLayout,
             listLayout,
             nestedLayout,
-            listContentRenderer: typeof sectionConfig.renderListContent === 'function' ? (args) => sectionConfig.renderListContent(args) : null,
-            gridIconResolver: typeof sectionConfig.resolveGridIcon === 'function' ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
-            onGridItemCreated:
-                typeof sectionConfig.onGridItemCreated === 'function'
-                    ? ({ item, widget }) =>
-                          sectionConfig.onGridItemCreated({
-                              item,
-                              widget,
-                              renderSession: viewRuntimeContext.renderSession,
-                              currentRenderSession: viewRuntimeContext.currentRenderSession,
-                              widgetFactory: viewRuntimeContext.widgetFactory,
-                          })
-                    : null,
+            listContentRenderer: isCallable(sectionConfig.renderListContent) ? (args) => sectionConfig.renderListContent(args) : null,
+            gridIconResolver: isCallable(sectionConfig.resolveGridIcon) ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
+            onGridItemCreated: isCallable(sectionConfig.onGridItemCreated)
+                ? ({ item, widget }) =>
+                      sectionConfig.onGridItemCreated({
+                          item,
+                          widget,
+                          renderSession: viewRuntimeContext.renderSession,
+                          currentRenderSession: viewRuntimeContext.currentRenderSession,
+                          widgetFactory: viewRuntimeContext.widgetFactory,
+                      })
+                : null,
         };
     }
 
@@ -407,7 +416,7 @@ export class RecentlyUsedRuntimeService {
      */
     _resolveSectionBrowseTitle(sectionConfig) {
         const browseTitleResolver = sectionConfig?.titlePolicy?.browseTitle;
-        if (typeof browseTitleResolver === 'function') {
+        if (isCallable(browseTitleResolver)) {
             return browseTitleResolver();
         }
 
@@ -424,7 +433,7 @@ export class RecentlyUsedRuntimeService {
      */
     _resolveSectionSearchTitle(sectionConfig, fallbackTitle) {
         const searchTitleResolver = sectionConfig?.titlePolicy?.searchTitle;
-        if (typeof searchTitleResolver === 'function') {
+        if (isCallable(searchTitleResolver)) {
             return searchTitleResolver();
         }
 

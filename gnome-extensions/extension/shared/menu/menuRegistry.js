@@ -2,8 +2,8 @@ import { Logger } from '../utilities/utilityLogger.js';
 
 import { getMenuOrder } from './menuOrder.js';
 
-const menuRegistry = new Map();
-const menuOrderRegistry = [];
+let menuRegistry = null;
+let menuOrderRegistry = null;
 let initializeMenuRegistryPromise = null;
 
 // ========================================================================
@@ -49,6 +49,9 @@ export function registerMenuSection(sectionDefinition) {
         return;
     }
 
+    if (!menuRegistry) {
+        menuRegistry = new Map();
+    }
     menuRegistry.set(sectionDefinition.id, sectionDefinition);
 }
 
@@ -70,7 +73,12 @@ export function registerMenuSections(sectionDefinitions = []) {
  */
 export function registerMenuOrder(sectionEntries = []) {
     initializeMenuRegistryPromise = null;
-    menuOrderRegistry.length = 0;
+
+    if (!menuOrderRegistry) {
+        menuOrderRegistry = [];
+    } else {
+        menuOrderRegistry.length = 0;
+    }
 
     sectionEntries.forEach((entry) => {
         if (!entry || typeof entry !== 'object') {
@@ -103,9 +111,14 @@ export async function initializeMenuRegistry() {
 
     initializeMenuRegistryPromise = (async () => {
         registerMenuOrder(getMenuOrder());
-        menuRegistry.clear();
 
-        if (menuOrderRegistry.length === 0) {
+        if (!menuRegistry) {
+            menuRegistry = new Map();
+        } else {
+            menuRegistry.clear();
+        }
+
+        if (!menuOrderRegistry || menuOrderRegistry.length === 0) {
             Logger.warn('Menu registry initialized without any registered order entries.');
             return;
         }
@@ -141,7 +154,7 @@ export async function initializeMenuRegistry() {
  * @returns {object|null} Section definition or null.
  */
 export function getMenuSectionById(sectionId) {
-    return menuRegistry.get(sectionId) || null;
+    return menuRegistry ? menuRegistry.get(sectionId) || null : null;
 }
 
 /**
@@ -150,7 +163,7 @@ export function getMenuSectionById(sectionId) {
  * @returns {Array<object>} Ordered section definitions.
  */
 export function getMenuOrderedSections() {
-    return menuOrderRegistry.map((entry) => getMenuSectionById(entry.id)).filter(Boolean);
+    return menuOrderRegistry ? menuOrderRegistry.map((entry) => getMenuSectionById(entry.id)).filter(Boolean) : [];
 }
 
 /**

@@ -1,16 +1,9 @@
 const SEARCH_HANDOFF_TTL_MS = 10000;
 
-const _providersById = new Map();
-const _providerIdByTab = new Map();
-const _subscribers = new Set();
+let _providersById = null;
+let _providerIdByTab = null;
+let _subscribers = null;
 let _pendingHandoff = null;
-
-/**
- * Orchestrates cross-tab search provider registration and query handoffs.
- *
- * Allows features to register targeted search providers and facilitates
- * search continuity across tabs via one-shot query handoffs.
- */
 
 /**
  * Normalizes a value for use as a lookup key.
@@ -33,15 +26,61 @@ function normalizeQuery(value) {
 }
 
 /**
+ * Checks whether a value can be called.
+ *
+ * @param {*} value Value to inspect.
+ * @returns {boolean} True when the value is a function.
+ */
+function isCallable(value) {
+    return typeof value === 'function';
+}
+
+/**
+ * Returns the provider registry, creating it on first use.
+ *
+ * @returns {Map<string, object>} Search providers keyed by normalized provider id.
+ */
+function getProvidersById() {
+    if (!_providersById) {
+        _providersById = new Map();
+    }
+    return _providersById;
+}
+
+/**
+ * Returns the tab-to-provider registry, creating it on first use.
+ *
+ * @returns {Map<string, string>} Provider ids keyed by normalized tab name.
+ */
+function getProviderIdByTab() {
+    if (!_providerIdByTab) {
+        _providerIdByTab = new Map();
+    }
+    return _providerIdByTab;
+}
+
+/**
+ * Returns the Search Hub subscriber set, creating it on first use.
+ *
+ * @returns {Set<Function>} Registered Search Hub listeners.
+ */
+function getSubscribers() {
+    if (!_subscribers) {
+        _subscribers = new Set();
+    }
+    return _subscribers;
+}
+
+/**
  * Notifies subscribers of Search Hub events.
  *
  * @param {string} event Event name.
  * @param {object} payload Event payload.
  */
 function notifySearchHubSubscribers(event, payload) {
-    _subscribers.forEach((listener) => {
+    getSubscribers().forEach((listener) => {
         try {
-            listener?.({ event, payload });
+            listener({ event, payload });
         } catch {
             // No action needed for subscriber errors.
         }
@@ -102,7 +141,7 @@ function getValidHandoff() {
  */
 function resolveProviderIdByTab(tabName) {
     const tabKey = normalizeLookupKey(tabName);
-    return tabKey ? _providerIdByTab.get(tabKey) || null : null;
+    return tabKey ? getProviderIdByTab().get(tabKey) || null : null;
 }
 
 /**
@@ -113,7 +152,7 @@ function resolveProviderIdByTab(tabName) {
  */
 function resolveProvider(providerId) {
     const normalizedProviderId = normalizeLookupKey(providerId);
-    return normalizedProviderId ? _providersById.get(normalizedProviderId) || null : null;
+    return normalizedProviderId ? getProvidersById().get(normalizedProviderId) || null : null;
 }
 
 /**
@@ -123,14 +162,14 @@ function resolveProvider(providerId) {
  * @returns {Function} Unsubscribe function.
  */
 export function subscribeSearchHub(listener) {
-    if (typeof listener !== 'function') {
+    if (!isCallable(listener)) {
         return () => {};
     }
 
-    _subscribers.add(listener);
+    getSubscribers().add(listener);
 
     return () => {
-        _subscribers.delete(listener);
+        getSubscribers().delete(listener);
     };
 }
 
@@ -153,18 +192,18 @@ export function registerSearchProvider(provider) {
 
     const targetTabs = Array.isArray(provider?.targetTabs) ? provider.targetTabs.filter((tabName) => typeof tabName === 'string' && tabName.trim().length > 0) : [];
 
-    _providersById.set(providerId, {
+    getProvidersById().set(providerId, {
         id: providerId,
         targetTabs,
-        search: typeof provider?.search === 'function' ? provider.search : null,
-        applyToTab: typeof provider?.applyToTab === 'function' ? provider.applyToTab : null,
-        clearOnTab: typeof provider?.clearOnTab === 'function' ? provider.clearOnTab : null,
+        search: isCallable(provider?.search) ? provider.search : null,
+        applyToTab: isCallable(provider?.applyToTab) ? provider.applyToTab : null,
+        clearOnTab: isCallable(provider?.clearOnTab) ? provider.clearOnTab : null,
     });
 
     targetTabs.forEach((tabName) => {
         const tabKey = normalizeLookupKey(tabName);
         if (tabKey) {
-            _providerIdByTab.set(tabKey, providerId);
+            getProviderIdByTab().set(tabKey, providerId);
         }
     });
 
@@ -183,15 +222,16 @@ export function registerSearchProvider(provider) {
  */
 export function unregisterSearchProvider(providerId) {
     const normalizedProviderId = normalizeLookupKey(providerId);
-    if (!normalizedProviderId || !_providersById.has(normalizedProviderId)) {
+    const providersById = getProvidersById();
+    if (!normalizedProviderId || !providersById.has(normalizedProviderId)) {
         return;
     }
 
-    _providersById.delete(normalizedProviderId);
+    providersById.delete(normalizedProviderId);
 
-    for (const [tabKey, mappedProviderId] of _providerIdByTab.entries()) {
+    for (const [tabKey, mappedProviderId] of getProviderIdByTab().entries()) {
         if (mappedProviderId === normalizedProviderId) {
-            _providerIdByTab.delete(tabKey);
+            getProviderIdByTab().delete(tabKey);
         }
     }
 
@@ -213,7 +253,7 @@ export async function searchViaProvider(providerId, { query, context } = {}) {
     const provider = resolveProvider(providerId);
     const normalizedQuery = normalizeQuery(query);
 
-    if (!provider || typeof provider.search !== 'function' || !normalizedQuery) {
+    if (!provider || !isCallable(provider.search) || !normalizedQuery) {
         return [];
     }
 
@@ -289,7 +329,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
     }
 
     let applied = false;
-    if (provider && typeof provider.applyToTab === 'function') {
+    if (provider && isCallable(provider.applyToTab)) {
         try {
             applied = Boolean(
                 await provider.applyToTab({
@@ -303,7 +343,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
         }
     }
 
-    if (!applied && tabActor && typeof tabActor.applyExternalSearch === 'function') {
+    if (!applied && tabActor && isCallable(tabActor.applyExternalSearch)) {
         try {
             applied = Boolean(await tabActor.applyExternalSearch(handoff.query, handoff));
         } catch {
@@ -331,7 +371,7 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
     const resolvedProviderId = resolveProviderIdByTab(targetTab);
     const provider = resolveProvider(resolvedProviderId);
 
-    if (provider && typeof provider.clearOnTab === 'function') {
+    if (provider && isCallable(provider.clearOnTab)) {
         try {
             return Boolean(
                 await provider.clearOnTab({
@@ -344,7 +384,7 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
         }
     }
 
-    if (tabActor && typeof tabActor.clearExternalSearch === 'function') {
+    if (tabActor && isCallable(tabActor.clearExternalSearch)) {
         try {
             return Boolean(await tabActor.clearExternalSearch());
         } catch {
@@ -353,4 +393,19 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
     }
 
     return false;
+}
+
+/**
+ * Clears all search hub state during extension shutdown.
+ *
+ * @returns {void}
+ */
+export function resetSearchHub() {
+    _providersById?.clear();
+    _providerIdByTab?.clear();
+    _subscribers?.clear();
+    _pendingHandoff = null;
+    _providersById = null;
+    _providerIdByTab = null;
+    _subscribers = null;
 }

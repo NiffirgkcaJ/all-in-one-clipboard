@@ -1,5 +1,5 @@
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
-import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
+import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { ClipboardProvider } from '../constants/clipboardConstants.js';
 import { ClipboardSearchUtils } from '../utilities/clipboardSearchUtils.js';
@@ -72,7 +72,7 @@ export function ensureClipboardSearchProviderRegistered() {
             return items.filter((item) => ClipboardSearchUtils.isMatch(item, query));
         },
         applyToTab: async ({ tabActor, query }) => {
-            if (!tabActor || typeof tabActor.applyExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -80,7 +80,7 @@ export function ensureClipboardSearchProviderRegistered() {
             return true;
         },
         clearOnTab: async ({ tabActor }) => {
-            if (!tabActor || typeof tabActor.clearExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -91,4 +91,14 @@ export function ensureClipboardSearchProviderRegistered() {
 
     _isProviderRegistered = true;
     return ClipboardProvider.SEARCH_PROVIDER_ID;
+}
+
+/**
+ * Unregisters the Clipboard provider and clears module state.
+ *
+ * @returns {void}
+ */
+export function resetClipboardSearchProvider() {
+    unregisterSearchProvider(ClipboardProvider.SEARCH_PROVIDER_ID);
+    _isProviderRegistered = false;
 }

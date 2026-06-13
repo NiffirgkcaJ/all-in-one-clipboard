@@ -1,18 +1,15 @@
-import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { SymbolsJsonParser } from '../parsers/symbolsJsonParser.js';
 import { SymbolsProvider } from '../constants/symbolsConstants.js';
 import { SymbolsViewRenderer } from '../view/symbolsViewRenderer.js';
 
-// Private Resource
-const _symbolsSearchRenderer = new SymbolsViewRenderer();
-
 // ========================================================================
 // State
 // ========================================================================
 
-let _symbolsCatalogItems = [];
+let _symbolsCatalogItems = null;
 let _symbolsCatalogPromise = null;
 let _symbolsExtensionUuid = 'SymbolsSearchProvider';
 let _isProviderRegistered = false;
@@ -27,7 +24,7 @@ let _isProviderRegistered = false;
  * @returns {Promise<Array>} A promise that resolves to an array of symbols catalog items.
  */
 async function loadSymbolsCatalog() {
-    if (_symbolsCatalogItems.length > 0) {
+    if (Array.isArray(_symbolsCatalogItems)) {
         return _symbolsCatalogItems;
     }
 
@@ -70,6 +67,8 @@ export function ensureSymbolsSearchProviderRegistered({ extensionUuid } = {}) {
         return SymbolsProvider.SEARCH_PROVIDER_ID;
     }
 
+    let symbolsSearchRenderer = null;
+
     registerSearchProvider({
         id: SymbolsProvider.SEARCH_PROVIDER_ID,
         targetTabs: ['Symbols'],
@@ -78,11 +77,15 @@ export function ensureSymbolsSearchProviderRegistered({ extensionUuid } = {}) {
                 return [];
             }
 
+            if (!symbolsSearchRenderer) {
+                symbolsSearchRenderer = new SymbolsViewRenderer();
+            }
+
             const catalogItems = await loadSymbolsCatalog();
-            return catalogItems.filter((item) => _symbolsSearchRenderer.searchFilter(item || {}, query));
+            return catalogItems.filter((item) => symbolsSearchRenderer.searchFilter(item || {}, query));
         },
         applyToTab: async ({ tabActor, query }) => {
-            if (!tabActor || typeof tabActor.applyExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -90,7 +93,7 @@ export function ensureSymbolsSearchProviderRegistered({ extensionUuid } = {}) {
             return true;
         },
         clearOnTab: async ({ tabActor }) => {
-            if (!tabActor || typeof tabActor.clearExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -101,4 +104,17 @@ export function ensureSymbolsSearchProviderRegistered({ extensionUuid } = {}) {
 
     _isProviderRegistered = true;
     return SymbolsProvider.SEARCH_PROVIDER_ID;
+}
+
+/**
+ * Unregisters the Symbols provider and clears cached module state.
+ *
+ * @returns {void}
+ */
+export function resetSymbolsSearchProvider() {
+    unregisterSearchProvider(SymbolsProvider.SEARCH_PROVIDER_ID);
+    _symbolsCatalogItems = null;
+    _symbolsCatalogPromise = null;
+    _symbolsExtensionUuid = 'SymbolsSearchProvider';
+    _isProviderRegistered = false;
 }

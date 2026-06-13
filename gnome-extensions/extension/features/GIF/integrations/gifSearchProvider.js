@@ -1,4 +1,4 @@
-import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
+import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { GifManager } from '../managers/gifManager.js';
 import { GifProvider } from '../constants/gifConstants.js';
@@ -9,6 +9,7 @@ import { GifProvider } from '../constants/gifConstants.js';
 
 let _isProviderRegistered = false;
 let _gifManager = null;
+let _ownsGifManager = false;
 
 // ========================================================================
 // Internal Helpers
@@ -29,6 +30,7 @@ function ensureGifManager({ settings, extensionUuid, extensionPath } = {}) {
     }
 
     _gifManager = new GifManager(settings, extensionUuid, extensionPath);
+    _ownsGifManager = true;
     return _gifManager;
 }
 
@@ -48,7 +50,11 @@ function ensureGifManager({ settings, extensionUuid, extensionPath } = {}) {
  */
 export function ensureGifSearchProviderRegistered({ settings, extensionUuid, extensionPath, gifManager } = {}) {
     if (gifManager) {
+        if (_ownsGifManager && _gifManager && _gifManager !== gifManager) {
+            _gifManager.destroy();
+        }
         _gifManager = gifManager;
+        _ownsGifManager = false;
     } else {
         ensureGifManager({ settings, extensionUuid, extensionPath });
     }
@@ -82,7 +88,7 @@ export function ensureGifSearchProviderRegistered({ settings, extensionUuid, ext
             }
         },
         applyToTab: async ({ tabActor, query }) => {
-            if (!tabActor || typeof tabActor.applyExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -90,7 +96,7 @@ export function ensureGifSearchProviderRegistered({ settings, extensionUuid, ext
             return true;
         },
         clearOnTab: async ({ tabActor }) => {
-            if (!tabActor || typeof tabActor.clearExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -101,4 +107,21 @@ export function ensureGifSearchProviderRegistered({ settings, extensionUuid, ext
 
     _isProviderRegistered = true;
     return GifProvider.SEARCH_PROVIDER_ID;
+}
+
+/**
+ * Unregisters the GIF provider and destroys any manager owned by this module.
+ *
+ * @returns {void}
+ */
+export function resetGifSearchProvider() {
+    unregisterSearchProvider(GifProvider.SEARCH_PROVIDER_ID);
+
+    if (_ownsGifManager && _gifManager) {
+        _gifManager.destroy();
+    }
+
+    _gifManager = null;
+    _ownsGifManager = false;
+    _isProviderRegistered = false;
 }

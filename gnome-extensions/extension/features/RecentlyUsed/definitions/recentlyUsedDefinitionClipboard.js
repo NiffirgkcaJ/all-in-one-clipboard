@@ -140,11 +140,8 @@ function createRecentlyUsedDefinitionClipboardInstance() {
             return true;
         }
 
-        try {
-            return ClipboardSearchUtils.isMatch(item, query);
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
-        }
+        const fallback = fallbackMatch(item);
+        return ClipboardSearchUtils.isMatch(item, query) || fallback;
     };
 
     /**
@@ -191,4 +188,4 @@ function createRecentlyUsedDefinitionClipboardInstance() {
 /**
  * Section definition template for clipboard history items.
  */
-export const RecentlyUsedDefinitionClipboard = createRecentlyUsedDefinitionClipboardInstance();
+export const RecentlyUsedDefinitionClipboard = () => createRecentlyUsedDefinitionClipboardInstance();

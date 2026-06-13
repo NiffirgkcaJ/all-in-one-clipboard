@@ -4,8 +4,8 @@ import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
 
-const recentlyUsedRegistry = new Map();
-const recentlyUsedOrderRegistry = [];
+let recentlyUsedRegistry = null;
+let recentlyUsedOrderRegistry = null;
 let initializeRecentlyUsedRegistryPromise = null;
 
 // ========================================================================
@@ -29,7 +29,8 @@ async function loadSectionDefinition(orderEntry) {
 
     try {
         const module = await import(modulePath);
-        return module?.[exportName] || null;
+        const exportedValue = module?.[exportName];
+        return exportedValue ? exportedValue() : exportedValue || null;
     } catch (e) {
         const message = e?.message ?? String(e);
         Logger.error(`Failed to load section definition '${sectionId}': ${message}`);
@@ -51,6 +52,9 @@ export function registerRecentlyUsedSection(sectionDefinition) {
         return;
     }
 
+    if (!recentlyUsedRegistry) {
+        recentlyUsedRegistry = new Map();
+    }
     recentlyUsedRegistry.set(sectionDefinition.id, sectionDefinition);
 }
 
@@ -77,9 +81,14 @@ export async function initializeRecentlyUsedRegistry() {
 
     initializeRecentlyUsedRegistryPromise = (async () => {
         registerRecentlyUsedOrder(getRecentlyUsedOrder(_));
-        recentlyUsedRegistry.clear();
 
-        if (recentlyUsedOrderRegistry.length === 0) {
+        if (!recentlyUsedRegistry) {
+            recentlyUsedRegistry = new Map();
+        } else {
+            recentlyUsedRegistry.clear();
+        }
+
+        if (!recentlyUsedOrderRegistry || recentlyUsedOrderRegistry.length === 0) {
             Logger.warn('Recently Used registry initialized without any registered order entries.');
             return;
         }
@@ -111,7 +120,12 @@ export async function initializeRecentlyUsedRegistry() {
  */
 export function registerRecentlyUsedOrder(sectionEntries = []) {
     initializeRecentlyUsedRegistryPromise = null;
-    recentlyUsedOrderRegistry.length = 0;
+
+    if (!recentlyUsedOrderRegistry) {
+        recentlyUsedOrderRegistry = [];
+    } else {
+        recentlyUsedOrderRegistry.length = 0;
+    }
 
     sectionEntries.forEach((entry) => {
         if (typeof entry === 'string') {
@@ -148,7 +162,7 @@ export function registerRecentlyUsedOrder(sectionEntries = []) {
  * @returns {object|null} Section definition or null.
  */
 export function getRecentlyUsedSectionById(sectionId) {
-    return recentlyUsedRegistry.get(sectionId) || null;
+    return recentlyUsedRegistry ? recentlyUsedRegistry.get(sectionId) || null : null;
 }
 
 /**
@@ -157,7 +171,7 @@ export function getRecentlyUsedSectionById(sectionId) {
  * @returns {Array<string>} Ordered section ids.
  */
 export function getRecentlyUsedSectionOrder() {
-    return recentlyUsedOrderRegistry.map((entry) => entry.id);
+    return recentlyUsedOrderRegistry ? recentlyUsedOrderRegistry.map((entry) => entry.id) : [];
 }
 
 /**
@@ -166,5 +180,5 @@ export function getRecentlyUsedSectionOrder() {
  * @returns {Array<object>} Ordered section definitions.
  */
 export function getRecentlyUsedOrderedSections() {
-    return recentlyUsedOrderRegistry.map((entry) => getRecentlyUsedSectionById(entry.id)).filter(Boolean);
+    return recentlyUsedOrderRegistry ? recentlyUsedOrderRegistry.map((entry) => getRecentlyUsedSectionById(entry.id)).filter(Boolean) : [];
 }

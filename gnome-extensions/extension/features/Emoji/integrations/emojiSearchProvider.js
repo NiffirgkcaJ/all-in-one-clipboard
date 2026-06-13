@@ -1,18 +1,15 @@
-import { registerSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { EmojiJsonParser } from '../parsers/emojiJsonParser.js';
 import { EmojiProvider } from '../constants/emojiConstants.js';
 import { EmojiViewRenderer } from '../view/emojiViewRenderer.js';
 
-// Private Resources
-const _emojiSearchRenderer = new EmojiViewRenderer(null);
-
 // ========================================================================
 // State
 // ========================================================================
 
-let _emojiCatalogItems = [];
+let _emojiCatalogItems = null;
 let _emojiCatalogPromise = null;
 let _emojiExtensionUuid = 'EmojiSearchProvider';
 let _isProviderRegistered = false;
@@ -27,7 +24,7 @@ let _isProviderRegistered = false;
  * @returns {Promise<Array>} A promise that resolves to an array of emoji catalog items.
  */
 async function loadEmojiCatalog() {
-    if (_emojiCatalogItems.length > 0) {
+    if (Array.isArray(_emojiCatalogItems)) {
         return _emojiCatalogItems;
     }
 
@@ -70,6 +67,8 @@ export function ensureEmojiSearchProviderRegistered({ extensionUuid } = {}) {
         return EmojiProvider.SEARCH_PROVIDER_ID;
     }
 
+    let emojiSearchRenderer = null;
+
     registerSearchProvider({
         id: EmojiProvider.SEARCH_PROVIDER_ID,
         targetTabs: ['Emoji'],
@@ -78,11 +77,15 @@ export function ensureEmojiSearchProviderRegistered({ extensionUuid } = {}) {
                 return [];
             }
 
+            if (!emojiSearchRenderer) {
+                emojiSearchRenderer = new EmojiViewRenderer(null);
+            }
+
             const catalogItems = await loadEmojiCatalog();
-            return catalogItems.filter((item) => _emojiSearchRenderer.searchFilter(item || {}, query));
+            return catalogItems.filter((item) => emojiSearchRenderer.searchFilter(item || {}, query));
         },
         applyToTab: async ({ tabActor, query }) => {
-            if (!tabActor || typeof tabActor.applyExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -90,7 +93,7 @@ export function ensureEmojiSearchProviderRegistered({ extensionUuid } = {}) {
             return true;
         },
         clearOnTab: async ({ tabActor }) => {
-            if (!tabActor || typeof tabActor.clearExternalSearch !== 'function') {
+            if (!tabActor) {
                 return false;
             }
 
@@ -101,4 +104,17 @@ export function ensureEmojiSearchProviderRegistered({ extensionUuid } = {}) {
 
     _isProviderRegistered = true;
     return EmojiProvider.SEARCH_PROVIDER_ID;
+}
+
+/**
+ * Unregisters the Emoji provider and clears cached module state.
+ *
+ * @returns {void}
+ */
+export function resetEmojiSearchProvider() {
+    unregisterSearchProvider(EmojiProvider.SEARCH_PROVIDER_ID);
+    _emojiCatalogItems = null;
+    _emojiCatalogPromise = null;
+    _emojiExtensionUuid = 'EmojiSearchProvider';
+    _isProviderRegistered = false;
 }

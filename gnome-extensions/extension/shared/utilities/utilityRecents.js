@@ -8,7 +8,19 @@ const DEFAULT_MAX_RECENTS_FALLBACK = 45;
 /**
  * Shared instances keyed by cache file path to allow multiple consumers to reuse a single manager.
  */
-const _instances = new Map();
+let _instances = null;
+
+/**
+ * Returns the shared recents manager registry, creating it on first use.
+ *
+ * @returns {Map<string, RecentItemsManager>} Recent item managers keyed by cache file path.
+ */
+function getInstances() {
+    if (!_instances) {
+        _instances = new Map();
+    }
+    return _instances;
+}
 
 /**
  * Manages a list of recently used items for a specific data type.
@@ -155,7 +167,7 @@ export const RecentItemsManager = GObject.registerClass(
             this._refCount--;
             if (this._refCount > 0) return;
 
-            _instances.delete(this._cacheFilePath);
+            getInstances().delete(this._cacheFilePath);
 
             if (this._settings && this._settingsSignalId > 0) {
                 this._settings.disconnect(this._settingsSignalId);
@@ -166,6 +178,16 @@ export const RecentItemsManager = GObject.registerClass(
             this._recents = [];
             this._uuid = null;
             this._maxItemsSettingKey = null;
+        }
+
+        /**
+         * Forces cleanup regardless of the current reference count.
+         *
+         * @returns {void}
+         */
+        forceDestroy() {
+            this._refCount = 1;
+            this.destroy();
         }
     },
 );
@@ -183,7 +205,7 @@ export const RecentItemsManager = GObject.registerClass(
  */
 export function getRecentItemsManager(extensionUUID, settings, absolutePath, maxItemsSettingKey) {
     const key = absolutePath.trim();
-    let instance = _instances.get(key);
+    let instance = getInstances().get(key);
 
     if (instance) {
         instance._refCount++;
@@ -191,6 +213,22 @@ export function getRecentItemsManager(extensionUUID, settings, absolutePath, max
     }
 
     instance = new RecentItemsManager(extensionUUID, settings, absolutePath, maxItemsSettingKey);
-    _instances.set(key, instance);
+    getInstances().set(key, instance);
     return instance;
+}
+
+/**
+ * Destroys any remaining shared recents managers during extension shutdown.
+ *
+ * @returns {void}
+ */
+export function destroyAllRecentItemsManagers() {
+    if (!_instances) {
+        return;
+    }
+
+    const managers = [..._instances.values()];
+    _instances.clear();
+    managers.forEach((manager) => manager.forceDestroy());
+    _instances = null;
 }

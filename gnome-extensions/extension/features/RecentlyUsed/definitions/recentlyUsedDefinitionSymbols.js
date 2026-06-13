@@ -9,8 +9,6 @@ import { ensureSymbolsSearchProviderRegistered } from '../../Symbols/integration
 import { SymbolsProvider } from '../../Symbols/constants/symbolsConstants.js';
 import { SymbolsViewRenderer } from '../../Symbols/view/symbolsViewRenderer.js';
 
-const _symbolsSearchRenderer = new SymbolsViewRenderer();
-
 /**
  * Creates a runtime-scoped symbols section definition.
  *
@@ -18,6 +16,7 @@ const _symbolsSearchRenderer = new SymbolsViewRenderer();
  */
 function createRecentlyUsedDefinitionSymbolsInstance() {
     let recentManager = null;
+    let symbolsSearchRenderer = null;
 
     const definition = {
         id: 'symbols',
@@ -49,11 +48,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
         ensureSymbolsSearchProviderRegistered({ extensionUuid });
 
         if (recentManager) {
-            try {
-                recentManager.destroy();
-            } catch {
-                // Ignore stale manager teardown errors before re-init.
-            }
+            recentManager.destroy();
             recentManager = null;
         }
 
@@ -148,11 +143,12 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
             return true;
         }
 
-        try {
-            return _symbolsSearchRenderer.searchFilter(item || {}, query);
-        } catch {
-            return typeof fallbackMatch === 'function' ? fallbackMatch(item) : false;
+        if (!symbolsSearchRenderer) {
+            symbolsSearchRenderer = new SymbolsViewRenderer();
         }
+
+        const fallback = fallbackMatch(item);
+        return symbolsSearchRenderer.searchFilter(item || {}, query) || fallback;
     };
 
     /**
@@ -185,4 +181,4 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
 /**
  * Section definition template for recently used symbol items.
  */
-export const RecentlyUsedDefinitionSymbols = createRecentlyUsedDefinitionSymbolsInstance();
+export const RecentlyUsedDefinitionSymbols = () => createRecentlyUsedDefinitionSymbolsInstance();
