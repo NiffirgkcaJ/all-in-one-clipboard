@@ -116,7 +116,6 @@ export class GifRuntimeService {
         this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
             if (this._contentView.mapped) {
                 this._provider = this._settings.get_string(GifSettings.PROVIDER_KEY);
-                this._updateProviderBranding();
                 this._loadInitialDataInternal().catch((e) => this._contentView.showErrorState(e.message));
             }
         });
@@ -252,6 +251,8 @@ export class GifRuntimeService {
      * @private
      */
     async _loadInitialDataInternal() {
+        await this._gifManager.ensureReady();
+
         this._updateProviderBranding();
         this._headerView.clearCategories();
 

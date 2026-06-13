@@ -30,12 +30,29 @@ export const GifManager = GObject.registerClass(
             this._uuid = extensionUUID;
             this._registry = new GifProviderRegistry(extensionPath, httpService, settings);
             this._activeProvider = null;
+            this._isDestroyed = false;
 
-            this._loadActiveProvider();
+            this._readyPromise = this._initialize();
 
             this._providerChangedSignalId = this._settings.connect(`changed::${GifSettings.PROVIDER_KEY}`, () => {
-                this._loadActiveProvider();
+                this._readyPromise = this._readyPromise.then(() => this._loadActiveProvider()).catch((e) => Logger.warn(`Failed to reload GIF provider: ${e.message}`));
             });
+        }
+
+        /**
+         * Load provider definitions and activate the configured provider.
+         *
+         * @returns {Promise<void>} Resolves when the manager is ready.
+         * @private
+         */
+        async _initialize() {
+            await this._registry.loadProviders();
+
+            if (this._isDestroyed) {
+                return;
+            }
+
+            this._loadActiveProvider();
         }
 
         /**
@@ -69,6 +86,8 @@ export const GifManager = GObject.registerClass(
          * @returns {Promise<{results: Array, nextPos: string|null}>} Search results.
          */
         async search(query, nextPos = null, cancellable = null) {
+            await this.ensureReady();
+
             if (!this._activeProvider) return { results: [], nextPos: null };
 
             try {
@@ -90,6 +109,8 @@ export const GifManager = GObject.registerClass(
          * @returns {Promise<{results: Array, nextPos: string|null}>} Trending results.
          */
         async getTrending(nextPos = null, cancellable = null) {
+            await this.ensureReady();
+
             if (!this._activeProvider) return { results: [], nextPos: null };
 
             try {
@@ -110,6 +131,8 @@ export const GifManager = GObject.registerClass(
          * @returns {Promise<Array<{name: string, searchTerm: string}>>}
          */
         async getCategories(cancellable = null) {
+            await this.ensureReady();
+
             if (!this._activeProvider) return [];
 
             try {
@@ -152,6 +175,15 @@ export const GifManager = GObject.registerClass(
             return this._registry.getAvailableProviders();
         }
 
+        /**
+         * Wait for provider definitions to finish loading.
+         *
+         * @returns {Promise<void>} Resolves when provider definitions are available.
+         */
+        async ensureReady() {
+            await this._readyPromise;
+        }
+
         // ========================================================================
         // Lifecycle
         // ========================================================================
@@ -160,6 +192,8 @@ export const GifManager = GObject.registerClass(
          * Clean up resources.
          */
         destroy() {
+            this._isDestroyed = true;
+
             if (this._providerChangedSignalId) {
                 this._settings.disconnect(this._providerChangedSignalId);
                 this._providerChangedSignalId = 0;

@@ -1,8 +1,5 @@
-import Gio from 'gi://Gio';
-
-import { IOJson } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { ResourcePath } from '../../../shared/constants/storagePaths.js';
+import { IOResource, ResourcePath } from '../../../shared/constants/storagePaths.js';
 
 import { GifGenericProvider } from './gifGenericProvider.js';
 
@@ -27,53 +24,92 @@ export class GifProviderRegistry {
         this._httpService = httpService;
         this._settings = settings;
         this._providers = new Map();
-
-        this._loadProviders();
+        this._loadPromise = null;
+        this._isLoaded = false;
     }
 
     /**
      * Scans the directory and loads valid JSON providers.
+     *
+     * @returns {Promise<void>} Resolves when providers have been loaded.
+     */
+    loadProviders() {
+        if (this._isLoaded) {
+            return Promise.resolve();
+        }
+
+        if (!this._loadPromise) {
+            this._loadPromise = this._loadProviders().finally(() => {
+                this._loadPromise = null;
+            });
+        }
+
+        return this._loadPromise;
+    }
+
+    /**
+     * Scans provider directories and loads valid JSON providers.
+     *
+     * @returns {Promise<void>} Resolves when scanning is complete.
      * @private
      */
-    _loadProviders() {
-        const locations = [Gio.File.new_for_uri(ResourcePath.GIF)];
+    async _loadProviders() {
+        const locations = [ResourcePath.GIF];
+        this._providers.clear();
 
-        for (const dir of locations) {
-            try {
-                const enumerator = dir.enumerate_children('standard::name', Gio.FileQueryInfoFlags.NONE, null);
-                let fileInfo;
-                while ((fileInfo = enumerator.next_file(null)) !== null) {
-                    const filename = fileInfo.get_name();
-                    if (!filename.endsWith('.json')) continue;
+        await Promise.all(locations.map((uri) => this._loadProvidersFromDirectory(uri)));
 
-                    const file = dir.get_child(filename);
-                    this._loadProviderFromFile(file);
-                }
-            } catch {
-                // Ignore
-            }
+        this._isLoaded = true;
+    }
+
+    /**
+     * Scans a provider directory and loads all JSON definitions.
+     *
+     * @param {string} resourceUri The resource directory to scan.
+     * @returns {Promise<void>} Resolves when the directory has been scanned.
+     * @private
+     */
+    async _loadProvidersFromDirectory(resourceUri) {
+        try {
+            const filenames = await IOResource.listAsync(resourceUri);
+            if (!filenames) return;
+
+            const providerLoadPromises = filenames.filter((filename) => filename.endsWith('.json')).map((filename) => this._loadProviderFromFile(`${resourceUri}/${filename}`));
+            await Promise.all(providerLoadPromises);
+        } catch (e) {
+            Logger.warn(`Failed to scan GIF providers: ${e.message}`);
         }
     }
 
     /**
      * Loads a single provider from a JSON file.
-     * @param {Gio.File} file The file to load.
+     *
+     * @param {string} providerUri The provider resource URI to load.
+     * @returns {Promise<void>} Resolves when the provider has been processed.
      */
-    _loadProviderFromFile(file) {
+    async _loadProviderFromFile(providerUri) {
         try {
-            const [success, contents] = file.load_contents(null);
-            if (!success) return;
-
-            const definition = IOJson.parseBytes(contents);
+            const definition = await IOResource.readJson(providerUri);
 
             if (this._validateDefinition(definition)) {
                 this._providers.set(definition.id, definition);
             } else {
-                Logger.warn(`Invalid provider definition in ${file.get_basename()}`);
+                Logger.warn(`Invalid provider definition in ${this._getBasename(providerUri)}`);
             }
         } catch (e) {
-            Logger.error(`Failed to load provider ${file.get_basename()}: ${e.message}`);
+            Logger.error(`Failed to load provider ${this._getBasename(providerUri)}: ${e.message}`);
         }
+    }
+
+    /**
+     * Gets the final path segment from a resource URI.
+     *
+     * @param {string} uri The resource URI.
+     * @returns {string} The final path segment.
+     * @private
+     */
+    _getBasename(uri) {
+        return uri.split('/').pop();
     }
 
     /**

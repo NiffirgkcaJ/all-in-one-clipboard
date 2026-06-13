@@ -4,6 +4,7 @@ import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import { getRangeFromSchema } from '../../../shared/preferences/preferenceUtilities.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getGifCacheManager } from '../logic/gifCacheManager.js';
 import { GifProviderRegistry } from '../logic/gifProviderRegistry.js';
@@ -31,22 +32,17 @@ export function addPreferenceGifSettings({ page, settings, path, dir }) {
     }
 
     const registry = new GifProviderRegistry(extPath, null, settings);
-    const providers = registry.getAvailableProviders();
 
     const providerList = [_('Disabled')];
     const providerIds = ['none'];
     const providerMeta = { none: { hasProxy: false } };
-
-    providers.forEach((p) => {
-        providerList.push(p.name);
-        providerIds.push(p.id);
-        providerMeta[p.id] = { hasProxy: p.hasProxy };
-    });
+    const providerModel = new Gtk.StringList({ strings: providerList });
+    let isUpdatingProviderRow = false;
 
     const providerRow = new Adw.ComboRow({
         title: _('GIF Provider'),
         subtitle: _('Select the service to use for fetching GIFs.'),
-        model: new Gtk.StringList({ strings: providerList }),
+        model: providerModel,
     });
     group.add(providerRow);
 
@@ -56,6 +52,8 @@ export function addPreferenceGifSettings({ page, settings, path, dir }) {
     providerRow.set_selected(initialIndex);
 
     providerRow.connect('notify::selected', () => {
+        if (isUpdatingProviderRow) return;
+
         const index = providerRow.get_selected();
         if (index >= 0 && index < providerIds.length) {
             const newId = providerIds[index];
@@ -92,6 +90,28 @@ export function addPreferenceGifSettings({ page, settings, path, dir }) {
 
     providerRow.connect('notify::selected', updateProviderUI);
     updateProviderUI(); // Initial
+
+    const loadProviderRows = async () => {
+        await registry.loadProviders();
+
+        const providers = registry.getAvailableProviders();
+        providers.forEach((p) => {
+            providerModel.append(p.name);
+            providerIds.push(p.id);
+            providerMeta[p.id] = { hasProxy: p.hasProxy };
+        });
+
+        const loadedProviderId = settings.get_string('gif-provider');
+        const loadedIndex = providerIds.indexOf(loadedProviderId);
+
+        isUpdatingProviderRow = true;
+        providerRow.set_selected(loadedIndex === -1 ? 0 : loadedIndex);
+        isUpdatingProviderRow = false;
+
+        updateProviderUI();
+    };
+
+    loadProviderRows().catch((e) => Logger.warn(`Failed to load GIF providers in preferences: ${e.message}`));
 
     // Paste Behavior
     const pasteBehaviorRow = new Adw.ComboRow({
