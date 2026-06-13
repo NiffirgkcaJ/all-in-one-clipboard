@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 09:38+0000\n"
+"POT-Creation-Date: 2026-06-13 10:19+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -322,11 +322,11 @@ msgstr "Sekundärer Farbton"
 msgid "For the second person in pairs."
 msgstr "Für die zweite Person in Paaren."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:22
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
 msgid "GIF Settings"
 msgstr "GIF-Einstellungen"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:24
 msgid "To search for GIFs, you must select a provider and provide your own API key."
 msgstr "Um nach GIFs zu suchen, müssen Sie einen Anbieter wählen und Ihren eigenen API-Schlüssel angeben."
 
@@ -337,90 +337,90 @@ msgstr "Um nach GIFs zu suchen, müssen Sie einen Anbieter wählen und Ihren eig
 msgid "Disabled"
 msgstr "Deaktiviert"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:47
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:43
 msgid "GIF Provider"
 msgstr "GIF-Anbieter"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:48
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:44
 msgid "Select the service to use for fetching GIFs."
 msgstr "Wählen Sie den Dienst zum Laden von GIFs aus."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:70
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:68
 msgid "API Key"
 msgstr "API-Schlüssel"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:85
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:83
 msgid "API Key (Optional)"
 msgstr " API-Schlüssel (Optional)"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:86
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:84
 msgid "Leave blank to use the built-in default key."
 msgstr "Leer lassen, um den eingebauten Standardschküssel zu nutzen."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:88
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:86
 msgid "API Key (Required)"
 msgstr "API-Schlüssel (Erforderlich)"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:89
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:87
 msgid "You must provide an API key to use this provider."
 msgstr "Sie müssen einen API-Schlüssel angeben, um diesen Anbieter zu nutzen."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:98
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:118
 msgid "Paste Behavior"
 msgstr "Verhalten beim Einfügen"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:99
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:119
 msgid "Choose how GIFs are pasted."
 msgstr "Wählen, wie GIFs eingefügt werden."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:100
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
 msgid "Paste Link"
 msgstr "Link einfügen"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:100
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
 msgid "Paste Image"
 msgstr "Bild einfügen"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:108
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:128
 msgid "Limit GIF Preview Cache Size"
 msgstr "Zwischenspeicher-Größe für GIF-Vorschau limitieren"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:109
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:129
 msgid "Turn off for an unlimited cache size."
 msgstr "Ausschalten für eine unlimitierte Zwischenspeicher-Größe."
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:121
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:141
 msgid "Cache Size Limit (MB)"
 msgstr "Limit für Zwischenspeicher-Größe (MB)"
 
-#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:122
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:142
 #, javascript-format
 msgid "Range: %d-%d MB. Default: %d MB."
 msgstr "Bereich: %d–%d MB. Standard: %d MB"
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:140
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:139
 msgid "Search"
 msgstr "Suche"
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:146
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
 #, javascript-format
 msgid "Search %s..."
 msgstr "Suche %s..."
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:146
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
 #: gnome-extensions/extension/shared/utilities/utilitySearch.js:53
 msgid "Search..."
 msgstr "Suche..."
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:246
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:245
 msgid "No recent GIFs."
 msgstr "Keine letzten GIFs."
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:278
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:279
 msgid "No categories available."
 msgstr "Keine Kategorien verfügbar."
 
-#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:298
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:299
 msgid "No trending GIFs found."
 msgstr "Keine beliebten GIFs gefunden."
 
