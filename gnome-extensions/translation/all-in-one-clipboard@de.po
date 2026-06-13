@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 09:37+0000\n"
+"POT-Creation-Date: 2026-06-13 09:38+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -519,284 +519,284 @@ msgstr "Zwischenablageverlauf"
 msgid "Clipboard Matches"
 msgstr "Zwischenablage-Übereinstimmungen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:118
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:117
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:128
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:149
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:160
 msgid "Limited"
 msgstr "Limitiert"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:119
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:118
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:129
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:150
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:161
 msgid "Unlimited"
 msgstr "Unlimitiert"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:122
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:121
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:173
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:196
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:208
 msgid "Fixed Window"
 msgstr "Fixiertes Fenster"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:123
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:122
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:174
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:197
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:209
 msgid "Scroll Window"
 msgstr "Scrollbares Fenster"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:139
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:138
 #, fuzzy
 msgid "Grid layout"
 msgstr "Rasteranzeigemodus"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:139
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:138
 #, fuzzy
 msgid "List layout"
 msgstr "Listenanzeigemodus"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:141
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
 #, javascript-format
 msgid "%s - %s"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:141
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
 msgid "Custom overrides enabled"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:141
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
 msgid "Using global defaults"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:407
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:406
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:89
 #, javascript-format
 msgid "%s Range: %d-%d. Default: %d."
 msgstr "%s-Bereich: %d–%d. Standard: %d."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:444
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:457
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:474
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:443
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:456
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:473
 msgid "Advanced Section Overrides"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:445
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:444
 msgid "Open section-level overrides."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:462
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:461
 msgid "Definitions"
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:463
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:462
 msgid "Choose a section to edit its override definition."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:475
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:474
 msgid "Unavailable until the extension schema is updated."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:503
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:502
 msgid "Customize this definition without changing global defaults."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:508
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:507
 #, fuzzy
 msgid "Enable Custom Overrides"
 msgstr "Benutzerdefinierte Hauttöne aktivieren"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:509
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:508
 msgid "When disabled, this definition uses global policy."
 msgstr ""
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:550
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:549
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:125
 msgid "Global Limit Policy"
 msgstr "Regel zu globalen Limits"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:551
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:550
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:126
 msgid "Used when custom limit policy by context is disabled."
 msgstr "Wird verwendet, wenn die benutzerdefinierte Limite nach Kontext deaktiviert ist."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:558
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:557
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:136
 msgid "Customize Limit Policy by Context"
 msgstr "Limit-Regel nach Kontext anpassen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:559
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:558
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:137
 msgid "Configure browse and search limit policy independently."
 msgstr "Unabhängiges Konfigurieren von Limit-Regeln für Stöbern und Suchen."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:574
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:573
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:146
 msgid "Browse Policy"
 msgstr "Regel für Stöbern"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:575
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:574
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:147
 msgid "Policy applied while browsing (non-search)."
 msgstr "Regel wird angewendet beim Stöbern (ohne Suche)."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:583
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:582
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:157
 msgid "Search Policy"
 msgstr "Regel für Suche"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:584
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:583
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:158
 msgid "Policy applied only when search is enabled."
 msgstr "Regel wird nur angwendet, wenn die Suche aktiviert ist."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:592
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:591
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:170
 msgid "Global Display Mode"
 msgstr "Globaler Anzeigemodus"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:593
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:592
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:171
 msgid "Used when custom display mode by view is disabled."
 msgstr "Genutzt, wenn der benutzerdefinierte Anzeigemodus nach Ansicht deaktiviert ist."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:600
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:599
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:181
 msgid "Customize Display Mode by View"
 msgstr "Anzeigemodus nach Ansicht anpassen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:601
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:600
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:182
 msgid "Configure list and grid display mode independently."
 msgstr "Unabhängiges Konfigurieren von Listen- und Rasteranzeigemodi."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:616
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:615
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:193
 msgid "List Display Mode"
 msgstr "Listenanzeigemodus"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:617
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:616
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:194
 msgid "Display mode for list view."
 msgstr "Anzeigemodus für die Listenansicht."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:625
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:624
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:205
 msgid "Grid Display Mode"
 msgstr "Rasteranzeigemodus"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:626
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:625
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:206
 msgid "Display mode for grid view."
 msgstr "Anzeigemodus für die Rasteransicht."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:635
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:634
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:217
 msgid "Global Visible Items"
 msgstr "Global sichtbare Elemente"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:636
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:635
 #, fuzzy
 msgid "Global item cap for grid when custom visible-items by view is disabled."
 msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:636
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:635
 #, fuzzy
 msgid "Global item cap for list when custom visible-items by view is disabled."
 msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:642
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:641
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:224
 msgid "Customize Visible Items by View"
 msgstr "Sichtbare Elemente nach Ansicht anpassen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:642
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:225
 msgid "Configure list and grid item caps independently."
 msgstr "Unabhängiges Konfigurieren von Limiten für Listen- und Rasterelemente."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:659
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:658
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:236
 msgid "List Visible Items"
 msgstr "Sichtbare Elemente in der Liste"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:660
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:659
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:237
 msgid "Item cap for list view."
 msgstr "Elementlimit für die Listenansicht."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:668
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:667
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:244
 msgid "Grid Visible Items"
 msgstr "Sichtbare Elemente im Raster"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:669
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:668
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:245
 msgid "Item cap for grid view."
 msgstr "Elementlimit für die Rasteransicht."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:676
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:252
 msgid "Global Window Rows"
 msgstr "Globale Fensterzeilen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:678
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
 #, fuzzy
 msgid "Global row limit for grid when custom window limits by view is disabled."
 msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:678
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
 #, fuzzy
 msgid "Global row limit for list when custom window limits by view is disabled."
 msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:684
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:683
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:259
 msgid "Customize Window Limits by View"
 msgstr "Fensterlimiten nach Ansicht anpassen"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:685
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:684
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:260
 msgid "Configure list and grid window rows and grid columns independently."
 msgstr "Unabhängiges Konfigurieren von Listen- und Rasterfensterzeilen und -Spalten."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:701
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:700
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:271
 msgid "List Window Rows"
 msgstr "Fensterzeilen in der Liste"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:702
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:701
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:272
 msgid "Row limit for list view window."
 msgstr "Zeilenlimite für das Listenansichtsfenster."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:710
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:709
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:279
 msgid "Grid Window Rows"
 msgstr "Fensterzeilen im Raster"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:711
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:710
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:280
 msgid "Row limit for grid view window."
 msgstr "Zeilenlimit für das Rasteransichtsfenster."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:719
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:718
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:287
 msgid "Grid Window Columns"
 msgstr "Rasterfensterspalten"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:720
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:719
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:288
 msgid "Column value for grid view window."
 msgstr "Spaltenwert für das Rasteransichtsfenster."
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:728
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:727
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:296
 msgid "Unlimited Safety Cap"
 msgstr "Unlimitiertes Sicherheitslimit"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:729
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:728
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:297
 msgid "Hard cap for unlimited mode to protect shell responsiveness."
 msgstr "Hartes Limit für den unlimitierten Modus, um die Shell-Responsivität zu schützen."
