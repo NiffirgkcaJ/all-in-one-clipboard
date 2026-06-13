@@ -69,6 +69,6 @@ Firefox and its derivatives expose AT-SPI data by default. No additional configu
 ## Performance
 
 - When the toggle is **off**, no AT-SPI listener is registered and there is zero performance overhead.
-- When the toggle is **on**, focus events are processed with a lightweight callback that walks 12 ancestor levels per event. This should not cause noticeable performance impact.
+- When the toggle is **on**, focus events are processed with a lightweight callback that walks 50 ancestor levels per event. This should not cause noticeable performance impact.
 - The excluded context flag uses a 500ms debounced clearing to prevent rapid focus transitions from prematurely unblocking clipboard events.
 
