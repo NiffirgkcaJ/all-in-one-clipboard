@@ -44,6 +44,8 @@ export class ClipboardMonitor {
         this._isPaused = false;
         this._processClipboardTimeoutId = 0;
         this._retryTimeoutId = 0;
+        this._focusWindowChangedId = 0;
+        this._lastFocusChangeTime = 0;
     }
 
     /**
@@ -55,6 +57,10 @@ export class ClipboardMonitor {
             if (selectionType === Meta.SelectionType.SELECTION_CLIPBOARD) {
                 this._onClipboardChanged();
             }
+        });
+
+        this._focusWindowChangedId = global.display.connect('notify::focus-window', () => {
+            this._lastFocusChangeTime = Date.now();
         });
     }
 
@@ -106,63 +112,10 @@ export class ClipboardMonitor {
      */
     async _processClipboardContent(attempt = 1) {
         try {
-            // Image
-            const imageResult = await ImageProcessor.extract();
-            if (imageResult) {
-                if (!this._shouldSuppress(imageResult)) {
-                    this._onContentCaptured(imageResult);
-                }
-                return;
-            }
-
-            // Text
-            const textResult = await TextProcessor.extract();
-            if (textResult) {
-                const text = textResult.text;
-
-                const fileResult = await FileProcessor.process(text);
-                if (fileResult) {
-                    if (!this._shouldSuppress(fileResult)) {
-                        this._onContentCaptured(fileResult);
-                    }
-                    return;
-                }
-
-                const linkResult = LinkProcessor.process(text);
-                if (linkResult) {
-                    if (!this._shouldSuppress(linkResult)) {
-                        this._onContentCaptured(linkResult);
-                    }
-                    return;
-                }
-
-                const contactResult = await ContactProcessor.process(text);
-                if (contactResult) {
-                    if (!this._shouldSuppress(contactResult)) {
-                        this._onContentCaptured(contactResult);
-                    }
-                    return;
-                }
-
-                const colorResult = ColorProcessor.process(text, this._imagesDir);
-                if (colorResult) {
-                    if (!this._shouldSuppress(colorResult)) {
-                        this._onContentCaptured(colorResult);
-                    }
-                    return;
-                }
-
-                const codeResult = CodeProcessor.process(text);
-                if (codeResult) {
-                    if (!this._shouldSuppress(codeResult)) {
-                        this._onContentCaptured(codeResult);
-                    }
-                    return;
-                }
-
-                // Fallback
-                if (!this._shouldSuppress(textResult)) {
-                    this._onContentCaptured(textResult);
+            const result = await this._extractClipboardContent();
+            if (result) {
+                if (!this._shouldSuppress(result, true)) {
+                    this._onContentCaptured(result);
                 }
                 return;
             }
@@ -187,11 +140,59 @@ export class ClipboardMonitor {
      * @private
      */
     _hashAndBlockClipboardContent() {
-        clipboardGetText()
-            .then((text) => {
-                if (text) this._captureGuard?.registerText(text);
-            })
-            .catch(() => {});
+        this._captureBlockedFingerprint().catch(() => {});
+    }
+
+    /**
+     * Extract clipboard content using the same priority path used for normal capture.
+     *
+     * @returns {Promise<Object|null>} Extracted clipboard result or null.
+     * @private
+     */
+    async _extractClipboardContent() {
+        const imageResult = await ImageProcessor.extract();
+        if (imageResult) return imageResult;
+
+        const textResult = await TextProcessor.extract();
+        if (!textResult) return null;
+
+        const text = textResult.text;
+
+        const fileResult = await FileProcessor.process(text);
+        if (fileResult) return fileResult;
+
+        const linkResult = LinkProcessor.process(text);
+        if (linkResult) return linkResult;
+
+        const contactResult = await ContactProcessor.process(text);
+        if (contactResult) return contactResult;
+
+        const colorResult = ColorProcessor.process(text, this._imagesDir);
+        if (colorResult) return colorResult;
+
+        const codeResult = CodeProcessor.process(text);
+        if (codeResult) return codeResult;
+
+        return textResult;
+    }
+
+    /**
+     * Register blocked clipboard fingerprints using typed extraction with text fallback.
+     *
+     * @returns {Promise<void>} Resolves when blocked fingerprint registration is complete.
+     * @private
+     */
+    async _captureBlockedFingerprint() {
+        const result = await this._extractClipboardContent();
+        if (result?.hash) {
+            this._captureGuard?.registerBlockedHash(result.hash);
+            return;
+        }
+
+        const text = await clipboardGetText();
+        if (text) {
+            this._captureGuard?.registerBlockedText(text);
+        }
     }
 
     // ========================================================================
@@ -202,13 +203,18 @@ export class ClipboardMonitor {
      * Decide whether a capture should be suppressed and register allowed hashes.
      *
      * @param {Object} result Extracted result with hash.
+     * @param {boolean} isSafeContext Whether capture is in a non-blocked context.
      * @returns {boolean} True if suppressed.
      * @private
      */
-    _shouldSuppress(result) {
+    _shouldSuppress(result, isSafeContext) {
         if (!this._captureGuard || !result?.hash) return false;
 
-        if (this._captureGuard.shouldBlockHash(result.hash)) return true;
+        const hasFocus = !!global.display.focus_window;
+        const timeSinceFocusChange = Date.now() - (this._lastFocusChangeTime || 0);
+        const isWindowTransitioning = timeSinceFocusChange < 1000;
+
+        if (this._captureGuard.shouldSuppressHash(result.hash, isSafeContext, hasFocus, isWindowTransitioning)) return true;
 
         this._captureGuard.registerHash(result.hash);
         return false;
@@ -238,5 +244,6 @@ export class ClipboardMonitor {
         if (this._processClipboardTimeoutId) GLib.source_remove(this._processClipboardTimeoutId);
         if (this._retryTimeoutId) GLib.source_remove(this._retryTimeoutId);
         if (this._selectionOwnerChangedId) this._selection.disconnect(this._selectionOwnerChangedId);
+        if (this._focusWindowChangedId) global.display.disconnect(this._focusWindowChangedId);
     }
 }

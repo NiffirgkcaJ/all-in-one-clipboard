@@ -282,7 +282,7 @@ export class ExclusionUtils {
 
                     this._processFocusDebouncer.trigger();
                 } catch {
-                    // Ignore errors from rapidly disappearing event sources
+                    // Ignore errors from rapidly disappearing event sources.
                 }
             });
 
@@ -322,7 +322,7 @@ export class ExclusionUtils {
         try {
             this._evaluateFocusSource(this._pendingFocusSource, this._cachedExclusions);
         } catch {
-            // Catch and ignore errors from missing objects
+            // Catch and ignore errors from missing objects.
         } finally {
             this._pendingFocusSource = null;
         }
@@ -383,8 +383,19 @@ export class ExclusionUtils {
 
         let names = [];
         if (this._lastFocusedSource) {
-            names = this._getAncestorNamesFromSource(this._lastFocusedSource);
+            try {
+                // Verify that the cached source is still focused before trusting its context to prevent stale evaluations.
+                const state = this._lastFocusedSource.get_state_set();
+                if (state && state.contains(Atspi.StateType.FOCUSED)) {
+                    names = this._getAncestorNamesFromSource(this._lastFocusedSource);
+                } else {
+                    this._lastFocusedSource = null;
+                }
+            } catch {
+                this._lastFocusedSource = null;
+            }
         }
+
         if (names.length === 0) {
             names = this._getAncestorNamesFromCurrentFocus();
         }
@@ -449,7 +460,7 @@ export class ExclusionUtils {
                 current = current.get_parent();
             }
         } catch {
-            // Ignore D-Bus timeout errors common during window closing
+            // Ignore D-Bus timeout errors common during window closing.
         }
         return names;
     }
