@@ -53,6 +53,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
             this._hasRenderedOnce = false;
 
+            this._copyService = new ClipboardCopyService();
             this._selectionService = new ClipboardSelectionService();
 
             this._mainBox = new St.BoxLayout({
@@ -261,7 +262,7 @@ export const ClipboardTabContent = GObject.registerClass(
             const selectedIds = [...this._selectionService.selectedIds];
             if (selectedIds.length === 0) return;
 
-            const mergeSuccess = await ClipboardCopyService.mergeMultiple(selectedIds, this._manager, {
+            const mergeSuccess = await this._copyService.mergeMultiple(selectedIds, this._manager, {
                 settings: this._settings,
                 menu: this._extension._indicator?.menu,
             });
@@ -451,6 +452,8 @@ export const ClipboardTabContent = GObject.registerClass(
         destroy() {
             if (this._redrawIdleId) GLib.source_remove(this._redrawIdleId);
             if (this._retryId) GLib.source_remove(this._retryId);
+
+            this._copyService?.destroy();
 
             this._searchService?.destroy();
             this._selectionService?.destroy();

@@ -19,6 +19,17 @@ const SEQUENTIAL_PASTE_DELAY_MS = 100;
  */
 export class ClipboardCopyService {
     // ========================================================================
+    // Initialization
+    // ========================================================================
+
+    /**
+     * Initialize the clipboard copy service.
+     */
+    constructor() {
+        this._delayResolvers = new Map();
+    }
+
+    // ========================================================================
     // Public API
     // ========================================================================
 
@@ -63,7 +74,7 @@ export class ClipboardCopyService {
      * @param {Object} options Options containing settings and menu.
      * @returns {Promise<boolean>} True if successful.
      */
-    static async mergeMultiple(selectedIds, manager, options) {
+    async mergeMultiple(selectedIds, manager, options) {
         try {
             const selectedItems = ClipboardCopyService._resolveSelectedItems(selectedIds, manager, options);
             if (selectedItems.length === 0) {
@@ -130,7 +141,7 @@ export class ClipboardCopyService {
 
                 flushTextGroup();
 
-                const queueCompleted = await ClipboardCopyService._runPasteQueue(queue, options);
+                const queueCompleted = await this._runPasteQueue(queue, options);
                 if (!queueCompleted) {
                     return false;
                 }
@@ -269,7 +280,7 @@ export class ClipboardCopyService {
      * @param {Object} options Options containing settings and menu.
      * @private
      */
-    static async _runPasteQueue(queue, options) {
+    async _runPasteQueue(queue, options) {
         if (queue.length === 0) return true;
 
         const runStep = async (index) => {
@@ -297,7 +308,10 @@ export class ClipboardCopyService {
             }
 
             if (index + 1 < queue.length) {
-                await ClipboardCopyService._delayMs(SEQUENTIAL_PASTE_DELAY_MS);
+                const delayCompleted = await this._delayMs(SEQUENTIAL_PASTE_DELAY_MS);
+                if (!delayCompleted) {
+                    return false;
+                }
             }
             return runStep(index + 1);
         };
@@ -309,15 +323,18 @@ export class ClipboardCopyService {
      * Wait for a short delay in the GLib main loop.
      *
      * @param {number} ms Delay in milliseconds.
-     * @returns {Promise<void>} Resolves after the delay.
+     * @returns {Promise<boolean>} True if the delay completed, false if cancelled.
      * @private
      */
-    static _delayMs(ms) {
+    _delayMs(ms) {
         return new Promise((resolve) => {
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
-                resolve();
+            const sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+                this._delayResolvers.delete(sourceId);
+                resolve(true);
                 return GLib.SOURCE_REMOVE;
             });
+
+            this._delayResolvers.set(sourceId, resolve);
         });
     }
 
@@ -435,5 +452,27 @@ export class ClipboardCopyService {
         if (textItems.length === 0) return '';
         const resolvedTexts = textItems.map((item) => ClipboardCopyService._getItemText(item, textContents)).filter(Boolean);
         return resolvedTexts.join(delimiter);
+    }
+
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
+    /**
+     * Cancel pending sequential paste delays.
+     */
+    cancelPendingDelays() {
+        this._delayResolvers.forEach((resolve, sourceId) => {
+            GLib.source_remove(sourceId);
+            resolve(false);
+        });
+        this._delayResolvers.clear();
+    }
+
+    /**
+     * Cancel pending service work before shutdown.
+     */
+    destroy() {
+        this.cancelPendingDelays();
     }
 }

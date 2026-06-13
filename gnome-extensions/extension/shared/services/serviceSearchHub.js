@@ -1,3 +1,5 @@
+import { isCallable } from '../utilities/utilityFunction.js';
+
 const SEARCH_HANDOFF_TTL_MS = 10000;
 
 let _providersById = null;
@@ -23,16 +25,6 @@ function normalizeLookupKey(value) {
  */
 function normalizeQuery(value) {
     return typeof value === 'string' ? value.trim() : '';
-}
-
-/**
- * Checks whether a value can be called.
- *
- * @param {*} value Value to inspect.
- * @returns {boolean} True when the value is a function.
- */
-function isCallable(value) {
-    return typeof value === 'function';
 }
 
 /**

@@ -1,16 +1,7 @@
+import { isCallable } from '../../../shared/utilities/utilityFunction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { RecentlyUsedPolicySettingKeys } from '../constants/recentlyUsedPolicyConstants.js';
-
-/**
- * Checks whether a value can be called.
- *
- * @param {*} value Value to inspect.
- * @returns {boolean} True when the value is a function.
- */
-function isCallable(value) {
-    return typeof value === 'function';
-}
 
 /**
  * Owns signal lifecycle for Recently Used runtime, including section signals and settings watchers.

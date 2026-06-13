@@ -1,3 +1,4 @@
+import { isCallable } from '../../../shared/utilities/utilityFunction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
@@ -17,16 +18,6 @@ import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolv
  */
 function resolvePositiveInt(value, fallback) {
     return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
-}
-
-/**
- * Checks whether a value can be called.
- *
- * @param {*} value Value to inspect.
- * @returns {boolean} True when the value is a function.
- */
-function isCallable(value) {
-    return typeof value === 'function';
 }
 
 /**

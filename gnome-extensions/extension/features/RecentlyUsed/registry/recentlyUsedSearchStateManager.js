@@ -1,15 +1,7 @@
+import { isCallable } from '../../../shared/utilities/utilityFunction.js';
+
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
-
-/**
- * Checks whether a value can be called.
- *
- * @param {*} value Value to inspect.
- * @returns {boolean} True when the value is a function.
- */
-function isCallable(value) {
-    return typeof value === 'function';
-}
 
 /**
  * Coordinates section search state, async search requests, and fallback behavior.
