@@ -8,7 +8,6 @@ import { ClipboardConfig } from '../constants/clipboardConstants.js';
 
 // Configuration
 const SCROLL_THRESHOLD_PX = 500;
-const RENDER_CHUNK_SIZE = 15;
 
 /**
  * ClipboardBaseView
@@ -381,7 +380,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _getHistoryItemCount() {
-            if (this._historyContainer && typeof this._historyContainer.getItemCount === 'function') {
+            if (this._historyContainer?.getItemCount) {
                 return this._historyContainer.getItemCount();
             }
             return 0;
@@ -425,7 +424,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _clearPinnedContainer() {
-            if (this._pinnedContainer && typeof this._pinnedContainer.clear === 'function') {
+            if (this._pinnedContainer?.clear) {
                 this._pinnedContainer.clear();
             }
         }
@@ -437,7 +436,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _clearHistoryContainer() {
-            if (this._historyContainer && typeof this._historyContainer.clear === 'function') {
+            if (this._historyContainer?.clear) {
                 this._historyContainer.clear();
             }
         }
@@ -486,7 +485,7 @@ export const ClipboardBaseView = GObject.registerClass(
                 const widget = findWidget(this._pinnedContainer) || findWidget(this._historyContainer);
                 if (widget) {
                     const container = widget.get_parent();
-                    if (container && typeof container.focusItem === 'function') {
+                    if (container?.focusItem) {
                         container.focusItem(widget);
                         return true;
                     } else if (widget.can_focus) {
@@ -774,7 +773,7 @@ export const ClipboardBaseView = GObject.registerClass(
             if (!adjustment) return;
 
             const syncContainerViewport = (container) => {
-                if (!container || typeof container.setViewport !== 'function') return;
+                if (!container?.setViewport) return;
                 container.setViewport(adjustment.value, adjustment.page_size);
             };
 
@@ -866,40 +865,14 @@ export const ClipboardBaseView = GObject.registerClass(
 
             super.destroy();
 
-            const destroyAsync = (container) => {
-                if (!container) return;
-
-                container.clear();
-
-                const children = container.get_children();
-                if (children.length === 0) {
-                    container.destroy();
-                    return;
-                }
-
-                let i = 0;
-
-                GLib.idle_add(GLib.PRIORITY_LOW, () => {
-                    const chunk = children.slice(i, i + RENDER_CHUNK_SIZE);
-                    chunk.forEach((c) => {
-                        if (c) c.destroy();
-                    });
-
-                    i += RENDER_CHUNK_SIZE;
-                    if (i >= children.length) {
-                        try {
-                            container.destroy();
-                        } catch {
-                            // Already destroyed or invalid.
-                        }
-                        return GLib.SOURCE_REMOVE;
-                    }
-                    return GLib.SOURCE_CONTINUE;
-                });
-            };
-
-            destroyAsync(pinnedContainer);
-            destroyAsync(historyContainer);
+            if (pinnedContainer) {
+                pinnedContainer.clear();
+                pinnedContainer.destroy();
+            }
+            if (historyContainer) {
+                historyContainer.clear();
+                historyContainer.destroy();
+            }
         }
     },
 );
