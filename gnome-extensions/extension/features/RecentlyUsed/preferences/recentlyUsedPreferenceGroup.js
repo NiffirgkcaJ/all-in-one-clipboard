@@ -35,7 +35,7 @@ export function addPreferenceRecentlyUsedSettings({ page, settings, window }) {
     });
 
     const addRowToContainer = (container, row) => {
-        if (typeof container.add_row === 'function') {
+        if (container.add_row) {
             container.add_row(row);
             return;
         }

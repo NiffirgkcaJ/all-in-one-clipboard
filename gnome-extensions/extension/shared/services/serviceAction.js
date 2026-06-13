@@ -19,12 +19,12 @@ export class GlobalActionService {
      * @returns {Promise<boolean>} True if the copy action succeeded.
      */
     static async executeCopyAction({ onCopy, onPostCopy, settings, autoPasteKey, menu }) {
-        if (typeof onCopy !== 'function') return false;
+        if (!onCopy) return false;
         const copySuccess = await onCopy();
         if (!copySuccess) return false;
 
         // Close the menu to release the modal grab so the active window regains focus.
-        if (menu && typeof menu.close === 'function') {
+        if (menu && menu.close) {
             menu.close();
         }
 
@@ -34,7 +34,7 @@ export class GlobalActionService {
             global.stage.set_key_focus(null);
         }
 
-        if (typeof onPostCopy === 'function') {
+        if (onPostCopy) {
             onPostCopy();
         }
 

@@ -2,6 +2,16 @@ import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
 
 /**
+ * Checks whether a value can be called.
+ *
+ * @param {*} value Value to inspect.
+ * @returns {boolean} True when the value is a function.
+ */
+function isCallable(value) {
+    return typeof value === 'function';
+}
+
+/**
  * Coordinates section search state, async search requests, and fallback behavior.
  */
 export class RecentlyUsedSearchStateManager {
@@ -14,7 +24,7 @@ export class RecentlyUsedSearchStateManager {
      * @param {Function|null} options.onRender Callback to request re-render.
      */
     constructor({ onRender = null } = {}) {
-        this._onRender = typeof onRender === 'function' ? onRender : null;
+        this._onRender = isCallable(onRender) ? onRender : null;
         this._searchRequestSeq = 0;
         this._sectionSearchState = new Map();
     }
@@ -39,11 +49,11 @@ export class RecentlyUsedSearchStateManager {
      * @returns {Array<object>} Source items for current render pass.
      */
     resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery) {
-        const localItemsRaw = typeof sectionConfig.getItems === 'function' ? sectionConfig.getItems(runtimeContext) : [];
+        const localItemsRaw = isCallable(sectionConfig.getItems) ? sectionConfig.getItems(runtimeContext) : [];
         const localItems = Array.isArray(localItemsRaw) ? localItemsRaw : [];
         const localItemsSignature = this._createSectionItemsSignature(localItems);
 
-        if (!searchQuery || typeof sectionConfig.searchItems !== 'function' || !sectionConfig.id) {
+        if (!searchQuery || !isCallable(sectionConfig.searchItems) || !sectionConfig.id) {
             if (sectionConfig?.id) {
                 this._sectionSearchState.delete(sectionConfig.id);
             }
@@ -116,7 +126,7 @@ export class RecentlyUsedSearchStateManager {
      * @returns {boolean} True when the item matches.
      */
     matchesSectionSearch(sectionConfig, item, query, runtimeContext) {
-        if (typeof sectionConfig?.matchesSearch === 'function') {
+        if (isCallable(sectionConfig?.matchesSearch)) {
             try {
                 return Boolean(
                     sectionConfig.matchesSearch({

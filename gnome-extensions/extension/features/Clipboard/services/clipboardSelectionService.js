@@ -80,7 +80,7 @@ export class ClipboardSelectionService {
      * @param {Function} [getCheckboxIconsMap] Returns the checkbox icons map.
      */
     clearSelection(getCheckboxIconsMap) {
-        if (typeof getCheckboxIconsMap === 'function') {
+        if (getCheckboxIconsMap) {
             const iconsMap = getCheckboxIconsMap();
             if (iconsMap) {
                 for (const id of this._selectedIds) {

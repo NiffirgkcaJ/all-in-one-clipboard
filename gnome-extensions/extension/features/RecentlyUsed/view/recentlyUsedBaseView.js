@@ -562,7 +562,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             const button = RecentlyUsedBaseWidgetFactory.createGridItem(itemData, context);
 
-            if (typeof renderModel?.onGridItemCreated === 'function') {
+            if (renderModel?.onGridItemCreated) {
                 renderModel.onGridItemCreated({
                     item: itemData,
                     widget: button,
@@ -628,7 +628,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             const button = RecentlyUsedBaseWidgetFactory.createGridItem(itemData, context);
 
-            if (typeof renderModel?.onGridItemCreated === 'function') {
+            if (renderModel?.onGridItemCreated) {
                 renderModel.onGridItemCreated({
                     item: itemData,
                     widget: button,

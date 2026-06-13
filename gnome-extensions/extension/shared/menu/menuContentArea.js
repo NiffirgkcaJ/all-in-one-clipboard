@@ -308,7 +308,7 @@ export const MenuContentArea = GObject.registerClass(
                 throw new Error(`[AIO-Clipboard] No layout definition found for tab: ${tabName}`);
             }
 
-            if (typeof sectionDef.createContentActor !== 'function') {
+            if (!sectionDef.createContentActor) {
                 throw new Error(`[AIO-Clipboard] Tab definition ${sectionDef.id} missing 'createContentActor' factory.`);
             }
 
@@ -375,7 +375,7 @@ export const MenuContentArea = GObject.registerClass(
             const selectedActor = this._currentTabActor;
             selectedActor?.onTabSelected?.();
 
-            if (typeof afterTabSelected === 'function') {
+            if (afterTabSelected) {
                 Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
                     Logger.error(`Failed to apply tab post-selection hook: ${e?.message || e}`);
                 });
@@ -391,7 +391,7 @@ export const MenuContentArea = GObject.registerClass(
          */
         onMenuClosed() {
             for (const actor of this._tabActors.values()) {
-                if (actor && actor.get_stage() && typeof actor.onMenuClosed === 'function') {
+                if (actor && actor.get_stage() && actor.onMenuClosed) {
                     actor.onMenuClosed();
                 }
             }

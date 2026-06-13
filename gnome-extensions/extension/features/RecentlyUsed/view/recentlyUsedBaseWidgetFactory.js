@@ -48,7 +48,7 @@ export class RecentlyUsedBaseWidgetFactory {
         box.spacing = RecentlyUsedListViewTuning.LIST_ITEM_CONTENT_SPACING;
         button.set_child(box);
 
-        if (typeof context.renderListContent === 'function') {
+        if (context.renderListContent) {
             context.renderListContent({
                 button,
                 box,

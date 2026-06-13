@@ -298,7 +298,7 @@ export const StackLayout = GObject.registerClass(
             this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
                 this._focusTimeoutId = 0;
                 let target = widget;
-                if (typeof targetFinder === 'function') {
+                if (targetFinder) {
                     const found = targetFinder(widget);
                     if (found) target = found;
                 }

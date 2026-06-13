@@ -89,7 +89,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 onItemClicked: (itemData, feature) => this._onItemClicked(itemData, feature),
                 onOpenPreferences: () => {
                     const returnValue = this._extension.openPreferences();
-                    if (returnValue && typeof returnValue.catch === 'function') {
+                    if (returnValue && returnValue.catch) {
                         returnValue.catch(() => {});
                     }
                 },
@@ -128,7 +128,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          */
         _closeMenuSafely() {
             const menu = this._extension?._indicator?.menu;
-            if (!menu || typeof menu.close !== 'function') {
+            if (!menu || !menu.close) {
                 return;
             }
 

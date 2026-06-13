@@ -10,8 +10,7 @@ import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings } from '../co
 /**
  * Adds the Advanced Section Overrides row and subpages for Recently Used settings.
  *
- * Navigation flow:
- * Main Page -> Advanced Section Overrides -> Definition Detail.
+ * Navigation starts from the Main Page, continues to Advanced Section Overrides, then opens Definition Detail.
  *
  * @param {object} options Setup options.
  * @param {Gio.Settings} options.settings Extension settings instance.
@@ -21,7 +20,7 @@ import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings } from '../co
  * @param {Function} options.getRangeFromSchema Function returning schema range by key.
  */
 export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group, signalIds = [], sectionDescriptors = [], getRangeFromSchema }) {
-    if (!settings || !group || typeof getRangeFromSchema !== 'function') {
+    if (!settings || !group || !getRangeFromSchema) {
         return;
     }
 
@@ -33,7 +32,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
     // ========================================================================
 
     const addRowToContainer = (container, row) => {
-        if (typeof container?.add_row === 'function') {
+        if (container?.add_row) {
             container.add_row(row);
             return;
         }
@@ -42,7 +41,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
     };
 
     const hasSchemaKey = (key) => {
-        if (!settings?.settings_schema || typeof settings.settings_schema.get_key !== 'function') {
+        if (!settings?.settings_schema || !settings.settings_schema.get_key) {
             return false;
         }
 
@@ -58,7 +57,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         const root = sourceWidget?.get_root?.() ?? null;
 
         try {
-            if (window && typeof window.push_subpage === 'function') {
+            if (window && window.push_subpage) {
                 window.push_subpage(subpage);
                 return;
             }
@@ -67,7 +66,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         }
 
         try {
-            if (window && typeof window.present_subpage === 'function') {
+            if (window && window.present_subpage) {
                 window.present_subpage(subpage);
                 return;
             }
@@ -76,7 +75,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         }
 
         try {
-            if (root && typeof root.push_subpage === 'function') {
+            if (root && root.push_subpage) {
                 root.push_subpage(subpage);
                 return;
             }
@@ -85,7 +84,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         }
 
         try {
-            if (root && typeof root.present_subpage === 'function') {
+            if (root && root.present_subpage) {
                 root.present_subpage(subpage);
             }
         } catch {

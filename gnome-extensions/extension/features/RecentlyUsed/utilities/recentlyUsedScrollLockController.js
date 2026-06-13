@@ -70,7 +70,7 @@ export class RecentlyUsedScrollLockController {
      * @param {object} nestedScrollView Nested section scroll view.
      */
     configureNestedScrollHandoff(nestedScrollView) {
-        if (!nestedScrollView || typeof nestedScrollView.setHandoffCallbacks !== 'function') {
+        if (!nestedScrollView || !nestedScrollView.setHandoffCallbacks) {
             return;
         }
 
