@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 06:37+0000\n"
+"POT-Creation-Date: 2026-06-13 09:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -249,19 +249,19 @@ msgstr ""
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:155
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:155
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:291
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:290
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:308
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:307
 msgid "History"
 msgstr ""
 
