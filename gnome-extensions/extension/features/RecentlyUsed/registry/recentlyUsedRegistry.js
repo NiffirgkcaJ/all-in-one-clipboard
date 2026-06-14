@@ -2,6 +2,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
+import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
 
 let recentlyUsedRegistry = null;
@@ -100,11 +101,17 @@ export async function initializeRecentlyUsedRegistry() {
                     return null;
                 }
 
-                return {
-                    ...sectionDefinition,
-                    ...orderEntry,
-                    id: sectionDefinition.id,
-                };
+                const normalizedSectionDefinition = ensureRecentlyUsedSectionDefinition(sectionDefinition);
+                if (!normalizedSectionDefinition) {
+                    return null;
+                }
+
+                const sectionDefinitionId = normalizedSectionDefinition.id;
+                Object.assign(normalizedSectionDefinition, orderEntry, {
+                    id: sectionDefinitionId,
+                });
+
+                return normalizedSectionDefinition;
             }),
         );
         registerRecentlyUsedSections(sectionDefinitions.filter(Boolean));

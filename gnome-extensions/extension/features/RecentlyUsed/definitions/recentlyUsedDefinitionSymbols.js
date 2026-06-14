@@ -2,6 +2,7 @@ import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { setRecentlyUsedClipboardText } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 
@@ -18,7 +19,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
     let recentManager = null;
     let symbolsSearchRenderer = null;
 
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'symbols',
         targetTab: 'Symbols',
         layoutType: 'grid',
@@ -35,7 +36,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
             icon: null,
         },
         listPresentation: null,
-    };
+    });
 
     /**
      * Initializes the symbols recents manager.

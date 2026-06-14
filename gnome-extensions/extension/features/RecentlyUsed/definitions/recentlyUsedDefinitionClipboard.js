@@ -2,6 +2,7 @@ import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 
 import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
@@ -14,7 +15,7 @@ import { ensureClipboardSearchProviderRegistered } from '../../Clipboard/integra
  * @returns {object} Clipboard section definition instance.
  */
 function createRecentlyUsedDefinitionClipboardInstance() {
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'clipboard',
         targetTab: 'Clipboard',
         layoutType: 'list',
@@ -37,7 +38,7 @@ function createRecentlyUsedDefinitionClipboardInstance() {
             },
         },
         gridPresentation: null,
-    };
+    });
 
     /**
      * Initializes the clipboard section.

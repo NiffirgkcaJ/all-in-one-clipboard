@@ -2,6 +2,7 @@ import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { setRecentlyUsedClipboardText } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 
@@ -18,7 +19,7 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
     let recentManager = null;
     let kaomojiSearchRenderer = null;
 
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'kaomoji',
         targetTab: 'Kaomoji',
         layoutType: 'list',
@@ -41,7 +42,7 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
             },
         },
         gridPresentation: null,
-    };
+    });
 
     /**
      * Initializes the kaomoji recents manager.

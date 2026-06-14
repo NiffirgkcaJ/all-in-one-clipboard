@@ -41,11 +41,11 @@ export class RecentlyUsedSearchStateManager {
      * @returns {Array<object>} Source items for current render pass.
      */
     resolveSectionSourceItems(sectionConfig, runtimeContext, searchQuery) {
-        const localItemsRaw = isCallable(sectionConfig.getItems) ? sectionConfig.getItems(runtimeContext) : [];
+        const localItemsRaw = sectionConfig.getItems(runtimeContext);
         const localItems = Array.isArray(localItemsRaw) ? localItemsRaw : [];
         const localItemsSignature = this._createSectionItemsSignature(localItems);
 
-        if (!searchQuery || !isCallable(sectionConfig.searchItems) || !sectionConfig.id) {
+        if (!searchQuery || !sectionConfig.id) {
             if (sectionConfig?.id) {
                 this._sectionSearchState.delete(sectionConfig.id);
             }
@@ -118,19 +118,17 @@ export class RecentlyUsedSearchStateManager {
      * @returns {boolean} True when the item matches.
      */
     matchesSectionSearch(sectionConfig, item, query, runtimeContext) {
-        if (isCallable(sectionConfig?.matchesSearch)) {
-            try {
-                return Boolean(
-                    sectionConfig.matchesSearch({
-                        item,
-                        query,
-                        runtimeContext,
-                        fallbackMatch: (candidate) => matchesRecentlyUsedSearch({ item: candidate, query }),
-                    }),
-                );
-            } catch {
-                // Fall back to generic matching when a custom matcher fails.
-            }
+        try {
+            return Boolean(
+                sectionConfig.matchesSearch({
+                    item,
+                    query,
+                    runtimeContext,
+                    fallbackMatch: (candidate) => matchesRecentlyUsedSearch({ item: candidate, query }),
+                }),
+            );
+        } catch {
+            // Fall back to generic matching when a custom matcher fails.
         }
 
         return matchesRecentlyUsedSearch({ item, query });

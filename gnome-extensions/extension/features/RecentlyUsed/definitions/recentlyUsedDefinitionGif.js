@@ -7,6 +7,7 @@ import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js'
 
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 import { getRecentlyUsedGifRuntime, destroyRecentlyUsedGifRuntime, copyRecentlyUsedGifToClipboard } from '../integrations/recentlyUsedIntegrationGif.js';
 
@@ -26,7 +27,7 @@ const GIF_PLACEHOLDER = {
 function createRecentlyUsedDefinitionGifInstance() {
     let recentManager = null;
 
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'gif',
         targetTab: 'GIF',
         layoutType: 'grid',
@@ -45,7 +46,7 @@ function createRecentlyUsedDefinitionGifInstance() {
             },
         },
         listPresentation: null,
-    };
+    });
 
     /**
      * Initializes GIF recents and runtime services.

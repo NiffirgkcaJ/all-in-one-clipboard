@@ -1,6 +1,7 @@
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { RecentlyUsedDefaultPolicy, RecentlyUsedLimitMode } from '../constants/recentlyUsedPolicyConstants.js';
@@ -15,7 +16,7 @@ import { ensureClipboardSearchProviderRegistered } from '../../Clipboard/integra
  * @returns {object} Pinned section definition instance.
  */
 function createRecentlyUsedDefinitionPinnedInstance() {
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'pinned',
         targetTab: 'Clipboard',
         layoutType: 'list',
@@ -51,7 +52,7 @@ function createRecentlyUsedDefinitionPinnedInstance() {
             },
         },
         gridPresentation: null,
-    };
+    });
 
     /**
      * Initializes the pinned section.

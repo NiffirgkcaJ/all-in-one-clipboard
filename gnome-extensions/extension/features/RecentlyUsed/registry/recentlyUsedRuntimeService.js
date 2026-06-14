@@ -1,6 +1,7 @@
 import { isCallable } from '../../../shared/utilities/utilityFunction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
+import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 import { normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedDisplayMode } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedSearchStateManager } from './recentlyUsedSearchStateManager.js';
@@ -77,10 +78,6 @@ export class RecentlyUsedRuntimeService {
     stop() {
         const sectionDefinitions = this.getOrderedSections();
         for (const section of sectionDefinitions) {
-            if (!isCallable(section.destroy)) {
-                continue;
-            }
-
             try {
                 section.destroy();
             } catch {
@@ -133,16 +130,23 @@ export class RecentlyUsedRuntimeService {
                 return sectionDefinition;
             }
 
-            const instanceId = typeof instance.id === 'string' && instance.id.length > 0 ? instance.id : sectionDefinition.id;
+            const normalizedInstance = ensureRecentlyUsedSectionDefinition(instance);
+            if (!normalizedInstance) {
+                return sectionDefinition;
+            }
+
+            const instanceId = typeof normalizedInstance.id === 'string' && normalizedInstance.id.length > 0 ? normalizedInstance.id : sectionDefinition.id;
             if (instanceId !== sectionDefinition.id) {
                 Logger.warn(`Recently Used section '${sectionDefinition.id || '<unknown>'}' createInstance() returned mismatched id '${instanceId}'. Using template id.`);
             }
 
-            return {
-                ...sectionDefinition,
-                ...instance,
+            const sectionDefinitionData = { ...sectionDefinition };
+            const instanceData = { ...normalizedInstance };
+            Object.assign(normalizedInstance, sectionDefinitionData, instanceData, {
                 id: sectionDefinition.id,
-            };
+            });
+
+            return normalizedInstance;
         } catch (e) {
             const message = e?.message ?? String(e);
             Logger.warn(`Failed to instantiate Recently Used section '${sectionDefinition.id || '<unknown>'}': ${message}`);
@@ -171,10 +175,6 @@ export class RecentlyUsedRuntimeService {
 
         await Promise.all(
             sectionDefinitions.map(async (section) => {
-                if (!isCallable(section.initialize)) {
-                    return;
-                }
-
                 try {
                     await section.initialize({
                         extensionUuid: this._extension.uuid,
@@ -256,7 +256,7 @@ export class RecentlyUsedRuntimeService {
             searchQuery,
         };
 
-        if (isCallable(sectionConfig.isEnabled) && !sectionConfig.isEnabled(runtimeContext)) {
+        if (!sectionConfig.isEnabled(runtimeContext)) {
             return invisibleModel;
         }
 
@@ -265,8 +265,7 @@ export class RecentlyUsedRuntimeService {
             return invisibleModel;
         }
 
-        const mapItem = isCallable(sectionConfig.mapItem) ? sectionConfig.mapItem : (item) => item;
-        const mappedItems = sourceItems.map((item) => mapItem(item));
+        const mappedItems = sourceItems.map((item) => sectionConfig.mapItem(item));
         const filteredItems = searchQuery.length > 0 ? mappedItems.filter((item) => this._searchStateManager.matchesSectionSearch(sectionConfig, item, searchQuery, runtimeContext)) : mappedItems;
 
         if (filteredItems.length === 0) {
@@ -291,7 +290,7 @@ export class RecentlyUsedRuntimeService {
     async handleItemClick(itemData, sectionId) {
         const sectionDefinition = this._getSectionById(sectionId);
 
-        if (!isCallable(sectionDefinition?.onClick)) {
+        if (!sectionDefinition) {
             return false;
         }
 
@@ -353,18 +352,16 @@ export class RecentlyUsedRuntimeService {
             gridLayout,
             listLayout,
             nestedLayout,
-            listContentRenderer: isCallable(sectionConfig.renderListContent) ? (args) => sectionConfig.renderListContent(args) : null,
-            gridIconResolver: isCallable(sectionConfig.resolveGridIcon) ? (iconKind) => sectionConfig.resolveGridIcon(iconKind) : null,
-            onGridItemCreated: isCallable(sectionConfig.onGridItemCreated)
-                ? ({ item, widget }) =>
-                      sectionConfig.onGridItemCreated({
-                          item,
-                          widget,
-                          renderSession: viewRuntimeContext.renderSession,
-                          currentRenderSession: viewRuntimeContext.currentRenderSession,
-                          widgetFactory: viewRuntimeContext.widgetFactory,
-                      })
-                : null,
+            listContentRenderer: (args) => sectionConfig.renderListContent(args),
+            gridIconResolver: (iconKind) => sectionConfig.resolveGridIcon(iconKind),
+            onGridItemCreated: ({ item, widget }) =>
+                sectionConfig.onGridItemCreated({
+                    item,
+                    widget,
+                    renderSession: viewRuntimeContext.renderSession,
+                    currentRenderSession: viewRuntimeContext.currentRenderSession,
+                    widgetFactory: viewRuntimeContext.widgetFactory,
+                }),
         };
     }
 

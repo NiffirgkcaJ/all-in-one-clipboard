@@ -66,10 +66,6 @@ export class RecentlyUsedSignalManager {
 
         const sectionDefinitions = this._getOrderedSections();
         for (const section of sectionDefinitions) {
-            if (!isCallable(section.getSignals)) {
-                continue;
-            }
-
             const sectionId = typeof section?.id === 'string' && section.id.length > 0 ? section.id : '<unknown>';
             let signals = [];
 

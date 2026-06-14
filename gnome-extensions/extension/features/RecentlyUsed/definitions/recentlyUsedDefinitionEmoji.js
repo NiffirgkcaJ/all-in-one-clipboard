@@ -2,6 +2,7 @@ import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { setRecentlyUsedClipboardText } from '../integrations/recentlyUsedIntegrationClipboard.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
 
@@ -18,7 +19,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
     let recentManager = null;
     let emojiSearchRenderer = null;
 
-    const definition = {
+    const definition = new RecentlyUsedSectionDefinition({
         id: 'emoji',
         targetTab: 'Emoji',
         layoutType: 'grid',
@@ -35,7 +36,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
             icon: null,
         },
         listPresentation: null,
-    };
+    });
 
     /**
      * Initializes the emoji recents manager.
