@@ -54,7 +54,11 @@ export const GifSearchService = GObject.registerClass(
             if (!searchWidget?.visible) return false;
 
             const normalizedQuery = typeof query === 'string' ? query.trim() : '';
+            this._searchDebouncer.cancel();
+            this._suppressSearchInput = true;
             this._searchComponent.setSearchText(normalizedQuery, { focus: false });
+            this._suppressSearchInput = false;
+
             await this.performExternalSearch(normalizedQuery);
 
             return true;
@@ -68,7 +72,6 @@ export const GifSearchService = GObject.registerClass(
             const searchWidget = this._searchComponent?.getWidget();
             if (!searchWidget?.visible) return false;
 
-            this._searchComponent.setSearchText('', { focus: false });
             this.clearSearch();
             return true;
         }
@@ -150,16 +153,17 @@ export const GifSearchService = GObject.registerClass(
          * @param {string} query The search query.
          */
         async performExternalSearch(query) {
-            this.clearSearch();
-            this._suppressSearchInput = true;
+            const normalizedQuery = typeof query === 'string' ? query.trim() : '';
+            this._searchDebouncer.cancel();
 
-            if (query && query.length >= 1) {
-                this._currentSearchQuery = query;
+            if (normalizedQuery.length >= 1) {
+                this._currentSearchQuery = normalizedQuery;
                 const sessionId = this._fetchService.startNewSession();
-                await this._fetchService.fetchSearch(query, sessionId);
+                await this._fetchService.fetchSearch(normalizedQuery, sessionId);
+                return;
             }
 
-            this._suppressSearchInput = false;
+            this.clearSearch();
         }
 
         /**
