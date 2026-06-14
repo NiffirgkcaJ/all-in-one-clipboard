@@ -35,6 +35,7 @@ export const GifFetchService = GObject.registerClass(
             this._gifManager = gifManager;
             this._currentLoadingSession = null;
             this._currentCancellable = null;
+            this._isLoading = false;
 
             // Pagination and Query State
             this._currentNextPos = null;
@@ -62,6 +63,7 @@ export const GifFetchService = GObject.registerClass(
          */
         startNewSession() {
             this.cancelPendingRequests();
+            this._isLoading = false;
             const sessionId = Symbol('loading-session');
             this._currentLoadingSession = sessionId;
             return sessionId;
@@ -132,7 +134,7 @@ export const GifFetchService = GObject.registerClass(
          * @returns {Promise<void>}
          */
         async fetchMore(sessionId = null) {
-            if (!this._currentNextPos) return;
+            if (this._isLoading || !this._currentNextPos) return;
 
             if (this._currentQueryType === 'trending') {
                 await this._performFetch(null, this._currentNextPos, sessionId);
@@ -155,6 +157,7 @@ export const GifFetchService = GObject.registerClass(
         async _performFetch(query, nextPos, sessionId) {
             if (!this.isSessionValid(sessionId)) return;
 
+            this._isLoading = true;
             this.emit('loading-state-changed', true, !!nextPos);
 
             try {
@@ -178,6 +181,7 @@ export const GifFetchService = GObject.registerClass(
                 }
             } finally {
                 if (this.isSessionValid(sessionId)) {
+                    this._isLoading = false;
                     this.emit('loading-state-changed', false, !!nextPos);
                 }
             }
