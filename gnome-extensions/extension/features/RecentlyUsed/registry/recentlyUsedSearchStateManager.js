@@ -1,5 +1,3 @@
-import { isCallable } from '../../../shared/utilities/utilityFunction.js';
-
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
 
@@ -16,7 +14,7 @@ export class RecentlyUsedSearchStateManager {
      * @param {Function|null} options.onRender Callback to request re-render.
      */
     constructor({ onRender = null } = {}) {
-        this._onRender = isCallable(onRender) ? onRender : null;
+        this._onRender = onRender || null;
         this._searchRequestSeq = 0;
         this._sectionSearchState = new Map();
     }

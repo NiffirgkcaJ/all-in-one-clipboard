@@ -1,5 +1,3 @@
-import { isCallable } from '../utilities/utilityFunction.js';
-
 const SEARCH_HANDOFF_TTL_MS = 10000;
 
 let _providersById = null;
@@ -154,7 +152,7 @@ function resolveProvider(providerId) {
  * @returns {Function} Unsubscribe function.
  */
 export function subscribeSearchHub(listener) {
-    if (!isCallable(listener)) {
+    if (!listener) {
         return () => {};
     }
 
@@ -187,9 +185,9 @@ export function registerSearchProvider(provider) {
     getProvidersById().set(providerId, {
         id: providerId,
         targetTabs,
-        search: isCallable(provider?.search) ? provider.search : null,
-        applyToTab: isCallable(provider?.applyToTab) ? provider.applyToTab : null,
-        clearOnTab: isCallable(provider?.clearOnTab) ? provider.clearOnTab : null,
+        search: provider?.search || null,
+        applyToTab: provider?.applyToTab || null,
+        clearOnTab: provider?.clearOnTab || null,
     });
 
     targetTabs.forEach((tabName) => {
@@ -245,7 +243,7 @@ export async function searchViaProvider(providerId, { query, context } = {}) {
     const provider = resolveProvider(providerId);
     const normalizedQuery = normalizeQuery(query);
 
-    if (!provider || !isCallable(provider.search) || !normalizedQuery) {
+    if (!provider?.search || !normalizedQuery) {
         return [];
     }
 
@@ -321,7 +319,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
     }
 
     let applied = false;
-    if (provider && isCallable(provider.applyToTab)) {
+    if (provider?.applyToTab) {
         try {
             applied = Boolean(
                 await provider.applyToTab({
@@ -335,7 +333,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
         }
     }
 
-    if (!applied && tabActor && isCallable(tabActor.applyExternalSearch)) {
+    if (!applied && tabActor?.applyExternalSearch) {
         try {
             applied = Boolean(await tabActor.applyExternalSearch(handoff.query, handoff));
         } catch {
@@ -363,7 +361,7 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
     const resolvedProviderId = resolveProviderIdByTab(targetTab);
     const provider = resolveProvider(resolvedProviderId);
 
-    if (provider && isCallable(provider.clearOnTab)) {
+    if (provider?.clearOnTab) {
         try {
             return Boolean(
                 await provider.clearOnTab({
@@ -376,7 +374,7 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
         }
     }
 
-    if (tabActor && isCallable(tabActor.clearExternalSearch)) {
+    if (tabActor?.clearExternalSearch) {
         try {
             return Boolean(await tabActor.clearExternalSearch());
         } catch {

@@ -1,4 +1,3 @@
-import { isCallable } from '../../../shared/utilities/utilityFunction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { RecentlyUsedPolicySettingKeys } from '../constants/recentlyUsedPolicyConstants.js';
@@ -19,10 +18,10 @@ export class RecentlyUsedSignalManager {
      * @param {Function|null} options.onRender Callback to request re-render.
      */
     constructor({ getOrderedSections, extension, settings, onRender }) {
-        this._getOrderedSections = isCallable(getOrderedSections) ? getOrderedSections : () => [];
+        this._getOrderedSections = getOrderedSections || (() => []);
         this._extension = extension;
         this._settings = settings;
-        this._onRender = isCallable(onRender) ? onRender : null;
+        this._onRender = onRender || null;
         this._signalIds = [];
     }
 
@@ -41,7 +40,7 @@ export class RecentlyUsedSignalManager {
         const id = descriptor?.id;
         const contextSuffix = context ? ` (${context})` : '';
 
-        if (!obj || !isCallable(obj.disconnect)) {
+        if (!obj?.disconnect) {
             if (warn) {
                 Logger.warn(`Ignoring invalid Recently Used signal descriptor${contextSuffix}: missing disconnect-capable object.`);
             }
@@ -98,7 +97,7 @@ export class RecentlyUsedSignalManager {
             });
         }
 
-        if (this._settings && isCallable(this._settings.connect)) {
+        if (this._settings?.connect) {
             RecentlyUsedPolicySettingKeys.forEach((settingKey) => {
                 try {
                     const signalId = this._settings.connect(`changed::${settingKey}`, () => {
@@ -142,7 +141,7 @@ export class RecentlyUsedSignalManager {
             const { obj, id } = normalized;
 
             try {
-                if (isCallable(obj.signal_handler_is_connected) && !obj.signal_handler_is_connected(id)) {
+                if (obj.signal_handler_is_connected && !obj.signal_handler_is_connected(id)) {
                     return;
                 }
                 obj.disconnect(id);

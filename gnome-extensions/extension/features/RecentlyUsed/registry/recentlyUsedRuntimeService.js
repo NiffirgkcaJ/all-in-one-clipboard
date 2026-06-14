@@ -1,4 +1,3 @@
-import { isCallable } from '../../../shared/utilities/utilityFunction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
@@ -40,7 +39,7 @@ export class RecentlyUsedRuntimeService {
     constructor({ extension, settings, onRender }) {
         this._extension = extension;
         this._settings = settings;
-        this._onRender = isCallable(onRender) ? onRender : null;
+        this._onRender = onRender || null;
         this._started = false;
         this._orderedSections = [];
         this._sectionsById = new Map();
@@ -117,10 +116,6 @@ export class RecentlyUsedRuntimeService {
     _instantiateSectionDefinition(sectionDefinition) {
         if (!sectionDefinition || typeof sectionDefinition !== 'object') {
             return null;
-        }
-
-        if (!isCallable(sectionDefinition.createInstance)) {
-            return sectionDefinition;
         }
 
         try {
@@ -404,7 +399,7 @@ export class RecentlyUsedRuntimeService {
      */
     _resolveSectionBrowseTitle(sectionConfig) {
         const browseTitleResolver = sectionConfig?.titlePolicy?.browseTitle;
-        if (isCallable(browseTitleResolver)) {
+        if (browseTitleResolver) {
             return browseTitleResolver();
         }
 
@@ -421,7 +416,7 @@ export class RecentlyUsedRuntimeService {
      */
     _resolveSectionSearchTitle(sectionConfig, fallbackTitle) {
         const searchTitleResolver = sectionConfig?.titlePolicy?.searchTitle;
-        if (isCallable(searchTitleResolver)) {
+        if (searchTitleResolver) {
             return searchTitleResolver();
         }
 
