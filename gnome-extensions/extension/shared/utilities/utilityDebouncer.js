@@ -22,7 +22,10 @@ export class Debouncer {
     trigger(...args) {
         if (!this._func) return;
 
-        if (this._timeoutId > 0) GLib.source_remove(this._timeoutId);
+        if (this._timeoutId > 0) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = 0;
+        }
 
         this._timeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, this._wait, () => {
             if (!this._func) return GLib.SOURCE_REMOVE;

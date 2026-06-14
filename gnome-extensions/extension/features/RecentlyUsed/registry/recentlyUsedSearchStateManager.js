@@ -1,3 +1,5 @@
+import GLib from 'gi://GLib';
+
 import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedSearchTuning } from '../constants/recentlyUsedSearchConstants.js';
 
@@ -17,12 +19,15 @@ export class RecentlyUsedSearchStateManager {
         this._onRender = onRender || null;
         this._searchRequestSeq = 0;
         this._sectionSearchState = new Map();
+        this._renderSourceId = 0;
     }
 
     /**
      * Clear all tracked search state.
      */
     clear() {
+        this._clearPendingSearchSources();
+        this._clearPendingRenderSource();
         this._sectionSearchState.clear();
     }
 
@@ -45,7 +50,7 @@ export class RecentlyUsedSearchStateManager {
 
         if (!searchQuery || !sectionConfig.id) {
             if (sectionConfig?.id) {
-                this._sectionSearchState.delete(sectionConfig.id);
+                this._clearSectionSearchState(sectionConfig.id);
             }
             return localItems;
         }
@@ -63,6 +68,8 @@ export class RecentlyUsedSearchStateManager {
             }
         }
 
+        this._clearSectionSearchState(sectionId);
+
         const requestId = ++this._searchRequestSeq;
         this._sectionSearchState.set(sectionId, {
             query: searchQuery,
@@ -71,37 +78,14 @@ export class RecentlyUsedSearchStateManager {
             fallbackItems: localItems,
             fallbackSignature: localItemsSignature,
             items: [],
+            searchSourceId: this._queueSectionSearch({
+                sectionConfig,
+                runtimeContext,
+                searchQuery,
+                sectionId,
+                requestId,
+            }),
         });
-
-        Promise.resolve(sectionConfig.searchItems({ query: searchQuery, runtimeContext }))
-            .then((items) => {
-                const latestState = this._sectionSearchState.get(sectionId);
-                if (!latestState || latestState.requestId !== requestId) {
-                    return;
-                }
-
-                this._sectionSearchState.set(sectionId, {
-                    ...latestState,
-                    status: 'ready',
-                    items: Array.isArray(items) ? items : [],
-                });
-
-                this._onRender?.();
-            })
-            .catch(() => {
-                const latestState = this._sectionSearchState.get(sectionId);
-                if (!latestState || latestState.requestId !== requestId) {
-                    return;
-                }
-
-                this._sectionSearchState.set(sectionId, {
-                    ...latestState,
-                    status: 'ready',
-                    items: [],
-                });
-
-                this._onRender?.();
-            });
 
         return localItems;
     }
@@ -135,6 +119,137 @@ export class RecentlyUsedSearchStateManager {
     // ========================================================================
     // Internal Helpers
     // ========================================================================
+
+    /**
+     * Queue a low-priority section search outside the render pass.
+     *
+     * @param {object} params Search source parameters.
+     * @param {object} params.sectionConfig Section configuration.
+     * @param {object} params.runtimeContext Runtime context.
+     * @param {string} params.searchQuery Normalized query string.
+     * @param {string} params.sectionId Section id.
+     * @param {number} params.requestId Search request id.
+     * @returns {number} GLib source id.
+     * @private
+     */
+    _queueSectionSearch({ sectionConfig, runtimeContext, searchQuery, sectionId, requestId }) {
+        return GLib.idle_add(GLib.PRIORITY_LOW, () => {
+            this._markSectionSearchSourceConsumed(sectionId, requestId);
+
+            Promise.resolve()
+                .then(() => sectionConfig.searchItems({ query: searchQuery, runtimeContext }))
+                .then((items) => {
+                    this._completeSectionSearch(sectionId, requestId, Array.isArray(items) ? items : []);
+                })
+                .catch(() => {
+                    this._completeSectionSearch(sectionId, requestId, []);
+                });
+
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    /**
+     * Marks a queued search source as already consumed by the main loop.
+     *
+     * @param {string} sectionId Section id.
+     * @param {number} requestId Search request id.
+     * @private
+     */
+    _markSectionSearchSourceConsumed(sectionId, requestId) {
+        const latestState = this._sectionSearchState.get(sectionId);
+        if (!latestState || latestState.requestId !== requestId) {
+            return;
+        }
+
+        this._sectionSearchState.set(sectionId, {
+            ...latestState,
+            searchSourceId: 0,
+        });
+    }
+
+    /**
+     * Stores section search results and queues one coalesced render.
+     *
+     * @param {string} sectionId Section id.
+     * @param {number} requestId Search request id.
+     * @param {Array<object>} items Search result items.
+     * @private
+     */
+    _completeSectionSearch(sectionId, requestId, items) {
+        const latestState = this._sectionSearchState.get(sectionId);
+        if (!latestState || latestState.requestId !== requestId) {
+            return;
+        }
+
+        this._sectionSearchState.set(sectionId, {
+            ...latestState,
+            status: 'ready',
+            items,
+            searchSourceId: 0,
+        });
+
+        this._queueRender();
+    }
+
+    /**
+     * Queues a single low-priority render for completed section searches.
+     *
+     * @private
+     */
+    _queueRender() {
+        if (this._renderSourceId) {
+            return;
+        }
+
+        this._renderSourceId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
+            this._renderSourceId = 0;
+            this._onRender?.();
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    /**
+     * Removes queued section search work for a section.
+     *
+     * @param {string} sectionId Section id.
+     * @private
+     */
+    _clearSectionSearchState(sectionId) {
+        const state = this._sectionSearchState.get(sectionId);
+        if (state?.searchSourceId) {
+            GLib.source_remove(state.searchSourceId);
+        }
+
+        this._sectionSearchState.delete(sectionId);
+    }
+
+    /**
+     * Removes all queued section search sources.
+     *
+     * @private
+     */
+    _clearPendingSearchSources() {
+        for (const state of this._sectionSearchState.values()) {
+            if (state?.searchSourceId) {
+                GLib.source_remove(state.searchSourceId);
+            }
+        }
+    }
+
+    /**
+     * Removes the queued coalesced render source.
+     *
+     * @private
+     */
+    _clearPendingRenderSource() {
+        if (!this._renderSourceId) {
+            return;
+        }
+
+        GLib.source_remove(this._renderSourceId);
+        this._renderSourceId = 0;
+    }
 
     /**
      * Build a lightweight signature for section source items.
