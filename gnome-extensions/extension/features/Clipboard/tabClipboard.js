@@ -52,6 +52,14 @@ export const ClipboardTabContent = GObject.registerClass(
             this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
             this._hasRenderedOnce = false;
+            this._isDestroyed = false;
+            this._deferredRedrawPending = false;
+            this._redrawIdleId = 0;
+            this._redrawScheduled = false;
+            this._retryId = 0;
+            this._settingSignalIds = [];
+            this._managerSignalIds = [];
+            this._actorSignalIds = [];
 
             this._copyService = new ClipboardCopyService();
             this._selectionService = new ClipboardSelectionService();
@@ -73,6 +81,12 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._setupSettingsSignals();
             this._connectManagerSignals();
+            this._actorSignalIds.push(this.connect('notify::mapped', () => this._flushDeferredRedraw()));
+            this._actorSignalIds.push(this.connect('notify::visible', () => this._flushDeferredRedraw()));
+            this.connect('destroy', () => {
+                this._isDestroyed = true;
+                this._clearRedrawSources();
+            });
         }
 
         // ========================================================================
@@ -293,16 +307,22 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _scheduleRedraw(immediate = false) {
+            if (this._isDestroyed) return;
+
             if (!this._canRenderNow()) {
                 this._deferredRedrawPending = true;
-                this._ensureRetry();
+                if (this._shouldRetryRender()) this._ensureRetry();
                 return;
             }
 
             this._deferredRedrawPending = false;
 
             if (immediate) {
-                if (this._redrawIdleId) GLib.source_remove(this._redrawIdleId);
+                if (this._redrawIdleId) {
+                    GLib.source_remove(this._redrawIdleId);
+                    this._redrawIdleId = 0;
+                    this._redrawScheduled = false;
+                }
                 this._redraw();
                 return;
             }
@@ -325,9 +345,19 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _canRenderNow() {
-            if (!this._currentView || !this._scrollView || !this.mapped || !this.visible) return false;
+            if (!this._shouldRetryRender()) return false;
             const box = this._scrollView.get_allocation_box();
             return box && box.get_width() > 1 && box.get_height() > 1;
+        }
+
+        /**
+         * Determine if a pending render should wait for allocation.
+         *
+         * @returns {boolean} True if the actor is alive and visible.
+         * @private
+         */
+        _shouldRetryRender() {
+            return !this._isDestroyed && !!this._currentView && !!this._scrollView && this.mapped && this.visible;
         }
 
         /**
@@ -336,10 +366,15 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _ensureRetry() {
-            if (this._retryId) return;
+            if (this._isDestroyed || this._retryId) return;
 
             this._retryId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_INTERVAL_MS, () => {
-                if (!this._deferredRedrawPending || !this._currentView) {
+                if (this._isDestroyed || !this._deferredRedrawPending || !this._currentView) {
+                    this._retryId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                if (!this._shouldRetryRender()) {
                     this._retryId = 0;
                     return GLib.SOURCE_REMOVE;
                 }
@@ -355,14 +390,26 @@ export const ClipboardTabContent = GObject.registerClass(
         }
 
         /**
+         * Render pending content when a cached tab becomes visible.
+         *
+         * @private
+         */
+        _flushDeferredRedraw() {
+            if (this._isDestroyed || !this._deferredRedrawPending || !this._shouldRetryRender()) return;
+            this._scheduleRedraw(true);
+        }
+
+        /**
          * Perform the actual redraw of the current view.
          *
          * @private
          */
         _redraw() {
+            if (this._isDestroyed) return;
+
             if (!this._canRenderNow()) {
                 this._deferredRedrawPending = true;
-                this._ensureRetry();
+                if (this._shouldRetryRender()) this._ensureRetry();
                 return;
             }
 
@@ -391,6 +438,8 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle the event when the clipboard tab is selected.
          */
         onTabSelected() {
+            if (this._isDestroyed) return;
+
             const needs = this._deferredRedrawPending || this._searchService.pendingReset || !this._hasRenderedOnce;
 
             this._searchService.onTabSelected(this._searchComponent);
@@ -427,19 +476,33 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle the event when the extension menu is closed.
          */
         onMenuClosed() {
-            this._deferredRedrawPending = false;
-            this._searchService.onMenuClosed();
+            if (this._isDestroyed) return;
 
-            if (this._redrawIdleId) {
-                GLib.source_remove(this._redrawIdleId);
-                this._redrawIdleId = 0;
-                this._redrawScheduled = false;
-            }
+            this._searchService.onMenuClosed();
+            this._clearRedrawSources();
 
             const currentFocus = global.stage.get_key_focus();
             if (currentFocus && (currentFocus === this || this.contains(currentFocus))) {
                 global.stage.set_key_focus(null);
             }
+        }
+
+        /**
+         * Remove pending redraw sources.
+         *
+         * @private
+         */
+        _clearRedrawSources() {
+            if (this._redrawIdleId) {
+                GLib.source_remove(this._redrawIdleId);
+                this._redrawIdleId = 0;
+            }
+            if (this._retryId) {
+                GLib.source_remove(this._retryId);
+                this._retryId = 0;
+            }
+            this._redrawScheduled = false;
+            this._deferredRedrawPending = false;
         }
 
         // ========================================================================
@@ -450,8 +513,8 @@ export const ClipboardTabContent = GObject.registerClass(
          * Clean up resources and disconnect signals before destruction.
          */
         destroy() {
-            if (this._redrawIdleId) GLib.source_remove(this._redrawIdleId);
-            if (this._retryId) GLib.source_remove(this._retryId);
+            this._isDestroyed = true;
+            this._clearRedrawSources();
 
             this._copyService?.destroy();
 
@@ -460,6 +523,10 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._settingSignalIds.forEach((id) => this._settings.disconnect(id));
             this._managerSignalIds?.forEach((id) => this._manager.disconnect(id));
+            this._actorSignalIds.forEach((id) => this.disconnect(id));
+            this._settingSignalIds = [];
+            this._managerSignalIds = [];
+            this._actorSignalIds = [];
 
             this._searchComponent?.destroy();
             this._actionBar?.destroy();
