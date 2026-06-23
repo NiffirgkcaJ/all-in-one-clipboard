@@ -52,14 +52,12 @@ export const ClipboardTabContent = GObject.registerClass(
             this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
             this._hasRenderedOnce = false;
-            this._isDestroyed = false;
             this._deferredRedrawPending = false;
             this._redrawIdleId = 0;
             this._redrawScheduled = false;
             this._retryId = 0;
             this._settingSignalIds = [];
             this._managerSignalIds = [];
-            this._actorSignalIds = [];
 
             this._copyService = new ClipboardCopyService();
             this._selectionService = new ClipboardSelectionService();
@@ -81,12 +79,13 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._setupSettingsSignals();
             this._connectManagerSignals();
-            this._actorSignalIds.push(this.connect('notify::mapped', () => this._flushDeferredRedraw()));
-            this._actorSignalIds.push(this.connect('notify::visible', () => this._flushDeferredRedraw()));
-            this.connect('destroy', () => {
-                this._isDestroyed = true;
-                this._clearRedrawSources();
-            });
+            this.connectObject(
+                'notify::mapped',
+                () => this._flushDeferredRedraw(),
+                'notify::visible',
+                () => this._flushDeferredRedraw(),
+                this,
+            );
         }
 
         // ========================================================================
@@ -307,7 +306,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _scheduleRedraw(immediate = false) {
-            if (this._isDestroyed) return;
+            if (!this._currentView || !this._scrollView) return;
 
             if (!this._canRenderNow()) {
                 this._deferredRedrawPending = true;
@@ -357,7 +356,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _shouldRetryRender() {
-            return !this._isDestroyed && !!this._currentView && !!this._scrollView && this.mapped && this.visible;
+            return !!this._currentView && !!this._scrollView && this.mapped && this.visible;
         }
 
         /**
@@ -366,10 +365,10 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _ensureRetry() {
-            if (this._isDestroyed || this._retryId) return;
+            if (!this._currentView || !this._scrollView || this._retryId) return;
 
             this._retryId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY_INTERVAL_MS, () => {
-                if (this._isDestroyed || !this._deferredRedrawPending || !this._currentView) {
+                if (!this._deferredRedrawPending || !this._currentView || !this._scrollView) {
                     this._retryId = 0;
                     return GLib.SOURCE_REMOVE;
                 }
@@ -395,7 +394,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _flushDeferredRedraw() {
-            if (this._isDestroyed || !this._deferredRedrawPending || !this._shouldRetryRender()) return;
+            if (!this._deferredRedrawPending || !this._shouldRetryRender()) return;
             this._scheduleRedraw(true);
         }
 
@@ -405,7 +404,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _redraw() {
-            if (this._isDestroyed) return;
+            if (!this._currentView || !this._searchService || !this._manager) return;
 
             if (!this._canRenderNow()) {
                 this._deferredRedrawPending = true;
@@ -438,7 +437,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle the event when the clipboard tab is selected.
          */
         onTabSelected() {
-            if (this._isDestroyed) return;
+            if (!this._searchService) return;
 
             const needs = this._deferredRedrawPending || this._searchService.pendingReset || !this._hasRenderedOnce;
 
@@ -460,7 +459,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {Promise<boolean>} True if the search was applied successfully.
          */
         async applyExternalSearch(query) {
-            return this._searchService.applyExternalSearch(this._searchComponent, query);
+            return this._searchService ? await this._searchService.applyExternalSearch(this._searchComponent, query) : false;
         }
 
         /**
@@ -469,14 +468,14 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {Promise<boolean>} True if the search was cleared successfully.
          */
         async clearExternalSearch() {
-            return this._searchService.clearExternalSearch(this._searchComponent);
+            return this._searchService ? await this._searchService.clearExternalSearch(this._searchComponent) : false;
         }
 
         /**
          * Handle the event when the extension menu is closed.
          */
         onMenuClosed() {
-            if (this._isDestroyed) return;
+            if (!this._searchService) return;
 
             this._searchService.onMenuClosed();
             this._clearRedrawSources();
@@ -513,24 +512,32 @@ export const ClipboardTabContent = GObject.registerClass(
          * Clean up resources and disconnect signals before destruction.
          */
         destroy() {
-            this._isDestroyed = true;
             this._clearRedrawSources();
 
-            this._copyService?.destroy();
-
-            this._searchService?.destroy();
-            this._selectionService?.destroy();
-
-            this._settingSignalIds.forEach((id) => this._settings.disconnect(id));
-            this._managerSignalIds?.forEach((id) => this._manager.disconnect(id));
-            this._actorSignalIds.forEach((id) => this.disconnect(id));
+            this._settingSignalIds.forEach((id) => this._settings?.disconnect(id));
+            this._managerSignalIds?.forEach((id) => this._manager?.disconnect(id));
+            this.disconnectObject(this);
             this._settingSignalIds = [];
             this._managerSignalIds = [];
-            this._actorSignalIds = [];
 
             this._searchComponent?.destroy();
             this._actionBar?.destroy();
             this._currentView?.destroy();
+            this._copyService?.destroy();
+            this._searchService?.destroy();
+            this._selectionService?.destroy();
+
+            this._searchComponent = null;
+            this._actionBar = null;
+            this._currentView = null;
+            this._scrollView = null;
+            this._mainBox = null;
+            this._copyService = null;
+            this._searchService = null;
+            this._selectionService = null;
+            this._manager = null;
+            this._settings = null;
+            this._extension = null;
 
             super.destroy();
         }
