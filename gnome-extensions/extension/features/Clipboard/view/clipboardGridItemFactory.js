@@ -344,11 +344,18 @@ export class ClipboardGridItemFactory {
             y_expand: true,
         });
 
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+        let imageStyleIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            imageStyleIdleId = 0;
             if (imageWrapper.get_stage()) {
                 imageWrapper.set_style(`background-image: url('file://${imagePath}'); background-size: cover;`);
             }
             return GLib.SOURCE_REMOVE;
+        });
+        imageWrapper.connect('destroy', () => {
+            if (imageStyleIdleId) {
+                GLib.source_remove(imageStyleIdleId);
+                imageStyleIdleId = 0;
+            }
         });
 
         return imageWrapper;
