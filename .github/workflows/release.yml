@@ -139,7 +139,7 @@ jobs:
           mv "$ORIGINAL_ZIP" "$RENAMED_ZIP"
 
       - name: Upload to GNOME Extensions
-        uses: murar8/gnome-extensions-action@v0.1.1
+        uses: murar8/gnome-extensions-action@0.1.1
         with:
           username: ${{ secrets.GNOME_USERNAME }}
           password: ${{ secrets.GNOME_PASSWORD }}
