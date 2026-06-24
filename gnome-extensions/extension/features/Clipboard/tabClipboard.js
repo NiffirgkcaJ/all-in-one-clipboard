@@ -56,8 +56,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._redrawIdleId = 0;
             this._redrawScheduled = false;
             this._retryId = 0;
-            this._settingSignalIds = [];
-            this._managerSignalIds = [];
 
             this._copyService = new ClipboardCopyService();
             this._selectionService = new ClipboardSelectionService();
@@ -98,21 +96,26 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _setupSettingsSignals() {
-            this._settingSignalIds = [
-                this._settings.connect('changed::clipboard-image-preview-size', () => {
+            this._settings.connectObject(
+                'changed::clipboard-image-preview-size',
+                () => {
                     this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
                     this._currentView?.setImagePreviewSize(this._imagePreviewSize);
                     this._scheduleRedraw();
-                }),
-                this._settings.connect('changed::clipboard-layout-mode', () => {
+                },
+                'changed::clipboard-layout-mode',
+                () => {
                     this._applyLayoutMode(this._settings.get_string('clipboard-layout-mode') || 'list');
-                }),
-                this._settings.connect('changed::extension-width', () => {
+                },
+                'changed::extension-width',
+                () => {
                     this._currentView?.resetScrollAndPagination?.();
                     this._scheduleRedraw();
-                }),
-                this._settings.connect('changed::extension-height', () => this._scheduleRedraw()),
-            ];
+                },
+                'changed::extension-height',
+                () => this._scheduleRedraw(),
+                this,
+            );
         }
 
         /**
@@ -142,16 +145,24 @@ export const ClipboardTabContent = GObject.registerClass(
         _buildActionBar() {
             this._actionBar = new ClipboardActionBar(this._settings, this._manager, this._selectionService.selectedIds);
 
-            this._actionBar.connect('layout-toggled', () => {
-                const next = this._layoutMode === 'list' ? 'grid' : 'list';
-                this._settings.set_string('clipboard-layout-mode', next);
-            });
-
-            this._actionBar.connect('selection-cleared', () => this._scheduleRedraw());
-            this._actionBar.connect('select-all-requested', () => this._onSelectAllClicked());
-            this._actionBar.connect('merge-selected-requested', () => this._onMergeSelectedRequested());
-            this._actionBar.connect('navigate-up', () => this._searchComponent?.grabFocus());
-            this._actionBar.connect('navigate-down', () => this._focusFirstContentItem());
+            this._actionBar.connectObject(
+                'layout-toggled',
+                () => {
+                    const next = this._layoutMode === 'list' ? 'grid' : 'list';
+                    this._settings.set_string('clipboard-layout-mode', next);
+                },
+                'selection-cleared',
+                () => this._scheduleRedraw(),
+                'select-all-requested',
+                () => this._onSelectAllClicked(),
+                'merge-selected-requested',
+                () => this._onMergeSelectedRequested(),
+                'navigate-up',
+                () => this._searchComponent?.grabFocus(),
+                'navigate-down',
+                () => this._focusFirstContentItem(),
+                this,
+            );
 
             this._mainBox.add_child(this._actionBar);
         }
@@ -181,6 +192,7 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _createView(mode) {
             if (this._currentView) {
+                this._currentView.disconnectObject(this);
                 this._scrollView.set_child(null);
                 this._currentView.destroy();
             }
@@ -197,10 +209,14 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._currentView = mode === 'grid' ? new ClipboardGridView(options) : new ClipboardListView(options);
 
-            this._currentView.connect('navigate-up', () => {
-                if (this._actionBar?.visible) this._actionBar.grabFocus();
-                else this._searchComponent?.grabFocus();
-            });
+            this._currentView.connectObject(
+                'navigate-up',
+                () => {
+                    if (this._actionBar?.visible) this._actionBar.grabFocus();
+                    else this._searchComponent?.grabFocus();
+                },
+                this,
+            );
 
             this._scrollView.set_child(this._currentView);
         }
@@ -292,7 +308,13 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _connectManagerSignals() {
-            this._managerSignalIds = [this._manager.connect('history-changed', () => this._scheduleRedraw()), this._manager.connect('pinned-list-changed', () => this._scheduleRedraw())];
+            this._manager.connectObject(
+                'history-changed',
+                () => this._scheduleRedraw(),
+                'pinned-list-changed',
+                () => this._scheduleRedraw(),
+                this,
+            );
         }
 
         // ========================================================================
@@ -514,11 +536,11 @@ export const ClipboardTabContent = GObject.registerClass(
         destroy() {
             this._clearRedrawSources();
 
-            this._settingSignalIds.forEach((id) => this._settings?.disconnect(id));
-            this._managerSignalIds?.forEach((id) => this._manager?.disconnect(id));
+            this._settings?.disconnectObject(this);
+            this._manager?.disconnectObject(this);
+            this._actionBar?.disconnectObject(this);
+            this._currentView?.disconnectObject(this);
             this.disconnectObject(this);
-            this._settingSignalIds = [];
-            this._managerSignalIds = [];
 
             this._searchComponent?.destroy();
             this._actionBar?.destroy();
