@@ -233,4 +233,13 @@ export class GifGenericProvider {
         if (!path || !obj) return null;
         return path.split('.').reduce((acc, part) => acc && acc[part], obj);
     }
+
+    /**
+     * Release provider references.
+     */
+    destroy() {
+        this._def = null;
+        this._httpService = null;
+        this._settings = null;
+    }
 }
