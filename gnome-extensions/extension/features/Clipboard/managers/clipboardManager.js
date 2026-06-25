@@ -21,13 +21,13 @@ const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
  * Delegates content routing to ClipboardContentRouterService and clipboard I/O to ClipboardCopyService.
  *
  * @emits history-changed Emitted when the clipboard history changes.
- * @emits pinned-list-changed Emitted when the pinned items list changes.
+ * @emits pinned-changed Emitted when the pinned items list changes.
  */
 export const ClipboardManager = GObject.registerClass(
     {
         Signals: {
             'history-changed': {},
-            'pinned-list-changed': {},
+            'pinned-changed': {},
         },
     },
     class ClipboardManager extends GObject.Object {
@@ -96,7 +96,7 @@ export const ClipboardManager = GObject.registerClass(
             this._pinned = data.pinned;
 
             this.emit('history-changed');
-            this.emit('pinned-list-changed');
+            this.emit('pinned-changed');
 
             this._monitor.start();
 
@@ -106,7 +106,7 @@ export const ClipboardManager = GObject.registerClass(
                     if (changed) {
                         this._saveAll();
                         this.emit('history-changed');
-                        this.emit('pinned-list-changed');
+                        this.emit('pinned-changed');
                     }
                 })
                 .catch((e) => {
@@ -224,7 +224,7 @@ export const ClipboardManager = GObject.registerClass(
 
                 this._saveAll();
                 this.emit('history-changed');
-                this.emit('pinned-list-changed');
+                this.emit('pinned-changed');
             }
         }
 
@@ -325,7 +325,7 @@ export const ClipboardManager = GObject.registerClass(
 
             this._saveAll();
             this.emit('history-changed');
-            this.emit('pinned-list-changed');
+            this.emit('pinned-changed');
         }
 
         /**
@@ -348,7 +348,7 @@ export const ClipboardManager = GObject.registerClass(
             if (changed) {
                 this._saveAll();
                 this.emit('history-changed');
-                this.emit('pinned-list-changed');
+                this.emit('pinned-changed');
             }
         }
 
@@ -367,7 +367,7 @@ export const ClipboardManager = GObject.registerClass(
 
             this._saveAll();
             this.emit('history-changed');
-            this.emit('pinned-list-changed');
+            this.emit('pinned-changed');
         }
 
         /**
@@ -391,7 +391,7 @@ export const ClipboardManager = GObject.registerClass(
                 this._storage.pruneHistory(this._history);
                 this._saveAll();
                 this.emit('history-changed');
-                this.emit('pinned-list-changed');
+                this.emit('pinned-changed');
             }
         }
 
@@ -439,7 +439,7 @@ export const ClipboardManager = GObject.registerClass(
             if (wasDeleted) {
                 this._saveAll();
                 this.emit('history-changed');
-                this.emit('pinned-list-changed');
+                this.emit('pinned-changed');
             }
         }
 
@@ -469,7 +469,7 @@ export const ClipboardManager = GObject.registerClass(
             if (wasDeleted) {
                 this._saveAll();
                 this.emit('history-changed');
-                this.emit('pinned-list-changed');
+                this.emit('pinned-changed');
             }
         }
 
@@ -492,7 +492,7 @@ export const ClipboardManager = GObject.registerClass(
             this._pinned = [];
 
             this._savePinned();
-            this.emit('pinned-list-changed');
+            this.emit('pinned-changed');
         }
 
         /**

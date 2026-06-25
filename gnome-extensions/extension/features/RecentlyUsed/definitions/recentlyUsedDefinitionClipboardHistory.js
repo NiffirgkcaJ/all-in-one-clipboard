@@ -1,48 +1,34 @@
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
+import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
-import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 import { renderRecentlyUsedClipboardListContent } from '../integrations/recentlyUsedIntegrationClipboard.js';
-import { RecentlyUsedDefaultPolicy, RecentlyUsedLimitMode } from '../constants/recentlyUsedPolicyConstants.js';
 
 import { ClipboardProvider } from '../../Clipboard/constants/clipboardConstants.js';
 import { ClipboardSearchUtils } from '../../Clipboard/utilities/clipboardSearchUtils.js';
 import { ensureClipboardSearchProviderRegistered } from '../../Clipboard/integrations/clipboardSearchProvider.js';
 
 /**
- * Creates a runtime-scoped pinned section definition.
+ * Creates a runtime-scoped clipboard history section definition.
  *
- * @returns {object} Pinned section definition instance.
+ * @returns {object} Clipboard history section definition instance.
  */
-function createRecentlyUsedDefinitionPinnedInstance() {
+function createRecentlyUsedDefinitionClipboardHistoryInstance() {
     const definition = new RecentlyUsedSectionDefinition({
-        id: 'pinned',
+        id: 'clipboard-history',
         targetTab: 'Clipboard',
         layoutType: 'list',
-        defaultPolicy: {
-            defaultLimitMode: RecentlyUsedLimitMode.UNLIMITED,
-            customLimitByContext: false,
-            customDisplayByView: false,
-            customVisibleByView: false,
-            customWindowByView: false,
-        },
         source: {
             maxItems: RecentlyUsedDefaultPolicy.GLOBAL_VISIBLE_ITEMS,
         },
-        layoutTransition: {
-            threshold: 5,
-            above: 'nested-list',
-        },
-        layoutPolicy: {
-            maxVisible: RecentlyUsedDefaultPolicy.LIST_VISIBLE_ITEMS,
-            itemHeight: RecentlyUsedUI.NESTED_ITEM_HEIGHT,
-        },
         settings: {
+            enabledSettingKey: 'enable-clipboard-tab',
             autoPasteSettingKey: 'auto-paste-clipboard',
             imagePreviewSizeSettingKey: 'clipboard-image-preview-size',
         },
         listPresentation: {
+            variant: 'default',
             text: {
                 weight: 'normal',
                 style: 'normal',
@@ -55,19 +41,19 @@ function createRecentlyUsedDefinitionPinnedInstance() {
     });
 
     /**
-     * Initializes the pinned section.
+     * Initializes the clipboard history section.
      */
     definition.initialize = () => {
         ensureClipboardSearchProviderRegistered();
     };
 
     /**
-     * Cleans up pinned section resources.
+     * Cleans up clipboard history section resources.
      */
     definition.destroy = () => {};
 
     /**
-     * Returns signals that should trigger section re-rendering.
+     * Returns signals that trigger clipboard history section updates.
      *
      * @param {object} params Context object.
      * @param {object} params.extension Extension instance.
@@ -77,35 +63,39 @@ function createRecentlyUsedDefinitionPinnedInstance() {
     definition.getSignals = ({ extension, onRender }) => {
         const clipboardManager = extension?._clipboardManager;
         if (!clipboardManager) return [];
-        return [{ obj: clipboardManager, id: clipboardManager.connect('pinned-list-changed', onRender) }];
+        return [{ obj: clipboardManager, id: clipboardManager.connect('history-changed', onRender) }];
     };
 
     /**
-     * Indicates whether this section is enabled.
+     * Indicates whether the clipboard history section is enabled.
      *
-     * @returns {boolean} Always true for pinned items.
+     * @param {object} params Context object.
+     * @param {object} params.settings Extension settings object.
+     * @returns {boolean} True when enabled.
      */
-    definition.isEnabled = () => true;
+    definition.isEnabled = ({ settings }) => {
+        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+    };
 
     /**
-     * Returns pinned clipboard items.
+     * Returns clipboard history items.
      *
      * @param {object} params Context object.
      * @param {object} params.extension Extension instance.
-     * @returns {Array<object>} Pinned clipboard entries.
+     * @returns {Array<object>} Clipboard history items.
      */
     definition.getItems = ({ extension }) => {
         const clipboardManager = extension?._clipboardManager;
-        return clipboardManager?.getPinnedItems?.() || [];
+        return clipboardManager?.getHistoryItems?.() || [];
     };
 
     /**
-     * Searches pinned clipboard items through the shared Search Hub provider.
+     * Searches clipboard history items through the shared Search Hub provider.
      *
      * @param {object} params Search context.
      * @param {string} params.query Normalized search query.
      * @param {object} params.runtimeContext Runtime context.
-     * @returns {Promise<Array<object>>} Matching pinned entries.
+     * @returns {Promise<Array<object>>} Matching clipboard history items.
      */
     definition.searchItems = async ({ query, runtimeContext }) => {
         if (!query) {
@@ -113,13 +103,13 @@ function createRecentlyUsedDefinitionPinnedInstance() {
         }
 
         const extension = runtimeContext?.extension;
-        const pinnedIds = new Set((extension?._clipboardManager?.getPinnedItems?.() || []).map((item) => item?.id));
+        const historyIds = new Set((extension?._clipboardManager?.getHistoryItems?.() || []).map((item) => item?.id));
         const providerItems = await searchViaProvider(ClipboardProvider.SEARCH_PROVIDER_ID, {
             query,
             context: { extension },
         });
 
-        return providerItems.filter((item) => pinnedIds.has(item?.id));
+        return providerItems.filter((item) => historyIds.has(item?.id));
     };
 
     /**
@@ -138,13 +128,13 @@ function createRecentlyUsedDefinitionPinnedInstance() {
     };
 
     /**
-     * Matches pinned clipboard entries using Clipboard tab search behavior.
+     * Matches clipboard history items using Clipboard tab search behavior.
      *
      * @param {object} params Search context.
      * @param {object} params.item Candidate item.
      * @param {string} params.query Normalized search query.
      * @param {Function} params.fallbackMatch Generic fallback matcher.
-     * @returns {boolean} True when the pinned item matches search.
+     * @returns {boolean} True when the clipboard history item matches search.
      */
     definition.matchesSearch = ({ item, query, fallbackMatch }) => {
         if (!query) {
@@ -173,7 +163,7 @@ function createRecentlyUsedDefinitionPinnedInstance() {
     };
 
     /**
-     * Handles clicks by copying and promoting pinned items.
+     * Handles clicks by copying and promoting clipboard history items.
      *
      * @param {object} params Click context.
      * @returns {Promise<boolean>} True when copy succeeds.
@@ -191,12 +181,12 @@ function createRecentlyUsedDefinitionPinnedInstance() {
         });
     };
 
-    definition.createInstance = () => createRecentlyUsedDefinitionPinnedInstance();
+    definition.createInstance = () => createRecentlyUsedDefinitionClipboardHistoryInstance();
 
     return definition;
 }
 
 /**
- * Section definition template for clipboard pinned items.
+ * Section definition template for clipboard history items.
  */
-export const RecentlyUsedDefinitionPinned = () => createRecentlyUsedDefinitionPinnedInstance();
+export const RecentlyUsedDefinitionClipboardHistory = () => createRecentlyUsedDefinitionClipboardHistoryInstance();

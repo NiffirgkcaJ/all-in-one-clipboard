@@ -7,9 +7,9 @@
 export function getRecentlyUsedOrder(_) {
     return [
         {
-            id: 'pinned',
-            modulePath: '../definitions/recentlyUsedDefinitionPinned.js',
-            exportName: 'RecentlyUsedDefinitionPinned',
+            id: 'clipboard-pinned',
+            modulePath: '../definitions/recentlyUsedDefinitionClipboardPinned.js',
+            exportName: 'RecentlyUsedDefinitionClipboardPinned',
             layoutFamily: 'list',
             title: _('Pinned Clipboard'),
             titlePolicy: {
@@ -67,9 +67,9 @@ export function getRecentlyUsedOrder(_) {
             },
         },
         {
-            id: 'clipboard',
-            modulePath: '../definitions/recentlyUsedDefinitionClipboard.js',
-            exportName: 'RecentlyUsedDefinitionClipboard',
+            id: 'clipboard-history',
+            modulePath: '../definitions/recentlyUsedDefinitionClipboardHistory.js',
+            exportName: 'RecentlyUsedDefinitionClipboardHistory',
             layoutFamily: 'list',
             title: _('Recent Clipboard History'),
             titlePolicy: {

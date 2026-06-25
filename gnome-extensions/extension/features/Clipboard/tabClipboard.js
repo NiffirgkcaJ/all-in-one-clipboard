@@ -311,7 +311,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._manager.connectObject(
                 'history-changed',
                 () => this._scheduleRedraw(),
-                'pinned-list-changed',
+                'pinned-changed',
                 () => this._scheduleRedraw(),
                 this,
             );
