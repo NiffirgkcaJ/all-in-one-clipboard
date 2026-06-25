@@ -144,7 +144,7 @@ export const GifContentView = GObject.registerClass(
          * @private
          */
         _getGridMaxColumnsSetting() {
-            if (!this._settings?.get_boolean(GifSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
+            if (!this._settings.get_boolean(GifSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
             const maxColumns = this._settings.get_int(GifSettings.GRID_MAX_COLUMNS_KEY);
             return maxColumns > 0 ? maxColumns : null;
         }
@@ -167,7 +167,7 @@ export const GifContentView = GObject.registerClass(
          */
         _applyGridColumnLimit() {
             const maxColumns = this._getGridMaxColumnsSetting();
-            this._masonryView?.setMaxColumns?.(maxColumns);
+            this._masonryView.setMaxColumns(maxColumns);
         }
 
         // ========================================================================

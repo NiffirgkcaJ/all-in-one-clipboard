@@ -50,7 +50,7 @@ export const GifSearchService = GObject.registerClass(
          * @returns {Promise<boolean>} True if successful.
          */
         async applyExternalSearch(query) {
-            const searchWidget = this._searchComponent?.getWidget();
+            const searchWidget = this._searchComponent.getWidget();
             if (!searchWidget?.visible) return false;
 
             const normalizedQuery = typeof query === 'string' ? query.trim() : '';
@@ -69,7 +69,7 @@ export const GifSearchService = GObject.registerClass(
          * @returns {boolean} True if search was cleared.
          */
         clearExternalSearch() {
-            const searchWidget = this._searchComponent?.getWidget();
+            const searchWidget = this._searchComponent.getWidget();
             if (!searchWidget?.visible) return false;
 
             this.clearSearch();
@@ -81,7 +81,7 @@ export const GifSearchService = GObject.registerClass(
          */
         onMenuClosed() {
             if (this.isActive()) {
-                this._searchComponent?.clearSearch();
+                this._searchComponent.clearSearch();
             }
         }
 
