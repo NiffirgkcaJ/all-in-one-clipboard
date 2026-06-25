@@ -94,7 +94,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
      * @returns {Array<object>} Emoji items.
      */
     definition.getItems = () => {
-        return recentManager?.getRecents?.() || [];
+        return recentManager ? recentManager.getRecents() : [];
     };
 
     /**

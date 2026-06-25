@@ -100,7 +100,7 @@ function createRecentlyUsedDefinitionKaomojiInstance() {
      * @returns {Array<object>} Kaomoji items.
      */
     definition.getItems = () => {
-        return recentManager?.getRecents?.() || [];
+        return recentManager ? recentManager.getRecents() : [];
     };
 
     /**

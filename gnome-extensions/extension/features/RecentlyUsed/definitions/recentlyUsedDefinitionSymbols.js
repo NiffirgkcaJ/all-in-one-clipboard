@@ -94,7 +94,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
      * @returns {Array<object>} Symbol items.
      */
     definition.getItems = () => {
-        return recentManager?.getRecents?.() || [];
+        return recentManager ? recentManager.getRecents() : [];
     };
 
     /**

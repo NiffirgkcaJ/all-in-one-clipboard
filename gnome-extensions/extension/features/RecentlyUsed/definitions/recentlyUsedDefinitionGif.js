@@ -115,7 +115,7 @@ function createRecentlyUsedDefinitionGifInstance() {
      * @returns {Array<object>} GIF items.
      */
     definition.getItems = () => {
-        return recentManager?.getRecents?.() || [];
+        return recentManager ? recentManager.getRecents() : [];
     };
 
     /**

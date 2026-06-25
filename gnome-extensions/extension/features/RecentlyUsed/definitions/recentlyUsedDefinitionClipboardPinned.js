@@ -96,7 +96,7 @@ function createRecentlyUsedDefinitionClipboardPinnedInstance() {
      */
     definition.getItems = ({ extension }) => {
         const clipboardManager = extension?._clipboardManager;
-        return clipboardManager?.getPinnedItems?.() || [];
+        return clipboardManager ? clipboardManager.getPinnedItems() : [];
     };
 
     /**
@@ -113,7 +113,8 @@ function createRecentlyUsedDefinitionClipboardPinnedInstance() {
         }
 
         const extension = runtimeContext?.extension;
-        const pinnedIds = new Set((extension?._clipboardManager?.getPinnedItems?.() || []).map((item) => item?.id));
+        const clipboardManager = extension?._clipboardManager;
+        const pinnedIds = new Set((clipboardManager ? clipboardManager.getPinnedItems() : []).map((item) => item?.id));
         const providerItems = await searchViaProvider(ClipboardProvider.SEARCH_PROVIDER_ID, {
             query,
             context: { extension },

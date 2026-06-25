@@ -86,7 +86,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
      */
     definition.getItems = ({ extension }) => {
         const clipboardManager = extension?._clipboardManager;
-        return clipboardManager?.getHistoryItems?.() || [];
+        return clipboardManager ? clipboardManager.getHistoryItems() : [];
     };
 
     /**
@@ -103,7 +103,8 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
         }
 
         const extension = runtimeContext?.extension;
-        const historyIds = new Set((extension?._clipboardManager?.getHistoryItems?.() || []).map((item) => item?.id));
+        const clipboardManager = extension?._clipboardManager;
+        const historyIds = new Set((clipboardManager ? clipboardManager.getHistoryItems() : []).map((item) => item?.id));
         const providerItems = await searchViaProvider(ClipboardProvider.SEARCH_PROVIDER_ID, {
             query,
             context: { extension },
