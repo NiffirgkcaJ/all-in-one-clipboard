@@ -471,7 +471,7 @@ export const MasonryLayout = GObject.registerClass(
          */
         _resolveLocalViewportTop(scrollTop) {
             const globalTop = Math.max(0, scrollTop || 0);
-            const allocation = this.get_allocation_box?.();
+            const allocation = this.get_allocation_box();
             if (!allocation) return globalTop;
             return Math.max(0, globalTop - allocation.y1);
         }

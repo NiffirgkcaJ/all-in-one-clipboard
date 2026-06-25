@@ -479,7 +479,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             this._pendingExternalSearchText = null;
-            this._searchDebouncer?.cancel?.();
+            this._searchDebouncer.cancel();
             this._suppressSearchTextChanged = true;
             this._searchComponent.setSearchText(normalizedQuery, { focus });
             this._suppressSearchTextChanged = false;

@@ -188,7 +188,7 @@ export const SearchComponent = GObject.registerClass(
          * @returns {string} Current entry text.
          */
         getSearchText() {
-            return this._entry?.get_text?.() || '';
+            return this._entry.get_text();
         }
 
         /**
