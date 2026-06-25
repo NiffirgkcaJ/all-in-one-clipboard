@@ -228,7 +228,7 @@ export function renderRecentlyUsedNestedGridSection({ id, nestedLayout, resolved
 
     nestedScrollView.set_child(container);
     sectionData.bodyContainer.set_child(nestedScrollView);
-    scrollLockController?.configureNestedScrollHandoff(nestedScrollView);
+    scrollLockController.configureNestedScrollHandoff(nestedScrollView);
 
     const effectiveColumnCount = resolveEffectiveNestedGridColumnCount({
         sectionData,

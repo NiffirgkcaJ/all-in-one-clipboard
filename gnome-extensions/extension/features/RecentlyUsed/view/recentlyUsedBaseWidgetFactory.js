@@ -133,7 +133,7 @@ export class RecentlyUsedBaseWidgetFactory {
      * @param {object} context Fallback resolution
      */
     static _applyGridIconPresentation(button, itemData, gridPresentation, tooltipMode, context) {
-        const iconDefinition = context.resolveGridIcon?.(gridPresentation?.icon?.kind) || gridPresentation?.icon?.definition || null;
+        const iconDefinition = context.resolveGridIcon(gridPresentation?.icon?.kind) || gridPresentation?.icon?.definition || null;
         if (!iconDefinition) {
             this._applyGridTextPresentation(button, itemData, 'name-or-value');
             return;

@@ -106,7 +106,7 @@ function createRecentlyUsedDefinitionGifInstance() {
      * @returns {boolean} True when enabled.
      */
     definition.isEnabled = ({ settings }) => {
-        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+        return settings.get_boolean(definition.settings.enabledSettingKey);
     };
 
     /**
@@ -240,7 +240,7 @@ function createRecentlyUsedDefinitionGifInstance() {
     definition.onClick = async ({ itemData, extension, settings }) => {
         return await GlobalActionService.executeCopyAction({
             onCopy: async () => await copyRecentlyUsedGifToClipboard(itemData, settings, extension),
-            onPostCopy: () => recentManager?.addItem(itemData),
+            onPostCopy: () => recentManager.addItem(itemData),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension?._indicator?.menu,

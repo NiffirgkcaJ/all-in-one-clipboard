@@ -82,9 +82,9 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 settings: this._settings,
                 extension: this._extension,
                 sectionProvider: {
-                    getSectionOrder: () => this._runtimeService?.getSectionOrder() || [],
-                    getSectionScaffold: (sectionId) => this._runtimeService?.getSectionScaffold(sectionId) || null,
-                    getSectionRenderModel: (sectionId, runtimeContext) => this._runtimeService?.getSectionRenderModel(sectionId, runtimeContext) || null,
+                    getSectionOrder: () => this._runtimeService.getSectionOrder(),
+                    getSectionScaffold: (sectionId) => this._runtimeService.getSectionScaffold(sectionId),
+                    getSectionRenderModel: (sectionId, runtimeContext) => this._runtimeService.getSectionRenderModel(sectionId, runtimeContext),
                 },
                 onItemClicked: (itemData, feature) => this._onItemClicked(itemData, feature),
                 onOpenPreferences: () => {
@@ -116,7 +116,7 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @async
          */
         async _onItemClicked(itemData, feature) {
-            await this._runtimeService?.handleItemClick(itemData, feature);
+            await this._runtimeService.handleItemClick(itemData, feature);
 
             this._closeMenuSafely();
         }

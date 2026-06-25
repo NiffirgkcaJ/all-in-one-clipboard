@@ -74,7 +74,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
      * @returns {boolean} True when enabled.
      */
     definition.isEnabled = ({ settings }) => {
-        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+        return settings.get_boolean(definition.settings.enabledSettingKey);
     };
 
     /**

@@ -85,7 +85,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
      * @returns {boolean} True when enabled.
      */
     definition.isEnabled = ({ settings }) => {
-        return settings?.get_boolean(definition.settings.enabledSettingKey) ?? true;
+        return settings.get_boolean(definition.settings.enabledSettingKey);
     };
 
     /**
@@ -167,7 +167,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
                 setRecentlyUsedClipboardText(contentToCopy);
                 return true;
             },
-            onPostCopy: () => recentManager?.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy }),
+            onPostCopy: () => recentManager.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy }),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension?._indicator?.menu,

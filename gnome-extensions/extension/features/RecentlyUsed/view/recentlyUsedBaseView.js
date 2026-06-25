@@ -411,7 +411,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _isSearchEnabled() {
-            return this._settings?.get_boolean('enable-recently-used-search') ?? true;
+            return this._settings.get_boolean('enable-recently-used-search');
         }
 
         /**
@@ -431,7 +431,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             }
 
             this._searchQuery = normalizedQuery;
-            this._searchDebouncer?.trigger();
+            this._searchDebouncer.trigger();
         }
 
         /**
@@ -440,7 +440,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _syncSearchVisibility() {
-            const searchWidget = this._searchComponent?.getWidget();
+            const searchWidget = this._searchComponent.getWidget();
             if (!searchWidget) {
                 return;
             }
@@ -449,7 +449,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             searchWidget.visible = isSearchEnabled;
 
             if (!isSearchEnabled && this._searchQuery.length > 0) {
-                this._searchDebouncer?.cancel?.();
+                this._searchDebouncer.cancel();
                 this._searchQuery = '';
                 this._ignoreSearchChange = true;
                 this._searchComponent.clearSearch();
@@ -515,7 +515,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _getSectionOrder() {
-            const order = this._sectionProvider.getSectionOrder?.();
+            const order = this._sectionProvider.getSectionOrder();
             return Array.isArray(order) ? order : [];
         }
 
@@ -527,7 +527,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _getSectionScaffold(sectionId) {
-            return this._sectionProvider.getSectionScaffold?.(sectionId) || null;
+            return this._sectionProvider.getSectionScaffold(sectionId) || null;
         }
 
         /**
@@ -539,7 +539,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _getSectionRenderModel(sectionId, runtimeContext) {
-            return this._sectionProvider.getSectionRenderModel?.(sectionId, runtimeContext) || null;
+            return this._sectionProvider.getSectionRenderModel(sectionId, runtimeContext) || null;
         }
 
         // ========================================================================
@@ -557,7 +557,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         _createGridItemWidget(itemData, sectionId, renderModel) {
             const context = {
-                resolveGridIcon: renderModel?.gridIconResolver || undefined,
+                resolveGridIcon: renderModel.gridIconResolver,
             };
 
             const button = RecentlyUsedBaseWidgetFactory.createGridItem(itemData, context);
@@ -623,7 +623,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         _createNestedGridItemWidget(itemData, sectionId, renderModel) {
             const context = {
-                resolveGridIcon: renderModel?.gridIconResolver || undefined,
+                resolveGridIcon: renderModel.gridIconResolver,
             };
 
             const button = RecentlyUsedBaseWidgetFactory.createGridItem(itemData, context);
@@ -888,7 +888,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 this._lockTimeoutId = null;
             }
 
-            this._scrollLockController?.lock();
+            this._scrollLockController.lock();
         }
 
         /**
@@ -901,7 +901,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 this._lockTimeoutId = null;
             }
 
-            this._scrollLockController?.unlock();
+            this._scrollLockController.unlock();
         }
 
         /**

@@ -138,7 +138,7 @@ export function renderRecentlyUsedNestedListSection({ id, nestedLayout, resolved
 
     nestedScrollView.set_child(container);
     sectionData.bodyContainer.set_child(nestedScrollView);
-    scrollLockController?.configureNestedScrollHandoff(nestedScrollView);
+    scrollLockController.configureNestedScrollHandoff(nestedScrollView);
 
     const widgets = [];
     let renderedCount = 0;
