@@ -157,8 +157,8 @@ export const ClipboardListView = GObject.registerClass(
         _onKeyPress(_actor, event) {
             return this._handleArrowNavigation(event, {
                 createTransferToken: (currentFocus) => this._createTransferToken(currentFocus),
-                focusHistoryFromPinned: (finder) => this._historyContainer?.focusFirst(finder),
-                focusPinnedFromHistory: (finder) => this._pinnedContainer?.focusLast(finder),
+                focusHistoryFromPinned: (finder) => this._historyContainer.focusFirst(finder),
+                focusPinnedFromHistory: (finder) => this._pinnedContainer.focusLast(finder),
             });
         }
 

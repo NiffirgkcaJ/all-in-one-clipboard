@@ -42,7 +42,7 @@ export class ClipboardSearchService {
     handleSearchInput(text) {
         this._currentSearchText = text.toLowerCase().trim();
         if (this._suppressSearchEffects) return;
-        this._searchDebouncer?.trigger();
+        this._searchDebouncer.trigger();
     }
 
     /**
@@ -94,10 +94,10 @@ export class ClipboardSearchService {
         const q = typeof query === 'string' ? query.trim() : '';
 
         this._pendingReset = false;
-        this._searchDebouncer?.cancel();
+        this._searchDebouncer.cancel();
 
         this._suppressSearchEffects = true;
-        searchComponent?.setSearchText(q, { focus: false });
+        searchComponent.setSearchText(q, { focus: false });
         this._suppressSearchEffects = false;
 
         this._currentSearchText = q.toLowerCase();
@@ -124,7 +124,7 @@ export class ClipboardSearchService {
     onTabSelected(searchComponent) {
         if (this._pendingReset) {
             this._suppressSearchEffects = true;
-            searchComponent?.clearSearch();
+            searchComponent.clearSearch();
             this._suppressSearchEffects = false;
             this._pendingReset = false;
             this._currentSearchText = '';
@@ -135,7 +135,7 @@ export class ClipboardSearchService {
      * Handle the extension menu being closed.
      */
     onMenuClosed() {
-        this._searchDebouncer?.cancel();
+        this._searchDebouncer.cancel();
         this._pendingReset = this._currentSearchText.length > 0;
         if (!this._pendingReset) this._currentSearchText = '';
     }
@@ -148,6 +148,6 @@ export class ClipboardSearchService {
      * Clean up resources.
      */
     destroy() {
-        this._searchDebouncer?.destroy();
+        this._searchDebouncer.destroy();
     }
 }

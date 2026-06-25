@@ -100,7 +100,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 'changed::clipboard-image-preview-size',
                 () => {
                     this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-                    this._currentView?.setImagePreviewSize(this._imagePreviewSize);
+                    this._currentView.setImagePreviewSize(this._imagePreviewSize);
                     this._scheduleRedraw();
                 },
                 'changed::clipboard-layout-mode',
@@ -109,7 +109,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 },
                 'changed::extension-width',
                 () => {
-                    this._currentView?.resetScrollAndPagination?.();
+                    this._currentView.resetScrollAndPagination();
                     this._scheduleRedraw();
                 },
                 'changed::extension-height',
@@ -124,7 +124,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _buildSearchComponent() {
-            this._searchComponent = new SearchComponent((text) => this._searchService?.handleSearchInput(text), {
+            this._searchComponent = new SearchComponent((text) => this._searchService.handleSearchInput(text), {
                 onNavigateDown: () => {
                     if (this._actionBar?.visible) {
                         this._actionBar.grabFocus();
@@ -158,7 +158,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 'merge-selected-requested',
                 () => this._onMergeSelectedRequested(),
                 'navigate-up',
-                () => this._searchComponent?.grabFocus(),
+                () => this._searchComponent.grabFocus(),
                 'navigate-down',
                 () => this._focusFirstContentItem(),
                 this,
@@ -213,7 +213,7 @@ export const ClipboardTabContent = GObject.registerClass(
                 'navigate-up',
                 () => {
                     if (this._actionBar?.visible) this._actionBar.grabFocus();
-                    else this._searchComponent?.grabFocus();
+                    else this._searchComponent.grabFocus();
                 },
                 this,
             );
@@ -237,7 +237,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._createView(mode);
             this._scheduleRedraw(true);
 
-            if (this._extension?._indicator?.menu?.isOpen) this._searchComponent?.grabFocus();
+            if (this._extension?._indicator?.menu?.isOpen) this._searchComponent.grabFocus();
         }
 
         // ========================================================================
@@ -251,8 +251,8 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _onSelectAllClicked() {
             this._selectionService.toggleSelectAll(
-                () => this._currentView?.getAllItems() || [],
-                () => this._currentView?.getCheckboxIconsMap() || new Map(),
+                () => this._currentView.getAllItems(),
+                () => this._currentView.getCheckboxIconsMap(),
             );
             this._updateSelectionState();
         }
@@ -263,7 +263,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _updateSelectionState() {
-            this._selectionService.updateSelectionState(() => this._currentView?.getAllItems() || [], this._actionBar);
+            this._selectionService.updateSelectionState(() => this._currentView.getAllItems(), this._actionBar);
         }
 
         /**
@@ -297,7 +297,7 @@ export const ClipboardTabContent = GObject.registerClass(
             });
             if (!mergeSuccess) return;
 
-            this._selectionService.clearSelection(() => this._currentView?.getCheckboxIconsMap() || new Map());
+            this._selectionService.clearSelection(() => this._currentView.getCheckboxIconsMap());
             this._updateSelectionState();
             this._scheduleRedraw();
         }
@@ -448,7 +448,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _focusFirstContentItem() {
-            return this._currentView?.focusFirstContentItem?.() ?? false;
+            return this._currentView.focusFirstContentItem();
         }
 
         // ========================================================================
@@ -466,12 +466,12 @@ export const ClipboardTabContent = GObject.registerClass(
             this._searchService.onTabSelected(this._searchComponent);
 
             if (needs) {
-                this._currentView?.resetScrollAndPagination?.();
+                this._currentView.resetScrollAndPagination();
                 this._scheduleRedraw(true);
             }
 
-            this._manager?.scheduleImagePreviewWarmup?.();
-            this._searchComponent?.grabFocus();
+            this._manager.scheduleImagePreviewWarmup();
+            this._searchComponent.grabFocus();
         }
 
         /**

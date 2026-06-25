@@ -192,7 +192,7 @@ export const ClipboardBaseView = GObject.registerClass(
             this._syncVirtualizedViewports();
             this._rebuildCheckboxMap();
             this._restoreFocusState(focusState);
-            this._onSelectionChanged?.();
+            this._onSelectionChanged();
         }
 
         /**
@@ -494,8 +494,8 @@ export const ClipboardBaseView = GObject.registerClass(
                     }
                 }
 
-                if (this._pinnedContainer?.focusByItemId?.(focusState.itemId)) return true;
-                if (this._historyContainer?.focusByItemId?.(focusState.itemId)) return true;
+                if (this._pinnedContainer.focusByItemId(focusState.itemId)) return true;
+                if (this._historyContainer.focusByItemId(focusState.itemId)) return true;
 
                 return false;
             };
@@ -504,8 +504,8 @@ export const ClipboardBaseView = GObject.registerClass(
                 return;
             }
 
-            const pinnedPending = this._pinnedContainer?.hasPendingItems?.() ?? false;
-            const historyPending = this._historyContainer?.hasPendingItems?.() ?? false;
+            const pinnedPending = this._pinnedContainer.hasPendingItems();
+            const historyPending = this._historyContainer.hasPendingItems();
 
             if (pinnedPending || historyPending) {
                 if (this._restoreFocusTimeoutId) {
@@ -523,7 +523,7 @@ export const ClipboardBaseView = GObject.registerClass(
                     }
 
                     if (attempts > ClipboardConfig.FOCUS_RESTORE_MAX_ATTEMPTS) {
-                        const stillPending = (this._pinnedContainer?.hasPendingItems?.() ?? false) || (this._historyContainer?.hasPendingItems?.() ?? false);
+                        const stillPending = this._pinnedContainer.hasPendingItems() || this._historyContainer.hasPendingItems();
                         if (!stillPending) {
                             this.emit('navigate-up');
                         }
@@ -610,7 +610,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _shouldDeferLoading() {
-            return this._historyContainer?.shouldDeferLoading?.() ?? false;
+            return this._historyContainer.shouldDeferLoading();
         }
 
         /**

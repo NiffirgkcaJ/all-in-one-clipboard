@@ -172,8 +172,8 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         getFocusables() {
-            const pinnedFocusables = this._pinnedContainer?.get_children().filter((w) => w._itemId && w.can_focus) || [];
-            const historyFocusables = this._historyContainer?.get_children().filter((w) => w._itemId && w.can_focus) || [];
+            const pinnedFocusables = this._pinnedContainer.get_children().filter((w) => w._itemId && w.can_focus);
+            const historyFocusables = this._historyContainer.get_children().filter((w) => w._itemId && w.can_focus);
             return [...pinnedFocusables, ...historyFocusables];
         }
 
@@ -219,7 +219,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _getMaxColumnsSetting() {
-            if (!this._settings?.get_boolean(ClipboardSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
+            if (!this._settings.get_boolean(ClipboardSettings.GRID_LIMIT_COLUMNS_KEY)) return null;
             const maxColumns = this._settings.get_int(ClipboardSettings.GRID_MAX_COLUMNS_KEY);
             return maxColumns > 0 ? maxColumns : null;
         }
@@ -245,8 +245,8 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _applyColumnLimit() {
             const maxColumns = this._getMaxColumnsSetting();
-            this._pinnedContainer?.setMaxColumns?.(maxColumns);
-            this._historyContainer?.setMaxColumns?.(maxColumns);
+            this._pinnedContainer.setMaxColumns(maxColumns);
+            this._historyContainer.setMaxColumns(maxColumns);
         }
 
         /**
@@ -370,8 +370,8 @@ export const ClipboardGridView = GObject.registerClass(
         _onKeyPress(_actor, event) {
             return this._handleArrowNavigation(event, {
                 createTransferToken: (currentFocus) => this._createTransferToken(currentFocus),
-                focusHistoryFromPinned: (centerX) => this._historyContainer?.focusFirst(centerX),
-                focusPinnedFromHistory: (centerX) => this._pinnedContainer?.focusLast(centerX),
+                focusHistoryFromPinned: (centerX) => this._historyContainer.focusFirst(centerX),
+                focusPinnedFromHistory: (centerX) => this._pinnedContainer.focusLast(centerX),
             });
         }
 

@@ -26,8 +26,8 @@ function collectClipboardItems(extension) {
         return [];
     }
 
-    const historyItems = clipboardManager.getHistoryItems?.() || [];
-    const pinnedItems = clipboardManager.getPinnedItems?.() || [];
+    const historyItems = clipboardManager.getHistoryItems();
+    const pinnedItems = clipboardManager.getPinnedItems();
     const combinedItems = [...pinnedItems, ...historyItems];
     const uniqueItems = [];
     const seenItemIds = new Set();
