@@ -1,7 +1,8 @@
 /**
  * ClipboardHistoryDeduperService
  *
- * Centralizes history/pinned duplicate handling and recency promotion.
+ * Handles duplicate detection and recency policy for clipboard history.
+ * Applies decisions through ClipboardItemStore without depending on manager internals.
  */
 export class ClipboardHistoryDeduperService {
     // ========================================================================
@@ -11,10 +12,27 @@ export class ClipboardHistoryDeduperService {
     /**
      * Initialize the deduplication service.
      *
-     * @param {ClipboardManager} manager Clipboard manager instance.
+     * @param {Gio.Settings} settings Extension settings.
+     * @param {ClipboardItemStore} itemStore Clipboard item store.
+     * @param {ClipboardHistoryService} historyService Clipboard history service.
+     * @param {ClipboardPinnedService} pinnedService Clipboard pinned service.
      */
-    constructor(manager) {
-        this._manager = manager;
+    constructor(settings, itemStore, historyService = null, pinnedService = null) {
+        this._settings = settings;
+        this._itemStore = itemStore;
+        this._historyService = historyService;
+        this._pinnedService = pinnedService;
+    }
+
+    /**
+     * Attach services that are created after the deduper.
+     *
+     * @param {ClipboardHistoryService} historyService Clipboard history service.
+     * @param {ClipboardPinnedService} pinnedService Clipboard pinned service.
+     */
+    bindServices(historyService, pinnedService) {
+        this._historyService = historyService;
+        this._pinnedService = pinnedService;
     }
 
     // ========================================================================
@@ -22,55 +40,63 @@ export class ClipboardHistoryDeduperService {
     // ========================================================================
 
     /**
-     * Add a new item to the history, handling duplicates and pinning.
+     * Add a new item to history, handling duplicates and pinning policy.
      *
-     * @param {Object} newItem The new item to add.
+     * @param {Object} newItem Item to add.
      */
     addItemToHistory(newItem) {
-        const hash = newItem.hash;
+        if (!newItem) return;
+        if (this.handleDuplicateCheck(newItem.hash)) return;
 
-        const historyIndex = this._manager._history.findIndex((item) => item.hash === hash);
-        if (historyIndex > -1) {
-            if (this._manager._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
-                this._manager._promoteExistingItem(historyIndex, this._manager._history);
-            }
-            return;
-        }
-
-        const pinnedIndex = this._manager._pinned.findIndex((item) => item.hash === hash);
-        if (pinnedIndex > -1) {
-            this._manager._promotePinnedItem(pinnedIndex);
-            return;
-        }
-
-        this._manager._history.unshift(newItem);
-        this._manager._storage.pruneHistory(this._manager._history);
-        this._manager._saveHistory();
-        this._manager.emit('history-changed');
+        this._historyService.insertItemToHistory(newItem);
     }
 
     /**
-     * Handle duplicate check and recency promotion for extracted content.
+     * Handle duplicate check and recency promotion.
      *
      * @param {string} hash Content hash.
      * @returns {boolean} True if content is a duplicate and was handled.
      */
     handleDuplicateCheck(hash) {
-        const historyIndex = this._manager._history.findIndex((item) => item.hash === hash);
+        if (!hash) return false;
+
+        const historyIndex = this._itemStore.findHistoryIndexByHash(hash);
         if (historyIndex > -1) {
-            if (this._manager._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
-                this._manager._promoteExistingItem(historyIndex, this._manager._history);
+            if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
+                this._historyService.promoteHistoryItem(historyIndex);
             }
             return true;
         }
 
-        const pinnedIndex = this._manager._pinned.findIndex((item) => item.hash === hash);
+        const pinnedIndex = this._itemStore.findPinnedIndexByHash(hash);
         if (pinnedIndex > -1) {
-            this._manager._promotePinnedItem(pinnedIndex);
+            if (this._settings.get_boolean('unpin-on-paste')) {
+                this._pinnedService.movePinnedItemToHistory(pinnedIndex);
+            }
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Promote an item after copy according to recency settings.
+     *
+     * @param {string} id Item ID.
+     */
+    promoteItemToTop(id) {
+        const pinnedIndex = this._itemStore.findPinnedIndexById(id);
+        if (pinnedIndex > -1) {
+            if (this._settings.get_boolean('unpin-on-paste')) {
+                this._pinnedService.movePinnedItemToHistory(pinnedIndex);
+            }
+            return;
+        }
+
+        const historyIndex = this._itemStore.findHistoryIndexById(id);
+        if (historyIndex > -1 && this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
+            this._historyService.promoteHistoryItem(historyIndex);
+        }
     }
 
     // ========================================================================
@@ -78,9 +104,12 @@ export class ClipboardHistoryDeduperService {
     // ========================================================================
 
     /**
-     * Clean up resources.
+     * Release references.
      */
     destroy() {
-        this._manager = null;
+        this._settings = null;
+        this._itemStore = null;
+        this._historyService = null;
+        this._pinnedService = null;
     }
 }

@@ -4,14 +4,6 @@ import Meta from 'gi://Meta';
 import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
-import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
-import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
-import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
-import { FileProcessor } from '../processors/clipboardFileProcessor.js';
-import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
-import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
-import { TextProcessor } from '../processors/clipboardTextProcessor.js';
-
 // Configuration
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 200;
@@ -31,12 +23,14 @@ export class ClipboardMonitor {
      *
      * @param {ExclusionUtils} exclusionUtils Utility for handling exclusion rules.
      * @param {string} imagesDir Path for generating color processor gradients.
+     * @param {ClipboardRegistry} clipboardRegistry Clipboard registry.
      * @param {Function} onContentCaptured Callback for when content is captured.
      * @param {ClipboardCaptureGuardService} captureGuard Guard for suppression decisions.
      */
-    constructor(exclusionUtils, imagesDir, onContentCaptured, captureGuard) {
+    constructor(exclusionUtils, imagesDir, clipboardRegistry, onContentCaptured, captureGuard) {
         this._exclusionUtils = exclusionUtils;
         this._imagesDir = imagesDir;
+        this._clipboardRegistry = clipboardRegistry;
         this._onContentCaptured = onContentCaptured;
         this._captureGuard = captureGuard;
 
@@ -150,30 +144,9 @@ export class ClipboardMonitor {
      * @private
      */
     async _extractClipboardContent() {
-        const imageResult = await ImageProcessor.extract();
-        if (imageResult) return imageResult;
-
-        const textResult = await TextProcessor.extract();
-        if (!textResult) return null;
-
-        const text = textResult.text;
-
-        const fileResult = await FileProcessor.process(text);
-        if (fileResult) return fileResult;
-
-        const linkResult = LinkProcessor.process(text);
-        if (linkResult) return linkResult;
-
-        const contactResult = await ContactProcessor.process(text);
-        if (contactResult) return contactResult;
-
-        const colorResult = ColorProcessor.process(text, this._imagesDir);
-        if (colorResult) return colorResult;
-
-        const codeResult = CodeProcessor.process(text);
-        if (codeResult) return codeResult;
-
-        return textResult;
+        return await this._clipboardRegistry.extractClipboardContent({
+            imagesDir: this._imagesDir,
+        });
     }
 
     /**
@@ -185,13 +158,13 @@ export class ClipboardMonitor {
     async _captureBlockedFingerprint() {
         const result = await this._extractClipboardContent();
         if (result?.hash) {
-            this._captureGuard?.registerBlockedHash(result.hash);
+            this._captureGuard.registerBlockedHash(result.hash);
             return;
         }
 
         const text = await clipboardGetText();
         if (text) {
-            this._captureGuard?.registerBlockedText(text);
+            this._captureGuard.registerBlockedText(text);
         }
     }
 
@@ -208,7 +181,7 @@ export class ClipboardMonitor {
      * @private
      */
     _shouldSuppress(result, isSafeContext) {
-        if (!this._captureGuard || !result?.hash) return false;
+        if (!result?.hash) return false;
 
         const hasFocus = !!global.display.focus_window;
         const timeSinceFocusChange = Date.now() - (this._lastFocusChangeTime || 0);
@@ -245,5 +218,6 @@ export class ClipboardMonitor {
         if (this._retryTimeoutId) GLib.source_remove(this._retryTimeoutId);
         if (this._selectionOwnerChangedId) this._selection.disconnect(this._selectionOwnerChangedId);
         if (this._focusWindowChangedId) global.display.disconnect(this._focusWindowChangedId);
+        this._clipboardRegistry = null;
     }
 }

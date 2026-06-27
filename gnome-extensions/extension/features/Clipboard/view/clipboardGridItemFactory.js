@@ -28,10 +28,11 @@ export class ClipboardGridItemFactory {
      * @param {Object} item The raw item data.
      * @param {string} imagesDir Directory where images are stored.
      * @param {string} linkPreviewsDir Directory where link previews are stored.
+     * @param {Function} getItemStyle Resolves styling for a clipboard item type.
      * @returns {Object} The view configuration.
      */
-    static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
-        return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir);
+    static getItemViewConfig(item, imagesDir, linkPreviewsDir, getItemStyle) {
+        return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir, getItemStyle);
     }
 
     /**
@@ -74,7 +75,7 @@ export class ClipboardGridItemFactory {
             y_align: Clutter.ActorAlign.FILL,
         });
 
-        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir);
+        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir, options.getItemStyle);
 
         const isFullBleed = ['color', 'image'].includes(config.layoutMode);
         if (!isFullBleed) {
@@ -220,7 +221,7 @@ export class ClipboardGridItemFactory {
         if (!itemWidget || !newItemData) return false;
         itemWidget._itemId = newItemData.id;
 
-        const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir);
+        const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir, options.getItemStyle);
         const previousFingerprint = itemWidget._viewConfig?._fingerprint || '';
         const nextFingerprint = config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {

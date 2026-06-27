@@ -7,9 +7,14 @@ import { ClipboardCaptureGuardService } from '../services/clipboardCaptureGuardS
 import { ClipboardContentRouterService } from '../services/clipboardContentRouterService.js';
 import { ClipboardCopyService } from '../services/clipboardCopyService.js';
 import { ClipboardHistoryDeduperService } from '../services/clipboardHistoryDeduperService.js';
+import { ClipboardHistoryService } from '../services/clipboardHistoryService.js';
+import { ClipboardItemRemovalService } from '../services/clipboardItemRemovalService.js';
+import { ClipboardItemStore } from '../logic/clipboardItemStore.js';
+import { ClipboardItemUpdateService } from '../services/clipboardItemUpdateService.js';
 import { ClipboardMonitor } from '../logic/clipboardMonitor.js';
+import { ClipboardPinnedService } from '../services/clipboardPinnedService.js';
+import { ClipboardRegistry } from '../registry/clipboardRegistry.js';
 import { ClipboardStorage } from '../logic/clipboardStorage.js';
-import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 
 // Configuration Keys
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
@@ -50,17 +55,33 @@ export const ClipboardManager = GObject.registerClass(
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
 
-            this._history = [];
-            this._pinned = [];
-            this._lastContent = null;
             this._isPaused = false;
             this._settingsSignalIds = [];
 
             this._captureGuard = new ClipboardCaptureGuardService();
-            this._historyDeduper = new ClipboardHistoryDeduperService(this);
-            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, (result) => this._contentRouter.processResult(result), this._captureGuard);
+            this._clipboardRegistry = new ClipboardRegistry();
+            this._itemStore = new ClipboardItemStore();
+            const onHistoryChanged = () => this.emit('history-changed');
+            const onPinnedChanged = () => this.emit('pinned-changed');
 
-            this._contentRouter = new ClipboardContentRouterService(this, this._storage, this._exclusionUtils);
+            this._historyDeduper = new ClipboardHistoryDeduperService(this._settings, this._itemStore);
+            this._historyService = new ClipboardHistoryService(this._itemStore, this._storage, this._historyDeduper, onHistoryChanged);
+            this._pinnedService = new ClipboardPinnedService(this._itemStore, this._storage, onHistoryChanged, onPinnedChanged);
+            this._removalService = new ClipboardItemRemovalService(this._itemStore, this._storage, onHistoryChanged, onPinnedChanged);
+            this._itemUpdateService = new ClipboardItemUpdateService(this._itemStore, this._storage, onHistoryChanged, onPinnedChanged);
+            this._historyDeduper.bindServices(this._historyService, this._pinnedService);
+
+            this._monitor = new ClipboardMonitor(this._exclusionUtils, this._storage.imagesDir, this._clipboardRegistry, (result) => this._contentRouter.processResult(result), this._captureGuard);
+
+            this._contentRouter = new ClipboardContentRouterService(
+                this._itemStore,
+                this._historyDeduper,
+                this._historyService,
+                this._itemUpdateService,
+                this._clipboardRegistry,
+                this._storage,
+                this._exclusionUtils,
+            );
 
             this._setupSettingsMonitoring();
         }
@@ -72,9 +93,7 @@ export const ClipboardManager = GObject.registerClass(
          */
         _setupSettingsMonitoring() {
             const maxHistorySignalId = this._settings.connect(`changed::${CLIPBOARD_HISTORY_MAX_ITEMS_KEY}`, () => {
-                this._storage.pruneHistory(this._history);
-                this._saveHistory();
-                this.emit('history-changed');
+                this._historyService.pruneHistory();
             });
             this._settingsSignalIds.push(maxHistorySignalId);
         }
@@ -85,15 +104,10 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if data loaded successfully.
          */
         async loadAndPrepare() {
-            try {
-                ContactProcessor.init();
-            } catch (e) {
-                Logger.error(`ContactProcessor init failed: ${e.message}`);
-            }
+            await this._clipboardRegistry.initialize();
 
             const data = await this._storage.loadData();
-            this._history = data.history;
-            this._pinned = data.pinned;
+            this._itemStore.load(data.history, data.pinned);
 
             this.emit('history-changed');
             this.emit('pinned-changed');
@@ -101,10 +115,10 @@ export const ClipboardManager = GObject.registerClass(
             this._monitor.start();
 
             this._storage
-                .verifyAndHealData(this._history, this._pinned, this._contentRouter.linkProcessor, this._contentRouter.httpSession)
+                .verifyAndHealData(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), this._clipboardRegistry, this._contentRouter.httpSession)
                 .then((changed) => {
                     if (changed) {
-                        this._saveAll();
+                        this._storage.saveAll(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems());
                         this.emit('history-changed');
                         this.emit('pinned-changed');
                     }
@@ -197,38 +211,6 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Promote an existing item to the top of its list.
-         *
-         * @param {number} index Item index.
-         * @param {Array} list Target list.
-         * @private
-         */
-        _promoteExistingItem(index, list) {
-            const [item] = list.splice(index, 1);
-            list.unshift(item);
-
-            if (list === this._history) this._saveHistory();
-            this.emit('history-changed');
-        }
-
-        /**
-         * Promote a pinned item, unpinning it if configured.
-         *
-         * @param {number} index Pinned item index.
-         * @private
-         */
-        _promotePinnedItem(index) {
-            if (this._settings.get_boolean('unpin-on-paste')) {
-                const [item] = this._pinned.splice(index, 1);
-                this._history.unshift(item);
-
-                this._saveAll();
-                this.emit('history-changed');
-                this.emit('pinned-changed');
-            }
-        }
-
-        /**
          * Handle duplicate check and recency promotion for extracted content.
          *
          * @param {string} hash Content hash.
@@ -236,37 +218,6 @@ export const ClipboardManager = GObject.registerClass(
          */
         handleDuplicateCheck(hash) {
             return this._historyDeduper.handleDuplicateCheck(hash);
-        }
-
-        // ========================================================================
-        // Persistence Proxies
-        // ========================================================================
-
-        /**
-         * Save clipboard history to storage.
-         *
-         * @private
-         */
-        _saveHistory() {
-            this._storage.saveHistory(this._history);
-        }
-
-        /**
-         * Save pinned items to storage.
-         *
-         * @private
-         */
-        _savePinned() {
-            this._storage.savePinned(this._pinned);
-        }
-
-        /**
-         * Save both history and pinned items to storage.
-         *
-         * @private
-         */
-        _saveAll() {
-            this._storage.saveAll(this._history, this._pinned);
         }
 
         // ========================================================================
@@ -279,7 +230,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Array} List of history items.
          */
         getHistoryItems() {
-            return this._history;
+            return this._itemStore.getHistoryItems();
         }
 
         /**
@@ -288,7 +239,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Array} List of pinned items.
          */
         getPinnedItems() {
-            return this._pinned;
+            return this._itemStore.getPinnedItems();
         }
 
         /**
@@ -298,7 +249,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<string|null>} Item content.
          */
         async getContent(id) {
-            return await this._storage.getContent(id, [...this._history, ...this._pinned]);
+            return await this._storage.getContent(id, this._itemStore.getAllItems());
         }
 
         /**
@@ -317,15 +268,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {string} id Item ID.
          */
         pinItem(id) {
-            const index = this._history.findIndex((item) => item.id === id);
-            if (index === -1) return;
-
-            const [item] = this._history.splice(index, 1);
-            this._pinned.unshift(item);
-
-            this._saveAll();
-            this.emit('history-changed');
-            this.emit('pinned-changed');
+            this._pinnedService.pinItem(id);
         }
 
         /**
@@ -334,22 +277,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Array<string>} ids List of item IDs.
          */
         pinItems(ids) {
-            let changed = false;
-
-            for (const id of ids.reverse()) {
-                const index = this._history.findIndex((item) => item.id === id);
-                if (index > -1) {
-                    const [item] = this._history.splice(index, 1);
-                    this._pinned.unshift(item);
-                    changed = true;
-                }
-            }
-
-            if (changed) {
-                this._saveAll();
-                this.emit('history-changed');
-                this.emit('pinned-changed');
-            }
+            this._pinnedService.pinItems(ids);
         }
 
         /**
@@ -358,16 +286,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {string} id Item ID.
          */
         unpinItem(id) {
-            const index = this._pinned.findIndex((item) => item.id === id);
-            if (index === -1) return;
-
-            const [item] = this._pinned.splice(index, 1);
-            this._history.unshift(item);
-            this._storage.pruneHistory(this._history);
-
-            this._saveAll();
-            this.emit('history-changed');
-            this.emit('pinned-changed');
+            this._pinnedService.unpinItem(id);
         }
 
         /**
@@ -376,23 +295,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Array<string>} ids List of item IDs.
          */
         unpinItems(ids) {
-            let changed = false;
-
-            for (const id of ids.reverse()) {
-                const index = this._pinned.findIndex((item) => item.id === id);
-                if (index > -1) {
-                    const [item] = this._pinned.splice(index, 1);
-                    this._history.unshift(item);
-                    changed = true;
-                }
-            }
-
-            if (changed) {
-                this._storage.pruneHistory(this._history);
-                this._saveAll();
-                this.emit('history-changed');
-                this.emit('pinned-changed');
-            }
+            this._pinnedService.unpinItems(ids);
         }
 
         /**
@@ -401,18 +304,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {string} id Item ID.
          */
         promoteItemToTop(id) {
-            const pinnedIndex = this._pinned.findIndex((item) => item.id === id);
-            if (pinnedIndex > -1) {
-                this._promotePinnedItem(pinnedIndex);
-                return;
-            }
-
-            const historyIndex = this._history.findIndex((item) => item.id === id);
-            if (historyIndex > -1) {
-                if (this._settings.get_boolean('update-recency-on-copy') && historyIndex > 0) {
-                    this._promoteExistingItem(historyIndex, this._history);
-                }
-            }
+            this._historyDeduper.promoteItemToTop(id);
         }
 
         /**
@@ -421,26 +313,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {string} id Item ID.
          */
         deleteItem(id) {
-            let wasDeleted = false;
-
-            const deleteLogic = (list) => {
-                const index = list.findIndex((item) => item.id === id);
-                if (index > -1) {
-                    const [item] = list.splice(index, 1);
-                    if (item.hash === this._lastContent) this._lastContent = null;
-                    this._storage.deleteItemFiles(item);
-                    wasDeleted = true;
-                }
-            };
-
-            deleteLogic(this._history);
-            deleteLogic(this._pinned);
-
-            if (wasDeleted) {
-                this._saveAll();
-                this.emit('history-changed');
-                this.emit('pinned-changed');
-            }
+            this._removalService.deleteItem(id);
         }
 
         /**
@@ -449,65 +322,36 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Array<string>} ids List of item IDs.
          */
         deleteItems(ids) {
-            let wasDeleted = false;
-
-            const deleteLogic = (list, id) => {
-                const index = list.findIndex((item) => item.id === id);
-                if (index > -1) {
-                    const [item] = list.splice(index, 1);
-                    if (item.hash === this._lastContent) this._lastContent = null;
-                    this._storage.deleteItemFiles(item);
-                    wasDeleted = true;
-                }
-            };
-
-            for (const id of ids) {
-                deleteLogic(this._history, id);
-                deleteLogic(this._pinned, id);
-            }
-
-            if (wasDeleted) {
-                this._saveAll();
-                this.emit('history-changed');
-                this.emit('pinned-changed');
-            }
+            this._removalService.deleteItems(ids);
         }
 
         /**
          * Clear all items from the clipboard history.
          */
         clearHistory() {
-            this._history.forEach((item) => this._storage.deleteItemFiles(item));
-            this._history = [];
-
-            this._saveHistory();
-            this.emit('history-changed');
+            this._historyService.clearHistory();
         }
 
         /**
          * Clear all pinned clipboard items.
          */
         clearPinned() {
-            this._pinned.forEach((item) => this._storage.deleteItemFiles(item));
-            this._pinned = [];
-
-            this._savePinned();
-            this.emit('pinned-changed');
+            this._pinnedService.clearPinned();
         }
 
         /**
          * Run garbage collection to clean up orphaned files.
          */
         runGarbageCollection() {
-            this._storage.runGarbageCollection(this._history, this._pinned);
+            this._storage.runGarbageCollection(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems());
         }
 
         /**
          * Schedule the background generation of image previews.
          */
         scheduleImagePreviewWarmup() {
-            this._storage.scheduleImagePreviewWarmup(this._history, this._pinned, () => {
-                this._saveAll();
+            this._storage.scheduleImagePreviewWarmup(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), this._clipboardRegistry, () => {
+                this._storage.saveAll(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems());
             });
         }
 
@@ -527,7 +371,7 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Object} item The item to add.
          */
         addExternalItem(item) {
-            this.addItemToHistory(item);
+            this._historyService.addExternalItem(item);
         }
 
         /**
@@ -537,8 +381,17 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Object|null} Matching item or null.
          */
         getItemBySourceUrl(url) {
-            if (!url) return null;
-            return this._history.find((item) => item.source_url === url) || this._pinned.find((item) => item.source_url === url);
+            return this._itemStore.getItemBySourceUrl(url);
+        }
+
+        /**
+         * Get view styling for a clipboard item type.
+         *
+         * @param {string} type Clipboard item type.
+         * @returns {Object|null} Styling definition or null.
+         */
+        getItemStyle(type) {
+            return this._clipboardRegistry.getItemStyle(type);
         }
 
         /**
@@ -547,11 +400,11 @@ export const ClipboardManager = GObject.registerClass(
          * @type {string|null}
          */
         get lastContent() {
-            return this._lastContent;
+            return this._itemStore.lastContent;
         }
 
         set lastContent(value) {
-            this._lastContent = value;
+            this._itemStore.lastContent = value;
         }
 
         // ========================================================================
@@ -562,16 +415,22 @@ export const ClipboardManager = GObject.registerClass(
          * Clean up resources and disconnect listeners before destruction.
          */
         destroy() {
-            if (this._settingsSignalIds?.length) {
+            if (this._settingsSignalIds.length) {
                 this._settingsSignalIds.forEach((id) => this._settings.disconnect(id));
             }
 
             this._monitor.destroy();
             this._storage.destroy();
-            this._contentRouter?.destroy();
-            this._exclusionUtils?.destroy();
-            this._captureGuard?.destroy();
-            this._historyDeduper?.destroy();
+            this._contentRouter.destroy();
+            this._exclusionUtils.destroy();
+            this._captureGuard.destroy();
+            this._clipboardRegistry.destroy();
+            this._historyDeduper.destroy();
+            this._historyService.destroy();
+            this._pinnedService.destroy();
+            this._removalService.destroy();
+            this._itemUpdateService.destroy();
+            this._itemStore.destroy();
         }
     },
 );

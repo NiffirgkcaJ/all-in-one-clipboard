@@ -99,6 +99,7 @@ export const ClipboardListView = GObject.registerClass(
                 imagesDir: this._manager.imagesDir,
                 imagePreviewsDir: this._manager.imagePreviewsDir,
                 linkPreviewsDir: this._manager.linkPreviewsDir,
+                getItemStyle: (type) => this._manager.getItemStyle(type),
                 imagePreviewSize: this._imagePreviewSize,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,

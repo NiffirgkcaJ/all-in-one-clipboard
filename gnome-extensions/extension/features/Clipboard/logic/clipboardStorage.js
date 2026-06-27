@@ -6,8 +6,6 @@ import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardConstants.js';
-import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
-import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 
 // Configuration
 const PRUNE_BATCH_SIZE = 5;
@@ -256,11 +254,11 @@ export class ClipboardStorage {
      *
      * @param {Array} history History items.
      * @param {Array} pinned Pinned items.
-     * @param {LinkProcessor} linkProcessor Link processor instance.
+     * @param {ClipboardRegistry} clipboardRegistry Clipboard registry.
      * @param {Soup.Session} httpSession HTTP session for network operations.
      * @returns {Promise<boolean>} True if any items were modified or healed.
      */
-    async verifyAndHealData(history, pinned, linkProcessor, httpSession) {
+    async verifyAndHealData(history, pinned, clipboardRegistry, httpSession) {
         let changed = false;
         const allItems = [...history, ...pinned];
 
@@ -268,7 +266,7 @@ export class ClipboardStorage {
             if (items.length === 0) return false;
             const chunk = items.slice(0, chunkSize);
             const rest = items.slice(chunkSize);
-            const results = await Promise.all(chunk.map((item) => this._processItem(item, linkProcessor, httpSession)));
+            const results = await Promise.all(chunk.map((item) => this._processItem(item, clipboardRegistry, httpSession)));
             const chunkChanged = results.some((r) => r);
             const restChanged = await processChunk(rest, chunkSize);
             return chunkChanged || restChanged;
@@ -283,41 +281,16 @@ export class ClipboardStorage {
      * Process an item for verification and healing.
      *
      * @param {Object} item Clipboard item.
-     * @param {LinkProcessor} linkProcessor Link processor instance.
+     * @param {ClipboardRegistry} clipboardRegistry Clipboard registry.
      * @param {Soup.Session} httpSession HTTP session.
      * @returns {Promise<boolean>} True if the item was modified.
      * @private
      */
-    async _processItem(item, linkProcessor, httpSession) {
-        let healed = false;
-        let isCorrupted = false;
-
-        switch (item.type) {
-            case ClipboardType.IMAGE:
-                healed = await this._verifyAndHealImage(item, httpSession);
-                if (!healed && item.image_filename) {
-                    isCorrupted = !this._checkFileExists(this._imagesDir, item.image_filename);
-                }
-                break;
-            case ClipboardType.URL:
-                healed = await this._verifyAndHealUrl(item, linkProcessor);
-                break;
-            case ClipboardType.CONTACT:
-                healed = await this._verifyAndHealContact(item, linkProcessor);
-                break;
-            case ClipboardType.COLOR:
-                healed = this._verifyAndHealColor(item);
-                if (!healed && item.gradient_filename) {
-                    isCorrupted = !this._checkFileExists(this._imagesDir, item.gradient_filename);
-                }
-                break;
-            case ClipboardType.CODE:
-            case ClipboardType.TEXT:
-                if (this._verifyTextIntegrity(item)) {
-                    isCorrupted = true;
-                }
-                break;
-        }
+    async _processItem(item, clipboardRegistry, httpSession) {
+        const { healed, isCorrupted } = await clipboardRegistry.verifyAndHealItem(item, {
+            storage: this,
+            httpSession,
+        });
 
         if (healed) return true;
 
@@ -336,131 +309,10 @@ export class ClipboardStorage {
      * @param {string} dirPath Directory path.
      * @param {string} filename File name.
      * @returns {boolean} True if the file exists.
-     * @private
      */
-    _checkFileExists(dirPath, filename) {
+    checkFileExists(dirPath, filename) {
         if (!filename) return true;
         return IOFile.existsSync(GLib.build_filenamev([dirPath, filename]));
-    }
-
-    /**
-     * Verify and attempt to heal image items.
-     *
-     * @param {Object} item Clipboard item.
-     * @param {Soup.Session} httpSession HTTP session.
-     * @returns {Promise<boolean>} True if the item was healed.
-     * @private
-     */
-    async _verifyAndHealImage(item, httpSession) {
-        if (item.type !== ClipboardType.IMAGE || !item.image_filename) return false;
-
-        const missingFile = !this._checkFileExists(this._imagesDir, item.image_filename);
-        if (!missingFile) {
-            if (item.preview_filename) {
-                const previewMissing = !this._checkFileExists(this._imagePreviewsDir, item.preview_filename);
-                if (!previewMissing) return false;
-            }
-            return ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
-        }
-
-        if (item.file_uri) {
-            const cacheUri = `file://${GLib.build_filenamev([this._imagesDir, item.image_filename])}`;
-            if (item.file_uri !== cacheUri) {
-                return ImageProcessor.regenerateThumbnail(item, this._imagesDir, this._imagePreviewsDir);
-            }
-        }
-
-        if (item.source_url && httpSession) {
-            return ImageProcessor.regenerateFromUrl(httpSession, item, this._imagesDir, this._imagePreviewsDir);
-        }
-
-        return false;
-    }
-
-    /**
-     * Verify and attempt to heal URL items.
-     *
-     * @param {Object} item Clipboard item.
-     * @param {LinkProcessor} linkProcessor Link processor instance.
-     * @returns {Promise<boolean>} True if the item was healed.
-     * @private
-     */
-    async _verifyAndHealUrl(item, linkProcessor) {
-        if (item.type !== ClipboardType.URL || !item.icon_filename) return false;
-
-        if (!this._checkFileExists(this._linkPreviewsDir, item.icon_filename)) {
-            return this._healIconFile(item, linkProcessor);
-        }
-
-        return false;
-    }
-
-    /**
-     * Verify and attempt to heal contact items.
-     *
-     * @param {Object} item Clipboard item.
-     * @param {LinkProcessor} linkProcessor Link processor instance.
-     * @returns {Promise<boolean>} True if the item was healed.
-     * @private
-     */
-    async _verifyAndHealContact(item, linkProcessor) {
-        if (item.type !== ClipboardType.CONTACT || item.subtype !== 'email' || !item.icon_filename) return false;
-
-        if (!this._checkFileExists(this._linkPreviewsDir, item.icon_filename)) {
-            return this._healIconFile(item, linkProcessor);
-        }
-
-        return false;
-    }
-
-    /**
-     * Verify and attempt to heal color items.
-     *
-     * @param {Object} item Clipboard item.
-     * @returns {boolean} True if the item was healed.
-     * @private
-     */
-    _verifyAndHealColor(item) {
-        if (item.type !== ClipboardType.COLOR || !item.gradient_filename) return false;
-
-        if (!this._checkFileExists(this._imagesDir, item.gradient_filename)) {
-            return ColorProcessor.regenerateGradient(item, this._imagesDir);
-        }
-
-        return false;
-    }
-
-    /**
-     * Verify the integrity of text and code items.
-     *
-     * @param {Object} item Clipboard item.
-     * @returns {boolean} True if the content is missing from disk.
-     * @private
-     */
-    _verifyTextIntegrity(item) {
-        if ((item.type !== ClipboardType.TEXT && item.type !== ClipboardType.CODE) || !item.has_full_content) return false;
-        return !this._checkFileExists(this._textsDir, `${item.id}.txt`);
-    }
-
-    /**
-     * Heal missing icon files for URL or contact items.
-     *
-     * @param {Object} item Clipboard item.
-     * @param {LinkProcessor} linkProcessor Link processor instance.
-     * @returns {Promise<boolean>} True if healing was attempted.
-     * @private
-     */
-    async _healIconFile(item, linkProcessor) {
-        if (!linkProcessor) return false;
-
-        const newFilename = await linkProcessor.regenerateIcon(item, this._linkPreviewsDir);
-        if (newFilename) {
-            item.icon_filename = newFilename;
-            return true;
-        }
-
-        item.icon_filename = null;
-        return true;
     }
 
     // ========================================================================
@@ -472,12 +324,13 @@ export class ClipboardStorage {
      *
      * @param {Array} history History items.
      * @param {Array} pinned Pinned items.
+     * @param {ClipboardRegistry} clipboardRegistry Clipboard registry.
      * @param {Function} onComplete Callback function for when warmup is complete.
      */
-    scheduleImagePreviewWarmup(history, pinned, onComplete) {
+    scheduleImagePreviewWarmup(history, pinned, clipboardRegistry, onComplete) {
         if (this._previewWarmupId) return;
 
-        const queue = [...pinned, ...history].filter((item) => item.type === ClipboardType.IMAGE && item.image_filename);
+        const queue = clipboardRegistry.getPreviewWarmupItems([...pinned, ...history]);
         if (queue.length === 0) return;
 
         this._previewWarmupQueue = queue;
@@ -491,7 +344,9 @@ export class ClipboardStorage {
                 processed += 1;
                 if (!item) continue;
 
-                const updated = ImageProcessor.ensurePreviewForItem(item, this._imagesDir, this._imagePreviewsDir);
+                const updated = clipboardRegistry.warmupItem(item, {
+                    storage: this,
+                });
                 if (updated) didUpdate = true;
             }
 

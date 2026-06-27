@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 
-import { ClipboardType, ClipboardStyling, ClipboardIcons } from '../constants/clipboardConstants.js';
+import { ClipboardType, ClipboardIcons } from '../constants/clipboardConstants.js';
 
 // Existing Preview
 const EXISTING_PREVIEW_PATH_CACHE = new Set();
@@ -26,10 +26,11 @@ export class ClipboardBaseItemConfig {
      * @param {Object} item The raw item data.
      * @param {string} imagesDir Directory where images are stored.
      * @param {string} linkPreviewsDir Directory where link previews are stored.
+     * @param {Function} getItemStyle Resolves styling for a clipboard item type.
      * @returns {Object} Standardized configuration object.
      */
-    static getItemViewConfig(item, imagesDir, linkPreviewsDir) {
-        const style = ClipboardStyling[item.type] || ClipboardStyling[ClipboardType.TEXT];
+    static getItemViewConfig(item, imagesDir, linkPreviewsDir, getItemStyle) {
+        const style = getItemStyle(item.type) || getItemStyle(ClipboardType.TEXT);
 
         const config = {
             layoutMode: style.layout,

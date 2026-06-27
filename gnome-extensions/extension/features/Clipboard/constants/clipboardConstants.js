@@ -14,63 +14,6 @@ export const ClipboardProvider = {
     SEARCH_PROVIDER_ID: 'clipboard',
 };
 
-// Content Styling
-export const ClipboardStyling = {
-    [ClipboardType.IMAGE]: {
-        icon: 'clipboard-type-image-symbolic.svg',
-        iconSize: 16,
-        layout: 'image',
-    },
-    [ClipboardType.FILE]: {
-        icon: 'clipboard-type-file-symbolic.svg',
-        iconSize: 16,
-        layout: 'rich',
-    },
-    [ClipboardType.URL]: {
-        icon: 'clipboard-type-link-symbolic.svg',
-        iconSize: 16,
-        layout: 'rich',
-    },
-    [ClipboardType.CONTACT]: {
-        layout: 'rich',
-        iconSize: 16,
-        subtypes: {
-            email: {
-                icon: 'clipboard-type-contact-email-symbolic.svg',
-            },
-            phone: {
-                icon: 'clipboard-type-contact-phone-symbolic.svg',
-            },
-        },
-    },
-    [ClipboardType.COLOR]: {
-        icon: 'clipboard-type-color-pipette-symbolic.svg',
-        iconSize: 16,
-        layout: 'color',
-        subtypes: {
-            single: {
-                icon: 'clipboard-type-color-pipette-symbolic.svg',
-            },
-            gradient: {
-                icon: 'clipboard-type-color-gradient-symbolic.svg',
-            },
-            palette: {
-                icon: 'clipboard-type-color-palette-symbolic.svg',
-            },
-        },
-    },
-    [ClipboardType.CODE]: {
-        icon: 'clipboard-type-code-symbolic.svg',
-        iconSize: 16,
-        layout: 'code',
-    },
-    [ClipboardType.TEXT]: {
-        icon: 'clipboard-type-text-symbolic.svg',
-        iconSize: 16,
-        layout: 'text',
-    },
-};
-
 // UI Control Icons
 export const ClipboardIcons = {
     CHECKBOX_UNCHECKED: {
