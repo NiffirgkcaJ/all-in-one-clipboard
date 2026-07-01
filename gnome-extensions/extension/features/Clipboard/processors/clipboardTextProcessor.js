@@ -4,7 +4,7 @@ import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js'
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration

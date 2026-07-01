@@ -1,4 +1,4 @@
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration

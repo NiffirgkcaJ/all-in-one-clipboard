@@ -5,7 +5,7 @@ import { clipboardGetContent } from '../../../shared/utilities/utilityClipboard.
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOImage } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
@@ -266,6 +266,10 @@ export class ImageProcessor {
             if (IOFile.existsSync(previewPath)) return;
 
             IOFile.mkdir(previewsDir);
+
+            if (!IOFile.existsSync(sourcePath)) {
+                return;
+            }
 
             const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(sourcePath, PREVIEW_MAX_SIZE, PREVIEW_MAX_SIZE, true);
             if (!pixbuf) return;

@@ -2,7 +2,7 @@ import { IOResource } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { ResourceItem } from '../../../shared/constants/storagePaths.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration

@@ -117,7 +117,7 @@ export const ClipboardGridView = GObject.registerClass(
                 imagesDir: this._manager.imagesDir,
                 imagePreviewsDir: this._manager.imagePreviewsDir,
                 linkPreviewsDir: this._manager.linkPreviewsDir,
-                getItemStyle: (type) => this._manager.getItemStyle(type),
+                registry: this._manager._clipboardRegistry,
                 imagePreviewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,

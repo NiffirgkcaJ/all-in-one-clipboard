@@ -3,7 +3,7 @@ import Soup from 'gi://Soup';
 
 import { IOFile, IOImage, IOJson, IOText } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Validation Patterns

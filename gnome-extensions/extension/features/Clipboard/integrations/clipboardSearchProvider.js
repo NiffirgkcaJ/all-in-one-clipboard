@@ -69,7 +69,8 @@ export function ensureClipboardSearchProviderRegistered() {
             }
 
             const items = collectClipboardItems(context?.extension);
-            return items.filter((item) => ClipboardSearchUtils.isMatch(item, query));
+            const registry = context?.extension?._clipboardManager?._clipboardRegistry;
+            return items.filter((item) => ClipboardSearchUtils.isMatch(item, query, registry));
         },
         applyToTab: async ({ tabActor, query }) => {
             if (!tabActor) {

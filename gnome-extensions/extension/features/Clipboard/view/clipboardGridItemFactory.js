@@ -9,7 +9,7 @@ import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
-import { ClipboardType, IconSizes } from '../constants/clipboardConstants.js';
+import { IconSizes } from '../constants/clipboardConstants.js';
 
 /**
  * ClipboardGridItemFactory
@@ -28,11 +28,11 @@ export class ClipboardGridItemFactory {
      * @param {Object} item The raw item data.
      * @param {string} imagesDir Directory where images are stored.
      * @param {string} linkPreviewsDir Directory where link previews are stored.
-     * @param {Function} getItemStyle Resolves styling for a clipboard item type.
+     * @param {Object} registry Clipboard registry instance.
      * @returns {Object} The view configuration.
      */
-    static getItemViewConfig(item, imagesDir, linkPreviewsDir, getItemStyle) {
-        return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir, getItemStyle);
+    static getItemViewConfig(item, imagesDir, linkPreviewsDir, registry) {
+        return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir, registry);
     }
 
     /**
@@ -75,7 +75,7 @@ export class ClipboardGridItemFactory {
             y_align: Clutter.ActorAlign.FILL,
         });
 
-        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir, options.getItemStyle);
+        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir, options.registry);
 
         const isFullBleed = ['color', 'image'].includes(config.layoutMode);
         if (!isFullBleed) {
@@ -221,7 +221,7 @@ export class ClipboardGridItemFactory {
         if (!itemWidget || !newItemData) return false;
         itemWidget._itemId = newItemData.id;
 
-        const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir, options.getItemStyle);
+        const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir, options.registry);
         const previousFingerprint = itemWidget._viewConfig?._fingerprint || '';
         const nextFingerprint = config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {
@@ -432,7 +432,7 @@ export class ClipboardGridItemFactory {
      * @returns {St.Widget} The rich content widget.
      * @private
      */
-    static _createRichGridContent(config, itemData, _options) {
+    static _createRichGridContent(config, _itemData, _options) {
         const contentWidget = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
             style_class: 'clipboard-grid-rich-container',
@@ -440,7 +440,7 @@ export class ClipboardGridItemFactory {
             y_expand: true,
         });
 
-        const hasIcon = [ClipboardType.URL, ClipboardType.CONTACT].includes(itemData.type);
+        const hasIcon = Boolean(config.icon || config.gicon || config.flagPath);
 
         if (hasIcon) {
             const visualWrapper = new St.Bin({

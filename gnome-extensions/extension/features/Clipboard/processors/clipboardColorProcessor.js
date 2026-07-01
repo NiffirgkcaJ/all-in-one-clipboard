@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOJson } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration

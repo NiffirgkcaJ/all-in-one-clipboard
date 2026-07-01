@@ -5,7 +5,7 @@ import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
+import { ClipboardType } from '../../Clipboard/constants/clipboardPluginConstants.js';
 
 /**
  * GifDownloadService

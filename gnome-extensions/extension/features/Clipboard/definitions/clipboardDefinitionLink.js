@@ -1,7 +1,14 @@
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+
+import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
+import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
+import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the URL clipboard definition.
@@ -12,13 +19,9 @@ export function ClipboardDefinitionLink() {
     const linkProcessor = new LinkProcessor();
 
     return {
-        id: 'url',
-        priority: 40,
-        styling: {
-            icon: 'clipboard-type-link-symbolic.svg',
-            iconSize: 16,
-            layout: 'rich',
-        },
+        id: ClipboardType.URL,
+        priority: ClipboardPriority[ClipboardType.URL],
+        styling: ClipboardStyling[ClipboardType.URL],
         processText: (text) => LinkProcessor.process(text),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['url', 'title', 'hash'],
@@ -34,6 +37,34 @@ export function ClipboardDefinitionLink() {
         healItem: ClipboardIntegrationIconFileHealing({
             regenerateIcon: (item, { storage }) => linkProcessor.regenerateIcon(item, storage.linkPreviewsDir),
         }),
+        storageOptions: ClipboardIntegrationStorage({
+            files: [
+                {
+                    dirKey: 'linkPreviewsDir',
+                    resolveFilename: (item) => item.icon_filename,
+                },
+            ],
+        }),
+        getSearchTerms: (item) => [item.title, item.url],
+        copyOptions: {
+            mergeBehavior: 'text',
+            copyItem: async (item, { manager }) => {
+                manager.captureGuard.registerText(item.url);
+                clipboardSetText(item.url);
+                return true;
+            },
+            getMergeText: (item) => item.url,
+        },
+        configureView: (config, item, options) => {
+            config.title = item.title || item.url;
+            config.subtitle = item.url;
+
+            if (item.icon_filename && options.linkPreviewsDir) {
+                const iconPath = GLib.build_filenamev([options.linkPreviewsDir, item.icon_filename]);
+                config.giconPath = iconPath;
+                config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+            }
+        },
         destroy: () => linkProcessor.destroy(),
     };
 }

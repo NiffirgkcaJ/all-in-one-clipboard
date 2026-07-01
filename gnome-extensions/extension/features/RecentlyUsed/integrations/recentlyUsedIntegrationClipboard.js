@@ -4,7 +4,7 @@ import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js'
 import { AutoPaster, getAutoPaster } from '../../../shared/utilities/utilityAutoPaste.js';
 
 import { ClipboardListItemFactory } from '../../Clipboard/view/clipboardListItemFactory.js';
-import { ClipboardType } from '../../Clipboard/constants/clipboardConstants.js';
+import { ClipboardType } from '../../Clipboard/constants/clipboardPluginConstants.js';
 
 import { RecentlyUsedStyles, RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 
@@ -64,7 +64,7 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
     }
 
     const imagePreviewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
-    const config = ClipboardListItemFactory.getItemViewConfig(itemData, clipboardManager.imagesDir, clipboardManager.linkPreviewsDir, (type) => clipboardManager.getItemStyle(type));
+    const config = ClipboardListItemFactory.getItemViewConfig(itemData, clipboardManager.imagesDir, clipboardManager.linkPreviewsDir, clipboardManager._clipboardRegistry);
     const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
         imagesDir: clipboardManager.imagesDir,
         imagePreviewsDir: clipboardManager.imagePreviewsDir,

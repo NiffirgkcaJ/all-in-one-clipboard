@@ -1,12 +1,8 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { clipboardSetText, clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
-import { IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
-
-import { ClipboardType } from '../constants/clipboardConstants.js';
 
 // Configuration
 const SEQUENTIAL_PASTE_DELAY_MS = 100;
@@ -43,23 +39,7 @@ export class ClipboardCopyService {
      */
     static async copy(itemData, storage, manager) {
         try {
-            switch (itemData.type) {
-                case ClipboardType.IMAGE:
-                    return await ClipboardCopyService._copyImage(itemData, storage, manager);
-                case ClipboardType.FILE:
-                    return ClipboardCopyService._copyFile(itemData, manager);
-                case ClipboardType.URL:
-                case ClipboardType.COLOR:
-                    ClipboardCopyService._registerGuardText(manager, itemData.url || itemData.color_value);
-                    clipboardSetText(itemData.url || itemData.color_value);
-                    return true;
-                case ClipboardType.CONTACT:
-                case ClipboardType.CODE:
-                case ClipboardType.TEXT:
-                    return await ClipboardCopyService._copyText(itemData, manager);
-                default:
-                    return false;
-            }
+            return await manager._clipboardRegistry.copyItem(itemData, { storage, manager });
         } catch (e) {
             Logger.error(`Copy failed: ${e.message}`);
             return false;
@@ -81,8 +61,10 @@ export class ClipboardCopyService {
                 return false;
             }
 
-            const filesAndImages = selectedItems.filter((i) => i.type === ClipboardType.IMAGE || i.type === ClipboardType.FILE);
-            const textItems = selectedItems.filter((i) => i.type !== ClipboardType.IMAGE && i.type !== ClipboardType.FILE);
+            const registry = manager._clipboardRegistry;
+            if (!registry) return false;
+
+            const textItems = selectedItems.filter((i) => registry.getCopyMergeBehavior(i) === 'text');
 
             const autoPasteEnabled = options.settings.get_boolean('enable-auto-paste') && options.settings.get_boolean('auto-paste-clipboard');
             const delimiter = ClipboardCopyService._resolveDelimiter(options);
@@ -90,12 +72,9 @@ export class ClipboardCopyService {
             const textContents = new Map();
             await Promise.all(
                 textItems.map(async (item) => {
-                    let content = item.text || (await manager.getContent(item.id));
-                    if (!content && item.preview && item.type !== ClipboardType.CODE) {
-                        content = item.preview;
-                    }
-                    if (content) {
-                        textContents.set(item.id, content);
+                    if (!item.text && !item.preview) {
+                        const content = await manager.getContent(item.id);
+                        if (content) textContents.set(item.id, content);
                     }
                 }),
             );
@@ -108,24 +87,25 @@ export class ClipboardCopyService {
                 const flushTextGroup = () => {
                     if (currentTextGroup.length === 0) return;
 
-                    let textBlock = ClipboardCopyService._compileTexts(currentTextGroup, textContents, delimiter);
+                    const groupToFlush = [...currentTextGroup];
                     currentTextGroup = [];
-
-                    if (!textBlock) return;
-                    if (pendingGroupNeedsTrailingDelimiter) {
-                        textBlock += delimiter;
-                    }
+                    const needsTrailingDelimiter = pendingGroupNeedsTrailingDelimiter;
                     pendingGroupNeedsTrailingDelimiter = false;
 
                     queue.push(async () => {
-                        ClipboardCopyService._registerGuardText(manager, textBlock);
+                        let textBlock = await ClipboardCopyService._compileTexts(groupToFlush, textContents, delimiter, manager);
+                        if (!textBlock) return true;
+                        if (needsTrailingDelimiter) {
+                            textBlock += delimiter;
+                        }
+                        manager.captureGuard.registerText(textBlock);
                         clipboardSetText(textBlock);
                         return true;
                     });
                 };
 
                 for (const item of selectedItems) {
-                    if (item.type === ClipboardType.IMAGE || item.type === ClipboardType.FILE) {
+                    if (registry.getCopyMergeBehavior(item) === 'file') {
                         if (currentTextGroup.length > 0) {
                             pendingGroupNeedsTrailingDelimiter = true;
                             flushTextGroup();
@@ -148,7 +128,7 @@ export class ClipboardCopyService {
             } else {
                 const copySuccess = await GlobalActionService.executeCopyAction({
                     onCopy: async () => {
-                        ClipboardCopyService._copyMultipleCopyOnly(selectedItems, textItems, filesAndImages, textContents, delimiter, manager);
+                        await ClipboardCopyService._copyMultipleCopyOnly(selectedItems, textContents, delimiter, manager);
                         return true;
                     },
                     settings: options.settings,
@@ -163,7 +143,7 @@ export class ClipboardCopyService {
 
             return true;
         } catch (e) {
-            Logger.error(`[AIO-Clipboard] mergeMultiple failed: ${e.message}\nStack: ${e.stack}`);
+            Logger.error(`mergeMultiple failed: ${e.message}\nStack: ${e.stack}`);
             return false;
         }
     }
@@ -172,104 +152,26 @@ export class ClipboardCopyService {
     // ========================================================================
 
     /**
-     * Copy an image item to the clipboard.
-     *
-     * @param {Object} itemData Image item data.
-     * @param {ClipboardStorage} storage Storage instance.
-     * @returns {Promise<boolean>} True if successful.
-     * @private
-     */
-    static async _copyImage(itemData, storage, manager) {
-        if (itemData.file_uri) {
-            const uriText = itemData.file_uri + '\r\n';
-            const uriBytes = IOText.stringifyBytes(uriText);
-            if (!uriBytes) return false;
-            ClipboardCopyService._registerGuardText(manager, uriText);
-            clipboardSetContent('text/uri-list', new GLib.Bytes(uriBytes));
-            return true;
-        }
-
-        const imagePath = GLib.build_filenamev([storage.imagesDir, itemData.image_filename]);
-        const bytes = IOImage.parseBytes(await storage.readRaw(imagePath));
-
-        if (!bytes) return false;
-        ClipboardCopyService._registerGuardHash(manager, itemData.hash);
-        clipboardSetContent(IOImage.getMimeType(itemData.image_filename), bytes);
-        return true;
-    }
-
-    /**
-     * Copy a file URI to the clipboard.
-     *
-     * @param {Object} itemData File item data.
-     * @returns {boolean} True if successful.
-     * @private
-     */
-    static _copyFile(itemData, manager) {
-        const uriText = itemData.file_uri + '\r\n';
-        const uriBytes = IOText.stringifyBytes(uriText);
-        if (!uriBytes) return false;
-        ClipboardCopyService._registerGuardText(manager, uriText);
-        clipboardSetContent('text/uri-list', new GLib.Bytes(uriBytes));
-        return true;
-    }
-
-    /**
-     * Copy text content to the clipboard.
-     *
-     * @param {Object} itemData Text, code, or contact item data.
-     * @param {ClipboardManager} manager Manager for content retrieval.
-     * @returns {Promise<boolean>} True if successful.
-     * @private
-     */
-    static async _copyText(itemData, manager) {
-        let content = itemData.text || (await manager.getContent(itemData.id));
-
-        if (!content && itemData.preview && itemData.type !== ClipboardType.CODE) {
-            content = itemData.preview;
-        }
-
-        if (!content) return false;
-        ClipboardCopyService._registerGuardText(manager, content);
-        clipboardSetText(content);
-        return true;
-    }
-
-    /**
-     * Register a hash with the capture guard if available.
-     *
-     * @param {ClipboardManager} manager Manager instance.
-     * @param {string} hash Hash to register.
-     * @private
-     */
-    static _registerGuardHash(manager, hash) {
-        manager?.captureGuard?.registerHash(hash);
-    }
-
-    /**
-     * Register text with the capture guard if available.
-     *
-     * @param {ClipboardManager} manager Manager instance.
-     * @param {string} text Text to hash and register.
-     * @private
-     */
-    static _registerGuardText(manager, text) {
-        manager?.captureGuard?.registerText(text);
-    }
-
-    /**
      * Copy mixed or single types to clipboard once (when Auto-Paste is disabled).
      *
      * @private
      */
-    static _copyMultipleCopyOnly(selectedItems, textItems, filesAndImages, textContents, delimiter, manager) {
-        const combinedList = [];
-        for (const item of selectedItems) {
-            const text = ClipboardCopyService._resolveItemAsText(item, textContents, manager);
-            if (text) combinedList.push(text);
-        }
+    static async _copyMultipleCopyOnly(selectedItems, textContents, delimiter, manager) {
+        const registry = manager._clipboardRegistry;
+        if (!registry) return;
+
+        const resolvedTexts = await Promise.all(
+            selectedItems.map(async (item) => {
+                if (registry.getCopyMergeBehavior(item) === 'file') {
+                    return registry.getCopyMergeUri(item, { manager });
+                }
+                return await registry.getCopyMergeText(item, { manager, textContents });
+            }),
+        );
+
+        const combinedList = resolvedTexts.filter(Boolean);
         const combined = combinedList.join(delimiter);
-        ClipboardCopyService._registerGuardText(manager, combined);
+        manager.captureGuard.registerText(combined);
         clipboardSetText(combined);
     }
 
@@ -357,69 +259,6 @@ export class ClipboardCopyService {
     }
 
     /**
-     * Resolve the text representation of any item (e.g. URI for images/files, text for other types).
-     *
-     * @param {Object} item Clipboard item data.
-     * @param {Map} textContents Pre-resolved text contents map.
-     * @param {ClipboardManager} manager Manager instance.
-     * @returns {string|null} The resolved text content or null.
-     * @private
-     */
-    static _resolveItemAsText(item, textContents, manager) {
-        if (item.type === ClipboardType.IMAGE || item.type === ClipboardType.FILE) {
-            return ClipboardCopyService._getItemUri(item, manager);
-        }
-        return ClipboardCopyService._getItemText(item, textContents);
-    }
-
-    /**
-     * Resolve text content for non-file items.
-     *
-     * @private
-     */
-    static _getItemText(item, textContents) {
-        switch (item.type) {
-            case ClipboardType.URL:
-                return item.url;
-            case ClipboardType.COLOR:
-                return item.color_value;
-            case ClipboardType.CONTACT:
-                return item.text;
-            case ClipboardType.TEXT:
-            case ClipboardType.CODE:
-                return textContents.get(item.id) || item.preview || item.text || '';
-            default:
-                return textContents.get(item.id) || item.text || '';
-        }
-    }
-
-    /**
-     * Resolve a file URI for an image or file item.
-     *
-     * @private
-     */
-    static _getItemUri(item, manager) {
-        if (item?.file_uri) {
-            return item.file_uri;
-        }
-        if (item?.type === ClipboardType.IMAGE && item?.image_filename) {
-            try {
-                const imagesDir = manager ? manager.imagesDir || manager.storage?.imagesDir : null;
-                if (!imagesDir) {
-                    throw new Error('Images directory path is not available on manager.');
-                }
-                const imagePath = GLib.build_filenamev([imagesDir, item.image_filename]);
-                const fileUri = Gio.File.new_for_path(imagePath).get_uri();
-                return fileUri;
-            } catch (err) {
-                Logger.error(`[AIO-Clipboard] _getItemUri: error resolving image URI: ${err.message}\nStack: ${err.stack}`);
-                return null;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Resolve the string delimiter to use.
      *
      * @private
@@ -448,10 +287,11 @@ export class ClipboardCopyService {
      *
      * @private
      */
-    static _compileTexts(textItems, textContents, delimiter) {
+    static async _compileTexts(textItems, textContents, delimiter, manager) {
         if (textItems.length === 0) return '';
-        const resolvedTexts = textItems.map((item) => ClipboardCopyService._getItemText(item, textContents)).filter(Boolean);
-        return resolvedTexts.join(delimiter);
+        const registry = manager._clipboardRegistry;
+        const resolvedTexts = await Promise.all(textItems.map((item) => registry.getCopyMergeText(item, { manager, textContents })));
+        return resolvedTexts.filter(Boolean).join(delimiter);
     }
 
     // ========================================================================

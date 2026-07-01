@@ -19,9 +19,11 @@ export class ClipboardSearchService {
      *
      * @param {Object} options Configuration options.
      * @param {Function} options.onSearchChanged Callback invoked when search results should update.
+     * @param {ClipboardRegistry} options.clipboardRegistry Clipboard registry.
      */
-    constructor({ onSearchChanged }) {
+    constructor({ onSearchChanged, clipboardRegistry }) {
         this._onSearchChanged = onSearchChanged;
+        this._clipboardRegistry = clipboardRegistry;
 
         this._currentSearchText = '';
         this._suppressSearchEffects = false;
@@ -80,7 +82,7 @@ export class ClipboardSearchService {
      */
     filterItems(items) {
         if (!this.isSearching) return items;
-        return items.filter((i) => ClipboardSearchUtils.isMatch(i, this._currentSearchText));
+        return items.filter((i) => ClipboardSearchUtils.isMatch(i, this._currentSearchText, this._clipboardRegistry));
     }
 
     /**

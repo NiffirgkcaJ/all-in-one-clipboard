@@ -69,6 +69,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
             this._searchService = new ClipboardSearchService({
                 onSearchChanged: () => this._scheduleRedraw(true),
+                clipboardRegistry: this._manager._clipboardRegistry,
             });
 
             this._buildSearchComponent();

@@ -305,11 +305,11 @@ export const MenuContentArea = GObject.registerClass(
         async _loadTabModule(tabName) {
             const sectionDef = getMenuSectionByLocalizedName(tabName);
             if (!sectionDef) {
-                throw new Error(`[AIO-Clipboard] No layout definition found for tab: ${tabName}`);
+                throw new Error(`No layout definition found for tab: ${tabName}`);
             }
 
             if (!sectionDef.createContentActor) {
-                throw new Error(`[AIO-Clipboard] Tab definition ${sectionDef.id} missing 'createContentActor' factory.`);
+                throw new Error(`Tab definition ${sectionDef.id} missing 'createContentActor' factory.`);
             }
 
             return await sectionDef.createContentActor(this._extension, this._settings, this._clipboardManager);

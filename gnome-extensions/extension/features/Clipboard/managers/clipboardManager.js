@@ -51,7 +51,8 @@ export const ClipboardManager = GObject.registerClass(
             this._uuid = uuid;
             this._settings = settings;
 
-            this._storage = new ClipboardStorage(settings);
+            this._clipboardRegistry = new ClipboardRegistry();
+            this._storage = new ClipboardStorage(settings, this._clipboardRegistry);
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
 
@@ -59,7 +60,6 @@ export const ClipboardManager = GObject.registerClass(
             this._settingsSignalIds = [];
 
             this._captureGuard = new ClipboardCaptureGuardService();
-            this._clipboardRegistry = new ClipboardRegistry();
             this._itemStore = new ClipboardItemStore();
             const onHistoryChanged = () => this.emit('history-changed');
             const onPinnedChanged = () => this.emit('pinned-changed');
@@ -115,7 +115,7 @@ export const ClipboardManager = GObject.registerClass(
             this._monitor.start();
 
             this._storage
-                .verifyAndHealData(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), this._clipboardRegistry, this._contentRouter.httpSession)
+                .verifyAndHealData(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), this._contentRouter.httpSession)
                 .then((changed) => {
                     if (changed) {
                         this._storage.saveAll(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems());
@@ -350,7 +350,7 @@ export const ClipboardManager = GObject.registerClass(
          * Schedule the background generation of image previews.
          */
         scheduleImagePreviewWarmup() {
-            this._storage.scheduleImagePreviewWarmup(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), this._clipboardRegistry, () => {
+            this._storage.scheduleImagePreviewWarmup(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems(), () => {
                 this._storage.saveAll(this._itemStore.getHistoryItems(), this._itemStore.getPinnedItems());
             });
         }

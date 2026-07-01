@@ -1,14 +1,3 @@
-// Internal Data Types
-export const ClipboardType = {
-    IMAGE: 'image',
-    FILE: 'file',
-    URL: 'url',
-    COLOR: 'color',
-    CODE: 'code',
-    TEXT: 'text',
-    CONTACT: 'contact',
-};
-
 // Provider Configuration
 export const ClipboardProvider = {
     SEARCH_PROVIDER_ID: 'clipboard',

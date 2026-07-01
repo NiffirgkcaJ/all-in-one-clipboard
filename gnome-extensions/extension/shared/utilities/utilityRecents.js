@@ -50,12 +50,12 @@ export const RecentItemsManager = GObject.registerClass(
             this._recents = [];
 
             if (!absolutePath || typeof absolutePath !== 'string' || absolutePath.trim() === '') {
-                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid absolutePath.`);
+                throw new Error(`RecentItemsManager requires a valid absolutePath.`);
             }
             this._cacheFilePath = absolutePath.trim();
 
             if (!maxItemsSettingKey || typeof maxItemsSettingKey !== 'string' || maxItemsSettingKey.trim() === '') {
-                throw new Error(`[AIO-Clipboard] RecentItemsManager requires a valid maxItemsSettingKey for ${this._cacheFilePath}.`);
+                throw new Error(`RecentItemsManager requires a valid maxItemsSettingKey for ${this._cacheFilePath}.`);
             }
             this._maxItemsSettingKey = maxItemsSettingKey.trim();
 

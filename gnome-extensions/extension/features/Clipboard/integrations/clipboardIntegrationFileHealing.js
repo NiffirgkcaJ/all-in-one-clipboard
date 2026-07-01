@@ -14,8 +14,8 @@ import GLib from 'gi://GLib';
  * @returns {Function} Healing integration.
  */
 export function ClipboardIntegrationFileIntegrity({ dirKey, filenameResolver, shouldCheck = () => true }) {
-    return (item, { storage } = {}) => {
-        if (!shouldCheck(item) || !storage) {
+    return (item, { storage }) => {
+        if (!shouldCheck(item)) {
             return { healed: false, isCorrupted: false };
         }
 
@@ -35,12 +35,12 @@ export function ClipboardIntegrationFileIntegrity({ dirKey, filenameResolver, sh
  * @returns {Function} Async healing integration.
  */
 export function ClipboardIntegrationIconFileHealing({ iconField = 'icon_filename', shouldHeal = () => true, regenerateIcon }) {
-    return async (item, context = {}) => {
+    return async (item, context) => {
         if (!shouldHeal(item, context)) {
             return { healed: false, isCorrupted: false };
         }
 
-        if (!item?.[iconField]) {
+        if (!item[iconField]) {
             return { healed: false, isCorrupted: false };
         }
 
@@ -65,8 +65,8 @@ export function ClipboardIntegrationIconFileHealing({ iconField = 'icon_filename
  * @returns {Function} Healing integration.
  */
 export function ClipboardIntegrationGeneratedFileHealing({ fileField, dirKey, regenerate }) {
-    return (item, context = {}) => {
-        if (!item?.[fileField]) {
+    return (item, context) => {
+        if (!item[fileField]) {
             return { healed: false, isCorrupted: false };
         }
 
@@ -89,9 +89,9 @@ export function ClipboardIntegrationGeneratedFileHealing({ fileField, dirKey, re
  * @returns {Function} Async healing integration.
  */
 export function ClipboardIntegrationImageFileHealing({ ensurePreview, regenerateThumbnail, regenerateFromUrl }) {
-    return async (item, context = {}) => {
+    return async (item, context) => {
         const storage = context.storage;
-        if (!item?.image_filename || !storage) {
+        if (!item.image_filename) {
             return { healed: false, isCorrupted: false };
         }
 

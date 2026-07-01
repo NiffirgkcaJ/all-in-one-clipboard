@@ -62,17 +62,110 @@ export class ClipboardRegistry {
     }
 
     /**
-     * Get styling for an item type.
+     * Get style configuration for a clipboard item.
      *
-     * @param {string} type Item type.
-     * @returns {Object|null} Styling object or null.
+     * @param {Object} item Clipboard item.
+     * @returns {Object|null} The style configuration.
      */
-    getItemStyle(type) {
+    getItemStyle(item) {
+        const type = item.type;
+        if (!type) return null;
         const definition = this.getDefinition(type);
-        if (definition?.styling) return definition.styling;
+        return definition ? definition.styling : null;
+    }
 
-        const fallbackDefinition = this.getDefinition('text');
-        return fallbackDefinition?.styling || null;
+    /**
+     * Get search terms for an item type.
+     *
+     * @param {Object} item Clipboard item.
+     * @returns {Array<string>} List of searchable strings.
+     */
+    getSearchTerms(item) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.getSearchTerms) {
+            return definition.getSearchTerms(item);
+        }
+        return [item.text, item.preview];
+    }
+
+    // ========================================================================
+    // Copy Operations
+    // ========================================================================
+
+    /**
+     * Copy an item to the clipboard.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Options containing storage and manager.
+     * @returns {Promise<boolean>} True if successful.
+     */
+    async copyItem(item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.copyOptions && definition.copyOptions.copyItem) {
+            return await definition.copyOptions.copyItem(item, options);
+        }
+        return false;
+    }
+
+    /**
+     * Get the merge behavior for an item type.
+     *
+     * @param {Object} item Clipboard item.
+     * @returns {string} 'text' or 'file'
+     */
+    getCopyMergeBehavior(item) {
+        const definition = this.getDefinition(item.type);
+        return definition && definition.copyOptions ? definition.copyOptions.mergeBehavior || 'text' : 'text';
+    }
+
+    /**
+     * Get the merge text for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Options containing textContents and manager.
+     * @returns {Promise<string>} The resolved text content.
+     */
+    async getCopyMergeText(item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.copyOptions && definition.copyOptions.getMergeText) {
+            return await definition.copyOptions.getMergeText(item, options);
+        }
+        return '';
+    }
+
+    /**
+     * Get the merge URI for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Options containing manager.
+     * @returns {string|null} The resolved URI.
+     */
+    getCopyMergeUri(item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.copyOptions && definition.copyOptions.getMergeUri) {
+            return definition.copyOptions.getMergeUri(item, options);
+        }
+        return null;
+    }
+
+    // ========================================================================
+    // View Configuration
+    // ========================================================================
+
+    /**
+     * Configure the view representation of an item.
+     *
+     * @param {Object} config The view config to populate.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Display options (e.g. imagesDir).
+     */
+    configureView(config, item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.configureView) {
+            definition.configureView(config, item, options);
+        } else {
+            config.text = item.preview || item.text || '';
+        }
     }
 
     // ========================================================================
@@ -105,7 +198,7 @@ export class ClipboardRegistry {
     async createItemFromResult(result, storage) {
         await this.initialize();
 
-        const definition = this.getDefinition(result?.type);
+        const definition = this.getDefinition(result.type);
         if (!definition || !definition.createItem) return null;
 
         return await definition.createItem(result, {
@@ -124,7 +217,7 @@ export class ClipboardRegistry {
     async enrichItem(item, context = {}) {
         await this.initialize();
 
-        const definition = this.getDefinition(item?.type);
+        const definition = this.getDefinition(item.type);
         if (!definition) return;
 
         const enrichHooks = definition.enrichItem;
@@ -138,6 +231,43 @@ export class ClipboardRegistry {
     // ========================================================================
 
     /**
+     * Delete files associated with an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {ClipboardStorage} storage Clipboard storage.
+     */
+    deleteItemFiles(item, storage) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.storageOptions && definition.storageOptions.deleteItemFiles) {
+            definition.storageOptions.deleteItemFiles(item, storage);
+        }
+    }
+
+    /**
+     * Collect valid files for garbage collection.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Map} validFilesMap Map to collect filenames by dirKey.
+     */
+    collectGarbageFiles(item, validFilesMap) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.storageOptions && definition.storageOptions.collectGarbageFiles) {
+            definition.storageOptions.collectGarbageFiles(item, validFilesMap);
+        }
+    }
+
+    /**
+     * Check if an item has full content backed by storage.
+     *
+     * @param {string} type Item type.
+     * @returns {boolean} True if it has full content.
+     */
+    hasFullContent(type) {
+        const definition = this.getDefinition(type);
+        return definition?.hasFullContent || false;
+    }
+
+    /**
      * Verify and heal an item through its definition.
      *
      * @param {Object} item Clipboard item.
@@ -147,7 +277,7 @@ export class ClipboardRegistry {
     async verifyAndHealItem(item, context = {}) {
         await this.initialize();
 
-        const definition = this.getDefinition(item?.type);
+        const definition = this.getDefinition(item.type);
         if (!definition || !definition.healItem) {
             return { healed: false, isCorrupted: false };
         }
@@ -166,7 +296,7 @@ export class ClipboardRegistry {
      */
     getPreviewWarmupItems(items = []) {
         return items.filter((item) => {
-            const definition = this.getDefinition(item?.type);
+            const definition = this.getDefinition(item.type);
             return definition ? definition.shouldWarmupItem(item, { definition }) : false;
         });
     }
@@ -179,7 +309,7 @@ export class ClipboardRegistry {
      * @returns {boolean} True when item changed.
      */
     warmupItem(item, context = {}) {
-        const definition = this.getDefinition(item?.type);
+        const definition = this.getDefinition(item.type);
         if (!definition) return false;
         return definition.warmupItem(item, { ...context, definition });
     }

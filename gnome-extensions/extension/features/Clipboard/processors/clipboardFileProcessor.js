@@ -2,7 +2,7 @@ import GLib from 'gi://GLib';
 
 import { IOFile } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardType } from '../constants/clipboardConstants.js';
+import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
