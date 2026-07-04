@@ -314,6 +314,23 @@ export class ClipboardRegistry {
         return definition.warmupItem(item, { ...context, definition });
     }
 
+    /**
+     * Warm up a single item asynchronously through its definition.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {object} context Warmup context.
+     * @returns {Promise<boolean>} True when item changed.
+     */
+    async warmupItemAsync(item, context = {}) {
+        await this.initialize();
+        const definition = this.getDefinition(item.type);
+        if (!definition) return false;
+        if (definition.warmupItemAsync) {
+            return await definition.warmupItemAsync(item, { ...context, definition });
+        }
+        return definition.warmupItem(item, { ...context, definition });
+    }
+
     // ========================================================================
     // Lifecycle
     // ========================================================================

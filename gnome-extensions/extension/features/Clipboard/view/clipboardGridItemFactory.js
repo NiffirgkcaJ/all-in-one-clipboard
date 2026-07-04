@@ -4,6 +4,8 @@ import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
@@ -336,28 +338,31 @@ export class ClipboardGridItemFactory {
      * @private
      */
     static _createImageGridContent(config, itemData, options) {
-        const previewPath = ClipboardBaseItemConfig.resolveImagePreviewPath(itemData, options.imagePreviewsDir);
-        const imagePath = previewPath || GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
+        const previewPath = ClipboardBaseItemConfig.getExpectedPreviewPath(itemData, options.imagePreviewsDir);
+        const imagePath = GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
 
-        const imageWrapper = new St.BoxLayout({
+        const imageWrapper = new St.Bin({
             style_class: 'clipboard-grid-image-content',
             x_expand: true,
             y_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.FILL,
         });
 
-        let imageStyleIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-            imageStyleIdleId = 0;
-            if (imageWrapper.get_stage()) {
-                imageWrapper.set_style(`background-image: url('file://${imagePath}'); background-size: cover;`);
-            }
-            return GLib.SOURCE_REMOVE;
-        });
+        const cancellable = new Gio.Cancellable();
         imageWrapper.connect('destroy', () => {
-            if (imageStyleIdleId) {
-                GLib.source_remove(imageStyleIdleId);
-                imageStyleIdleId = 0;
-            }
+            cancellable.cancel();
         });
+
+        ClipboardBaseItemConfig.ensurePreviewAsync(imagePath, options.imagePreviewSize, previewPath, cancellable)
+            .then((ready) => {
+                if (ready && !cancellable.is_cancelled()) {
+                    imageWrapper.set_style(`background-image: url('file://${previewPath}'); background-size: cover;`);
+                }
+            })
+            .catch((e) => {
+                Logger.error(`Failed to load grid view image: ${e.message || e}`);
+            });
 
         return imageWrapper;
     }

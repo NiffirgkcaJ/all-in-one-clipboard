@@ -1,3 +1,8 @@
+import GdkPixbuf from 'gi://GdkPixbuf';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+
+import { Logger } from '../utilities/utilityLogger.js';
 import { ServiceCoreImage } from './serviceCoreImage.js';
 import { ServiceStorageFile } from './serviceStorageFile.js';
 import { ServiceStorageResource } from './serviceStorageResource.js';
@@ -151,5 +156,141 @@ export const ServiceIOImage = {
     readResourceSync(uri) {
         const bytes = ServiceStorageResource.readSync(uri);
         return ServiceCoreImage.parseBytes(bytes);
+    },
+
+    /**
+     * Helper to load a Gio.Icon from path.
+     *
+     * @param {string} path Absolute path to the icon file.
+     * @returns {Gio.Icon} Gio.Icon instance.
+     */
+    loadIcon(path) {
+        if (!path) return null;
+        const file = Gio.File.new_for_path(path);
+        return new Gio.FileIcon({ file });
+    },
+
+    /**
+     * Synchronously ensure an image preview file exists on disk.
+     *
+     * @param {string} sourcePath Path to the original image file.
+     * @param {string|null} previewPath Expected path for the preview file.
+     * @param {number} size Target size for scaling.
+     * @returns {boolean} True if the preview is ready, false otherwise.
+     */
+    ensurePreview(sourcePath, previewPath, size) {
+        if (!sourcePath) return false;
+        try {
+            if (previewPath && ServiceStorageFile.existsSync(previewPath)) {
+                return true;
+            }
+
+            if (!ServiceStorageFile.existsSync(sourcePath)) {
+                return false;
+            }
+
+            const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(sourcePath, size, size, true);
+            if (!pixbuf) return false;
+
+            if (previewPath) {
+                const previewFile = Gio.File.new_for_path(previewPath);
+                const parent = previewFile.get_parent();
+                if (parent && !parent.query_exists(null)) {
+                    parent.make_directory_with_parents(null);
+                }
+
+                pixbuf.savev(previewPath, 'png', [], []);
+            }
+            return true;
+        } catch (e) {
+            Logger.warn(`ServiceIOImage.ensurePreview failed: ${e.message}`);
+            return false;
+        }
+    },
+
+    /**
+     * Asynchronously ensure an image preview file exists on disk.
+     *
+     * @param {string} sourcePath Path to the original image file.
+     * @param {string|null} previewPath Expected path for the preview file.
+     * @param {number} size Target size for scaling.
+     * @param {Gio.Cancellable} [cancellable] Cancellable.
+     * @returns {Promise<boolean>} True if the preview is ready, false otherwise.
+     */
+    async ensurePreviewAsync(sourcePath, previewPath, size, cancellable = null) {
+        if (!sourcePath) return false;
+
+        try {
+            if (cancellable && cancellable.is_cancelled()) return false;
+
+            if (previewPath) {
+                const previewExists = await ServiceStorageFile.exists(previewPath);
+                if (previewExists) return true;
+            }
+
+            const sourceExists = await ServiceStorageFile.exists(sourcePath);
+            if (!sourceExists || (cancellable && cancellable.is_cancelled())) return false;
+
+            const file = Gio.File.new_for_path(sourcePath);
+            const pixbuf = await new Promise((resolve, reject) => {
+                file.read_async(GLib.PRIORITY_DEFAULT, cancellable, (fileSource, fileResult) => {
+                    try {
+                        const stream = fileSource.read_finish(fileResult);
+                        GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(stream, size, size, true, cancellable, (pixbufSource, pixbufResult) => {
+                            try {
+                                const pb = GdkPixbuf.Pixbuf.new_from_stream_finish(pixbufResult);
+                                resolve(pb);
+                            } catch (e) {
+                                reject(e);
+                            } finally {
+                                stream.close(null);
+                            }
+                        });
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            });
+
+            if (!pixbuf) return false;
+
+            if (previewPath && (!cancellable || !cancellable.is_cancelled())) {
+                const previewFile = Gio.File.new_for_path(previewPath);
+                const parent = previewFile.get_parent();
+                if (parent && !parent.query_exists(null)) {
+                    parent.make_directory_with_parents(null);
+                }
+
+                const outputStream = await new Promise((resolve, reject) => {
+                    previewFile.replace_async(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, GLib.PRIORITY_DEFAULT, cancellable, (source, res) => {
+                        try {
+                            resolve(source.replace_finish(res));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                });
+
+                await new Promise((resolve, reject) => {
+                    pixbuf.save_to_streamv_async(outputStream, 'png', [], [], cancellable, (source, res) => {
+                        try {
+                            source.save_to_stream_finish(res);
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            outputStream.close(null);
+                        }
+                    });
+                });
+            }
+
+            return true;
+        } catch (e) {
+            if (!e.matches || !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                Logger.warn(`ServiceIOImage.ensurePreviewAsync failed: ${e.message}`);
+            }
+            return false;
+        }
     },
 };

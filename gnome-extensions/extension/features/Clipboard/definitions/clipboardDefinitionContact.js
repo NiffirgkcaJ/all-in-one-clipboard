@@ -1,7 +1,7 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
@@ -78,7 +78,7 @@ export function ClipboardDefinitionContact() {
             if (item.subtype === 'email' && item.icon_filename && options.linkPreviewsDir) {
                 const iconPath = GLib.build_filenamev([options.linkPreviewsDir, item.icon_filename]);
                 config.giconPath = iconPath;
-                config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+                config.gicon = IOImage.loadIcon(iconPath);
             }
 
             if (item.subtype === 'phone' && item.metadata && item.metadata.code) {

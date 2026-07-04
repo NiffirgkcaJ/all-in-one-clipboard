@@ -47,6 +47,7 @@ export function ClipboardDefinitionImage() {
         ...ClipboardIntegrationPreviewWarmup({
             shouldWarmupItem: (item) => Boolean(item.image_filename),
             warmupItem: (item, { storage }) => ImageProcessor.ensurePreviewForItem(item, storage.imagesDir, storage.imagePreviewsDir),
+            warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
         }),
         getSearchTerms: (item) => [item.image_filename],
         copyOptions: {

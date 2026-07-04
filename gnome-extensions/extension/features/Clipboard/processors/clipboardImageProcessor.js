@@ -145,6 +145,37 @@ export class ImageProcessor {
     }
 
     /**
+     * Ensure an image item has a cached preview on disk asynchronously.
+     *
+     * @param {Object} item Clipboard image item.
+     * @param {string} imagesDir Directory where full-size images are stored.
+     * @param {string} previewsDir Directory where previews are stored.
+     * @returns {Promise<boolean>} True if preview was created or already exists.
+     */
+    static async ensurePreviewForItemAsync(item, imagesDir, previewsDir) {
+        if (!item?.image_filename || !imagesDir || !previewsDir) return false;
+
+        const previewFilename = item.preview_filename || this._generatePreviewFilename(item.image_filename);
+        const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
+
+        const exists = await IOFile.exists(previewPath);
+
+        if (!exists) {
+            const sourcePath = GLib.build_filenamev([imagesDir, item.image_filename]);
+            await this._ensurePreviewAsync(sourcePath, previewsDir, previewFilename);
+        }
+
+        const existsAfter = await IOFile.exists(previewPath);
+
+        if (existsAfter) {
+            item.preview_filename = previewFilename;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Regenerate the thumbnail from the source file if it exists.
      *
      * @param {Object} item The clipboard item to heal.
@@ -260,22 +291,21 @@ export class ImageProcessor {
      */
     static _ensurePreview(sourcePath, previewsDir, previewFilename) {
         if (!previewsDir || !previewFilename) return;
+        const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
+        IOImage.ensurePreview(sourcePath, previewPath, PREVIEW_MAX_SIZE);
+    }
 
-        try {
-            const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
-            if (IOFile.existsSync(previewPath)) return;
-
-            IOFile.mkdir(previewsDir);
-
-            if (!IOFile.existsSync(sourcePath)) {
-                return;
-            }
-
-            const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(sourcePath, PREVIEW_MAX_SIZE, PREVIEW_MAX_SIZE, true);
-            if (!pixbuf) return;
-            pixbuf.savev(previewPath, 'png', [], []);
-        } catch (e) {
-            Logger.warn(`Failed to generate preview: ${e.message}`, 'ImageProcessor');
-        }
+    /**
+     * Generate a downscaled preview image asynchronously if missing.
+     *
+     * @param {string} sourcePath Full-size image path.
+     * @param {string} previewsDir Directory to store previews.
+     * @param {string} previewFilename Preview filename.
+     * @private
+     */
+    static async _ensurePreviewAsync(sourcePath, previewsDir, previewFilename) {
+        if (!previewsDir || !previewFilename) return;
+        const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
+        await IOImage.ensurePreviewAsync(sourcePath, previewPath, PREVIEW_MAX_SIZE);
     }
 }

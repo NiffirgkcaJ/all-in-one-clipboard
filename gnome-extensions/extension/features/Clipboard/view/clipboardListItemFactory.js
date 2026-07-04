@@ -4,6 +4,8 @@ import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
@@ -256,8 +258,8 @@ export class ClipboardListItemFactory {
      * @private
      */
     static _createImageListContent(config, itemData, options) {
-        const previewPath = ClipboardBaseItemConfig.resolveImagePreviewPath(itemData, options.imagePreviewsDir);
-        const imagePath = previewPath || GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
+        const previewPath = ClipboardBaseItemConfig.getExpectedPreviewPath(itemData, options.imagePreviewsDir);
+        const imagePath = GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
 
         const imageWrapper = new St.Bin({
             style_class: 'clipboard-list-image-content',
@@ -267,13 +269,29 @@ export class ClipboardListItemFactory {
             y_align: Clutter.ActorAlign.CENTER,
         });
 
-        const imageActor = new St.Icon({
-            gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(imagePath) }),
-            icon_size: options.imagePreviewSize,
+        const imageActor = new St.Bin({
+            width: options.imagePreviewSize,
+            height: options.imagePreviewSize,
+            x_expand: false,
+            y_expand: false,
         });
-
         imageWrapper.set_style(`min-height: ${options.imagePreviewSize}px;`);
         imageWrapper.set_child(imageActor);
+
+        const cancellable = new Gio.Cancellable();
+        imageWrapper.connect('destroy', () => {
+            cancellable.cancel();
+        });
+
+        ClipboardBaseItemConfig.ensurePreviewAsync(imagePath, options.imagePreviewSize, previewPath, cancellable)
+            .then((ready) => {
+                if (ready && !cancellable.is_cancelled()) {
+                    imageActor.set_style(`background-image: url('file://${previewPath}'); background-size: ${options.imagePreviewSize}px ${options.imagePreviewSize}px;`);
+                }
+            })
+            .catch((e) => {
+                Logger.error(`Failed to load list view image: ${e.message || e}`);
+            });
 
         return imageWrapper;
     }

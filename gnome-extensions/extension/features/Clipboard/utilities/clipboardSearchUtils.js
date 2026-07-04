@@ -21,7 +21,7 @@ export class ClipboardSearchUtils {
         if (!item) return false;
 
         const searchString = this.getItemSearchString(item, registry);
-        return searchString.includes(searchText);
+        return searchString.includes(searchText.toLowerCase());
     }
 
     /**

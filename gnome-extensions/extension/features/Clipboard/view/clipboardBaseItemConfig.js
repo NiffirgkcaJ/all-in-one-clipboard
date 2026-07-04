@@ -1,11 +1,8 @@
 import GLib from 'gi://GLib';
 
-import { IOFile } from '../../../shared/utilities/utilityIO.js';
+import { IOImage } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
-
-// Existing Preview
-const EXISTING_PREVIEW_PATH_CACHE = new Set();
 
 /**
  * ClipboardBaseItemConfig
@@ -66,30 +63,20 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Resolve an image preview path if available on disk.
+     * Get the expected preview path for an image.
      *
      * @param {Object} itemData Clipboard item data.
      * @param {string} imagePreviewsDir Directory where image previews are stored.
      * @returns {string|null} Resolved path or null if missing.
      */
-    static resolveImagePreviewPath(itemData, imagePreviewsDir) {
+    static getExpectedPreviewPath(itemData, imagePreviewsDir) {
         if (!imagePreviewsDir || !itemData.image_filename) return null;
 
         const base = itemData.image_filename.replace(/\.[^/.]+$/, '');
         const fallbackPreviewName = `preview_${base}.png`;
         const previewName = itemData.preview_filename || fallbackPreviewName;
-        const previewPath = GLib.build_filenamev([imagePreviewsDir, previewName]);
 
-        if (EXISTING_PREVIEW_PATH_CACHE.has(previewPath)) {
-            return previewPath;
-        }
-
-        if (IOFile.existsSync(previewPath)) {
-            EXISTING_PREVIEW_PATH_CACHE.add(previewPath);
-            return previewPath;
-        }
-
-        return null;
+        return GLib.build_filenamev([imagePreviewsDir, previewName]);
     }
 
     // ========================================================================
@@ -120,5 +107,19 @@ export class ClipboardBaseItemConfig {
             config.giconPath || '',
             iconOptionsFingerprint,
         ].join('|');
+    }
+
+    /**
+     * Asynchronously ensure an image preview file exists on disk.
+     * If the preview file does not exist, it loads and scales the original image and saves it as a preview file.
+     *
+     * @param {string} imagePath Path to the original image file.
+     * @param {number} size Target size for scaling.
+     * @param {string|null} previewPath Expected path for the preview file.
+     * @param {Gio.Cancellable} [cancellable] Cancellable.
+     * @returns {Promise<boolean>} True if the preview is ready, false otherwise.
+     */
+    static async ensurePreviewAsync(imagePath, size, previewPath = null, cancellable = null) {
+        return await IOImage.ensurePreviewAsync(imagePath, previewPath, size, cancellable);
     }
 }

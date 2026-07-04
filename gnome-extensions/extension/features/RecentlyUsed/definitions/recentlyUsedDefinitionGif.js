@@ -1,7 +1,7 @@
-import Gio from 'gi://Gio';
 import St from 'gi://St';
 
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
+import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { searchViaProvider } from '../../../shared/services/serviceSearchHub.js';
 
@@ -215,10 +215,9 @@ function createRecentlyUsedDefinitionGifInstance() {
                     return;
                 }
 
-                const file = Gio.File.new_for_path(filePath);
                 const icon = widget.get_child();
                 if (icon instanceof St.Icon) {
-                    icon.set_gicon(new Gio.FileIcon({ file }));
+                    icon.set_gicon(IOImage.loadIcon(filePath));
                 }
             } catch (e) {
                 const message = e?.message ?? String(e);

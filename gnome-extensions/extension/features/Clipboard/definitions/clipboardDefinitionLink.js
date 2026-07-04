@@ -1,7 +1,7 @@
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { IOImage } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
@@ -62,7 +62,7 @@ export function ClipboardDefinitionLink() {
             if (item.icon_filename && options.linkPreviewsDir) {
                 const iconPath = GLib.build_filenamev([options.linkPreviewsDir, item.icon_filename]);
                 config.giconPath = iconPath;
-                config.gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(iconPath) });
+                config.gicon = IOImage.loadIcon(iconPath);
             }
         },
         destroy: () => linkProcessor.destroy(),

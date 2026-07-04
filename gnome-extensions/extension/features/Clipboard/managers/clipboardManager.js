@@ -385,16 +385,6 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Get view styling for a clipboard item type.
-         *
-         * @param {string} type Clipboard item type.
-         * @returns {Object|null} Styling definition or null.
-         */
-        getItemStyle(type) {
-            return this._clipboardRegistry.getItemStyle(type);
-        }
-
-        /**
          * Get or set the last content hash for deduplication.
          *
          * @type {string|null}

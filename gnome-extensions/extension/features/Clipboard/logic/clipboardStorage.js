@@ -7,7 +7,6 @@ import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 // Configuration
 const PRUNE_BATCH_SIZE = 5;
-const WARMUP_BATCH_SIZE = 1;
 
 // Configuration Keys
 const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
@@ -41,6 +40,7 @@ export class ClipboardStorage {
 
         this._previewWarmupId = 0;
         this._previewWarmupQueue = null;
+        this._previewWarmupActive = false;
 
         this._ensureDirectories();
     }
@@ -315,37 +315,44 @@ export class ClipboardStorage {
      * @param {Function} onComplete Callback function for when warmup is complete.
      */
     scheduleImagePreviewWarmup(history, pinned, onComplete) {
-        if (this._previewWarmupId) return;
+        if (this._previewWarmupActive) return;
 
         const queue = this._clipboardRegistry.getPreviewWarmupItems([...pinned, ...history]);
         if (queue.length === 0) return;
 
         this._previewWarmupQueue = queue;
+        this._previewWarmupActive = true;
         let didUpdate = false;
 
-        this._previewWarmupId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
-            let processed = 0;
-
-            while (this._previewWarmupQueue.length > 0 && processed < WARMUP_BATCH_SIZE) {
-                const item = this._previewWarmupQueue.shift();
-                processed += 1;
-                if (!item) continue;
-
-                const updated = this._clipboardRegistry.warmupItem(item, {
-                    storage: this,
-                });
-                if (updated) didUpdate = true;
-            }
-
-            if (this._previewWarmupQueue.length === 0) {
-                if (didUpdate && onComplete) onComplete();
+        const processNext = async () => {
+            if (!this._previewWarmupQueue || this._previewWarmupQueue.length === 0) {
+                this._previewWarmupActive = false;
                 this._previewWarmupQueue = null;
-                this._previewWarmupId = 0;
-                return GLib.SOURCE_REMOVE;
+                if (didUpdate && onComplete) onComplete();
+                return;
             }
 
-            return GLib.SOURCE_CONTINUE;
-        });
+            const item = this._previewWarmupQueue.shift();
+            if (item) {
+                try {
+                    const updated = await this._clipboardRegistry.warmupItemAsync(item, {
+                        storage: this,
+                    });
+                    if (updated) didUpdate = true;
+                } catch (e) {
+                    Logger.error(`Warmup item failed: ${e.message}`, 'ClipboardStorage');
+                }
+            }
+
+            const idleId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                this._previewWarmupId = 0;
+                processNext();
+                return GLib.SOURCE_REMOVE;
+            });
+            this._previewWarmupId = idleId;
+        };
+
+        processNext();
     }
 
     /**
@@ -404,5 +411,6 @@ export class ClipboardStorage {
         }
 
         this._previewWarmupQueue = null;
+        this._previewWarmupActive = false;
     }
 }

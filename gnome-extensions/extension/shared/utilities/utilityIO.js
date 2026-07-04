@@ -65,4 +65,7 @@ export const IOImage = {
     hash: (bytes) => ServiceIOImage.hash(bytes),
     getMimeType: (filename) => ServiceIOImage.getMimeType(filename),
     getExtension: (mimetype) => ServiceIOImage.getExtension(mimetype),
+    loadIcon: (path) => ServiceIOImage.loadIcon(path),
+    ensurePreview: (sourcePath, previewPath, size) => ServiceIOImage.ensurePreview(sourcePath, previewPath, size),
+    ensurePreviewAsync: (sourcePath, previewPath, size, cancellable) => ServiceIOImage.ensurePreviewAsync(sourcePath, previewPath, size, cancellable),
 };
