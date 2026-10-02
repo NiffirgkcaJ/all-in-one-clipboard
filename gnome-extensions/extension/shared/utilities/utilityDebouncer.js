@@ -13,6 +13,7 @@ export class Debouncer {
         this._func = func;
         this._wait = wait;
         this._timeoutId = 0;
+        this._args = null;
     }
 
     /**
@@ -22,6 +23,8 @@ export class Debouncer {
     trigger(...args) {
         if (!this._func) return;
 
+        this._args = args;
+
         if (this._timeoutId > 0) {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
@@ -30,10 +33,27 @@ export class Debouncer {
         this._timeoutId = GLib.timeout_add(GLib.PRIORITY_LOW, this._wait, () => {
             if (!this._func) return GLib.SOURCE_REMOVE;
 
-            this._func.apply(this, args);
+            const pendingArgs = this._args;
+            this._args = null;
             this._timeoutId = 0;
+            this._func.apply(this, pendingArgs);
             return GLib.SOURCE_REMOVE;
         });
+    }
+
+    /**
+     * Flushes any pending execution immediately.
+     */
+    flush() {
+        if (this._timeoutId > 0) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = 0;
+            if (this._func) {
+                const pendingArgs = this._args;
+                this._args = null;
+                this._func.apply(this, pendingArgs);
+            }
+        }
     }
 
     /**
@@ -44,6 +64,7 @@ export class Debouncer {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
         }
+        this._args = null;
     }
 
     /**
@@ -55,6 +76,7 @@ export class Debouncer {
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
         }
+        this._args = null;
         this._func = null;
     }
 }

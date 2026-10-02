@@ -62,7 +62,11 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._runtimeService = new RecentlyUsedRuntimeService({
                     extension: this._extension,
                     settings: this._settings,
-                    onRender: () => this._view?.render(),
+                    onRender: () => {
+                        if (this._view) {
+                            this._view.requestRender();
+                        }
+                    },
                 });
                 await this._runtimeService.start();
 

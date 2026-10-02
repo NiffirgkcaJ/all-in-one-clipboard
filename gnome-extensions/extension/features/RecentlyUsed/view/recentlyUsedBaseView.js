@@ -74,11 +74,22 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._scrollLockController = null;
             this._searchComponent = null;
             this._searchDebouncer = null;
+            this._renderDebouncer = null;
+            this._needsRender = false;
+            this._mappedSignalId = 0;
             this._searchQuery = '';
             this._searchSettingsSignalId = 0;
             this._ignoreSearchChange = false;
 
             this._searchDebouncer = new Debouncer(() => this.render(), RecentlyUsedUI.SEARCH_DEBOUNCE_MS);
+            this._renderDebouncer = new Debouncer(() => this.render(), RecentlyUsedUI.RENDER_DEBOUNCE_MS);
+
+            this._mappedSignalId = this.connect('notify::mapped', () => {
+                if (this.mapped && this._needsRender) {
+                    this._needsRender = false;
+                    this.render();
+                }
+            });
 
             this._buildUI();
         }
@@ -88,10 +99,34 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Request a render pass.
+         * Debounces rendering if mapped, or marks dirty if currently unmapped.
+         *
+         * @param {boolean} [immediate=false] True to bypass debounce and render immediately when mapped.
+         */
+        requestRender(immediate = false) {
+            if (!this.mapped) {
+                this._needsRender = true;
+                this._renderDebouncer.cancel();
+                return;
+            }
+
+            if (immediate) {
+                this._needsRender = false;
+                this._renderDebouncer.cancel();
+                this.render();
+                return;
+            }
+
+            this._renderDebouncer.trigger();
+        }
+
+        /**
          * Render the entire view.
          * Resolves visibility, recreates section layouts, and calculates the focus grid.
          */
         render() {
+            this._needsRender = false;
             this._syncSearchVisibility();
 
             this._renderSession = {};
@@ -127,6 +162,8 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * Called when the tab is actively selected.
          */
         onActivated() {
+            this._needsRender = false;
+            this._renderDebouncer.cancel();
             this.render();
             this._unlockOuterScroll();
             this._restoreFocus();
@@ -490,7 +527,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             this._searchSettingsSignalId = this._settings.connect('changed::enable-recently-used-search', () => {
                 this._syncSearchVisibility();
-                this.render();
+                this.requestRender();
             });
         }
 
@@ -1012,8 +1049,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         destroy() {
-            this._disconnectSettingsSignals();
-
             if (this._settingsBtnFocusTimeoutId) {
                 GLib.source_remove(this._settingsBtnFocusTimeoutId);
                 this._settingsBtnFocusTimeoutId = 0;
@@ -1026,20 +1061,28 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 GLib.source_remove(this._scrollIntoViewIdleId);
                 this._scrollIntoViewIdleId = 0;
             }
+            if (this._searchDebouncer) {
+                this._searchDebouncer.destroy();
+                this._searchDebouncer = null;
+            }
+            if (this._renderDebouncer) {
+                this._renderDebouncer.destroy();
+                this._renderDebouncer = null;
+            }
+
+            this._disconnectSettingsSignals();
+            if (this._mappedSignalId) {
+                this.disconnect(this._mappedSignalId);
+                this._mappedSignalId = 0;
+            }
 
             if (this._scrollLockController) {
                 this._scrollLockController.destroy();
                 this._scrollLockController = null;
             }
-
             if (this._searchComponent) {
                 this._searchComponent.destroy();
                 this._searchComponent = null;
-            }
-
-            if (this._searchDebouncer) {
-                this._searchDebouncer.destroy();
-                this._searchDebouncer = null;
             }
 
             this._renderSession = null;

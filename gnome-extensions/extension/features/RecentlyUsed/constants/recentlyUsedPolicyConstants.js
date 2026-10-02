@@ -59,3 +59,9 @@ export const RecentlyUsedPolicySettings = {
 
 // GSettings keys monitored for policy changes.
 export const RecentlyUsedPolicySettingKeys = Object.values(RecentlyUsedPolicySettings);
+
+// Timing and debounce configurations for Recently Used policy controls.
+export const RecentlyUsedPolicyTuning = {
+    SPIN_ROW_DEBOUNCE_MS: 200,
+    OVERRIDE_SPIN_ROW_DEBOUNCE_MS: 200,
+};

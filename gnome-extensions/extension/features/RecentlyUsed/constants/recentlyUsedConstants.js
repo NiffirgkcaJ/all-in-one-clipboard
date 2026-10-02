@@ -4,6 +4,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 export const RecentlyUsedUI = {
     NESTED_ITEM_HEIGHT: 48,
     SEARCH_DEBOUNCE_MS: 250,
+    RENDER_DEBOUNCE_MS: 150,
     OUTER_SCROLL_LOCK_DELAY_MS: 150,
     GRID_COLUMN_SPACING: 4,
     GRID_ROW_SPACING: 4,

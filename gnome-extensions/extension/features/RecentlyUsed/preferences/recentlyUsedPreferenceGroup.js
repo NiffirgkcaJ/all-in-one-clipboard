@@ -4,10 +4,12 @@ import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { getRangeFromSchema } from '../../../shared/preferences/preferenceUtilities.js';
 
 import { addRecentlyUsedAdvancedOverridesPrefs } from './recentlyUsedAdvancedOverridesPrefs.js';
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
+import { RecentlyUsedPolicyTuning } from '../constants/recentlyUsedPolicyConstants.js';
 
 /**
  * Adds the "Recently Used Settings" preferences group to the page.
@@ -25,7 +27,14 @@ export function addPreferenceRecentlyUsedSettings({ page, settings, window }) {
     page.add(group);
 
     const signalIds = [];
+    const debouncers = [];
     page.connect('unmap', () => {
+        debouncers.forEach((debouncer) => {
+            debouncer.flush();
+            debouncer.destroy();
+        });
+        debouncers.length = 0;
+
         signalIds.forEach((id) => {
             if (settings && id > 0) {
                 settings.disconnect(id);
@@ -83,6 +92,7 @@ export function addPreferenceRecentlyUsedSettings({ page, settings, window }) {
     const createSpinRow = ({ key, title, subtitle }) => {
         const range = getRangeFromSchema(settings, key);
         const defaultValue = settings.get_default_value(key).get_int32();
+        const initialValue = settings.get_int(key);
 
         const row = new Adw.SpinRow({
             title,
@@ -91,10 +101,40 @@ export function addPreferenceRecentlyUsedSettings({ page, settings, window }) {
                 lower: range.min,
                 upper: range.max,
                 step_increment: 1,
+                value: initialValue,
             }),
         });
 
-        settings.bind(key, row.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+        let isSyncing = false;
+        const debouncer = new Debouncer((targetValue) => {
+            if (settings.get_int(key) !== targetValue) {
+                settings.set_int(key, targetValue);
+            }
+        }, RecentlyUsedPolicyTuning.SPIN_ROW_DEBOUNCE_MS);
+        debouncers.push(debouncer);
+
+        row.adjustment.connect('value-changed', () => {
+            if (isSyncing) {
+                return;
+            }
+
+            const targetValue = Math.floor(row.adjustment.get_value());
+            debouncer.trigger(targetValue);
+        });
+
+        const settingsSignalId = settings.connect(`changed::${key}`, () => {
+            const externalValue = settings.get_int(key);
+            if (Math.floor(row.adjustment.get_value()) !== externalValue) {
+                isSyncing = true;
+                try {
+                    row.adjustment.set_value(externalValue);
+                } finally {
+                    isSyncing = false;
+                }
+            }
+        });
+        signalIds.push(settingsSignalId);
+
         return row;
     };
 
@@ -300,6 +340,7 @@ export function addPreferenceRecentlyUsedSettings({ page, settings, window }) {
 
     // Advanced Overrides
     addRecentlyUsedAdvancedOverridesPrefs({
+        preferencesPage: page,
         settings,
         window,
         group,

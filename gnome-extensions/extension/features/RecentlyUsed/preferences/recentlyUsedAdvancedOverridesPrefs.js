@@ -2,26 +2,39 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
-import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
+import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings, RecentlyUsedPolicyTuning } from '../constants/recentlyUsedPolicyConstants.js';
 
 /**
  * Adds the Advanced Section Overrides row and subpages for Recently Used settings.
  *
  * Navigation starts from the Main Page, continues to Advanced Section Overrides, then opens Definition Detail.
  *
- * @param {object} options Setup options.
+ * @param {Adw.PreferencesPage} [options.preferencesPage] Parent preferences page.
  * @param {Gio.Settings} options.settings Extension settings instance.
  * @param {Adw.PreferencesWindow} options.window Preferences window instance.
  * @param {Adw.PreferencesGroup} options.group Parent group where the row is added.
  * @param {Array<number>} options.signalIds Collector array for settings signal IDs.
+ * @param {Array<object>} [options.sectionDescriptors] Section descriptors list.
  * @param {Function} options.getRangeFromSchema Function returning schema range by key.
  */
-export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group, signalIds = [], sectionDescriptors = [], getRangeFromSchema }) {
+export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, settings, window, group, signalIds = [], sectionDescriptors = [], getRangeFromSchema }) {
     if (!settings || !group || !getRangeFromSchema) {
         return;
+    }
+
+    const debouncers = [];
+    if (preferencesPage) {
+        preferencesPage.connect('unmap', () => {
+            debouncers.forEach((debouncer) => {
+                debouncer.flush();
+                debouncer.destroy();
+            });
+            debouncers.length = 0;
+        });
     }
 
     const advancedOverridesKey = RecentlyUsedPolicySettings.ADVANCED_SECTION_OVERRIDES;
@@ -412,13 +425,18 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
         });
         addRowToContainer(container, row);
 
+        const debouncer = new Debouncer((nextValue) => {
+            onChange(nextValue);
+        }, RecentlyUsedPolicyTuning.OVERRIDE_SPIN_ROW_DEBOUNCE_MS);
+        debouncers.push(debouncer);
+
         row.adjustment.connect('value-changed', () => {
             if (isSyncingRef.get()) {
                 return;
             }
 
             const nextValue = Math.max(1, Math.floor(row.adjustment.get_value()));
-            onChange(nextValue);
+            debouncer.trigger(nextValue);
         });
 
         return row;
