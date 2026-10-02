@@ -498,7 +498,7 @@ export const StackLayout = GObject.registerClass(
         _getFocusedItemId() {
             let focused = global.stage.get_key_focus();
             while (focused && !focused._itemId) {
-                focused = focused.get_parent?.();
+                focused = focused.get_parent();
             }
             if (!focused || !this.contains(focused)) return null;
             return focused._itemId || null;

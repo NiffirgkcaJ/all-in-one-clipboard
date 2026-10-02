@@ -37,7 +37,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
             return;
         }
 
-        container?.add?.(row);
+        container?.add(row);
     };
 
     const hasSchemaKey = (key) => {
@@ -54,7 +54,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ settings, window, group,
     };
 
     const presentSubpage = (sourceWidget, subpage) => {
-        const root = sourceWidget?.get_root?.() ?? null;
+        const root = sourceWidget?.get_root() ?? null;
 
         try {
             if (window && window.push_subpage) {

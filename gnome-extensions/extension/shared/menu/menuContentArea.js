@@ -81,7 +81,7 @@ export const MenuContentArea = GObject.registerClass(
          * Focuses the active tab's primary content element.
          */
         focusActiveTabContent() {
-            this._currentTabActor?.onTabSelected?.();
+            this._currentTabActor?.onTabSelected();
         }
 
         // ========================================================================
@@ -103,7 +103,7 @@ export const MenuContentArea = GObject.registerClass(
 
             try {
                 if (this._activeTabName === tabName && oldActor) {
-                    oldActor.onTabSelected?.();
+                    oldActor.onTabSelected();
                     return;
                 }
 
@@ -373,7 +373,7 @@ export const MenuContentArea = GObject.registerClass(
          */
         _notifyTabSelected(afterTabSelected = null) {
             const selectedActor = this._currentTabActor;
-            selectedActor?.onTabSelected?.();
+            selectedActor?.onTabSelected();
 
             if (afterTabSelected) {
                 Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {

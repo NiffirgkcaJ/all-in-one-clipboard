@@ -79,14 +79,14 @@ export class GifHttpService {
         try {
             return await this._fetchOnce(url, cancellable);
         } catch (e) {
-            if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+            if (e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
                 throw e;
             }
 
             const status = e.details?.status;
             const isTransientIoError = Object.keys(GifProvider.RETRY_TRANSIENT_IO_ERROR_NAMES).some((errorName) => {
                 const errorCode = Gio.IOErrorEnum[errorName];
-                return typeof errorCode === 'number' && e.matches?.(Gio.IOErrorEnum, errorCode);
+                return typeof errorCode === 'number' && e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, errorCode);
             });
             const isRetryable = (typeof status === 'number' && status >= GifProvider.SERVER_ERROR_THRESHOLD) || isTransientIoError;
 
@@ -131,7 +131,7 @@ export class GifHttpService {
                 try {
                     resolve(source.send_and_read_finish(res));
                 } catch (e) {
-                    if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                    if (e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
                         reject(e);
                     } else {
                         reject(new GifHttpError(e.message));

@@ -1015,7 +1015,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             if (this._tabScrollPolicyWidthSignalId > 0 && this._settings) {
                 this._settings.disconnect(this._tabScrollPolicyWidthSignalId);
             }
-            if (this._tabScrollPolicyAllocationSignalId > 0 && this._tabContainer && !this._tabContainer.is_destroyed?.()) {
+            if (this._tabScrollPolicyAllocationSignalId > 0 && this._tabContainer) {
                 this._tabContainer.disconnect(this._tabScrollPolicyAllocationSignalId);
                 this._tabScrollPolicyAllocationSignalId = 0;
             }

@@ -384,7 +384,7 @@ export const ClipboardGridView = GObject.registerClass(
         _createTransferToken(currentFocus) {
             let itemWidget = currentFocus;
             while (itemWidget && !itemWidget._masonryData && !itemWidget._itemId) {
-                itemWidget = itemWidget.get_parent?.();
+                itemWidget = itemWidget.get_parent();
             }
 
             const layoutData = itemWidget?._masonryData;

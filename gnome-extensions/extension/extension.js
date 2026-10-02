@@ -260,11 +260,15 @@ export default class AllInOneClipboardExtension extends Extension {
         destroyGifCacheManager();
         destroySkinnableCharSetCache();
 
-        this._indicator?.destroy();
-        this._indicator = null;
+        if (this._indicator) {
+            this._indicator.destroy();
+            this._indicator = null;
+        }
 
-        this._clipboardManager?.destroy();
-        this._clipboardManager = null;
+        if (this._clipboardManager) {
+            this._clipboardManager.destroy();
+            this._clipboardManager = null;
+        }
 
         resetClipboardSearchProvider();
         resetEmojiSearchProvider();

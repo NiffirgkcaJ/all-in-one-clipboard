@@ -1,5 +1,6 @@
-import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
@@ -175,7 +176,7 @@ export const GifFetchService = GObject.registerClass(
                     queryText: query || null,
                 });
             } catch (e) {
-                if (e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) return;
+                if (e instanceof GLib.Error && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) return;
                 if (this.isSessionValid(sessionId)) {
                     this.emit('error-occurred', e.message);
                 }

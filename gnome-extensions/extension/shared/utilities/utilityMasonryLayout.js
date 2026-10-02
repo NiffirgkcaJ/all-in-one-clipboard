@@ -611,7 +611,7 @@ export const MasonryLayout = GObject.registerClass(
             const currentFocus = global.stage.get_key_focus();
             let currentWidget = currentFocus;
             while (currentWidget && !currentWidget._itemId) {
-                currentWidget = currentWidget.get_parent?.();
+                currentWidget = currentWidget.get_parent();
             }
 
             if (!currentWidget || !this.contains(currentWidget)) return Clutter.EVENT_PROPAGATE;
@@ -840,7 +840,7 @@ export const MasonryLayout = GObject.registerClass(
         _getFocusedItemId() {
             let focused = global.stage.get_key_focus();
             while (focused && !focused._itemId) {
-                focused = focused.get_parent?.();
+                focused = focused.get_parent();
             }
             if (!focused || !this.contains(focused)) return null;
             return focused._itemId || null;
@@ -918,7 +918,7 @@ export const MasonryLayout = GObject.registerClass(
             let actor = this;
             while (actor) {
                 if (actor.visible === false) return false;
-                actor = actor.get_parent?.();
+                actor = actor.get_parent();
             }
             return true;
         }

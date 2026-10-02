@@ -17,7 +17,7 @@ import { RecentlyUsedNestedGridViewTuning, RecentlyUsedNestedViewTuning } from '
  * @returns {number} Allocated width or 0.
  */
 function readAllocatedWidth(actor) {
-    const allocation = actor?.get_allocation_box?.();
+    const allocation = actor?.get_allocation_box();
     if (!allocation) {
         return 0;
     }
@@ -33,7 +33,7 @@ function readAllocatedWidth(actor) {
  * @returns {number} Preferred width or 0.
  */
 function readPreferredWidth(actor) {
-    const preferred = actor?.get_preferred_width?.(-1);
+    const preferred = actor?.get_preferred_width(-1);
     const naturalWidth = Array.isArray(preferred) ? preferred[1] : 0;
     return Number.isFinite(naturalWidth) && naturalWidth > 0 ? Math.floor(naturalWidth) : 0;
 }
@@ -54,18 +54,18 @@ function readPreferredWidth(actor) {
  * @returns {number} Effective column count.
  */
 function resolveEffectiveNestedGridColumnCount({ sectionData, nestedScrollView, grid, settings, requestedColumnCount }) {
-    const settingsWidth = settings?.get_int?.('extension-width') ?? 0;
+    const settingsWidth = settings?.get_int('extension-width') ?? 0;
     const widthCandidates = [
-        sectionData?.bodyContainer?.get_width?.() ?? 0,
+        sectionData?.bodyContainer?.get_width() ?? 0,
         readAllocatedWidth(sectionData?.bodyContainer),
         readPreferredWidth(sectionData?.bodyContainer),
-        nestedScrollView.get_width?.() ?? 0,
+        nestedScrollView.get_width() ?? 0,
         readAllocatedWidth(nestedScrollView),
         readPreferredWidth(nestedScrollView),
-        sectionData?.section?.get_width?.() ?? 0,
+        sectionData?.section?.get_width() ?? 0,
         readAllocatedWidth(sectionData?.section),
         settingsWidth,
-        grid.get_width?.() ?? 0,
+        grid.get_width() ?? 0,
     ];
 
     const availableWidth = widthCandidates.reduce((maxWidth, candidate) => {
