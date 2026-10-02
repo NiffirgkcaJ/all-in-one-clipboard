@@ -3,6 +3,7 @@ import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js'
 import { ClipboardIntegrationGeneratedFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
+import { ClipboardIntegrationViewSwatch } from '../integrations/clipboardIntegrationViewSwatch.js';
 import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
 import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
 
@@ -36,6 +37,9 @@ export function ClipboardDefinitionColor() {
                     resolveFilename: (item) => item.gradient_filename,
                 },
             ],
+        }),
+        ...ClipboardIntegrationViewSwatch({
+            resolveFilename: (item) => item.gradient_filename,
         }),
         getSearchTerms: (item) => [item.color_value],
         copyOptions: {

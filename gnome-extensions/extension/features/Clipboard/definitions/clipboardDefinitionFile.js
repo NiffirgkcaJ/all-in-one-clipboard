@@ -4,6 +4,7 @@ import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.
 import { IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
+import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { FileProcessor } from '../processors/clipboardFileProcessor.js';
 import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
 
@@ -21,6 +22,7 @@ export function ClipboardDefinitionFile() {
         createItem: ClipboardIntegrationInlineItem({
             fields: ['preview', 'file_uri', 'hash'],
         }),
+        ...ClipboardIntegrationViewRich(),
         getSearchTerms: (item) => [item.preview, item.file_uri],
         copyOptions: {
             mergeBehavior: 'file',

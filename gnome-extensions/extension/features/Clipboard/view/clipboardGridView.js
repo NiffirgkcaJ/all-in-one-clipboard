@@ -114,11 +114,9 @@ export const ClipboardGridView = GObject.registerClass(
         _getItemOptions(isPinned) {
             return {
                 isPinned: isPinned,
-                imagesDir: this._manager.imagesDir,
-                imagePreviewsDir: this._manager.imagePreviewsDir,
-                linkPreviewsDir: this._manager.linkPreviewsDir,
                 registry: this._manager._clipboardRegistry,
-                imagePreviewSize: this._imagePreviewSize * 2,
+                storage: this._manager.storage,
+                previewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
                 selectedIds: this._selectedIds,

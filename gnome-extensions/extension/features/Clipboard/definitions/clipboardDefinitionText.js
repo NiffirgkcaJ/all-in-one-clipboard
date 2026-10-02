@@ -3,6 +3,7 @@ import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js'
 import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
 import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
+import { ClipboardIntegrationViewText } from '../integrations/clipboardIntegrationViewText.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
 
@@ -37,6 +38,7 @@ export function ClipboardDefinitionText() {
             ],
         }),
         hasFullContent: true,
+        ...ClipboardIntegrationViewText(),
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
             mergeBehavior: 'text',

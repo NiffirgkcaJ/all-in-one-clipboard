@@ -6,6 +6,7 @@ import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
+import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
@@ -45,6 +46,7 @@ export function ClipboardDefinitionLink() {
                 },
             ],
         }),
+        ...ClipboardIntegrationViewRich(),
         getSearchTerms: (item) => [item.title, item.url],
         copyOptions: {
             mergeBehavior: 'text',
@@ -59,8 +61,9 @@ export function ClipboardDefinitionLink() {
             config.title = item.title || item.url;
             config.subtitle = item.url;
 
-            if (item.icon_filename && options.linkPreviewsDir) {
-                const iconPath = GLib.build_filenamev([options.linkPreviewsDir, item.icon_filename]);
+            const linkPreviewsDir = options.storage?.linkPreviewsDir;
+            if (item.icon_filename && linkPreviewsDir) {
+                const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
                 config.giconPath = iconPath;
                 config.gicon = IOImage.loadIcon(iconPath);
             }

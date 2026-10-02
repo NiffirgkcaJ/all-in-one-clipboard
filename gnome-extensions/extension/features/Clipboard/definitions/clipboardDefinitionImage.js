@@ -8,6 +8,7 @@ import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardInt
 import { ClipboardIntegrationImageFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationPreviewWarmup } from '../integrations/clipboardIntegrationPreviewWarmup.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
+import { ClipboardIntegrationViewMedia } from '../integrations/clipboardIntegrationViewMedia.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
 
@@ -48,6 +49,13 @@ export function ClipboardDefinitionImage() {
             shouldWarmupItem: (item) => Boolean(item.image_filename),
             warmupItem: (item, { storage }) => ImageProcessor.ensurePreviewForItem(item, storage.imagesDir, storage.imagePreviewsDir),
             warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
+        }),
+        ...ClipboardIntegrationViewMedia({
+            resolveFilename: (item) => item.image_filename,
+            resolvePreviewFilename: (item) => item.preview_filename,
+            sourceDirKey: 'imagesDir',
+            previewDirKey: 'imagePreviewsDir',
+            logLabel: 'image',
         }),
         getSearchTerms: (item) => [item.image_filename],
         copyOptions: {

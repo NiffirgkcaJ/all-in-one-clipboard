@@ -1,17 +1,10 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
-import GLib from 'gi://GLib';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
-
-import { Logger } from '../../../shared/utilities/utilityLogger.js';
-
-import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
-import { IconSizes } from '../constants/clipboardConstants.js';
 
 /**
  * ClipboardListItemFactory
@@ -28,13 +21,25 @@ export class ClipboardListItemFactory {
      * Get the item view configuration.
      *
      * @param {Object} item The raw item data.
-     * @param {string} imagesDir Directory where images are stored.
-     * @param {string} linkPreviewsDir Directory where link previews are stored.
-     * @param {Object} registry Clipboard registry instance.
+     * @param {Object} context View context.
      * @returns {Object} The view configuration.
      */
-    static getItemViewConfig(item, imagesDir, linkPreviewsDir, registry) {
-        return ClipboardBaseItemConfig.getItemViewConfig(item, imagesDir, linkPreviewsDir, registry);
+    static getItemViewConfig(item, context) {
+        return ClipboardBaseItemConfig.getItemViewConfig(item, context);
+    }
+
+    /**
+     * Get shell-level view metadata for an item.
+     *
+     * @param {Object} config The view configuration.
+     * @param {Object} item The raw item data.
+     * @param {Object} options Render options.
+     * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} options.previewSize Preview size.
+     * @returns {Object} View metadata.
+     */
+    static getItemViewMetadata(config, item, options) {
+        return options.registry ? options.registry.getViewMetadata(config, item, options) : {};
     }
 
     /**
@@ -42,10 +47,9 @@ export class ClipboardListItemFactory {
      *
      * @param {Object} itemData The item data.
      * @param {Object} options Options for rendering.
-     * @param {string} options.imagesDir Directory where images are stored.
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
-     * @param {number} options.imagePreviewSize Size for image preview.
+     * @param {Object} options.storage Clipboard storage instance.
+     * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} options.previewSize Preview size.
      * @param {Function} options.onItemCopy Callback when row is clicked.
      * @param {Object} options.manager ClipboardManager for pin or delete actions.
      * @param {Set} options.selectedIds Set of selected item IDs.
@@ -90,16 +94,14 @@ export class ClipboardListItemFactory {
         const checkboxIcon = itemCheckbox.child;
 
         // Content
-        const config = ClipboardListItemFactory.getItemViewConfig(itemData, options.imagesDir, options.linkPreviewsDir, options.registry);
-        const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
-            imagesDir: options.imagesDir,
-            imagePreviewsDir: options.imagePreviewsDir,
-            imagePreviewSize: options.imagePreviewSize,
-        });
+        const renderContext = ClipboardListItemFactory._createRenderContext(options);
+        const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
+        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
+        const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
         mainBox.add_child(contentWidget);
 
-        if (config.layoutMode === 'image') {
-            itemWidget.set_style(`min-height: ${options.imagePreviewSize}px;`);
+        if (metadata.listMinHeight) {
+            itemWidget.set_style(`min-height: ${metadata.listMinHeight}px;`);
         }
 
         // Action Buttons
@@ -167,6 +169,7 @@ export class ClipboardListItemFactory {
         itemWidget._contentWidget = contentWidget;
         itemWidget._mainBox = mainBox;
         itemWidget._viewConfig = config;
+        itemWidget._renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, itemData, renderContext);
 
         return itemWidget;
     }
@@ -177,29 +180,28 @@ export class ClipboardListItemFactory {
      * @param {St.Widget} itemWidget The existing widget.
      * @param {Object} newItemData The new item data.
      * @param {Object} options Options for rendering.
-     * @param {string} options.imagesDir Directory where images are stored.
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
-     * @param {string} options.linkPreviewsDir Directory where link previews are stored.
-     * @param {number} options.imagePreviewSize Size for image preview.
+     * @param {Object} options.storage Clipboard storage instance.
+     * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} options.previewSize Preview size.
      */
     static updateItem(itemWidget, newItemData, options) {
         if (!itemWidget || !newItemData) return;
 
         itemWidget._itemId = newItemData.id;
 
-        const config = ClipboardListItemFactory.getItemViewConfig(newItemData, options.imagesDir, options.linkPreviewsDir, options.registry);
-        const previousFingerprint = itemWidget._viewConfig?._fingerprint || '';
-        const nextFingerprint = config._fingerprint || '';
+        const renderContext = ClipboardListItemFactory._createRenderContext(options);
+        const config = ClipboardListItemFactory.getItemViewConfig(newItemData, renderContext);
+        const renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, newItemData, renderContext);
+        const previousFingerprint = itemWidget._renderFingerprint || itemWidget._viewConfig?._fingerprint || '';
+        const nextFingerprint = renderFingerprint || config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {
             return;
         }
 
         itemWidget._viewConfig = config;
-        const newContentWidget = ClipboardListItemFactory.createListContent(config, newItemData, {
-            imagesDir: options.imagesDir,
-            imagePreviewsDir: options.imagePreviewsDir,
-            imagePreviewSize: options.imagePreviewSize,
-        });
+        itemWidget._renderFingerprint = renderFingerprint;
+        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, newItemData, renderContext);
+        const newContentWidget = ClipboardListItemFactory.createListContent(config, newItemData, renderContext);
 
         const mainBox = itemWidget._mainBox || itemWidget.get_child();
         const oldContentWidget = itemWidget._contentWidget;
@@ -209,6 +211,8 @@ export class ClipboardListItemFactory {
             itemWidget._contentWidget = newContentWidget;
             oldContentWidget.destroy();
         }
+
+        itemWidget.set_style(metadata.listMinHeight ? `min-height: ${metadata.listMinHeight}px;` : '');
     }
 
     /**
@@ -217,31 +221,16 @@ export class ClipboardListItemFactory {
      * @param {Object} config The view configuration.
      * @param {Object} itemData The raw item data.
      * @param {Object} options Display options.
-     * @param {string} options.imagesDir Directory where images are stored.
-     * @param {string} options.imagePreviewsDir Directory where image previews are stored.
-     * @param {number} options.imagePreviewSize Size of image preview.
+     * @param {Object} options.storage Clipboard storage instance.
+     * @param {number} options.previewSize Preview size.
+     * @param {Object} options.registry Clipboard registry instance.
      * @returns {St.Widget} The content widget.
      */
     static createListContent(config, itemData, options) {
-        // Image
-        if (config.layoutMode === 'image') {
-            return ClipboardListItemFactory._createImageListContent(config, itemData, options);
-        }
-        // Rich
-        else if (config.layoutMode === 'rich') {
-            return ClipboardListItemFactory._createRichListContent(config, itemData, options);
-        }
-        // Color
-        else if (config.layoutMode === 'color') {
-            return ClipboardListItemFactory._createColorListContent(config, itemData, options);
-        }
-        // Code
-        else if (config.layoutMode === 'code') {
-            return ClipboardListItemFactory._createCodeListContent(config, itemData, options);
-        }
+        const registryContent = options.registry ? options.registry.createListContent(config, itemData, options) : null;
+        if (registryContent) return registryContent;
 
-        // Text
-        return ClipboardListItemFactory._createTextListContent(config, itemData, options);
+        return ClipboardListItemFactory._createFallbackContent(config);
     }
 
     // ========================================================================
@@ -249,245 +238,29 @@ export class ClipboardListItemFactory {
     // ========================================================================
 
     /**
-     * Create image content for the list row.
+     * Create the render context passed to clipboard definitions.
      *
-     * @param {Object} config The view configuration.
-     * @param {Object} itemData The raw item data.
-     * @param {Object} options Display options.
-     * @returns {St.Widget} The image content widget.
+     * @param {Object} options Factory options.
+     * @returns {Object} Render context.
      * @private
      */
-    static _createImageListContent(config, itemData, options) {
-        const previewPath = ClipboardBaseItemConfig.getExpectedPreviewPath(itemData, options.imagePreviewsDir);
-        const imagePath = GLib.build_filenamev([options.imagesDir, itemData.image_filename]);
-
-        const imageWrapper = new St.Bin({
-            style_class: 'clipboard-list-image-content',
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-
-        const imageActor = new St.Bin({
-            width: options.imagePreviewSize,
-            height: options.imagePreviewSize,
-            x_expand: false,
-            y_expand: false,
-        });
-        imageWrapper.set_style(`min-height: ${options.imagePreviewSize}px;`);
-        imageWrapper.set_child(imageActor);
-
-        const cancellable = new Gio.Cancellable();
-        imageWrapper.connect('destroy', () => {
-            cancellable.cancel();
-        });
-
-        ClipboardBaseItemConfig.ensurePreviewAsync(imagePath, options.imagePreviewSize, previewPath, cancellable)
-            .then((ready) => {
-                if (ready && !cancellable.is_cancelled()) {
-                    imageActor.set_style(`background-image: url('file://${previewPath}'); background-size: ${options.imagePreviewSize}px ${options.imagePreviewSize}px;`);
-                }
-            })
-            .catch((e) => {
-                Logger.error(`Failed to load list view image: ${e.message || e}`);
-            });
-
-        return imageWrapper;
+    static _createRenderContext(options) {
+        return {
+            registry: options.registry,
+            storage: options.storage,
+            previewSize: options.previewSize,
+        };
     }
 
     /**
-     * Create a rich icon for list rows.
+     * Create fallback content for unregistered item definitions.
      *
      * @param {Object} config The view configuration.
-     * @returns {St.Widget} The configured icon widget.
+     * @returns {St.Widget} The fallback content widget.
      * @private
      */
-    static _createRichIcon(config) {
-        if (config.gicon) {
-            return new St.Icon({
-                icon_size: IconSizes.LIST_RICH_ICON,
-                style_class: 'clipboard-list-rich-icon',
-                gicon: config.gicon,
-            });
-        } else if (config.flagPath) {
-            const file = Gio.File.new_for_uri(config.flagPath);
-            return new St.Icon({
-                icon_size: IconSizes.LIST_RICH_ICON,
-                style_class: 'clipboard-list-rich-icon',
-                gicon: new Gio.FileIcon({ file: file }),
-            });
-        }
-        return createStaticIcon(config, { styleClass: 'clipboard-list-rich-icon' });
-    }
-
-    /**
-     * Create a text column for list rows.
-     *
-     * @param {Object} config The view configuration.
-     * @returns {St.Widget} The vertically stacked text box.
-     * @private
-     */
-    static _createRichTextColumn(config) {
-        const textCol = new St.BoxLayout({
-            orientation: Clutter.Orientation.VERTICAL,
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-
-        const titleLabel = new St.Label({
-            text: config.title || '',
-            style_class: 'clipboard-list-title',
-            x_expand: true,
-        });
-        titleLabel.get_clutter_text().set_line_wrap(false);
-        titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-        textCol.add_child(titleLabel);
-
-        const subLabel = new St.Label({
-            text: config.subtitle || '',
-            style_class: 'clipboard-list-subtitle',
-            x_expand: true,
-        });
-        subLabel.get_clutter_text().set_line_wrap(false);
-        subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
-        textCol.add_child(subLabel);
-
-        return textCol;
-    }
-
-    /**
-     * Create rich content for the list row.
-     *
-     * @param {Object} config The view configuration.
-     * @param {Object} _itemData Unused raw item data kept for signature consistency.
-     * @param {Object} _options Unused options kept for signature consistency.
-     * @returns {St.Widget} The rich content widget.
-     * @private
-     */
-    static _createRichListContent(config, _itemData, _options) {
-        const contentWidget = new St.BoxLayout({
-            orientation: Clutter.Orientation.HORIZONTAL,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'clipboard-list-rich-container',
-        });
-
-        contentWidget.add_child(ClipboardListItemFactory._createRichIcon(config));
-        contentWidget.add_child(ClipboardListItemFactory._createRichTextColumn(config));
-        contentWidget.x_expand = true;
-
-        return contentWidget;
-    }
-
-    /**
-     * Create color block content for the list row.
-     *
-     * @param {Object} config The view configuration.
-     * @param {Object} itemData The raw item data.
-     * @param {Object} options Display options.
-     * @returns {St.Widget} The color content widget.
-     * @private
-     */
-    static _createColorListContent(config, itemData, options) {
-        const contentWidget = new St.BoxLayout({
-            orientation: Clutter.Orientation.HORIZONTAL,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'clipboard-list-rich-container',
-        });
-
-        contentWidget.add_child(ClipboardListItemFactory._createRichIcon(config));
-
-        const swatchContainer = new St.Bin({
-            style_class: 'clipboard-list-color-container',
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-
-        let swatch;
-        if (itemData.gradient_filename && options.imagesDir) {
-            const gradientPath = GLib.build_filenamev([options.imagesDir, itemData.gradient_filename]);
-
-            swatch = new St.Bin({
-                style_class: 'clipboard-list-color-swatch',
-                style: `background-image: url('file://${gradientPath}'); background-size: cover;`,
-            });
-        } else {
-            swatch = new St.Bin({
-                style_class: 'clipboard-list-color-swatch',
-                style: `background-color: ${config.cssColor || '#000000'};`,
-            });
-        }
-
-        swatchContainer.set_child(swatch);
-        contentWidget.add_child(swatchContainer);
-        contentWidget.add_child(ClipboardListItemFactory._createRichTextColumn(config));
-        contentWidget.x_expand = true;
-
-        return contentWidget;
-    }
-
-    /**
-     * Create a structured code view for the list row.
-     *
-     * @param {Object} config The view configuration.
-     * @param {Object} _itemData Unused raw item data kept for signature consistency.
-     * @param {Object} _options Unused options kept for signature consistency.
-     * @returns {St.Widget} The code content widget.
-     * @private
-     */
-    static _createCodeListContent(config, _itemData, _options) {
-        const contentWidget = new St.BoxLayout({
-            orientation: Clutter.Orientation.HORIZONTAL,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'clipboard-list-code-container',
-        });
-
-        const icon = createStaticIcon(config, { styleClass: 'clipboard-list-rich-icon' });
-        contentWidget.add_child(icon);
-
-        const codeBox = new St.BoxLayout({ orientation: Clutter.Orientation.HORIZONTAL, x_expand: true });
-
-        const lineCount = config.previewLinesCount !== undefined ? config.previewLinesCount : config.rawLines || 0;
-        const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
-
-        const numLabel = new St.Label({
-            text: lineNumbersString,
-            style_class: 'clipboard-list-code-numbers',
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        codeBox.add_child(numLabel);
-
-        const safeText = config.text || '';
-        const codeLabel = new St.Label({
-            text: safeText,
-            style_class: 'clipboard-list-code-content',
-            x_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        codeLabel.get_clutter_text().set_use_markup(true);
-        codeLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-
-        codeBox.add_child(codeLabel);
-        contentWidget.add_child(codeBox);
-
-        contentWidget.x_expand = true;
-
-        return contentWidget;
-    }
-
-    /**
-     * Create standard text content for the list row.
-     *
-     * @param {Object} config The view configuration.
-     * @param {Object} _itemData Unused raw item data kept for signature consistency.
-     * @param {Object} _options Unused options kept for signature consistency.
-     * @returns {St.Widget} The text content widget.
-     * @private
-     */
-    static _createTextListContent(config, _itemData, _options) {
-        const safeText = config.text || '';
+    static _createFallbackContent(config) {
+        const safeText = config.text || config.title || config.subtitle || '';
         const contentWidget = new St.Label({
             text: safeText,
             style_class: 'clipboard-list-text-label',

@@ -157,7 +157,7 @@ export class ClipboardRegistry {
      *
      * @param {Object} config The view config to populate.
      * @param {Object} item Clipboard item.
-     * @param {Object} options Display options (e.g. imagesDir).
+     * @param {Object} options View context.
      */
     configureView(config, item, options) {
         const definition = this.getDefinition(item.type);
@@ -166,6 +166,87 @@ export class ClipboardRegistry {
         } else {
             config.text = item.preview || item.text || '';
         }
+    }
+
+    /**
+     * Create list content through an item's definition.
+     *
+     * @param {Object} config View config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {St.Widget|null} Content widget or null.
+     */
+    createListContent(config, item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.createListContent) {
+            return definition.createListContent(config, item, { ...options, definition });
+        }
+        return null;
+    }
+
+    /**
+     * Create grid content through an item's definition.
+     *
+     * @param {Object} config View config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {St.Widget|null} Content widget or null.
+     */
+    createGridContent(config, item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.createGridContent) {
+            return definition.createGridContent(config, item, { ...options, definition });
+        }
+        return null;
+    }
+
+    /**
+     * Build a view fingerprint through an item's definition.
+     *
+     * @param {Object} config View config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {string} View fingerprint.
+     */
+    getViewFingerprint(config, item, options) {
+        const configFingerprint = config._fingerprint || '';
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.getViewFingerprint) {
+            return [configFingerprint, definition.getViewFingerprint(config, item, { ...options, definition }) || ''].join('|');
+        }
+        return configFingerprint;
+    }
+
+    /**
+     * Get optional grid badge metadata through an item's definition.
+     *
+     * @param {Object} config View config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {Object|null} Badge metadata or null.
+     */
+    getGridBadge(config, item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.getGridBadge) {
+            return definition.getGridBadge(config, item, { ...options, definition });
+        }
+        return null;
+    }
+
+    /**
+     * Get shell-level view metadata through an item's definition.
+     *
+     * @param {Object} config View config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {Object} View metadata.
+     */
+    getViewMetadata(config, item, options) {
+        const definition = this.getDefinition(item.type);
+        if (definition && definition.getViewMetadata) {
+            return definition.getViewMetadata(config, item, { ...options, definition }) || {};
+        }
+        return {};
     }
 
     // ========================================================================

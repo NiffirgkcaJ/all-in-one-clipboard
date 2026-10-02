@@ -1,7 +1,3 @@
-import GLib from 'gi://GLib';
-
-import { IOImage } from '../../../shared/utilities/utilityIO.js';
-
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 
 /**
@@ -19,12 +15,13 @@ export class ClipboardBaseItemConfig {
      * Map an item's raw data to a standardized view configuration.
      *
      * @param {Object} item The raw item data.
-     * @param {string} imagesDir Directory where images are stored.
-     * @param {string} linkPreviewsDir Directory where link previews are stored.
-     * @param {Object} registry Clipboard registry instance.
+     * @param {Object} context View context.
+     * @param {Object} context.registry Clipboard registry instance.
+     * @param {Object} context.storage Clipboard storage instance.
      * @returns {Object} Standardized configuration object.
      */
-    static getItemViewConfig(item, imagesDir, linkPreviewsDir, registry) {
+    static getItemViewConfig(item, context = {}) {
+        const registry = context.registry;
         const style = registry ? registry.getItemStyle(item) : null;
 
         const config = {
@@ -35,7 +32,7 @@ export class ClipboardBaseItemConfig {
 
         // Type Configuration
         if (registry) {
-            registry.configureView(config, item, { imagesDir, linkPreviewsDir, style });
+            registry.configureView(config, item, { ...context, style });
         } else {
             config.text = item.preview || item.text || '';
         }
@@ -63,20 +60,19 @@ export class ClipboardBaseItemConfig {
     }
 
     /**
-     * Get the expected preview path for an image.
+     * Build a fingerprint for all inputs that affect rendered item content.
      *
-     * @param {Object} itemData Clipboard item data.
-     * @param {string} imagePreviewsDir Directory where image previews are stored.
-     * @returns {string|null} Resolved path or null if missing.
+     * @param {Object} config Item view config.
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Render options.
+     * @returns {string} Render fingerprint.
      */
-    static getExpectedPreviewPath(itemData, imagePreviewsDir) {
-        if (!imagePreviewsDir || !itemData.image_filename) return null;
+    static getItemRenderFingerprint(config, item, options = {}) {
+        if (options.registry) {
+            return options.registry.getViewFingerprint(config, item, options);
+        }
 
-        const base = itemData.image_filename.replace(/\.[^/.]+$/, '');
-        const fallbackPreviewName = `preview_${base}.png`;
-        const previewName = itemData.preview_filename || fallbackPreviewName;
-
-        return GLib.build_filenamev([imagePreviewsDir, previewName]);
+        return config._fingerprint || ClipboardBaseItemConfig._buildConfigFingerprint(config);
     }
 
     // ========================================================================
@@ -107,19 +103,5 @@ export class ClipboardBaseItemConfig {
             config.giconPath || '',
             iconOptionsFingerprint,
         ].join('|');
-    }
-
-    /**
-     * Asynchronously ensure an image preview file exists on disk.
-     * If the preview file does not exist, it loads and scales the original image and saves it as a preview file.
-     *
-     * @param {string} imagePath Path to the original image file.
-     * @param {number} size Target size for scaling.
-     * @param {string|null} previewPath Expected path for the preview file.
-     * @param {Gio.Cancellable} [cancellable] Cancellable.
-     * @returns {Promise<boolean>} True if the preview is ready, false otherwise.
-     */
-    static async ensurePreviewAsync(imagePath, size, previewPath = null, cancellable = null) {
-        return await IOImage.ensurePreviewAsync(imagePath, previewPath, size, cancellable);
     }
 }

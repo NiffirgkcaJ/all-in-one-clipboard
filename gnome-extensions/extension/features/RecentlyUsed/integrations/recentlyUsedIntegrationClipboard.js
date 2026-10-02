@@ -63,17 +63,18 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
         return false;
     }
 
-    const imagePreviewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
-    const config = ClipboardListItemFactory.getItemViewConfig(itemData, clipboardManager.imagesDir, clipboardManager.linkPreviewsDir, clipboardManager._clipboardRegistry);
-    const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, {
-        imagesDir: clipboardManager.imagesDir,
-        imagePreviewsDir: clipboardManager.imagePreviewsDir,
-        imagePreviewSize,
-    });
+    const previewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
+    const renderContext = {
+        previewSize,
+        registry: clipboardManager._clipboardRegistry,
+        storage: clipboardManager.storage,
+    };
+    const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
+    const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
 
     if (itemData?.type === ClipboardType.IMAGE) {
         button.style_class = styleClass + ' ' + RecentlyUsedStyles.NORMAL_ITEM;
-        button.set_style(`min-height: ${Math.max(Number(imagePreviewSize) || RecentlyUsedUI.NESTED_ITEM_HEIGHT)}px;`);
+        button.set_style(`min-height: ${Math.max(Number(previewSize) || RecentlyUsedUI.NESTED_ITEM_HEIGHT)}px;`);
         box.y_expand = true;
         box.y_align = Clutter.ActorAlign.FILL;
     }
