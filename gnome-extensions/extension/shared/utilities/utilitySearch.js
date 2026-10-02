@@ -43,7 +43,7 @@ export const SearchComponent = GObject.registerClass(
 
             this.actor = new St.BoxLayout({
                 style_class: 'aio-search-bar-container',
-                vertical: false,
+                orientation: Clutter.Orientation.HORIZONTAL,
                 y_align: Clutter.ActorAlign.CENTER,
                 x_expand: true,
             });

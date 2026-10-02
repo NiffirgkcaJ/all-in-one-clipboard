@@ -70,7 +70,7 @@ export const CategorizedItemViewer = GObject.registerClass(
          */
         constructor(extension, settings, config) {
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 y_expand: true,
                 style_class: 'categorized-item-viewer',
@@ -209,7 +209,7 @@ export const CategorizedItemViewer = GObject.registerClass(
         _buildUI() {
             this._header = new St.BoxLayout({
                 style_class: 'internal-header',
-                vertical: false,
+                orientation: Clutter.Orientation.HORIZONTAL,
                 x_expand: true,
             });
 
@@ -277,7 +277,7 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             this._contentArea = new St.BoxLayout({
                 style_class: 'content-grid-area',
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 y_expand: true,
                 x_expand: true,
             });
@@ -848,7 +848,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             });
 
             let scrollableContainer = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 y_expand: true,
                 x_align: Clutter.ActorAlign.FILL,

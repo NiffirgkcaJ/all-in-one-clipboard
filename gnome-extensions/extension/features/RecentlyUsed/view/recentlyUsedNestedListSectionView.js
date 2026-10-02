@@ -1,3 +1,4 @@
+import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
@@ -134,7 +135,7 @@ export function renderRecentlyUsedNestedListSection({ id, nestedLayout, resolved
         x_expand: true,
     });
 
-    const container = new St.BoxLayout({ vertical: true, x_expand: true });
+    const container = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL, x_expand: true });
 
     nestedScrollView.set_child(container);
     sectionData.bodyContainer.set_child(nestedScrollView);

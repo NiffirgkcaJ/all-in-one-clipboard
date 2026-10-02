@@ -51,7 +51,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         constructor(extension, settings, clipboardManager) {
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: 'gif-tab-content',
                 x_expand: true,
                 y_expand: true,

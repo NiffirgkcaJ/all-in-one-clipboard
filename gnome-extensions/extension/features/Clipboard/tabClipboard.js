@@ -61,7 +61,7 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectionService = new ClipboardSelectionService();
 
             this._mainBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: 'aio-clipboard-container',
                 x_expand: true,
             });

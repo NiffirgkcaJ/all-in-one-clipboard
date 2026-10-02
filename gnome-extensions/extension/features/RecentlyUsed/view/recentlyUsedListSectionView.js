@@ -1,3 +1,4 @@
+import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 
 /**
@@ -16,7 +17,7 @@ export function renderRecentlyUsedListSection({ id, sections, items, focusGrid, 
     sectionData.section.show();
     focusGrid.push([sectionData.showAllBtn]);
 
-    const container = new St.BoxLayout({ vertical: true, x_expand: true });
+    const container = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL, x_expand: true });
 
     items.forEach((item) => {
         const widget = createItemWidget(item, id);

@@ -61,7 +61,7 @@ export class ClipboardListItemFactory {
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
 
         const mainBox = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'clipboard-row-content',
@@ -311,7 +311,7 @@ export class ClipboardListItemFactory {
      */
     static _createRichTextColumn(config) {
         const textCol = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
         });
@@ -348,7 +348,7 @@ export class ClipboardListItemFactory {
      */
     static _createRichListContent(config, _itemData, _options) {
         const contentWidget = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'clipboard-list-rich-container',
         });
@@ -371,7 +371,7 @@ export class ClipboardListItemFactory {
      */
     static _createColorListContent(config, itemData, options) {
         const contentWidget = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'clipboard-list-rich-container',
         });
@@ -418,7 +418,7 @@ export class ClipboardListItemFactory {
      */
     static _createCodeListContent(config, _itemData, _options) {
         const contentWidget = new St.BoxLayout({
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'clipboard-list-code-container',
         });
@@ -426,7 +426,7 @@ export class ClipboardListItemFactory {
         const icon = createStaticIcon(config, { styleClass: 'clipboard-list-rich-icon' });
         contentWidget.add_child(icon);
 
-        const codeBox = new St.BoxLayout({ vertical: false, x_expand: true });
+        const codeBox = new St.BoxLayout({ orientation: Clutter.Orientation.HORIZONTAL, x_expand: true });
 
         const lineCount = config.previewLinesCount !== undefined ? config.previewLinesCount : config.rawLines || 0;
         const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');

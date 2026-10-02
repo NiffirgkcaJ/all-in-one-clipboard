@@ -47,7 +47,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         constructor({ settings, extension, sectionProvider, onItemClicked, onOpenPreferences }) {
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: RecentlyUsedStyles.TAB_CONTENT,
                 x_expand: true,
                 y_expand: true,
@@ -201,7 +201,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             wrapper.add_child(this._scrollView);
 
             this._mainContainer = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: RecentlyUsedStyles.CONTAINER,
             });
             this._scrollView.set_child(this._mainContainer);
@@ -239,7 +239,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._mainContainer.add_child(separator);
 
             const section = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: RecentlyUsedStyles.SECTION,
                 x_expand: true,
             });

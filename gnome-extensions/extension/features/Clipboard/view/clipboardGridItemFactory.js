@@ -395,7 +395,7 @@ export class ClipboardGridItemFactory {
      */
     static _createRichTextColumn(config) {
         const labelsContainer = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'clipboard-grid-rich-labels',
             x_expand: true,
             y_expand: true,
@@ -433,7 +433,7 @@ export class ClipboardGridItemFactory {
      */
     static _createRichGridContent(config, itemData, _options) {
         const contentWidget = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'clipboard-grid-rich-container',
             x_expand: true,
             y_expand: true,
@@ -474,7 +474,7 @@ export class ClipboardGridItemFactory {
      */
     static _createColorGridContent(config, itemData, options) {
         const contentWidget = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'clipboard-grid-color-container',
             x_expand: true,
             y_expand: true,
@@ -493,7 +493,7 @@ export class ClipboardGridItemFactory {
         contentWidget.add_child(spacer);
 
         const labelOverlay = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'clipboard-grid-color-card',
             x_expand: true,
             y_expand: true,

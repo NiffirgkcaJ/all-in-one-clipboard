@@ -43,7 +43,7 @@ export const ClipboardActionBar = GObject.registerClass(
         constructor(settings, manager, selectedIds) {
             super({
                 style_class: 'clipboard-selection-bar',
-                vertical: false,
+                orientation: Clutter.Orientation.HORIZONTAL,
                 y_align: Clutter.ActorAlign.CENTER,
             });
             this.spacing = BAR_SPACING;

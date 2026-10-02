@@ -41,7 +41,7 @@ export const ClipboardBaseView = GObject.registerClass(
          */
         constructor(options, styleOptions = {}) {
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 y_expand: true,
                 reactive: true,

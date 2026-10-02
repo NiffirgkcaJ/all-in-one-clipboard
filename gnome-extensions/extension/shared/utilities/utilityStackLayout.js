@@ -41,7 +41,7 @@ export const StackLayout = GObject.registerClass(
             } = params;
 
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 ...otherParams,
             });

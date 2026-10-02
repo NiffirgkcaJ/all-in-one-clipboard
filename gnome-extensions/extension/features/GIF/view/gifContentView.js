@@ -39,7 +39,7 @@ export const GifContentView = GObject.registerClass(
          */
         constructor(settings, itemFactory) {
             super({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 y_expand: true,
             });
@@ -76,7 +76,7 @@ export const GifContentView = GObject.registerClass(
             vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
 
             this._scrollableContainer = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_expand: true,
                 x_align: Clutter.ActorAlign.FILL,
             });

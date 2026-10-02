@@ -63,7 +63,7 @@ export const MenuIndicator = GObject.registerClass(
             this.menu.removeAll();
 
             this._mainVerticalBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 width: this._settings.get_int('extension-width'),
                 height: this._settings.get_int('extension-height'),
                 style_class: 'aio-clipboard-container',
