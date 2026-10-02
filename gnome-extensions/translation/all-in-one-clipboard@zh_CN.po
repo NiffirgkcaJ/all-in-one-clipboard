@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-26 15:49+0800\n"
+"POT-Creation-Date: 2026-10-02 15:06+0000\n"
 "PO-Revision-Date: 2026-06-26 15:50+0800\n"
 "Last-Translator: adinlead <adinlead@sina.cn>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -446,12 +446,12 @@ msgstr "热门"
 msgid "Trending GIFs"
 msgstr "热门动图"
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:39
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
 msgid "No recent items yet."
 msgstr "暂无最近项目。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
 msgid "Show All"
 msgstr "显示全部"
 
@@ -513,302 +513,302 @@ msgstr "最近剪贴板历史"
 msgid "Clipboard Matches"
 msgstr "剪贴板匹配项"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:117
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:128
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:149
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:160
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:130
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:168
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:189
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:200
 msgid "Limited"
 msgstr "限制"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:118
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:129
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:150
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:161
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:131
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:169
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:190
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:201
 msgid "Unlimited"
 msgstr "无限"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:121
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:173
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:196
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:208
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:134
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:213
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:236
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:248
 msgid "Fixed Window"
 msgstr "固定窗口"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:122
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:174
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:197
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:209
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:135
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:214
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:237
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:249
 msgid "Scroll Window"
 msgstr "滚动窗口"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:138
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:151
 msgid "Grid layout"
 msgstr "网格布局"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:138
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:151
 msgid "List layout"
 msgstr "列表布局"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:153
 #, javascript-format
 msgid "%s - %s"
 msgstr "%s - %s"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:153
 msgid "Custom overrides enabled"
 msgstr "已启用自定义覆盖"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:140
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:153
 msgid "Using global defaults"
 msgstr "使用全局默认值"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:406
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:89
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:419
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:99
 #, javascript-format
 msgid "%s Range: %d-%d. Default: %d."
 msgstr "%s 范围：%d-%d。默认值：%d。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:443
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:456
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:473
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:461
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:474
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:491
 msgid "Advanced Section Overrides"
 msgstr "高级分区覆盖"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:444
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:462
 msgid "Open section-level overrides."
 msgstr "打开分区级覆盖设置。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:461
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:479
 msgid "Definitions"
 msgstr "定义"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:462
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:480
 msgid "Choose a section to edit its override definition."
 msgstr "选择一个分区以编辑其覆盖定义。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:474
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:492
 msgid "Unavailable until the extension schema is updated."
 msgstr "扩展架构更新后可用。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:502
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:520
 msgid "Customize this definition without changing global defaults."
 msgstr "自定义此定义，不改变全局默认值。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:507
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:525
 msgid "Enable Custom Overrides"
 msgstr "启用自定义覆盖"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:508
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:526
 msgid "When disabled, this definition uses global policy."
 msgstr "禁用时，此定义使用全局策略。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:549
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:125
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:567
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:165
 msgid "Global Limit Policy"
 msgstr "全局限制策略"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:550
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:126
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:568
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:166
 msgid "Used when custom limit policy by context is disabled."
 msgstr "自定义上下文限制策略禁用时使用。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:557
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:136
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:575
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:176
 msgid "Customize Limit Policy by Context"
 msgstr "按上下文自定义限制策略"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:558
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:137
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:576
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:177
 msgid "Configure browse and search limit policy independently."
 msgstr "分别配置浏览和搜索限制策略。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:573
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:146
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:591
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:186
 msgid "Browse Policy"
 msgstr "浏览策略"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:574
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:147
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:592
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:187
 msgid "Policy applied while browsing (non-search)."
 msgstr "浏览时（非搜索）应用的策略。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:582
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:157
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:600
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:197
 msgid "Search Policy"
 msgstr "搜索策略"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:583
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:158
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:601
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:198
 msgid "Policy applied only when search is enabled."
 msgstr "仅在搜索启用时应用的策略。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:591
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:170
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:609
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:210
 msgid "Global Display Mode"
 msgstr "全局显示模式"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:592
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:171
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:610
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:211
 msgid "Used when custom display mode by view is disabled."
 msgstr "自定义视图显示模式禁用时使用。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:599
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:181
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:617
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:221
 msgid "Customize Display Mode by View"
 msgstr "按视图自定义显示模式"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:600
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:182
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:618
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:222
 msgid "Configure list and grid display mode independently."
 msgstr "分别配置列表和网格显示模式。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:615
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:193
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:633
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:233
 msgid "List Display Mode"
 msgstr "列表显示模式"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:616
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:194
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:634
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:234
 msgid "Display mode for list view."
 msgstr "列表视图的显示模式。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:624
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:205
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:642
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:245
 msgid "Grid Display Mode"
 msgstr "网格显示模式"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:625
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:206
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:246
 msgid "Display mode for grid view."
 msgstr "网格视图的显示模式。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:634
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:217
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:652
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:257
 msgid "Global Visible Items"
 msgstr "全局可见项目数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:635
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:653
 msgid "Global item cap for grid when custom visible-items by view is disabled."
 msgstr "自定义视图可见项目数禁用时的网格全局上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:635
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:653
 msgid "Global item cap for list when custom visible-items by view is disabled."
 msgstr "自定义视图可见项目数禁用时的列表全局上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:641
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:224
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:659
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:264
 msgid "Customize Visible Items by View"
 msgstr "按视图自定义可见项目数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:642
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:225
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:660
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:265
 msgid "Configure list and grid item caps independently."
 msgstr "分别配置列表和网格的项目上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:658
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:236
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:676
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:276
 msgid "List Visible Items"
 msgstr "列表可见项目数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:659
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:237
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:277
 msgid "Item cap for list view."
 msgstr "列表视图的项目上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:667
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:244
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:685
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:284
 msgid "Grid Visible Items"
 msgstr "网格可见项目数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:668
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:245
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:686
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:285
 msgid "Item cap for grid view."
 msgstr "网格视图的项目上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:676
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:252
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:694
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:292
 msgid "Global Window Rows"
 msgstr "全局窗口行数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:695
 msgid "Global row limit for grid when custom window limits by view is disabled."
 msgstr "自定义视图窗口限制禁用时的网格全局行数上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:677
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:695
 msgid "Global row limit for list when custom window limits by view is disabled."
 msgstr "自定义视图窗口限制禁用时的列表全局行数上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:683
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:259
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:701
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:299
 msgid "Customize Window Limits by View"
 msgstr "按视图自定义窗口限制"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:684
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:260
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:702
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:300
 msgid "Configure list and grid window rows and grid columns independently."
 msgstr "分别配置列表和网格的窗口行数及网格列数。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:700
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:271
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:718
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:311
 msgid "List Window Rows"
 msgstr "列表窗口行数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:701
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:272
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:719
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:312
 msgid "Row limit for list view window."
 msgstr "列表视图窗口的行数上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:709
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:279
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:727
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:319
 msgid "Grid Window Rows"
 msgstr "网格窗口行数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:710
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:280
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:728
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:320
 msgid "Row limit for grid view window."
 msgstr "网格视图窗口的行数上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:718
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:287
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:736
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:327
 msgid "Grid Window Columns"
 msgstr "网格窗口列数"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:719
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:288
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:737
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:328
 msgid "Column value for grid view window."
 msgstr "网格视图窗口的列数值。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:727
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:296
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:745
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:336
 msgid "Unlimited Safety Cap"
 msgstr "无限模式安全上限"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:728
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:297
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:746
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:337
 msgid "Hard cap for unlimited mode to protect shell responsiveness."
 msgstr "无限模式的硬性上限，用于保护 Shell 响应性。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:22
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:24
 msgid "Recently Used Settings"
 msgstr "最近使用设置"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:23
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:25
 msgid "Behavior settings for the Recently Used tab."
 msgstr "最近使用标签页的行为设置。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:116
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:156
 msgid "Enable Search in Recently Used"
 msgstr "在最近使用中启用搜索"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:117
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:157
 msgid "Show a global search bar to filter items across Recently Used sections."
 msgstr "显示全局搜索栏以在最近使用分区中过滤项目。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:218
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:258
 msgid "Global item cap for list and grid when custom visible-items by view is disabled."
 msgstr "自定义视图可见项目数禁用时的列表和网格全局上限。"
 
-#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:253
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:293
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "自定义视图窗口限制禁用时的列表和网格全局行数上限。"
 
