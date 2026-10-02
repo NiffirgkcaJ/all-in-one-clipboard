@@ -14,11 +14,6 @@ const PROVIDERS = {
         secretName: 'KLIPY_API_KEY',
         keyParam: 'key',
     },
-    tenor: {
-        base: 'https://tenor.googleapis.com/v2',
-        secretName: 'TENOR_API_KEY',
-        keyParam: 'key',
-    },
 };
 
 // Per-IP rate limiting in-memory, which resets on cold start

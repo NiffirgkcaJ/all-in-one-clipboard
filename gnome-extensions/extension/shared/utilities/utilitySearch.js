@@ -195,7 +195,7 @@ export const SearchComponent = GObject.registerClass(
          * Sets the search hint content using text or a logo configuration or both.
          *
          * @param {Object} [config] Configuration object.
-         * @param {string} [config.text] Hint text such as Search Tenor.
+         * @param {string} [config.text] Hint text such as Search...
          * @param {Object} [config.logo] Logo configuration for createLogo.
          * @param {number} [config.spacing=4] Spacing in pixels between text and logo.
          */

@@ -10,7 +10,6 @@
 
         <!-- GIF Files -->
         <file compressed="true">assets/data/gif/klipy.json</file>
-        <file compressed="true">assets/data/gif/tenor.json</file>
 
         <!-- Kaomoji Files -->
         <file compressed="true">assets/data/kaomoji/kaomojis.json</file>
@@ -314,7 +313,6 @@
 
         <!-- Logo Files -->
         <file compressed="true">assets/logos/klipy/klipy-main-logo.svg</file>
-        <file compressed="true">assets/logos/tenor/tenor-main-logo.svg</file>
 
         <!-- Aliased Icon Files -->
         <file compressed="true" alias="assets/icons/scalable/actions/preferences-advanced-symbolic.svg">assets/icons/ui/preferences-advanced-symbolic.svg</file>
