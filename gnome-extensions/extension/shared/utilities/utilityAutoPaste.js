@@ -24,7 +24,8 @@ class AutoPaster {
      */
     _getVirtualKeyboard() {
         if (!this._virtualKeyboard) {
-            this._virtualKeyboard = Clutter.get_default_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+            const backend = global.stage.context.get_backend();
+            this._virtualKeyboard = backend.get_default_seat().create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
         }
         return this._virtualKeyboard;
     }
