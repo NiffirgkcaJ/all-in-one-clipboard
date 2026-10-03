@@ -5,6 +5,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
+import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 
 // Configuration
 const SCROLL_THRESHOLD_PX = 500;
@@ -614,7 +615,7 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Handle shared up/down navigation contract across pinned and history sections.
+         * Handle shared keyboard navigation contract across pinned and history sections.
          *
          * @param {Clutter.Event} event Key event.
          * @param {Object} options Navigation adapters.
@@ -624,26 +625,27 @@ export const ClipboardBaseView = GObject.registerClass(
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @protected
          */
-        _handleArrowNavigation(event, options) {
-            const symbol = event.get_key_symbol();
-            if (!this._isArrowKey(symbol)) return Clutter.EVENT_PROPAGATE;
+        _handleKeyNavigation(event, options) {
+            const tabNav = FocusUtils.getTabNavigation(event);
+            const isArrow = this._isArrowKey(event);
+            if (!isArrow && !tabNav.isTab) return Clutter.EVENT_PROPAGATE;
 
             const currentFocus = global.stage.get_key_focus();
             const context = {
-                symbol,
+                tabNav,
                 event,
                 currentFocus,
                 pinnedHasItems: this._pinnedContainer && this._pinnedContainer.getItemCount() > 0,
                 historyHasItems: this._historyContainer && this._historyContainer.getItemCount() > 0,
-                createTransferToken: options?.createTransferToken || (() => undefined),
-                focusHistoryFromPinned: options?.focusHistoryFromPinned,
-                focusPinnedFromHistory: options?.focusPinnedFromHistory,
+                createTransferToken: options.createTransferToken,
+                focusHistoryFromPinned: options.focusHistoryFromPinned,
+                focusPinnedFromHistory: options.focusPinnedFromHistory,
             };
 
-            const pinnedResult = this._handlePinnedArrowNavigation(context);
+            const pinnedResult = this._handlePinnedNavigation(context);
             if (pinnedResult !== null) return pinnedResult;
 
-            const historyResult = this._handleHistoryArrowNavigation(context);
+            const historyResult = this._handleHistoryNavigation(context);
             if (historyResult !== null) return historyResult;
 
             return Clutter.EVENT_PROPAGATE;
@@ -652,34 +654,46 @@ export const ClipboardBaseView = GObject.registerClass(
         /**
          * Shared arrow-key predicate.
          *
-         * @param {number} symbol Key symbol.
-         * @returns {boolean} True if symbol is an arrow key.
+         * @param {Clutter.Event} event The key event.
+         * @returns {boolean} True if event is an arrow key.
          * @private
          */
-        _isArrowKey(symbol) {
-            return [Clutter.KEY_Left, Clutter.KEY_Right, Clutter.KEY_Up, Clutter.KEY_Down].includes(symbol);
+        _isArrowKey(event) {
+            return FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right') || FocusUtils.isKey(event, 'Up') || FocusUtils.isKey(event, 'Down');
         }
 
         /**
-         * Handle arrow navigation while focus is inside the pinned section.
+         * Handle keyboard navigation while focus is inside the pinned section.
          *
          * @param {Object} context Navigation context.
          * @returns {number|null} Event result or null when not in pinned section.
          * @private
          */
-        _handlePinnedArrowNavigation(context) {
-            const { currentFocus, symbol, event, historyHasItems, createTransferToken, focusHistoryFromPinned } = context;
+        _handlePinnedNavigation(context) {
+            const { currentFocus, event, tabNav, historyHasItems, createTransferToken, focusHistoryFromPinned } = context;
             if (!context.pinnedHasItems || !this._pinnedContainer.contains(currentFocus)) return null;
 
             const result = this._pinnedContainer.handleKeyPress(this._pinnedContainer, event);
             if (result === Clutter.EVENT_STOP) return result;
 
-            if (symbol === Clutter.KEY_Down && historyHasItems) {
-                focusHistoryFromPinned?.(createTransferToken(currentFocus));
+            if (tabNav.isTab) {
+                if (tabNav.isBackward) {
+                    this.emit('navigate-up');
+                    return Clutter.EVENT_STOP;
+                }
+                if (historyHasItems) {
+                    focusHistoryFromPinned(createTransferToken(currentFocus));
+                    return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (FocusUtils.isKey(event, 'Down') && historyHasItems) {
+                focusHistoryFromPinned(createTransferToken(currentFocus));
                 return Clutter.EVENT_STOP;
             }
 
-            if (symbol === Clutter.KEY_Up) {
+            if (FocusUtils.isKey(event, 'Up')) {
                 this.emit('navigate-up');
                 return Clutter.EVENT_STOP;
             }
@@ -688,26 +702,41 @@ export const ClipboardBaseView = GObject.registerClass(
         }
 
         /**
-         * Handle arrow navigation while focus is inside the history section.
+         * Handle keyboard navigation while focus is inside the history section.
          *
          * @param {Object} context Navigation context.
          * @returns {number|null} Event result or null when not in history section.
          * @private
          */
-        _handleHistoryArrowNavigation(context) {
-            const { currentFocus, symbol, event, pinnedHasItems, createTransferToken, focusPinnedFromHistory } = context;
+        _handleHistoryNavigation(context) {
+            const { currentFocus, event, tabNav, pinnedHasItems, createTransferToken, focusPinnedFromHistory } = context;
             if (!context.historyHasItems || !this._historyContainer.contains(currentFocus)) return null;
 
             const result = this._historyContainer.handleKeyPress(this._historyContainer, event);
             if (result === Clutter.EVENT_STOP) return result;
 
-            if (symbol === Clutter.KEY_Down && this._consumeDownForHistoryPagination()) {
+            if (tabNav.isTab) {
+                if (tabNav.isBackward) {
+                    if (pinnedHasItems) {
+                        focusPinnedFromHistory(createTransferToken(currentFocus));
+                    } else {
+                        this.emit('navigate-up');
+                    }
+                    return Clutter.EVENT_STOP;
+                }
+                if (this._consumeDownForHistoryPagination()) {
+                    return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (FocusUtils.isKey(event, 'Down') && this._consumeDownForHistoryPagination()) {
                 return Clutter.EVENT_STOP;
             }
 
-            if (symbol === Clutter.KEY_Up) {
+            if (FocusUtils.isKey(event, 'Up')) {
                 if (pinnedHasItems) {
-                    focusPinnedFromHistory?.(createTransferToken(currentFocus));
+                    focusPinnedFromHistory(createTransferToken(currentFocus));
                 } else {
                     this.emit('navigate-up');
                 }
@@ -826,6 +855,15 @@ export const ClipboardBaseView = GObject.registerClass(
                 this._scrollIdleId = 0;
             }
 
+            if (this._scrollView && this._scrollSignalIds.length > 0) {
+                const vadjustment = this._scrollView.vadjustment;
+                this._scrollSignalIds.forEach((signalId) => {
+                    vadjustment.disconnect(signalId);
+                });
+                this._scrollSignalIds = [];
+            }
+            this._scrollView = null;
+
             this._allItems = null;
             this._pendingHistoryItems = null;
             this._manager = null;
@@ -833,20 +871,6 @@ export const ClipboardBaseView = GObject.registerClass(
             this._onSelectionChanged = null;
             this._selectedIds = null;
             this._checkboxIconsMap.clear();
-
-            if (this._scrollView && this._scrollSignalIds.length > 0) {
-                const vadjustment = this._scrollView.vadjustment;
-                this._scrollSignalIds.forEach((signalId) => {
-                    try {
-                        vadjustment.disconnect(signalId);
-                    } catch {
-                        // Adjustment may already be finalized.
-                    }
-                });
-                this._scrollSignalIds = [];
-            }
-            this._scrollView = null;
-            this._scrollSignalIds = [];
 
             const pinnedContainer = this._pinnedContainer;
             const historyContainer = this._historyContainer;
@@ -857,22 +881,17 @@ export const ClipboardBaseView = GObject.registerClass(
             if (pinnedContainer) {
                 const parent = pinnedContainer.get_parent();
                 if (parent) parent.remove_child(pinnedContainer);
-            }
-            if (historyContainer) {
-                const parent = historyContainer.get_parent();
-                if (parent) parent.remove_child(historyContainer);
-            }
-
-            super.destroy();
-
-            if (pinnedContainer) {
                 pinnedContainer.clear();
                 pinnedContainer.destroy();
             }
             if (historyContainer) {
+                const parent = historyContainer.get_parent();
+                if (parent) parent.remove_child(historyContainer);
                 historyContainer.clear();
                 historyContainer.destroy();
             }
+
+            super.destroy();
         }
     },
 );

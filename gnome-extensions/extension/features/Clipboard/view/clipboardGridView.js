@@ -367,7 +367,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _onKeyPress(_actor, event) {
-            return this._handleArrowNavigation(event, {
+            return this._handleKeyNavigation(event, {
                 createTransferToken: (currentFocus) => this._createTransferToken(currentFocus),
                 focusHistoryFromPinned: (centerX) => this._historyContainer.focusFirst(centerX),
                 focusPinnedFromHistory: (centerX) => this._pinnedContainer.focusLast(centerX),

@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
+import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 
 import { GifSettings, GifUI } from '../constants/gifConstants.js';
 
@@ -306,11 +307,19 @@ export const GifContentView = GObject.registerClass(
          * @private
          */
         _onGridKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
+            const tabNav = FocusUtils.getTabNavigation(event);
 
-            if (symbol === Clutter.KEY_Up) {
+            if (FocusUtils.isKey(event, 'Up') || tabNav.isBackward) {
                 this.emit('focus-next-up');
                 return Clutter.EVENT_STOP;
+            }
+
+            if (tabNav.isForward) {
+                const firstChild = this._masonryView.get_first_child();
+                if (firstChild) {
+                    firstChild.grab_key_focus();
+                    return Clutter.EVENT_STOP;
+                }
             }
 
             return Clutter.EVENT_PROPAGATE;

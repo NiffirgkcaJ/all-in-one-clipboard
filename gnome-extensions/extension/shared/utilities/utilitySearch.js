@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon, createLogo } from './utilityIcon.js';
+import { FocusUtils } from './utilityFocus.js';
 
 const SearchIcons = {
     CLEAR: {
@@ -33,12 +34,14 @@ export const SearchComponent = GObject.registerClass(
          * @param {Object} [options] Optional configuration.
          * @param {Function} [options.onNavigateDown] Callback when down navigation is requested.
          * @param {Function} [options.onNavigateUp] Callback when up navigation is requested.
+         * @param {Function} [options.onNavigateTab] Callback when tab navigation is requested.
          */
-        constructor(onSearchChangedCallback, { onNavigateDown, onNavigateUp } = {}) {
+        constructor(onSearchChangedCallback, { onNavigateDown, onNavigateUp, onNavigateTab } = {}) {
             super();
             this._onSearchChangedCallback = onSearchChangedCallback;
             this._onNavigateDown = onNavigateDown ?? null;
             this._onNavigateUp = onNavigateUp ?? null;
+            this._onNavigateTab = onNavigateTab ?? null;
             this._mappedSignalId = 0;
 
             this.actor = new St.BoxLayout({
@@ -105,53 +108,111 @@ export const SearchComponent = GObject.registerClass(
         }
 
         /**
-         * Handle key press events on the search entry to allow escaping with arrow keys.
+         * Handle key press events for the clear button.
+         *
+         * @param {Clutter.Event} event The key event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleClearButtonKeyPress(event) {
+            if (FocusUtils.isKey(event, 'Right')) return Clutter.EVENT_STOP;
+
+            const tabNav = FocusUtils.getTabNavigation(event);
+            if (FocusUtils.isKey(event, 'Left') || tabNav.isBackward) {
+                this._entry.grab_key_focus();
+                return Clutter.EVENT_STOP;
+            }
+            if (tabNav.isForward) {
+                return this._handleTabNavigation(false);
+            }
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Handle forward or backward tab navigation from the search entry.
+         *
+         * @param {boolean} isBackward Whether navigating backward.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleTabNavigation(isBackward) {
+            if (this._onNavigateTab) {
+                return this._onNavigateTab(isBackward) ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+            }
+            if (isBackward) {
+                if (this._onNavigateUp) {
+                    return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_STOP;
+            }
+            if (this._onNavigateDown) {
+                return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+            }
+            return Clutter.EVENT_STOP;
+        }
+
+        /**
+         * Handle horizontal arrow key navigation inside the entry.
+         *
+         * @param {Clutter.Event} event The key event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleHorizontalArrowPress(event) {
+            const text = this._entry.get_text();
+            const cursorPosition = this._entry.clutter_text.get_cursor_position();
+
+            if (FocusUtils.isKey(event, 'Left')) {
+                const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
+                if (isAtStart) return Clutter.EVENT_STOP;
+            } else if (FocusUtils.isKey(event, 'Right')) {
+                const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
+                if (isAtEnd) {
+                    if (this._clearButton.visible) {
+                        this._clearButton.grab_key_focus();
+                    }
+                    return Clutter.EVENT_STOP;
+                }
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Handle key press events on the search entry to allow escaping with arrow keys and tab cycling.
          *
          * @param {Clutter.Actor} actor The source actor.
          * @param {Clutter.Event} event The key event.
-         * @returns {boolean} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
         _onKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
+            const tabNav = FocusUtils.getTabNavigation(event);
 
             if (actor === this._clearButton) {
-                if (symbol === Clutter.KEY_Right) return Clutter.EVENT_STOP;
-                if (symbol === Clutter.KEY_Left) {
-                    this._entry.grab_key_focus();
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
+                return this._handleClearButtonKeyPress(event);
             }
 
-            if (symbol === Clutter.KEY_Down) {
+            if (tabNav.isTab) {
+                return this._handleTabNavigation(tabNav.isBackward);
+            }
+
+            if (FocusUtils.isKey(event, 'Down')) {
                 if (this._onNavigateDown) {
                     return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
                 }
                 return Clutter.EVENT_PROPAGATE;
             }
-            if (symbol === Clutter.KEY_Up) {
+
+            if (FocusUtils.isKey(event, 'Up')) {
                 if (this._onNavigateUp) {
                     return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
                 }
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            const text = this._entry.get_text();
-            const cursorPosition = this._entry.clutter_text.get_cursor_position();
-
-            if (symbol === Clutter.KEY_Left) {
-                const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
-                if (isAtStart) return Clutter.EVENT_STOP;
-            } else if (symbol === Clutter.KEY_Right) {
-                const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
-                if (isAtEnd) {
-                    if (this._clearButton.visible) {
-                        this._clearButton.grab_key_focus();
-                        return Clutter.EVENT_STOP;
-                    }
-                    return Clutter.EVENT_STOP;
-                }
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
+                return this._handleHorizontalArrowPress(event);
             }
 
             return Clutter.EVENT_PROPAGATE;
@@ -295,6 +356,7 @@ export const SearchComponent = GObject.registerClass(
             this._onSearchChangedCallback = null;
             this._onNavigateDown = null;
             this._onNavigateUp = null;
+            this._onNavigateTab = null;
         }
     },
 );

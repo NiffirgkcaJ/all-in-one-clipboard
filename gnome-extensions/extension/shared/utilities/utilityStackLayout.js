@@ -4,6 +4,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { FocusUtils } from './utilityFocus.js';
+
 const StackVirtualization = {
     MIN_ITEMS: 120,
     ESTIMATED_ITEM_HEIGHT: 84,
@@ -66,6 +68,8 @@ export const StackLayout = GObject.registerClass(
             this._virtualWindowEnd = 0;
             this._virtualTopSpacer = null;
             this._virtualBottomSpacer = null;
+
+            this.connect('key-press-event', this.handleKeyPress.bind(this));
         }
 
         /**
@@ -323,7 +327,6 @@ export const StackLayout = GObject.registerClass(
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          */
         handleKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
             const currentFocus = global.stage.get_key_focus();
 
             if (!this.contains(currentFocus)) return Clutter.EVENT_PROPAGATE;
@@ -335,37 +338,79 @@ export const StackLayout = GObject.registerClass(
 
             if (!itemWidget) return Clutter.EVENT_PROPAGATE;
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
-                return this._handleHorizontalNavigation(symbol, currentFocus, itemWidget);
+            const tabNav = FocusUtils.getTabNavigation(event);
+            if (tabNav.isTab) {
+                return this._handleTabNavigation(event, tabNav.isBackward, itemWidget);
             }
 
-            if (symbol === Clutter.KEY_Up || symbol === Clutter.KEY_Down) {
-                return this._handleVerticalNavigation(symbol, currentFocus, itemWidget);
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
+                return this._handleHorizontalNavigation(FocusUtils.isKey(event, 'Left'), currentFocus, itemWidget);
+            }
+
+            if (FocusUtils.isKey(event, 'Up') || FocusUtils.isKey(event, 'Down')) {
+                return this._handleVerticalNavigation(FocusUtils.isKey(event, 'Up'), currentFocus, itemWidget);
             }
 
             return Clutter.EVENT_PROPAGATE;
         }
 
         /**
+         * Handle Tab and Shift+Tab key navigation.
+         * Advances through items sequentially, and escapes when navigating backward from the start.
+         *
+         * @param {Clutter.Event} event The key press event.
+         * @param {boolean} isBackwardTab Whether Shift+Tab was pressed.
+         * @param {St.Widget} itemWidget Current item row widget.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleTabNavigation(event, isBackwardTab, itemWidget) {
+            if (this._items && this._items.length > 0) {
+                const currentId = itemWidget._itemId;
+                const itemIndex = this._itemIndexById.get(currentId) ?? -1;
+
+                if (itemIndex !== -1) {
+                    if (isBackwardTab) {
+                        if (itemIndex > 0) {
+                            const prevItem = this._items[itemIndex - 1];
+                            return this.focusByItemId(prevItem.id) ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                        }
+                        return Clutter.EVENT_PROPAGATE;
+                    }
+
+                    if (itemIndex < this._items.length - 1) {
+                        const nextItem = this._items[itemIndex + 1];
+                        return this.focusByItemId(nextItem.id) ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                    }
+                    return Clutter.EVENT_PROPAGATE;
+                }
+            }
+
+            const siblings = this._getItemChildren();
+            const currentIndex = siblings.indexOf(itemWidget);
+            if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
+
+            return FocusUtils.handleTabNavigation(event, siblings, currentIndex, {
+                wrap: false,
+                onBoundary: () => Clutter.EVENT_PROPAGATE,
+            });
+        }
+
+        /**
          * Handle horizontal arrow key navigation within a row.
-         * @param {number} symbol Key symbol.
+         * @param {boolean} isLeft True if navigating left and false for right.
          * @param {Clutter.Actor} currentFocus Currently focused actor.
          * @param {St.Widget} itemWidget The row widget.
          * @returns {number} Clutter event constant.
          * @private
          */
-        _handleHorizontalNavigation(symbol, currentFocus, itemWidget) {
+        _handleHorizontalNavigation(isLeft, currentFocus, itemWidget) {
             const focusables = [itemWidget._itemCheckbox, itemWidget, itemWidget._pinButton, itemWidget._deleteButton].filter((actor) => actor && actor.visible && actor.mapped);
 
             const currentIndex = focusables.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            let nextIndex;
-            if (symbol === Clutter.KEY_Left) {
-                nextIndex = Math.max(0, currentIndex - 1);
-            } else {
-                nextIndex = Math.min(focusables.length - 1, currentIndex + 1);
-            }
+            const nextIndex = isLeft ? Math.max(0, currentIndex - 1) : Math.min(focusables.length - 1, currentIndex + 1);
 
             if (nextIndex !== currentIndex) {
                 focusables[nextIndex].grab_key_focus();
@@ -376,14 +421,14 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Handle vertical arrow key navigation between rows.
-         * @param {number} symbol Key symbol.
+         * @param {boolean} isUp True if navigating up and false for down.
          * @param {Clutter.Actor} currentFocus Currently focused actor.
          * @param {St.Widget} itemWidget The row widget.
          * @returns {number} Clutter event constant.
          * @private
          */
-        _handleVerticalNavigation(symbol, currentFocus, itemWidget) {
-            if (this._virtualizationActive && this._tryVirtualVerticalNavigation(symbol, currentFocus, itemWidget)) {
+        _handleVerticalNavigation(isUp, currentFocus, itemWidget) {
+            if (this._virtualizationActive && this._tryVirtualVerticalNavigation(isUp, currentFocus, itemWidget)) {
                 return Clutter.EVENT_STOP;
             }
 
@@ -393,7 +438,7 @@ export const StackLayout = GObject.registerClass(
             if (currentRowIndex === -1) return Clutter.EVENT_PROPAGATE;
 
             let nextRow;
-            if (symbol === Clutter.KEY_Up) {
+            if (isUp) {
                 if (currentRowIndex > 0) {
                     nextRow = siblings[currentRowIndex - 1];
                 } else {
@@ -422,17 +467,17 @@ export const StackLayout = GObject.registerClass(
 
         /**
          * Try virtualized movement by global index and realize target if needed.
-         * @param {number} symbol Key symbol.
+         * @param {boolean} isUp True if navigating up and false for down.
          * @param {Clutter.Actor} currentFocus Currently focused actor.
          * @param {St.Widget} itemWidget Current item widget.
          * @returns {boolean} True if focus moved.
          * @private
          */
-        _tryVirtualVerticalNavigation(symbol, currentFocus, itemWidget) {
+        _tryVirtualVerticalNavigation(isUp, currentFocus, itemWidget) {
             const currentGlobalIndex = this._itemIndexById.get(itemWidget?._itemId) ?? -1;
             if (currentGlobalIndex === -1) return false;
 
-            const nextGlobalIndex = symbol === Clutter.KEY_Up ? currentGlobalIndex - 1 : currentGlobalIndex + 1;
+            const nextGlobalIndex = isUp ? currentGlobalIndex - 1 : currentGlobalIndex + 1;
             if (nextGlobalIndex < 0 || nextGlobalIndex >= this._items.length) return false;
 
             const nextItemId = this._items[nextGlobalIndex]?.id;

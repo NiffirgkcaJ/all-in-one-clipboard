@@ -337,8 +337,6 @@ export const GifHeaderView = GObject.registerClass(
          * @private
          */
         _onHeaderKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-
             if (this._headerFocusables.length === 0) {
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -350,13 +348,26 @@ export const GifHeaderView = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
                 return FocusUtils.handleLinearNavigation(event, this._headerFocusables, currentIndex);
             }
 
-            if (symbol === Clutter.KEY_Down) {
+            if (FocusUtils.isKey(event, 'Down')) {
                 this.emit('focus-next-down');
                 return Clutter.EVENT_STOP;
+            }
+
+            if (FocusUtils.getTabNavigation(event).isTab) {
+                return FocusUtils.handleTabNavigation(event, this._headerFocusables, currentIndex, {
+                    wrap: false,
+                    onBoundary: (side) => {
+                        if (side === 'forward') {
+                            this.emit('focus-next-down');
+                            return Clutter.EVENT_STOP;
+                        }
+                        return Clutter.EVENT_STOP;
+                    },
+                });
             }
 
             return Clutter.EVENT_PROPAGATE;

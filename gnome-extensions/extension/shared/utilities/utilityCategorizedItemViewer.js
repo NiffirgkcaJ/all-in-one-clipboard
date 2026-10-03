@@ -375,8 +375,6 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _onFocusRingKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-
             const focusables = this._getHeaderFocusables();
             if (focusables.length === 0) {
                 return Clutter.EVENT_PROPAGATE;
@@ -386,13 +384,26 @@ export const CategorizedItemViewer = GObject.registerClass(
             const currentIndex = focusables.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
                 return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
             }
 
-            if (symbol === Clutter.KEY_Down) {
-                this._searchComponent?.grabFocus();
+            if (FocusUtils.isKey(event, 'Down')) {
+                this._searchComponent.grabFocus();
                 return Clutter.EVENT_STOP;
+            }
+
+            if (FocusUtils.getTabNavigation(event).isTab) {
+                return FocusUtils.handleTabNavigation(event, focusables, currentIndex, {
+                    wrap: false,
+                    onBoundary: (side) => {
+                        if (side === 'forward') {
+                            this._searchComponent.grabFocus();
+                            return Clutter.EVENT_STOP;
+                        }
+                        return Clutter.EVENT_STOP;
+                    },
+                });
             }
 
             return Clutter.EVENT_PROPAGATE;
@@ -416,8 +427,8 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._currentItemsPerRow || this._config.itemsPerRow || 1, {
                 onBoundary: (side) => {
-                    if (side === 'up') {
-                        this._searchComponent?.grabFocus();
+                    if (side === 'up' || side === 'backward') {
+                        this._searchComponent.grabFocus();
                         return Clutter.EVENT_STOP;
                     }
                     return undefined;

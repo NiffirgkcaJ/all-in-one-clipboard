@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+import { FocusUtils } from './utilityFocus.js';
 import { Logger } from './utilityLogger.js';
 
 const MasonryDefaults = {
@@ -590,14 +591,91 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
+         * Focuses an item by its identifier and ensures visibility in the scroll view.
+         *
+         * @param {string} itemId The identifier of the item to focus.
+         * @returns {number} Clutter.EVENT_STOP.
+         * @private
+         */
+        _focusMasonryItemById(itemId) {
+            let target = this.get_children().find((child) => child._itemId === itemId);
+            if (!target && this._virtualizationActive) {
+                this.focusByItemId(itemId);
+                return Clutter.EVENT_STOP;
+            }
+
+            if (target) {
+                target.grab_key_focus();
+                if (this._scrollView) {
+                    ensureActorVisibleInScrollView(this._scrollView, target);
+                }
+            }
+
+            return Clutter.EVENT_STOP;
+        }
+
+        /**
+         * Handles sequential Tab and Shift+Tab navigation through masonry items.
+         *
+         * @param {Clutter.Event} event The key press event.
+         * @param {boolean} isBackwardTab Whether Shift+Tab was pressed.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleTabNavigation(event, isBackwardTab) {
+            const currentFocus = global.stage.get_key_focus();
+            let currentWidget = currentFocus;
+            while (currentWidget && !currentWidget._itemId) {
+                currentWidget = currentWidget.get_parent();
+            }
+
+            if (!currentWidget || !this.contains(currentWidget)) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (this._items && this._items.length > 0) {
+                const currentId = currentWidget._itemId;
+                const itemIndex = this._items.findIndex((item) => item.id === currentId);
+
+                if (itemIndex !== -1) {
+                    if (isBackwardTab) {
+                        if (itemIndex > 0) {
+                            return this._focusMasonryItemById(this._items[itemIndex - 1].id);
+                        }
+                        return Clutter.EVENT_PROPAGATE;
+                    }
+
+                    if (itemIndex < this._items.length - 1) {
+                        return this._focusMasonryItemById(this._items[itemIndex + 1].id);
+                    }
+                    return Clutter.EVENT_PROPAGATE;
+                }
+            }
+
+            const children = this._getItemChildren(true);
+            const currentIndex = children.indexOf(currentWidget);
+            if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
+
+            return FocusUtils.handleTabNavigation(event, children, currentIndex, {
+                wrap: false,
+                onBoundary: () => Clutter.EVENT_PROPAGATE,
+            });
+        }
+
+        /**
          * Handles key press events for grid navigation.
          * @param {Clutter.Actor} _actor The actor that received the event.
          * @param {Clutter.Event} event The key press event.
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          */
         handleKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
-            const direction = this._getDirectionFromKey(symbol);
+            const tabNav = FocusUtils.getTabNavigation(event);
+
+            if (tabNav.isTab) {
+                return this._handleTabNavigation(event, tabNav.isBackward);
+            }
+
+            const direction = this._getDirectionFromEvent(event);
 
             if (!direction) {
                 return Clutter.EVENT_PROPAGATE;
@@ -643,24 +721,17 @@ export const MasonryLayout = GObject.registerClass(
         }
 
         /**
-         * Converts a keyboard symbol to a navigation direction.
-         * @param {number} symbol The key symbol.
+         * Converts a keyboard event to a navigation direction.
+         * @param {Clutter.Event} event The key event.
          * @returns {string|null} The direction string or null.
          * @private
          */
-        _getDirectionFromKey(symbol) {
-            switch (symbol) {
-                case Clutter.KEY_Up:
-                    return 'up';
-                case Clutter.KEY_Down:
-                    return 'down';
-                case Clutter.KEY_Left:
-                    return 'left';
-                case Clutter.KEY_Right:
-                    return 'right';
-                default:
-                    return null;
-            }
+        _getDirectionFromEvent(event) {
+            if (FocusUtils.isKey(event, 'Up')) return 'up';
+            if (FocusUtils.isKey(event, 'Down')) return 'down';
+            if (FocusUtils.isKey(event, 'Left')) return 'left';
+            if (FocusUtils.isKey(event, 'Right')) return 'right';
+            return null;
         }
 
         /**
