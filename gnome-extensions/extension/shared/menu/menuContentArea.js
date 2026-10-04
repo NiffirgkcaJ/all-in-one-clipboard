@@ -78,10 +78,37 @@ export const MenuContentArea = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Focuses the active tab's primary content element.
+         * Focuses the active tab's primary content element for keyboard navigation.
          */
         focusActiveTabContent() {
-            this._currentTabActor?.onTabSelected();
+            if (!this._currentTabActor) {
+                return;
+            }
+
+            const targetViewer = this._currentTabActor._viewer || this._currentTabActor._view || this._currentTabActor;
+            if (targetViewer.focusTopContent) {
+                targetViewer.focusTopContent();
+                return;
+            }
+
+            this._currentTabActor.onTabSelected();
+        }
+
+        /**
+         * Focuses the active tab's bottom-most content element when wrapping backward from the main tab bar.
+         */
+        focusActiveTabBottomContent() {
+            if (!this._currentTabActor) {
+                return;
+            }
+
+            const targetViewer = this._currentTabActor._viewer || this._currentTabActor._view || this._currentTabActor;
+            if (targetViewer.focusBottomContent) {
+                targetViewer.focusBottomContent();
+                return;
+            }
+
+            this.focusActiveTabContent();
         }
 
         // ========================================================================

@@ -485,7 +485,7 @@ export const MasonryLayout = GObject.registerClass(
         focusByItemId(itemId) {
             if (!itemId) return false;
 
-            let target = this.get_children().find((child) => child._itemId === itemId);
+            let target = this.get_children().find((child) => String(child._itemId) === String(itemId));
             if (!target && this._virtualizationActive) {
                 const entry = this._layoutEntryById.get(itemId);
                 if (!entry) return false;
@@ -493,7 +493,7 @@ export const MasonryLayout = GObject.registerClass(
                 const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
                 this._virtualViewportTop = Math.max(0, entry.layoutData.y - viewportHeight * 0.4);
                 this._applyViewportCulling(true);
-                target = this.get_children().find((child) => child._itemId === itemId);
+                target = this.get_children().find((child) => String(child._itemId) === String(itemId));
             }
 
             if (!target) return false;
@@ -507,7 +507,12 @@ export const MasonryLayout = GObject.registerClass(
          */
         focusFirst(targetCenterX) {
             const children = this._getItemChildren(true);
-            if (children.length === 0) return;
+            if (children.length === 0) {
+                if (this._items && this._items.length > 0) {
+                    return this.focusByItemId(this._items[0].id);
+                }
+                return false;
+            }
 
             let target = children[0];
 
@@ -529,15 +534,22 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             this.focusItem(target);
+            return true;
         }
 
         /**
          * Focus the last item in the masonry layout.
          * @param {number} [targetCenterX] Horizontal position to find item in the same column.
+         * @returns {boolean} True if an item was focused.
          */
         focusLast(targetCenterX) {
             const children = this._getItemChildren(true);
-            if (children.length === 0) return;
+            if (children.length === 0) {
+                if (this._items && this._items.length > 0) {
+                    return this.focusByItemId(this._items[this._items.length - 1].id);
+                }
+                return false;
+            }
 
             let target = children[children.length - 1];
 
@@ -565,6 +577,7 @@ export const MasonryLayout = GObject.registerClass(
             }
 
             this.focusItem(target);
+            return true;
         }
 
         /**
@@ -577,6 +590,14 @@ export const MasonryLayout = GObject.registerClass(
             if (this._focusTimeoutId) {
                 GLib.source_remove(this._focusTimeoutId);
                 this._focusTimeoutId = 0;
+            }
+
+            if (widget.visible && widget.mapped) {
+                widget.grab_key_focus();
+                if (this._scrollView) {
+                    ensureActorVisibleInScrollView(this._scrollView, widget);
+                }
+                return;
             }
 
             this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
@@ -598,17 +619,14 @@ export const MasonryLayout = GObject.registerClass(
          * @private
          */
         _focusMasonryItemById(itemId) {
-            let target = this.get_children().find((child) => child._itemId === itemId);
+            let target = this.get_children().find((child) => String(child._itemId) === String(itemId));
             if (!target && this._virtualizationActive) {
                 this.focusByItemId(itemId);
                 return Clutter.EVENT_STOP;
             }
 
             if (target) {
-                target.grab_key_focus();
-                if (this._scrollView) {
-                    ensureActorVisibleInScrollView(this._scrollView, target);
-                }
+                this.focusItem(target);
             }
 
             return Clutter.EVENT_STOP;
@@ -635,7 +653,7 @@ export const MasonryLayout = GObject.registerClass(
 
             if (this._items && this._items.length > 0) {
                 const currentId = currentWidget._itemId;
-                const itemIndex = this._items.findIndex((item) => item.id === currentId);
+                const itemIndex = this._items.findIndex((item) => String(item.id) === String(currentId));
 
                 if (itemIndex !== -1) {
                     if (isBackwardTab) {

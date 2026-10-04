@@ -28,6 +28,8 @@ export const GifHeaderView = GObject.registerClass(
             'category-changed': { param_types: [GObject.TYPE_JSOBJECT] },
             'navigate-back': { param_types: [] },
             'focus-next-down': { param_types: [] },
+            'focus-previous-up': { param_types: [] },
+            'navigate-to-tab-bar': { param_types: [] },
         },
     },
     class GifHeaderView extends St.BoxLayout {
@@ -352,6 +354,11 @@ export const GifHeaderView = GObject.registerClass(
                 return FocusUtils.handleLinearNavigation(event, this._headerFocusables, currentIndex);
             }
 
+            if (FocusUtils.isKey(event, 'Up')) {
+                this.emit('navigate-to-tab-bar');
+                return Clutter.EVENT_STOP;
+            }
+
             if (FocusUtils.isKey(event, 'Down')) {
                 this.emit('focus-next-down');
                 return Clutter.EVENT_STOP;
@@ -365,6 +372,7 @@ export const GifHeaderView = GObject.registerClass(
                             this.emit('focus-next-down');
                             return Clutter.EVENT_STOP;
                         }
+                        this.emit('focus-previous-up');
                         return Clutter.EVENT_STOP;
                     },
                 });
@@ -375,11 +383,20 @@ export const GifHeaderView = GObject.registerClass(
 
         /**
          * Focuses the first element in the header.
+         *
+         * @returns {boolean} True if focused, false otherwise.
          */
         focusFirst() {
-            if (this._headerFocusables.length > 0) {
-                this._headerFocusables[0].grab_key_focus();
-            }
+            return FocusUtils.focusFirstActor(this._headerFocusables);
+        }
+
+        /**
+         * Focuses the last element in the header.
+         *
+         * @returns {boolean} True if focused, false otherwise.
+         */
+        focusLast() {
+            return FocusUtils.focusLastActor(this._headerFocusables);
         }
 
         // ========================================================================

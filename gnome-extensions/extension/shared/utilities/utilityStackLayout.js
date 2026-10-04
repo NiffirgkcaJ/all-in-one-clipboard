@@ -268,6 +268,9 @@ export const StackLayout = GObject.registerClass(
                 this.focusItem(first, targetFinder);
                 return true;
             }
+            if (this._items && this._items.length > 0) {
+                return this.focusByItemId(this._items[0].id, targetFinder);
+            }
             return false;
         }
 
@@ -282,6 +285,9 @@ export const StackLayout = GObject.registerClass(
                 const last = children[children.length - 1];
                 this.focusItem(last, targetFinder);
                 return true;
+            }
+            if (this._items && this._items.length > 0) {
+                return this.focusByItemId(this._items[this._items.length - 1].id, targetFinder);
             }
             return false;
         }
@@ -299,16 +305,30 @@ export const StackLayout = GObject.registerClass(
                 this._focusTimeoutId = 0;
             }
 
+            let target = widget;
+            if (targetFinder) {
+                const found = targetFinder(widget);
+                if (found) target = found;
+            }
+
+            if (target && target.visible && target.mapped) {
+                target.grab_key_focus();
+                if (this._scrollView) {
+                    ensureActorVisibleInScrollView(this._scrollView, widget);
+                }
+                return;
+            }
+
             this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
                 this._focusTimeoutId = 0;
-                let target = widget;
+                let deferredTarget = widget;
                 if (targetFinder) {
                     const found = targetFinder(widget);
-                    if (found) target = found;
+                    if (found) deferredTarget = found;
                 }
 
-                if (target && target.visible && target.mapped) {
-                    target.grab_key_focus();
+                if (deferredTarget && deferredTarget.visible && deferredTarget.mapped) {
+                    deferredTarget.grab_key_focus();
                 } else {
                     widget.grab_key_focus();
                 }
@@ -367,7 +387,10 @@ export const StackLayout = GObject.registerClass(
         _handleTabNavigation(event, isBackwardTab, itemWidget) {
             if (this._items && this._items.length > 0) {
                 const currentId = itemWidget._itemId;
-                const itemIndex = this._itemIndexById.get(currentId) ?? -1;
+                let itemIndex = this._itemIndexById.get(currentId) ?? -1;
+                if (itemIndex === -1) {
+                    itemIndex = this._items.findIndex((item) => String(item.id) === String(currentId));
+                }
 
                 if (itemIndex !== -1) {
                     if (isBackwardTab) {

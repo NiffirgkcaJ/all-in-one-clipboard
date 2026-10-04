@@ -20,6 +20,7 @@ export const ClipboardBaseView = GObject.registerClass(
     {
         Signals: {
             'navigate-up': {},
+            'navigate-to-tab-bar': {},
         },
     },
     class ClipboardBaseView extends St.BoxLayout {
@@ -254,6 +255,23 @@ export const ClipboardBaseView = GObject.registerClass(
             }
             if (this._historyContainer && this._historyContainer.getItemCount() > 0) {
                 this._historyContainer.focusFirst();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Focus the last content item using the container's focus API.
+         *
+         * @returns {boolean} True if focus was moved.
+         */
+        focusLastContentItem() {
+            if (this._historyContainer && this._historyContainer.getItemCount() > 0) {
+                this._historyContainer.focusLast();
+                return true;
+            }
+            if (this._pinnedContainer && this._pinnedContainer.getItemCount() > 0) {
+                this._pinnedContainer.focusLast();
                 return true;
             }
             return false;
@@ -682,14 +700,17 @@ export const ClipboardBaseView = GObject.registerClass(
                     return Clutter.EVENT_STOP;
                 }
                 if (historyHasItems) {
-                    focusHistoryFromPinned(createTransferToken(currentFocus));
+                    focusHistoryFromPinned();
                     return Clutter.EVENT_STOP;
                 }
-                return Clutter.EVENT_PROPAGATE;
+                this.emit('navigate-to-tab-bar');
+                return Clutter.EVENT_STOP;
             }
 
-            if (FocusUtils.isKey(event, 'Down') && historyHasItems) {
-                focusHistoryFromPinned(createTransferToken(currentFocus));
+            if (FocusUtils.isKey(event, 'Down')) {
+                if (historyHasItems) {
+                    focusHistoryFromPinned(createTransferToken(currentFocus));
+                }
                 return Clutter.EVENT_STOP;
             }
 
@@ -718,7 +739,7 @@ export const ClipboardBaseView = GObject.registerClass(
             if (tabNav.isTab) {
                 if (tabNav.isBackward) {
                     if (pinnedHasItems) {
-                        focusPinnedFromHistory(createTransferToken(currentFocus));
+                        focusPinnedFromHistory();
                     } else {
                         this.emit('navigate-up');
                     }
@@ -727,10 +748,14 @@ export const ClipboardBaseView = GObject.registerClass(
                 if (this._consumeDownForHistoryPagination()) {
                     return Clutter.EVENT_STOP;
                 }
-                return Clutter.EVENT_PROPAGATE;
+                this.emit('navigate-to-tab-bar');
+                return Clutter.EVENT_STOP;
             }
 
-            if (FocusUtils.isKey(event, 'Down') && this._consumeDownForHistoryPagination()) {
+            if (FocusUtils.isKey(event, 'Down')) {
+                if (this._consumeDownForHistoryPagination()) {
+                    return Clutter.EVENT_STOP;
+                }
                 return Clutter.EVENT_STOP;
             }
 

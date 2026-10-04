@@ -285,4 +285,57 @@ export const FocusUtils = {
         actor.navigate_focus(container, direction, false);
         return Clutter.EVENT_STOP;
     },
+
+    /**
+     * Focuses the first focusable actor in a list.
+     *
+     * @param {Array<Clutter.Actor>} actors Array of candidate actors.
+     * @returns {boolean} True if an actor grabbed focus.
+     */
+    focusFirstActor(actors) {
+        if (!actors || actors.length === 0) return false;
+        for (let i = 0; i < actors.length; i++) {
+            const actor = actors[i];
+            if (actor?.can_focus && actor.visible) {
+                actor.grab_key_focus();
+                return true;
+            }
+        }
+        return false;
+    },
+
+    /**
+     * Focuses the last focusable actor in a list.
+     *
+     * @param {Array<Clutter.Actor>} actors Array of candidate actors.
+     * @returns {boolean} True if an actor grabbed focus.
+     */
+    focusLastActor(actors) {
+        if (!actors || actors.length === 0) return false;
+        for (let i = actors.length - 1; i >= 0; i--) {
+            const actor = actors[i];
+            if (actor?.can_focus && actor.visible) {
+                actor.grab_key_focus();
+                return true;
+            }
+        }
+        return false;
+    },
+
+    /**
+     * Executes focus attempts in order until one succeeds.
+     *
+     * @param {Array<Function>} attempts List of functions returning boolean.
+     * @returns {boolean} True if any attempt succeeded.
+     */
+    tryFocusChain(attempts) {
+        if (!attempts) return false;
+        for (let i = 0; i < attempts.length; i++) {
+            const attempt = attempts[i];
+            if (attempt && attempt()) {
+                return true;
+            }
+        }
+        return false;
+    },
 };

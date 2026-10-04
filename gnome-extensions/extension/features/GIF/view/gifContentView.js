@@ -24,7 +24,9 @@ export const GifContentView = GObject.registerClass(
         Signals: {
             'load-more': { param_types: [] },
             'focus-next-up': { param_types: [] },
+            'focus-next-down': { param_types: [] },
             'item-activated': { param_types: [GObject.TYPE_JSOBJECT] },
+            'navigate-to-tab-bar': { param_types: [] },
         },
     },
     class GifContentView extends St.BoxLayout {
@@ -298,6 +300,19 @@ export const GifContentView = GObject.registerClass(
         }
 
         /**
+         * Focuses the last item in the content grid.
+         *
+         * @returns {boolean} True if focus was moved and false if no items.
+         */
+        focusLastItem() {
+            if (this.isEmpty()) {
+                return false;
+            }
+            this._masonryView.focusLast();
+            return true;
+        }
+
+        /**
          * Handle boundary cases when MasonryLayout propagates navigation events.
          * This only receives events that MasonryLayout didn't handle internally.
          *
@@ -315,11 +330,12 @@ export const GifContentView = GObject.registerClass(
             }
 
             if (tabNav.isForward) {
-                const firstChild = this._masonryView.get_first_child();
-                if (firstChild) {
-                    firstChild.grab_key_focus();
-                    return Clutter.EVENT_STOP;
-                }
+                this.emit('focus-next-down');
+                return Clutter.EVENT_STOP;
+            }
+
+            if (FocusUtils.isKey(event, 'Down')) {
+                return Clutter.EVENT_STOP;
             }
 
             return Clutter.EVENT_PROPAGATE;

@@ -114,6 +114,10 @@ export const MenuIndicator = GObject.registerClass(
             this._tabBar.connect('navigate-down', () => {
                 this._contentArea.focusActiveTabContent();
             });
+
+            this._tabBar.connect('navigate-wrap-to-end', () => {
+                this._contentArea.focusActiveTabBottomContent();
+            });
         }
 
         // ========================================================================

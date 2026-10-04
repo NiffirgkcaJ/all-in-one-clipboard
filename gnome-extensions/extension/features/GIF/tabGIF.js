@@ -5,6 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
+import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { IOFile } from '../../shared/utilities/utilityIO.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
@@ -111,6 +112,28 @@ export const GIFTabContent = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Navigates focus to the main tab bar if visible.
+         *
+         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
+         * @returns {boolean} True if tab bar was focused.
+         * @private
+         */
+        _navigateToTabBar(direction = 'first') {
+            const tabBar = this._extension?._indicator?._tabBar;
+            if (!tabBar || !tabBar.visible) {
+                return false;
+            }
+
+            if (direction === 'last') {
+                return tabBar.focusLastTab();
+            }
+            if (direction === 'active') {
+                return tabBar.focusActiveTab();
+            }
+            return tabBar.focusFirstTab();
+        }
+
+        /**
          * Build the orchestrated UI components.
          * @private
          */
@@ -121,11 +144,24 @@ export const GIFTabContent = GObject.registerClass(
                 this.emit('navigate-to-main-tab', _('Recently Used'));
             });
 
-            this._headerView.connect('focus-next-down', () => {
-                if (this._searchComponent.getWidget().visible) {
-                    this._searchComponent.grabFocus();
+            this._headerView.connect('navigate-to-tab-bar', () => {
+                if (this._settings.get_boolean('always-show-main-tab')) {
+                    this._navigateToTabBar('active');
+                }
+            });
+
+            this._headerView.connect('focus-previous-up', () => {
+                if (this._settings.get_boolean('always-show-main-tab')) {
+                    this._navigateToTabBar('last');
                 } else {
-                    this._contentView.focusFirstItem();
+                    this._contentView.focusLastItem();
+                }
+            });
+
+            this._headerView.connect('focus-next-down', () => {
+                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
+                if (!focused) {
+                    this._navigateToTabBar('first');
                 }
             });
             this.add_child(this._headerView);
@@ -141,8 +177,15 @@ export const GIFTabContent = GObject.registerClass(
             this._itemFactory.setScrollView(this._contentView.getScrollView());
 
             this._contentView.connect('focus-next-up', () => {
-                if (this._searchComponent.getWidget().visible) {
-                    this._searchComponent.grabFocus();
+                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._headerView.focusLast()]);
+                if (!focused) {
+                    this._navigateToTabBar('active');
+                }
+            });
+
+            this._contentView.connect('focus-next-down', () => {
+                if (this._settings.get_boolean('always-show-main-tab')) {
+                    this._navigateToTabBar('first');
                 } else {
                     this._headerView.focusFirst();
                 }
@@ -182,11 +225,29 @@ export const GIFTabContent = GObject.registerClass(
         _buildSearchBar() {
             this._searchComponent = new SearchComponent((searchText) => this._searchComponent.emit('search-changed', searchText), {
                 onNavigateDown: () => {
-                    this._contentView.focusFirstItem();
+                    if (this._contentView.focusFirstItem()) {
+                        return true;
+                    }
+                    this._navigateToTabBar('first');
                     return true;
                 },
                 onNavigateUp: () => {
-                    this._headerView.focusFirst();
+                    if (this._headerView.focusLast()) {
+                        return true;
+                    }
+                    return this._navigateToTabBar('active');
+                },
+                onNavigateTab: (isBackward) => {
+                    if (isBackward) {
+                        if (this._headerView.focusLast()) {
+                            return true;
+                        }
+                        return this._navigateToTabBar('last');
+                    }
+                    if (this._contentView.focusFirstItem()) {
+                        return true;
+                    }
+                    this._navigateToTabBar('first');
                     return true;
                 },
             });
@@ -199,6 +260,32 @@ export const GIFTabContent = GObject.registerClass(
         // ========================================================================
         // Feature Delegation
         // ========================================================================
+
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if focus was successfully moved.
+         */
+        focusTopContent() {
+            return FocusUtils.tryFocusChain([
+                () => this._headerView.focusFirst(),
+                () => this._searchComponent && this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
+                () => this._contentView.focusFirstItem(),
+            ]);
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if focus was successfully moved.
+         */
+        focusBottomContent() {
+            return FocusUtils.tryFocusChain([
+                () => this._contentView.focusLastItem(),
+                () => this._searchComponent && this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
+                () => this._headerView.focusLast(),
+            ]);
+        }
 
         /**
          * Called when the tab is selected/activated.

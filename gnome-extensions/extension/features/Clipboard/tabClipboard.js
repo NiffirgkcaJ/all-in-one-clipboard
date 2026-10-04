@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
+import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
 import { ClipboardActionBar } from './view/clipboardActionBar.js';
@@ -132,11 +133,24 @@ export const ClipboardTabContent = GObject.registerClass(
         _buildSearchComponent() {
             this._searchComponent = new SearchComponent((text) => this._searchService.handleSearchInput(text), {
                 onNavigateDown: () => {
-                    if (this._actionBar?.visible) {
-                        this._actionBar.grabFocus();
-                        return true;
+                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
+                    if (!focused) {
+                        this._navigateToTabBar('first');
                     }
-                    return this._focusFirstContentItem();
+                    return true;
+                },
+                onNavigateUp: () => {
+                    return this._navigateToTabBar('active');
+                },
+                onNavigateTab: (isBackward) => {
+                    if (isBackward) {
+                        return this._navigateToTabBar('last');
+                    }
+                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
+                    if (!focused) {
+                        this._navigateToTabBar('first');
+                    }
+                    return true;
                 },
             });
 
@@ -164,9 +178,17 @@ export const ClipboardTabContent = GObject.registerClass(
                 'merge-selected-requested',
                 () => this._onMergeSelectedRequested(),
                 'navigate-up',
-                () => this._searchComponent.grabFocus(),
+                () => {
+                    if (!this._searchComponent.grabFocus()) {
+                        this._navigateToTabBar('last');
+                    }
+                },
                 'navigate-down',
-                () => this._focusFirstContentItem(),
+                () => {
+                    if (!this._focusFirstContentItem()) {
+                        this._navigateToTabBar('first');
+                    }
+                },
                 this,
             );
 
@@ -218,13 +240,41 @@ export const ClipboardTabContent = GObject.registerClass(
             this._currentView.connectObject(
                 'navigate-up',
                 () => {
-                    if (this._actionBar?.visible) this._actionBar.grabFocus();
-                    else this._searchComponent.grabFocus();
+                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusLast(), () => this._searchComponent.grabFocus()]);
+                    if (!focused) {
+                        this._navigateToTabBar('last');
+                    }
+                },
+                'navigate-to-tab-bar',
+                () => {
+                    this._navigateToTabBar('first');
                 },
                 this,
             );
 
             this._scrollView.set_child(this._currentView);
+        }
+
+        /**
+         * Navigates focus to the main tab bar if visible.
+         *
+         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
+         * @returns {boolean} True if tab bar was focused.
+         * @private
+         */
+        _navigateToTabBar(direction = 'first') {
+            const tabBar = this._extension?._indicator?._tabBar;
+            if (!tabBar || !tabBar.visible) {
+                return false;
+            }
+
+            if (direction === 'last') {
+                return tabBar.focusLastTab();
+            }
+            if (direction === 'active') {
+                return tabBar.focusActiveTab();
+            }
+            return tabBar.focusFirstTab();
         }
 
         /**
@@ -457,9 +507,37 @@ export const ClipboardTabContent = GObject.registerClass(
             return this._currentView.focusFirstContentItem();
         }
 
+        /**
+         * Move focus to the last item in the content list.
+         *
+         * @returns {boolean} True if focus was successfully moved.
+         * @private
+         */
+        _focusLastContentItem() {
+            return this._currentView?.focusLastContentItem ? this._currentView.focusLastContentItem() : false;
+        }
+
         // ========================================================================
         // Public API
         // ========================================================================
+
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if focus was successfully moved.
+         */
+        focusTopContent() {
+            return FocusUtils.tryFocusChain([() => this._searchComponent.grabFocus(), () => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if focus was successfully moved.
+         */
+        focusBottomContent() {
+            return FocusUtils.tryFocusChain([() => this._focusLastContentItem(), () => this._actionBar?.visible && this._actionBar.focusLast(), () => this._searchComponent.grabFocus()]);
+        }
 
         /**
          * Handle the event when the clipboard tab is selected.

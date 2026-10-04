@@ -24,6 +24,7 @@ export const MenuTabBar = GObject.registerClass(
         Signals: {
             'tab-selected': { param_types: [GObject.TYPE_STRING] },
             'navigate-down': {},
+            'navigate-wrap-to-end': {},
         },
     },
     class MenuTabBar extends St.BoxLayout {
@@ -313,6 +314,51 @@ export const MenuTabBar = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Focuses the currently active tab button.
+         *
+         * @returns {boolean} True if focus was moved.
+         */
+        focusActiveTab() {
+            if (!this.visible) {
+                return false;
+            }
+
+            const activeButton = this._activeTabName ? this._tabButtons[this._activeTabName] : null;
+            if (activeButton && activeButton.visible && activeButton.can_focus) {
+                activeButton.grab_key_focus();
+                return true;
+            }
+
+            return this.focusFirstTab();
+        }
+
+        /**
+         * Focuses the first visible tab button.
+         *
+         * @returns {boolean} True if focus was moved.
+         */
+        focusFirstTab() {
+            if (!this.visible) {
+                return false;
+            }
+
+            return FocusUtils.focusFirstActor(Object.values(this._tabButtons));
+        }
+
+        /**
+         * Focuses the last visible tab button.
+         *
+         * @returns {boolean} True if focus was moved.
+         */
+        focusLastTab() {
+            if (!this.visible) {
+                return false;
+            }
+
+            return FocusUtils.focusLastActor(Object.values(this._tabButtons));
+        }
+
+        /**
          * Handles keyboard navigation in the main tab bar.
          *
          * @param {Clutter.Actor} actor Event source.
@@ -321,9 +367,7 @@ export const MenuTabBar = GObject.registerClass(
          * @private
          */
         _onMainTabBarKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
-
-            const buttons = Object.values(this._tabButtons);
+            const buttons = Object.values(this._tabButtons).filter((btn) => btn.visible && btn.can_focus);
             if (buttons.length === 0) {
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -335,11 +379,33 @@ export const MenuTabBar = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+            if (FocusUtils.isKey(event, 'Return') || FocusUtils.isKey(event, 'KP_Enter')) {
+                const tabName = Object.keys(this._tabButtons).find((key) => this._tabButtons[key] === currentFocus);
+                if (tabName) {
+                    this.emit('tab-selected', tabName);
+                    return Clutter.EVENT_STOP;
+                }
+            }
+
+            if (FocusUtils.getTabNavigation(event).isTab) {
+                return FocusUtils.handleTabNavigation(event, buttons, currentIndex, {
+                    wrap: false,
+                    onBoundary: (side) => {
+                        if (side === 'forward') {
+                            this.emit('navigate-down');
+                            return Clutter.EVENT_STOP;
+                        }
+                        this.emit('navigate-wrap-to-end');
+                        return Clutter.EVENT_STOP;
+                    },
+                });
+            }
+
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
                 return FocusUtils.handleLinearNavigation(event, buttons, currentIndex);
             }
 
-            if (symbol === Clutter.KEY_Down) {
+            if (FocusUtils.isKey(event, 'Down')) {
                 this.emit('navigate-down');
                 return Clutter.EVENT_STOP;
             }

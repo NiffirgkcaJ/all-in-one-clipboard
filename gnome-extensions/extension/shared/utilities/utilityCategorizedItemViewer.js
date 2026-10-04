@@ -267,10 +267,27 @@ export const CategorizedItemViewer = GObject.registerClass(
                 onNavigateUp: () => {
                     const focusables = this._getHeaderFocusables();
                     if (focusables.length > 0) {
-                        focusables[0].grab_key_focus();
+                        focusables[focusables.length - 1].grab_key_focus();
                         return true;
                     }
+                    if (this._isMainTabBarVisible()) {
+                        return this._navigateToTabBar('active');
+                    }
                     return false;
+                },
+                onNavigateTab: (isBackward) => {
+                    if (isBackward) {
+                        const focusables = this._getHeaderFocusables();
+                        if (focusables.length > 0) {
+                            focusables[focusables.length - 1].grab_key_focus();
+                            return true;
+                        }
+                        if (this._isMainTabBarVisible()) {
+                            return this._navigateToTabBar('last');
+                        }
+                        return this._focusLastGridItem();
+                    }
+                    return this._focusFirstGridItem();
                 },
             });
             this.add_child(this._searchComponent.getWidget());
@@ -368,6 +385,38 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
+         * Checks whether the main tab bar is visible.
+         *
+         * @returns {boolean} True when in half-canvas mode with the main tab bar visible.
+         * @private
+         */
+        _isMainTabBarVisible() {
+            return this._settings.get_boolean('always-show-main-tab');
+        }
+
+        /**
+         * Navigates focus to the main tab bar if visible.
+         *
+         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
+         * @returns {boolean} True if tab bar was focused.
+         * @private
+         */
+        _navigateToTabBar(direction = 'first') {
+            const tabBar = this._extension?._indicator?._tabBar;
+            if (!tabBar || !tabBar.visible) {
+                return false;
+            }
+
+            if (direction === 'last') {
+                return tabBar.focusLastTab();
+            }
+            if (direction === 'active') {
+                return tabBar.focusActiveTab();
+            }
+            return tabBar.focusFirstTab();
+        }
+
+        /**
          * Handles Left and Right arrow key presses for navigating between header elements.
          * @param {Clutter.Actor} actor The actor that received the event.
          * @param {Clutter.Event} event The key press event.
@@ -388,6 +437,13 @@ export const CategorizedItemViewer = GObject.registerClass(
                 return FocusUtils.handleLinearNavigation(event, focusables, currentIndex);
             }
 
+            if (FocusUtils.isKey(event, 'Up')) {
+                if (this._isMainTabBarVisible()) {
+                    this._navigateToTabBar('active');
+                }
+                return Clutter.EVENT_STOP;
+            }
+
             if (FocusUtils.isKey(event, 'Down')) {
                 this._searchComponent.grabFocus();
                 return Clutter.EVENT_STOP;
@@ -401,6 +457,11 @@ export const CategorizedItemViewer = GObject.registerClass(
                             this._searchComponent.grabFocus();
                             return Clutter.EVENT_STOP;
                         }
+                        if (this._isMainTabBarVisible()) {
+                            this._navigateToTabBar('last');
+                            return Clutter.EVENT_STOP;
+                        }
+                        this._focusLastGridItem();
                         return Clutter.EVENT_STOP;
                     },
                 });
@@ -426,8 +487,22 @@ export const CategorizedItemViewer = GObject.registerClass(
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
             return FocusUtils.handleGridNavigation(event, this._gridAllButtons, currentIndex, this._currentItemsPerRow || this._config.itemsPerRow || 1, {
+                wrapTab: false,
                 onBoundary: (side) => {
                     if (side === 'up' || side === 'backward') {
+                        this._searchComponent.grabFocus();
+                        return Clutter.EVENT_STOP;
+                    }
+                    if (side === 'forward') {
+                        if (this._isMainTabBarVisible()) {
+                            this._navigateToTabBar('first');
+                            return Clutter.EVENT_STOP;
+                        }
+                        const focusables = this._getHeaderFocusables();
+                        if (focusables.length > 0) {
+                            focusables[0].grab_key_focus();
+                            return Clutter.EVENT_STOP;
+                        }
                         this._searchComponent.grabFocus();
                         return Clutter.EVENT_STOP;
                     }
@@ -451,6 +526,41 @@ export const CategorizedItemViewer = GObject.registerClass(
                 ensureActorVisibleInScrollView(scrollView, firstButton);
             }
             return true;
+        }
+
+        /**
+         * Focuses the last grid item and ensures it is visible in the scroll view.
+         * @returns {boolean} True if an item was focused.
+         * @private
+         */
+        _focusLastGridItem() {
+            if (!this._gridAllButtons || this._gridAllButtons.length === 0) return false;
+
+            const lastButton = this._gridAllButtons[this._gridAllButtons.length - 1];
+            lastButton.grab_key_focus();
+            const scrollView = this._contentArea.get_first_child();
+            if (scrollView instanceof St.ScrollView) {
+                ensureActorVisibleInScrollView(scrollView, lastButton);
+            }
+            return true;
+        }
+
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusTopContent() {
+            return FocusUtils.tryFocusChain([() => FocusUtils.focusFirstActor(this._getHeaderFocusables()), () => this._searchComponent && this._searchComponent.grabFocus()]);
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusBottomContent() {
+            return FocusUtils.tryFocusChain([() => this._focusLastGridItem(), () => this._searchComponent && this._searchComponent.grabFocus()]);
         }
 
         /**

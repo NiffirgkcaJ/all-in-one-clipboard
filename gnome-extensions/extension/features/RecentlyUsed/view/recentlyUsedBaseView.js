@@ -208,7 +208,16 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         _buildUI() {
             this._searchComponent = new SearchComponent((searchText) => this._onSearchChanged(searchText), {
-                onNavigateDown: () => this._focusFirstFocusableInGrid(),
+                onNavigateDown: () => this._focusFirstContentItem(),
+                onNavigateUp: () => {
+                    return this._navigateToTabBar('active');
+                },
+                onNavigateTab: (isBackward) => {
+                    if (isBackward) {
+                        return this._navigateToTabBar('last');
+                    }
+                    return this._focusFirstContentItem();
+                },
             });
             this._searchComponent.getWidget().visible = this._isSearchEnabled();
             this.add_child(this._searchComponent.getWidget());
@@ -495,6 +504,27 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         }
 
         /**
+         * Focus the first content item in the grid, falling back to any focusable item.
+         *
+         * @returns {boolean} True when focus was moved.
+         * @private
+         */
+        _focusFirstContentItem() {
+            const showAllButtons = new Set();
+            for (const section of Object.values(this._sections)) {
+                if (section.showAllBtn) {
+                    showAllButtons.add(section.showAllBtn);
+                }
+            }
+
+            if (this._tryFocusContentItem(showAllButtons)) {
+                return true;
+            }
+
+            return this._focusFirstFocusableInGrid();
+        }
+
+        /**
          * Focuses the first available item in the internal focus grid.
          *
          * @returns {boolean} True when focus was moved.
@@ -513,6 +543,33 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             }
 
             return false;
+        }
+
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True when focus was moved.
+         */
+        focusTopContent() {
+            return FocusUtils.tryFocusChain([() => this._isSearchEnabled() && this._searchComponent && this._searchComponent.grabFocus(), () => this._focusFirstContentItem()]);
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusBottomContent() {
+            return FocusUtils.tryFocusChain([
+                () => {
+                    const allFocusable = this._focusGrid.flat();
+                    if (allFocusable.length > 0) {
+                        return this._focusWidgetSafely(allFocusable[allFocusable.length - 1]);
+                    }
+                    return false;
+                },
+                () => this._isSearchEnabled() && this._searchComponent && this._searchComponent.grabFocus(),
+            ]);
         }
 
         /**
@@ -959,6 +1016,77 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Navigates focus to the main tab bar if visible.
+         *
+         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
+         * @returns {boolean} True if tab bar was focused.
+         * @private
+         */
+        _navigateToTabBar(direction = 'first') {
+            const tabBar = this._extension?._indicator?._tabBar;
+            if (!tabBar || !tabBar.visible) {
+                return false;
+            }
+
+            if (direction === 'last') {
+                return tabBar.focusLastTab();
+            }
+            if (direction === 'active') {
+                return tabBar.focusActiveTab();
+            }
+            return tabBar.focusFirstTab();
+        }
+
+        /**
+         * Find row and column coordinates for a focused actor in the grid.
+         *
+         * @param {Clutter.Actor} currentFocus The focused actor.
+         * @returns {{ rowIndex: number, colIndex: number }} Grid coordinates.
+         * @private
+         */
+        _findGridPosition(currentFocus) {
+            for (let r = 0; r < this._focusGrid.length; r++) {
+                const c = this._focusGrid[r].indexOf(currentFocus);
+                if (c !== -1) {
+                    return { rowIndex: r, colIndex: c };
+                }
+            }
+            return { rowIndex: -1, colIndex: -1 };
+        }
+
+        /**
+         * Handle Tab and Shift+Tab key navigation across the flattened focus grid.
+         *
+         * @param {Clutter.Event} event Trapped event signaling keys.
+         * @param {Clutter.Actor} currentFocus The currently focused actor.
+         * @param {Clutter.Actor[]} allFocusable All available focusable widgets.
+         * @returns {number} Clutter event stop or propagate status.
+         * @private
+         */
+        _handleTabKeyPress(event, currentFocus, allFocusable) {
+            const currentIndex = allFocusable.indexOf(currentFocus);
+            if (currentIndex === -1) {
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            return FocusUtils.handleTabNavigation(event, allFocusable, currentIndex, {
+                wrap: false,
+                onBoundary: (side) => {
+                    if (side === 'backward') {
+                        if (this._isSearchEnabled() && this._searchComponent) {
+                            this._searchComponent.grabFocus();
+                            return Clutter.EVENT_STOP;
+                        }
+                        this._navigateToTabBar('last');
+                        return Clutter.EVENT_STOP;
+                    }
+                    this._navigateToTabBar('first');
+                    return Clutter.EVENT_STOP;
+                },
+            });
+        }
+
+        /**
          * Intercept main keyboard arrays interpreting focus geometry and visual bounds routing logic safely.
          *
          * @param {Clutter.Actor} _actor Key capture bounds parent
@@ -967,12 +1095,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          * @private
          */
         _onKeyPress(_actor, event) {
-            const symbol = event.get_key_symbol();
             const currentFocus = global.stage.get_key_focus();
             const allFocusable = this._focusGrid.flat();
 
             if (!allFocusable.includes(currentFocus)) {
-                if (symbol === Clutter.KEY_Down && this._focusGrid.length > 0) {
+                if (FocusUtils.isKey(event, 'Down') && this._focusGrid.length > 0) {
                     if (this._focusWidgetSafely(this._focusGrid[0][0])) {
                         return Clutter.EVENT_STOP;
                     }
@@ -980,17 +1107,12 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            let rowIndex = -1;
-            let colIndex = -1;
-            for (let r = 0; r < this._focusGrid.length; r++) {
-                const c = this._focusGrid[r].indexOf(currentFocus);
-                if (c !== -1) {
-                    rowIndex = r;
-                    colIndex = c;
-                    break;
-                }
+            const tabNav = FocusUtils.getTabNavigation(event);
+            if (tabNav.isTab) {
+                return this._handleTabKeyPress(event, currentFocus, allFocusable);
             }
 
+            const { rowIndex, colIndex } = this._findGridPosition(currentFocus);
             if (rowIndex === -1) {
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -998,7 +1120,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             let nextRow = rowIndex;
             let nextCol = colIndex;
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
                 const currentRow = this._focusGrid[rowIndex];
                 const currentRowIndex = currentRow.indexOf(currentFocus);
 
@@ -1012,14 +1134,19 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            if (symbol === Clutter.KEY_Up) {
+            if (FocusUtils.isKey(event, 'Up')) {
                 if (rowIndex > 0) {
                     nextRow--;
                 } else {
                     this._unlockOuterScroll();
-                    return Clutter.EVENT_PROPAGATE;
+                    if (this._isSearchEnabled() && this._searchComponent) {
+                        this._searchComponent.grabFocus();
+                        return Clutter.EVENT_STOP;
+                    }
+                    this._navigateToTabBar('active');
+                    return Clutter.EVENT_STOP;
                 }
-            } else if (symbol === Clutter.KEY_Down) {
+            } else if (FocusUtils.isKey(event, 'Down')) {
                 if (rowIndex < this._focusGrid.length - 1) {
                     nextRow++;
                 } else {

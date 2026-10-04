@@ -297,10 +297,21 @@ export const ClipboardActionBar = GObject.registerClass(
         }
 
         /**
-         * Grab focus on the primary action button.
+         * Focus the first action button in the action bar.
+         *
+         * @returns {boolean} True if an action button grabbed focus.
          */
-        grabFocus() {
-            this._selectAllButton.grab_key_focus();
+        focusFirst() {
+            return FocusUtils.focusFirstActor(this._getHeaderButtons());
+        }
+
+        /**
+         * Focus the last action button in the action bar.
+         *
+         * @returns {boolean} True if an action button grabbed focus.
+         */
+        focusLast() {
+            return FocusUtils.focusLastActor(this._getHeaderButtons());
         }
 
         // ========================================================================
@@ -372,22 +383,36 @@ export const ClipboardActionBar = GObject.registerClass(
          * @private
          */
         _onKeyPress(actor, event) {
-            const symbol = event.get_key_symbol();
             const headerButtons = this._getHeaderButtons();
             const currentIndex = headerButtons.indexOf(global.stage.get_key_focus());
 
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
 
-            if (symbol === Clutter.KEY_Left || symbol === Clutter.KEY_Right) {
+            const tabNav = FocusUtils.getTabNavigation(event);
+            if (tabNav.isTab) {
+                return FocusUtils.handleTabNavigation(event, headerButtons, currentIndex, {
+                    wrap: false,
+                    onBoundary: (side) => {
+                        if (side === 'backward') {
+                            this.emit('navigate-up');
+                        } else {
+                            this.emit('navigate-down');
+                        }
+                        return Clutter.EVENT_STOP;
+                    },
+                });
+            }
+
+            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
                 return FocusUtils.handleLinearNavigation(event, headerButtons, currentIndex);
             }
 
-            if (symbol === Clutter.KEY_Up) {
+            if (FocusUtils.isKey(event, 'Up')) {
                 this.emit('navigate-up');
                 return Clutter.EVENT_STOP;
             }
 
-            if (symbol === Clutter.KEY_Down) {
+            if (FocusUtils.isKey(event, 'Down')) {
                 this.emit('navigate-down');
                 return Clutter.EVENT_STOP;
             }
