@@ -314,24 +314,32 @@ export const SearchComponent = GObject.registerClass(
 
         /**
          * Sets the keyboard focus to the search entry.
+         *
+         * @returns {boolean} True if focus was grabbed or scheduled.
          */
         grabFocus() {
+            if (!this.actor.visible || !this._entry.can_focus) {
+                return false;
+            }
+
             if (this._entry.mapped && this._entry.visible) {
                 this._entry.grab_key_focus();
-            } else {
-                if (this._mappedSignalId) {
-                    this._entry.disconnect(this._mappedSignalId);
-                }
-                this._mappedSignalId = this._entry.connect('notify::mapped', () => {
-                    if (this._entry.mapped && this._entry.visible) {
-                        if (this._mappedSignalId) {
-                            this._entry.disconnect(this._mappedSignalId);
-                            this._mappedSignalId = 0;
-                        }
-                        this._entry.grab_key_focus();
-                    }
-                });
+                return true;
             }
+
+            if (this._mappedSignalId) {
+                this._entry.disconnect(this._mappedSignalId);
+            }
+            this._mappedSignalId = this._entry.connect('notify::mapped', () => {
+                if (this._entry.mapped && this._entry.visible) {
+                    if (this._mappedSignalId) {
+                        this._entry.disconnect(this._mappedSignalId);
+                        this._mappedSignalId = 0;
+                    }
+                    this._entry.grab_key_focus();
+                }
+            });
+            return true;
         }
 
         /**
