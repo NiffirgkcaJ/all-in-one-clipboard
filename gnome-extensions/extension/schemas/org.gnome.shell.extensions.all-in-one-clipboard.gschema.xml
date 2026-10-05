@@ -503,6 +503,35 @@
             <summary>Merge selection order</summary>
             <description>Order in which items are merged.</description>
         </key>
+        <key name="clipboard-paste-format" type="s">
+            <default>'rich'</default>
+            <choices>
+                <choice value='plain'/>
+                <choice value='rich'/>
+            </choices>
+            <summary>Paste Format</summary>
+            <description>Default format when pasting formatted text.</description>
+        </key>
+        <key name="clipboard-paste-accessibility" type="s">
+            <default>'per-item'</default>
+            <choices>
+                <choice value='per-item'/>
+                <choice value='action-bar'/>
+                <choice value='none'/>
+            </choices>
+            <summary>Paste Accessibility</summary>
+            <description>Controls for toggling paste formats.</description>
+        </key>
+        <key name="clipboard-show-format-paste-button" type="b">
+            <default>true</default>
+            <summary>Show Format Paste Button</summary>
+            <description>Show format button on formatted items.</description>
+        </key>
+        <key name="clipboard-show-image-paste-button" type="b">
+            <default>true</default>
+            <summary>Show Image Paste Button</summary>
+            <description>Show image button on items containing pictures.</description>
+        </key>
 
         <!-- Advanced Page -->
         <!-- Exclusions Management -->

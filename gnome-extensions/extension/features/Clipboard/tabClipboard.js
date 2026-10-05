@@ -122,6 +122,14 @@ export const ClipboardTabContent = GObject.registerClass(
                 },
                 'changed::extension-height',
                 () => this._scheduleRedraw(),
+                'changed::clipboard-paste-accessibility',
+                () => this._scheduleRedraw(),
+                'changed::clipboard-paste-format',
+                () => this._scheduleRedraw(),
+                'changed::clipboard-show-format-paste-button',
+                () => this._scheduleRedraw(),
+                'changed::clipboard-show-image-paste-button',
+                () => this._scheduleRedraw(),
                 this,
             );
         }
@@ -235,7 +243,7 @@ export const ClipboardTabContent = GObject.registerClass(
             const options = {
                 manager: this._manager,
                 imagePreviewSize: this._imagePreviewSize,
-                onItemCopy: (data) => this._onItemCopyToClipboard(data),
+                onItemCopy: (data, copyOptions) => this._onItemCopyToClipboard(data, copyOptions),
                 onSelectionChanged: () => this._updateSelectionState(),
                 selectedIds: this._selectionService.selectedIds,
                 scrollView: this._scrollView,
@@ -318,11 +326,40 @@ export const ClipboardTabContent = GObject.registerClass(
          * Handle copying an item to the system clipboard.
          *
          * @param {Object} itemData Data of the item to copy.
+         * @param {Object} [copyOptions] Copy options.
          * @private
          */
-        async _onItemCopyToClipboard(itemData) {
+        async _onItemCopyToClipboard(itemData, copyOptions = {}) {
+            let asRichText = copyOptions.asRichText;
+            let asImages = copyOptions.asImages;
+
+            if (asRichText === undefined && asImages === undefined) {
+                const switchMode = this._settings.get_string('clipboard-paste-accessibility') || 'per-item';
+                if (switchMode === 'action-bar' && this._actionBar) {
+                    if (this._actionBar.pasteMode === 'image') {
+                        if (itemData.has_images) {
+                            asImages = true;
+                        } else {
+                            asRichText = this._settings.get_string('clipboard-paste-format') === 'rich';
+                        }
+                    } else {
+                        asRichText = this._actionBar.pasteMode === 'rich';
+                    }
+                } else {
+                    asRichText = this._settings.get_string('clipboard-paste-format') === 'rich';
+                }
+            }
+
+            if (asImages) {
+                await this._copyService.pasteImagesFromItem(itemData, this._manager.storage, this._manager, {
+                    settings: this._settings,
+                    menu: this._extension._indicator?.menu,
+                });
+                return;
+            }
+
             await GlobalActionService.executeCopyAction({
-                onCopy: async () => await this._manager.copyToSystemClipboard(itemData),
+                onCopy: async () => await this._manager.copyToSystemClipboard(itemData, { asRichText }),
                 onPostCopy: () => this._manager.promoteItemToTop(itemData.id),
                 settings: this._settings,
                 autoPasteKey: 'auto-paste-clipboard',

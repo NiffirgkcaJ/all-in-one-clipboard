@@ -227,4 +227,98 @@ export function addPreferenceClipboardSettings({ page, settings }) {
             orderRow.set_selected(newIndex);
         }
     });
+
+    // Rich Content Settings
+    const richContentExpander = new Adw.ExpanderRow({
+        title: _('Rich Content Settings'),
+        subtitle: _('Formatting and paste options for rich text and images.'),
+    });
+    group.add(richContentExpander);
+
+    // Paste Format
+    const formatModes = [
+        { id: 'rich', label: _('Rich Text') },
+        { id: 'plain', label: _('Plain Text') },
+    ];
+
+    const pasteFormatRow = new Adw.ComboRow({
+        title: _('Paste Format'),
+        subtitle: _('Default format when pasting formatted text.'),
+        model: new Gtk.StringList({ strings: formatModes.map((f) => f.label) }),
+    });
+    richContentExpander.add_row(pasteFormatRow);
+
+    const currentPasteFormat = settings.get_string('clipboard-paste-format') || 'rich';
+    const initialFormatIndex = formatModes.findIndex((f) => f.id === currentPasteFormat);
+    pasteFormatRow.set_selected(initialFormatIndex > -1 ? initialFormatIndex : 0);
+
+    pasteFormatRow.connect('notify::selected', () => {
+        const index = pasteFormatRow.get_selected();
+        if (index >= 0 && index < formatModes.length) {
+            const newFormat = formatModes[index].id;
+            if (settings.get_string('clipboard-paste-format') !== newFormat) {
+                settings.set_string('clipboard-paste-format', newFormat);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-paste-format', () => {
+        const newFormat = settings.get_string('clipboard-paste-format');
+        const newIndex = formatModes.findIndex((f) => f.id === newFormat);
+        if (newIndex > -1 && pasteFormatRow.get_selected() !== newIndex) {
+            pasteFormatRow.set_selected(newIndex);
+        }
+    });
+
+    // Paste Accessibility
+    const switchModes = [
+        { id: 'per-item', label: _('Per-Item Button') },
+        { id: 'action-bar', label: _('Action Bar Switch') },
+        { id: 'none', label: _('None') },
+    ];
+
+    const pasteAccessibilityRow = new Adw.ComboRow({
+        title: _('Paste Accessibility'),
+        subtitle: _('Controls for toggling paste formats.'),
+        model: new Gtk.StringList({ strings: switchModes.map((s) => s.label) }),
+    });
+    richContentExpander.add_row(pasteAccessibilityRow);
+
+    const currentAccessibility = settings.get_string('clipboard-paste-accessibility') || 'per-item';
+    const initialAccessibilityIndex = switchModes.findIndex((s) => s.id === currentAccessibility);
+    pasteAccessibilityRow.set_selected(initialAccessibilityIndex > -1 ? initialAccessibilityIndex : 0);
+
+    pasteAccessibilityRow.connect('notify::selected', () => {
+        const index = pasteAccessibilityRow.get_selected();
+        if (index >= 0 && index < switchModes.length) {
+            const newMode = switchModes[index].id;
+            if (settings.get_string('clipboard-paste-accessibility') !== newMode) {
+                settings.set_string('clipboard-paste-accessibility', newMode);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-paste-accessibility', () => {
+        const newMode = settings.get_string('clipboard-paste-accessibility');
+        const newIndex = switchModes.findIndex((s) => s.id === newMode);
+        if (newIndex > -1 && pasteAccessibilityRow.get_selected() !== newIndex) {
+            pasteAccessibilityRow.set_selected(newIndex);
+        }
+    });
+
+    // Show Format Paste Button
+    const showFormatPasteButtonRow = new Adw.SwitchRow({
+        title: _('Show Format Paste Button'),
+        subtitle: _('Show format button on formatted items.'),
+    });
+    richContentExpander.add_row(showFormatPasteButtonRow);
+    settings.bind('clipboard-show-format-paste-button', showFormatPasteButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    // Show Image Paste Button
+    const showImagePasteButtonRow = new Adw.SwitchRow({
+        title: _('Show Image Paste Button'),
+        subtitle: _('Show image button on items containing pictures.'),
+    });
+    richContentExpander.add_row(showImagePasteButtonRow);
+    settings.bind('clipboard-show-image-paste-button', showImagePasteButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 }

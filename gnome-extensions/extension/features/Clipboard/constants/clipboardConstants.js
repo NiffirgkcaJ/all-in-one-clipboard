@@ -40,6 +40,18 @@ export const ClipboardIcons = {
         icon: 'clipboard-merge-symbolic.svg',
         iconSize: 16,
     },
+    ACTION_PASTE_IMAGE: {
+        icon: 'clipboard-paste-image-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_PLAIN: {
+        icon: 'clipboard-paste-plain-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RICH: {
+        icon: 'clipboard-paste-rich-symbolic.svg',
+        iconSize: 16,
+    },
     ACTION_PIN: {
         icon: 'clipboard-pin-symbolic.svg',
         iconSize: 16,

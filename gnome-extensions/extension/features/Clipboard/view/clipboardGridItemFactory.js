@@ -1,6 +1,7 @@
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
@@ -130,6 +131,38 @@ export class ClipboardGridItemFactory {
 
         const spacer = new St.Widget({ x_expand: true });
         actionsOverlay.add_child(spacer);
+
+        const showFormatPasteButton =
+            options.settings.get_string('clipboard-paste-accessibility') === 'per-item' && Boolean(itemData.has_rich_content) && options.settings.get_boolean('clipboard-show-format-paste-button');
+        if (showFormatPasteButton) {
+            const isDefaultRich = options.settings.get_string('clipboard-paste-format') === 'rich';
+            const formatPasteButton = ClipboardBaseWidgetFactory.createFormatPasteButton(
+                itemData,
+                (data) => options.onItemCopy(data, { asRichText: !isDefaultRich }),
+                {
+                    style_class: 'button clipboard-grid-control-button',
+                    can_focus: false,
+                    tooltip_text: isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich Text'),
+                },
+                isDefaultRich,
+            );
+            actionsOverlay.add_child(formatPasteButton);
+        }
+
+        const showImagePasteButton = Boolean(itemData.has_images) && options.settings.get_boolean('clipboard-show-image-paste-button');
+        if (showImagePasteButton) {
+            const imagePasteButton = ClipboardBaseWidgetFactory.createImagePasteButton(
+                itemData,
+                (data) => {
+                    options.onItemCopy(data, { asImages: true });
+                },
+                {
+                    style_class: 'button clipboard-grid-control-button',
+                    can_focus: false,
+                },
+            );
+            actionsOverlay.add_child(imagePasteButton);
+        }
 
         const pinButton = ClipboardBaseWidgetFactory.createPinButton(
             itemData,

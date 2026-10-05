@@ -253,13 +253,35 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
+         * Get rich HTML content for an item from disk.
+         *
+         * @param {string} id Item ID.
+         * @returns {Promise<Uint8Array|null>} Full content or null if not found.
+         */
+        async getRichContent(id) {
+            return await this._storage.getRichContent(id, this._itemStore.getAllItems());
+        }
+
+        /**
+         * Paste embedded images from a rich text item.
+         *
+         * @param {Object} itemData Rich text item data.
+         * @param {Object} [options] Paste options.
+         * @returns {Promise<boolean>} True if successful.
+         */
+        async pasteImagesFromItem(itemData, options = {}) {
+            return await this._copyService.pasteImagesFromItem(itemData, this._storage, this, options);
+        }
+
+        /**
          * Copy an item's content to the system clipboard.
          *
          * @param {Object} itemData Data of the item to copy.
+         * @param {Object} [options] Copy options.
          * @returns {Promise<boolean>} True if successful.
          */
-        async copyToSystemClipboard(itemData) {
-            return ClipboardCopyService.copy(itemData, this._storage, this);
+        async copyToSystemClipboard(itemData, options = {}) {
+            return ClipboardCopyService.copy(itemData, this._storage, this, options);
         }
 
         /**

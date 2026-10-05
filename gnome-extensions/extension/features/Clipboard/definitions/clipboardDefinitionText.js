@@ -1,4 +1,6 @@
-import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import GLib from 'gi://GLib';
+
+import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 
 import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
 import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
@@ -35,14 +37,39 @@ export function ClipboardDefinitionText() {
                     shouldDelete: (item) => Boolean(item.has_full_content),
                     shouldCollect: (item) => Boolean(item.has_full_content),
                 },
+                {
+                    dirKey: 'textsDir',
+                    resolveFilename: (item) => `${item.id}.html`,
+                    shouldDelete: (item) => Boolean(item.has_rich_content),
+                    shouldCollect: (item) => Boolean(item.has_rich_content),
+                },
             ],
         }),
         hasFullContent: true,
         ...ClipboardIntegrationViewText(),
+        configureView: (config, item, options) => {
+            config.text = item.preview || item.text || '';
+            if (item.has_rich_content && options.style?.subtypes?.html?.icon) {
+                config.icon = options.style.subtypes.html.icon;
+            }
+        },
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
             mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            copyItem: async (item, { manager, storage, asRichText, asImages, options }) => {
+                if (asImages && item.has_images) {
+                    return await manager.pasteImagesFromItem(item, options);
+                }
+                if (asRichText && item.has_rich_content) {
+                    const htmlPath = GLib.build_filenamev([storage.textsDir, `${item.id}.html`]);
+                    const rawBytes = await storage.readRaw(htmlPath);
+                    if (rawBytes) {
+                        manager.captureGuard.registerHash(item.hash);
+                        clipboardSetContent('text/html', new GLib.Bytes(rawBytes));
+                        return true;
+                    }
+                }
+
                 let content = item.text || (await manager.getContent(item.id));
                 if (!content && item.preview) content = item.preview;
                 if (!content) return false;
@@ -53,9 +80,6 @@ export function ClipboardDefinitionText() {
             getMergeText: async (item, { textContents }) => {
                 return textContents.get(item.id) || item.preview || item.text || '';
             },
-        },
-        configureView: (config, item) => {
-            config.text = item.preview || item.text || '';
         },
     };
 }

@@ -1,3 +1,5 @@
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
 import { createDynamicIconButton, createStaticIconButton } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
@@ -85,6 +87,56 @@ export class ClipboardBaseWidgetFactory {
         });
 
         return pinButton;
+    }
+
+    /**
+     * Create a format paste button.
+     *
+     * @param {Object} itemData The item data.
+     * @param {Function} onPasteClick Callback when format button is clicked.
+     * @param {Object} [styleOptions] Additional style options.
+     * @param {boolean} [isAlternatePlain=false] True when the alternate action is plain text.
+     * @returns {St.Button} The configured format paste button.
+     */
+    static createFormatPasteButton(itemData, onPasteClick, styleOptions = {}, isAlternatePlain = false) {
+        const iconDef = isAlternatePlain ? ClipboardIcons.ACTION_PASTE_PLAIN : ClipboardIcons.ACTION_PASTE_RICH;
+        const defaultTooltip = isAlternatePlain ? _('Paste as Plain Text') : _('Paste as Rich Text');
+
+        const formatPasteButton = createStaticIconButton(iconDef, {
+            style_class: 'button clipboard-control-button',
+            can_focus: false,
+            tooltip_text: defaultTooltip,
+            ...styleOptions,
+        });
+
+        formatPasteButton.connect('clicked', () => {
+            onPasteClick(itemData);
+        });
+
+        return formatPasteButton;
+    }
+
+    /**
+     * Create an image paste button.
+     *
+     * @param {Object} itemData The item data.
+     * @param {Function} onPasteClick Callback when paste image button is clicked.
+     * @param {Object} [styleOptions] Additional style options.
+     * @returns {St.Button} The configured image paste button.
+     */
+    static createImagePasteButton(itemData, onPasteClick, styleOptions = {}) {
+        const imagePasteButton = createStaticIconButton(ClipboardIcons.ACTION_PASTE_IMAGE, {
+            style_class: 'button clipboard-control-button',
+            can_focus: false,
+            tooltip_text: _('Paste Images'),
+            ...styleOptions,
+        });
+
+        imagePasteButton.connect('clicked', () => {
+            onPasteClick(itemData);
+        });
+
+        return imagePasteButton;
     }
 
     /**

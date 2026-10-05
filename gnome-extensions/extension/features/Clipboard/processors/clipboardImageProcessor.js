@@ -1,9 +1,10 @@
 import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
+import Soup from 'gi://Soup';
 
-import { clipboardGetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardGetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { IOFile, IOImage } from '../../../shared/utilities/utilityIO.js';
+import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
@@ -48,7 +49,12 @@ export class ImageProcessor {
         };
 
         const results = await Promise.all(IMAGE_MIMETYPES.map(tryMimetype));
-        return results.find((r) => r !== null) || null;
+        const standardMatch = results.find((r) => r !== null) || null;
+        if (standardMatch) {
+            return standardMatch;
+        }
+
+        return await this._extractStandaloneFromHtml();
     }
 
     /**
@@ -241,6 +247,161 @@ export class ImageProcessor {
     // ========================================================================
     // Internal Helpers
     // ========================================================================
+
+    /**
+     * Fetch and decode image data from a data URI, web URL, or local file URI.
+     *
+     * @param {string} source Source URI or data string.
+     * @returns {Promise<Object|null>} Object containing data, hash, and mimetype, or null.
+     */
+    static async fetchImageFromSource(source) {
+        if (!source) return null;
+
+        if (source.startsWith('data:image/')) {
+            return this._fetchDataUriImage(source);
+        }
+
+        if (source.startsWith('http://') || source.startsWith('https://')) {
+            return await this._fetchWebImage(source);
+        }
+
+        if (source.startsWith('file://')) {
+            return await this._fetchFileImage(source);
+        }
+
+        return null;
+    }
+
+    /**
+     * Decode image data from a base64 data URI.
+     *
+     * @param {string} source Data URI string.
+     * @returns {Object|null} Decoded image data or null.
+     * @private
+     */
+    static _fetchDataUriImage(source) {
+        const dataUriMatch = source.match(/^data:(image\/[a-zA-Z0-9.+-]+)(?:;[^;,]+)*;base64,(.+)$/s);
+        if (!dataUriMatch) return null;
+
+        const rawMime = dataUriMatch[1];
+        const base64Data = dataUriMatch[2].replace(/\s/g, '');
+        try {
+            const bytes = GLib.base64_decode(base64Data);
+            if (!bytes || bytes.length < MIN_HEADER_SIZE) return null;
+
+            const mimetype = this._detectImageMimetype(bytes) || rawMime;
+            const hash = ProcessorUtils.computeHashForData(bytes);
+            return { data: bytes, hash, mimetype };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Download image data from a web URL.
+     *
+     * @param {string} source Web URL.
+     * @returns {Promise<Object|null>} Downloaded image data or null.
+     * @private
+     */
+    static async _fetchWebImage(source) {
+        try {
+            if (!this._httpSession) {
+                this._httpSession = new Soup.Session();
+            }
+            const result = await IOImage.download(this._httpSession, source);
+            if (!result?.bytes || result.bytes.length < MIN_HEADER_SIZE) return null;
+
+            const mimetype = this._detectImageMimetype(result.bytes) || result.contentType || 'image/png';
+            const hash = ProcessorUtils.computeHashForData(result.bytes);
+            return { data: result.bytes, hash, mimetype };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Read image data from a local file URI.
+     *
+     * @param {string} source File URI.
+     * @returns {Promise<Object|null>} Read image data or null.
+     * @private
+     */
+    static async _fetchFileImage(source) {
+        try {
+            const [filePath] = GLib.filename_from_uri(source);
+            if (!filePath) return null;
+
+            const bytes = await IOFile.read(filePath);
+            if (!bytes || bytes.length < MIN_HEADER_SIZE) return null;
+
+            const mimetype = this._detectImageMimetype(bytes) || 'image/png';
+            const hash = ProcessorUtils.computeHashForData(bytes);
+            return { data: bytes, hash, mimetype };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Extract standalone image from an HTML clipboard payload when text is absent.
+     *
+     * @returns {Promise<Object|null>} Extracted image or null.
+     * @private
+     */
+    static async _extractStandaloneFromHtml() {
+        const text = await clipboardGetText();
+        if (text && text.replace(/[\s\uFFFC]/g, '').length > 0) {
+            return null;
+        }
+
+        const htmlResult = await clipboardGetContent('text/html');
+        if (!htmlResult?.data || htmlResult.size === 0) {
+            return null;
+        }
+
+        const htmlString = IOText.parseBytes(htmlResult.data);
+        if (!htmlString) return null;
+
+        const cleanHtml = htmlString.replace(/<(style|script)[^>]*>[\s\S]*?<\/\1>/gi, '');
+        const textWithoutTags = cleanHtml.replace(/<[^>]+>/g, '');
+        const visibleText = textWithoutTags.replace(/&nbsp;/g, ' ').replace(/[\s\uFFFC]/g, '');
+        if (visibleText.length > 0) {
+            return null;
+        }
+
+        const imgMatches = [...cleanHtml.matchAll(/<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^"'\s>]+))/gi)];
+        if (imgMatches.length !== 1) {
+            return null;
+        }
+
+        const src = imgMatches[0][1] || imgMatches[0][2];
+        if (!src) return null;
+
+        const imageData = await this.fetchImageFromSource(src);
+        if (!imageData) return null;
+
+        return {
+            type: ClipboardType.IMAGE,
+            ...imageData,
+        };
+    }
+
+    /**
+     * Detect image mimetype from magic bytes.
+     *
+     * @param {Uint8Array} data Raw byte buffer.
+     * @returns {string|null} Detected mimetype or null.
+     * @private
+     */
+    static _detectImageMimetype(data) {
+        if (!data || data.length < MIN_HEADER_SIZE) return null;
+        if (MAGIC_PNG.every((byte, i) => data[i] === byte)) return 'image/png';
+        if (MAGIC_JPEG.every((byte, i) => data[i] === byte)) return 'image/jpeg';
+        if (MAGIC_GIF.every((byte, i) => data[i] === byte)) return 'image/gif';
+        if (MAGIC_WEBP.every((byte, i) => data[i] === byte)) return 'image/webp';
+        return null;
+    }
 
     /**
      * Validate that the data starts with correct magic bytes for the given mimetype.

@@ -62,6 +62,11 @@ export const ClipboardStyling = {
         icon: 'clipboard-type-text-symbolic.svg',
         iconSize: 16,
         layout: 'text',
+        subtypes: {
+            html: {
+                icon: 'clipboard-type-html-symbolic.svg',
+            },
+        },
     },
 };
 

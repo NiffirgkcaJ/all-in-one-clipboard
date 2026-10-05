@@ -1,8 +1,11 @@
 import GLib from 'gi://GLib';
 
-import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
+import { IOText } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+
+import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 
 // Configuration
 const SEQUENTIAL_PASTE_DELAY_MS = 100;
@@ -35,13 +38,79 @@ export class ClipboardCopyService {
      * @param {Object} itemData Data of the item to copy.
      * @param {ClipboardStorage} storage Storage instance for reading raw files.
      * @param {ClipboardManager} manager Manager instance for content retrieval.
+     * @param {Object} [options] Copy options.
      * @returns {Promise<boolean>} True if successful.
      */
-    static async copy(itemData, storage, manager) {
+    static async copy(itemData, storage, manager, options = {}) {
         try {
-            return await manager._clipboardRegistry.copyItem(itemData, { storage, manager });
+            return await manager._clipboardRegistry.copyItem(itemData, { storage, manager, ...options });
         } catch (e) {
             Logger.error(`Copy failed: ${e.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Paste all embedded images from a rich text item in HTML document order.
+     *
+     * @param {Object} itemData Rich text item data.
+     * @param {ClipboardStorage} storage Storage instance.
+     * @param {ClipboardManager} manager Manager instance.
+     * @param {Object} options Options containing settings and menu.
+     * @returns {Promise<boolean>} True if images were successfully pasted or copied.
+     */
+    async pasteImagesFromItem(itemData, storage, manager, options = {}) {
+        try {
+            if (!itemData?.has_rich_content) return false;
+
+            const htmlPath = GLib.build_filenamev([storage.textsDir, `${itemData.id}.html`]);
+            const rawBytes = await storage.readRaw(htmlPath);
+            if (!rawBytes) return false;
+
+            const htmlString = IOText.parseBytes(rawBytes);
+            if (!htmlString) return false;
+
+            const imgMatches = [...htmlString.matchAll(/<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^"'\s>]+))/gi)];
+            if (imgMatches.length === 0) return false;
+
+            const sources = imgMatches.map((m) => m[1] || m[2]).filter(Boolean);
+            if (sources.length === 0) return false;
+
+            const imageResults = await Promise.all(sources.map((src) => ImageProcessor.fetchImageFromSource(src)));
+            const images = imageResults.filter(Boolean);
+
+            if (images.length === 0) return false;
+
+            const autoPasteEnabled = options.settings.get_boolean('enable-auto-paste') && options.settings.get_boolean('auto-paste-clipboard');
+
+            if (autoPasteEnabled && images.length > 1) {
+                const queue = images.map((img) => async () => {
+                    manager.captureGuard.registerHash(img.hash);
+                    clipboardSetContent(img.mimetype || 'image/png', new GLib.Bytes(img.data));
+                    return true;
+                });
+
+                const completed = await this._runPasteQueue(queue, options);
+                if (completed) {
+                    manager.promoteItemToTop(itemData.id);
+                }
+                return completed;
+            }
+
+            return await GlobalActionService.executeCopyAction({
+                onCopy: async () => {
+                    const firstImage = images[0];
+                    manager.captureGuard.registerHash(firstImage.hash);
+                    clipboardSetContent(firstImage.mimetype || 'image/png', new GLib.Bytes(firstImage.data));
+                    return true;
+                },
+                onPostCopy: () => manager.promoteItemToTop(itemData.id),
+                settings: options.settings,
+                autoPasteKey: 'auto-paste-clipboard',
+                menu: options.menu,
+            });
+        } catch (e) {
+            Logger.error(`pasteImagesFromItem failed: ${e.message}`);
             return false;
         }
     }
