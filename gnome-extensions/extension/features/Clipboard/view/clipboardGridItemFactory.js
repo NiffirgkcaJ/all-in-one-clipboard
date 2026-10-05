@@ -106,11 +106,67 @@ export class ClipboardGridItemFactory {
 
         // Actions Overlay
         const actionsOverlay = new St.BoxLayout({
-            style_class: 'clipboard-grid-controls',
+            style_class: 'clipboard-grid-controls-overlay',
+            orientation: Clutter.Orientation.VERTICAL,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.END,
+        });
+
+        // Secondary Controls (Paste Actions)
+        const showFormatPasteButton =
+            options.settings.get_string('clipboard-paste-accessibility') === 'per-item' && Boolean(itemData.has_rich_content) && options.settings.get_boolean('clipboard-show-format-paste-button');
+        let formatPasteButton = null;
+        if (showFormatPasteButton) {
+            const isDefaultRich = options.settings.get_string('clipboard-paste-format') === 'rich';
+            formatPasteButton = ClipboardBaseWidgetFactory.createFormatPasteButton(
+                itemData,
+                (data) => options.onItemCopy(data, { asRichText: !isDefaultRich }),
+                {
+                    style_class: 'button clipboard-grid-control-button',
+                    can_focus: false,
+                    tooltip_text: isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich Text'),
+                },
+                isDefaultRich,
+            );
+        }
+
+        const showImagePasteButton = Boolean(itemData.has_images) && options.settings.get_boolean('clipboard-show-image-paste-button');
+        let imagePasteButton = null;
+        if (showImagePasteButton) {
+            imagePasteButton = ClipboardBaseWidgetFactory.createImagePasteButton(
+                itemData,
+                (data) => {
+                    options.onItemCopy(data, { asImages: true });
+                },
+                {
+                    style_class: 'button clipboard-grid-control-button',
+                    can_focus: false,
+                },
+            );
+        }
+
+        if (formatPasteButton || imagePasteButton) {
+            const secondaryControls = new St.BoxLayout({
+                style_class: 'clipboard-grid-secondary-controls',
+                x_expand: true,
+                x_align: Clutter.ActorAlign.END,
+            });
+            if (formatPasteButton) {
+                secondaryControls.add_child(formatPasteButton);
+            }
+            if (imagePasteButton) {
+                secondaryControls.add_child(imagePasteButton);
+            }
+            actionsOverlay.add_child(secondaryControls);
+        }
+
+        // Primary Controls (Item Actions)
+        const primaryControls = new St.BoxLayout({
+            style_class: 'clipboard-grid-primary-controls',
+            x_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
         });
 
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
@@ -126,43 +182,11 @@ export class ClipboardGridItemFactory {
             },
         );
         itemCheckbox.visible = options.settings.get_boolean('clipboard-show-action-bar');
-        actionsOverlay.add_child(itemCheckbox);
+        primaryControls.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 
         const spacer = new St.Widget({ x_expand: true });
-        actionsOverlay.add_child(spacer);
-
-        const showFormatPasteButton =
-            options.settings.get_string('clipboard-paste-accessibility') === 'per-item' && Boolean(itemData.has_rich_content) && options.settings.get_boolean('clipboard-show-format-paste-button');
-        if (showFormatPasteButton) {
-            const isDefaultRich = options.settings.get_string('clipboard-paste-format') === 'rich';
-            const formatPasteButton = ClipboardBaseWidgetFactory.createFormatPasteButton(
-                itemData,
-                (data) => options.onItemCopy(data, { asRichText: !isDefaultRich }),
-                {
-                    style_class: 'button clipboard-grid-control-button',
-                    can_focus: false,
-                    tooltip_text: isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich Text'),
-                },
-                isDefaultRich,
-            );
-            actionsOverlay.add_child(formatPasteButton);
-        }
-
-        const showImagePasteButton = Boolean(itemData.has_images) && options.settings.get_boolean('clipboard-show-image-paste-button');
-        if (showImagePasteButton) {
-            const imagePasteButton = ClipboardBaseWidgetFactory.createImagePasteButton(
-                itemData,
-                (data) => {
-                    options.onItemCopy(data, { asImages: true });
-                },
-                {
-                    style_class: 'button clipboard-grid-control-button',
-                    can_focus: false,
-                },
-            );
-            actionsOverlay.add_child(imagePasteButton);
-        }
+        primaryControls.add_child(spacer);
 
         const pinButton = ClipboardBaseWidgetFactory.createPinButton(
             itemData,
@@ -183,8 +207,10 @@ export class ClipboardGridItemFactory {
             },
         );
 
-        actionsOverlay.add_child(pinButton);
-        actionsOverlay.add_child(deleteButton);
+        primaryControls.add_child(pinButton);
+        primaryControls.add_child(deleteButton);
+        actionsOverlay.add_child(primaryControls);
+
         cardStack.add_child(actionsOverlay);
 
         actionsOverlay.opacity = 0;
@@ -277,7 +303,7 @@ export class ClipboardGridItemFactory {
                 cardStack.add_child(typeBadge);
                 itemWidget._typeBadge = typeBadge;
 
-                const actionsOverlay = cardStack.get_children().find((c) => c.has_style_class_name('clipboard-grid-controls'));
+                const actionsOverlay = cardStack.get_children().find((c) => c.has_style_class_name('clipboard-grid-controls-overlay'));
                 if (actionsOverlay) {
                     cardStack.set_child_above_sibling(actionsOverlay, typeBadge);
                 }

@@ -528,12 +528,20 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
-.aio-clipboard-container .clipboard-grid-controls {
-    padding: 6px 8px;
+.aio-clipboard-container .clipboard-grid-controls-overlay {
+    padding: 6px 6px;
     border-radius: 0 0 6px 6px;
     background-gradient-direction: vertical;
     background-gradient-start: transparent;
     background-gradient-end: rgba(0, 0, 0, 0.6);
+}
+
+.aio-clipboard-container .clipboard-grid-primary-controls {
+    margin-top: 2px;
+}
+
+.aio-clipboard-container .clipboard-grid-secondary-controls {
+    margin-bottom: 2px;
 }
 
 .aio-clipboard-container .clipboard-grid-checkbox,

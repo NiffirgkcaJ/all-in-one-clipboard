@@ -210,7 +210,7 @@ export const ClipboardActionBar = GObject.registerClass(
         _syncVisibility() {
             if (this._settings.get_boolean('clipboard-show-action-bar')) {
                 this.show();
-                this._updateRichTextButtonVisibility();
+                this._updatePasteModeButtonVisibility();
             } else {
                 const currentFocus = global.stage.get_key_focus();
                 if (currentFocus && this.contains(currentFocus)) {
