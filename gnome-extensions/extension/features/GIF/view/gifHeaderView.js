@@ -21,7 +21,8 @@ import { GifIcons } from '../constants/gifConstants.js';
  *
  * @fires category-changed Emitted when a category tab is selected.
  * @fires back-requested Emitted when the back button is clicked.
- * @fires navigate-down Emitted when down arrow or tab forward moves focus out of the header.
+ * @fires navigate-down Emitted when down arrow moves focus out of the header.
+ * @fires navigate-next Emitted when tab forward moves focus out of the header.
  * @fires navigate-previous Emitted when tab backward moves focus out of the header.
  */
 export const GifHeaderView = GObject.registerClass(
@@ -30,6 +31,7 @@ export const GifHeaderView = GObject.registerClass(
             'category-changed': { param_types: [GObject.TYPE_JSOBJECT] },
             'back-requested': { param_types: [] },
             'navigate-down': { param_types: [] },
+            'navigate-next': { param_types: [] },
             'navigate-previous': { param_types: [] },
         },
     },
@@ -371,7 +373,7 @@ export const GifHeaderView = GObject.registerClass(
                     wrap: false,
                     onBoundary: (side) => {
                         if (side === 'forward') {
-                            this.emit('navigate-down');
+                            this.emit('navigate-next');
                             return Clutter.EVENT_STOP;
                         }
                         this.emit('navigate-previous');

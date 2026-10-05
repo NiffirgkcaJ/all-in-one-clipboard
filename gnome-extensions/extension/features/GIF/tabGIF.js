@@ -124,7 +124,11 @@ export const GIFTabContent = GObject.registerClass(
             });
 
             this._headerView.connect('navigate-down', () => {
-                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
+                FocusUtils.tryFocusChain([() => this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
+            });
+
+            this._headerView.connect('navigate-next', () => {
+                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
                 if (!focused) {
                     MenuNavigationService.focusTabBar('first');
                 }
@@ -142,7 +146,7 @@ export const GIFTabContent = GObject.registerClass(
             this._itemFactory.setScrollView(this._contentView.getScrollView());
 
             this._contentView.connect('navigate-up', () => {
-                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._headerView.focusActive()]);
+                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.grabFocus(), () => this._headerView.focusActive()]);
                 if (!focused) {
                     MenuNavigationService.focusTabBar('active');
                 }
@@ -187,13 +191,7 @@ export const GIFTabContent = GObject.registerClass(
          */
         _buildSearchBar() {
             this._searchComponent = new SearchComponent(null, {
-                onNavigateDown: () => {
-                    if (this._contentView.focusFirstItem()) {
-                        return true;
-                    }
-                    MenuNavigationService.focusTabBar('first');
-                    return true;
-                },
+                onNavigateDown: () => this._contentView.focusFirstItem(),
                 onNavigateUp: () => {
                     if (this._headerView.focusActive()) {
                         return true;
@@ -230,11 +228,7 @@ export const GIFTabContent = GObject.registerClass(
          * @returns {boolean} True if focus was successfully moved.
          */
         focusTopContent() {
-            return FocusUtils.tryFocusChain([
-                () => this._headerView.focusFirst(),
-                () => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
-                () => this._contentView.focusFirstItem(),
-            ]);
+            return FocusUtils.tryFocusChain([() => this._headerView.focusActive(), () => this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
         }
 
         /**
@@ -243,11 +237,7 @@ export const GIFTabContent = GObject.registerClass(
          * @returns {boolean} True if focus was successfully moved.
          */
         focusBottomContent() {
-            return FocusUtils.tryFocusChain([
-                () => this._contentView.focusLastItem(),
-                () => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
-                () => this._headerView.focusLast(),
-            ]);
+            return FocusUtils.tryFocusChain([() => this._contentView.focusLastItem(), () => this._searchComponent.grabFocus(), () => this._headerView.focusLast()]);
         }
 
         /**

@@ -405,6 +405,10 @@ export const MenuTabBar = GObject.registerClass(
                 return FocusUtils.handleLinearNavigation(event, buttons, currentIndex);
             }
 
+            if (FocusUtils.isKey(event, 'Up')) {
+                return Clutter.EVENT_STOP;
+            }
+
             if (FocusUtils.isKey(event, 'Down')) {
                 this.emit('navigate-down');
                 return Clutter.EVENT_STOP;

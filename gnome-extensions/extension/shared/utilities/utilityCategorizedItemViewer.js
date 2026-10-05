@@ -289,7 +289,10 @@ export const CategorizedItemViewer = GObject.registerClass(
                         }
                         return this._focusLastGridItem();
                     }
-                    return this._focusFirstGridItem();
+                    if (this._focusFirstGridItem()) {
+                        return true;
+                    }
+                    return MenuNavigationService.focusTabBar('first');
                 },
             });
             this.add_child(this._searchComponent.getWidget());
@@ -546,7 +549,7 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @returns {boolean} True if an element was focused.
          */
         focusTopContent() {
-            return FocusUtils.tryFocusChain([() => FocusUtils.focusFirstActor(this._getHeaderFocusables()), () => this._searchComponent && this._searchComponent.grabFocus()]);
+            return FocusUtils.tryFocusChain([() => this._focusActiveCategory(), () => this._searchComponent && this._searchComponent.grabFocus()]);
         }
 
         /**

@@ -26,6 +26,7 @@ export const ClipboardActionBar = GObject.registerClass(
             'selection-cleared': {},
             'navigate-up': {},
             'navigate-previous': {},
+            'navigate-next': {},
             'navigate-down': {},
         },
     },
@@ -397,7 +398,7 @@ export const ClipboardActionBar = GObject.registerClass(
                         if (side === 'backward') {
                             this.emit('navigate-previous');
                         } else {
-                            this.emit('navigate-down');
+                            this.emit('navigate-next');
                         }
                         return Clutter.EVENT_STOP;
                     },

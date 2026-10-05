@@ -134,11 +134,7 @@ export const ClipboardTabContent = GObject.registerClass(
         _buildSearchComponent() {
             this._searchComponent = new SearchComponent((text) => this._searchService.handleSearchInput(text), {
                 onNavigateDown: () => {
-                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
-                    if (!focused) {
-                        MenuNavigationService.focusTabBar('first');
-                    }
-                    return true;
+                    return FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
                 },
                 onNavigateUp: () => {
                     return MenuNavigationService.focusTabBar('active');
@@ -191,6 +187,10 @@ export const ClipboardTabContent = GObject.registerClass(
                     }
                 },
                 'navigate-down',
+                () => {
+                    this._focusFirstContentItem();
+                },
+                'navigate-next',
                 () => {
                     if (!this._focusFirstContentItem()) {
                         MenuNavigationService.focusTabBar('first');

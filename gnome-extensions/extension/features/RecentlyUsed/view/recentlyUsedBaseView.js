@@ -223,7 +223,10 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     if (isBackward) {
                         return MenuNavigationService.focusTabBar('last');
                     }
-                    return this._focusFirstContentItem();
+                    if (this._focusFirstContentItem()) {
+                        return true;
+                    }
+                    return MenuNavigationService.focusTabBar('first');
                 },
             });
             this._searchComponent.getWidget().visible = this._isSearchEnabled();
