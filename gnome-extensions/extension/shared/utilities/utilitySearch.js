@@ -15,8 +15,7 @@ const SearchIcons = {
 
 /**
  * A self-contained search bar component.
- * Encapsulates an St.Entry with a clear button and provides a simple callback
- * mechanism to notify a listener of search text changes.
+ * Encapsulates an St.Entry with a clear button and provides a simple callback mechanism to notify a listener of search text changes.
  */
 export const SearchComponent = GObject.registerClass(
     {
@@ -41,6 +40,8 @@ export const SearchComponent = GObject.registerClass(
             this._onNavigateUp = onNavigateUp ?? null;
             this._onNavigateTab = onNavigateTab ?? null;
             this._mappedSignalId = 0;
+            this._keyController = null;
+            this._keyControllerSignalId = 0;
 
             this.actor = new St.BoxLayout({
                 style_class: 'aio-search-bar-container',
@@ -57,19 +58,22 @@ export const SearchComponent = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
+            this._clutterText = this._entry.get_clutter_text();
             this._entry.connect('notify::text', () => this._onSearchChanged());
+            this._clutterText.connect('activate', () => this._onSearchChanged());
 
-            const clutterText = this._entry.get_clutter_text();
-            clutterText.connect('activate', () => this._onSearchChanged());
-
-            clutterText.connect('key-focus-in', () => {
+            this._clutterText.connect('key-focus-in', () => {
                 this._entry.add_style_pseudo_class('focus');
             });
-            clutterText.connect('key-focus-out', () => {
+            this._clutterText.connect('key-focus-out', () => {
                 this._entry.remove_style_pseudo_class('focus');
             });
 
-            clutterText.connect('key-press-event', (actor, event) => this._onKeyPress(actor, event));
+            this._keyController = new Clutter.KeyController();
+            this._keyControllerSignalId = this._keyController.connect('key-press', () => {
+                return this._onKeyPress(this._entry, Clutter.get_current_event());
+            });
+            this._entry.add_action_full('search-key-capture', Clutter.EventPhase.CAPTURE, this._keyController);
 
             this._entryWrapper = new St.BoxLayout({
                 x_expand: true,
@@ -97,13 +101,16 @@ export const SearchComponent = GObject.registerClass(
 
         /**
          * Internal handler for the search entry text notification signal.
+         *
          * @private
          */
         _onSearchChanged() {
             const searchText = this._entry.get_text();
             this._clearButton.visible = searchText.length > 0;
             this.emit('search-changed', searchText);
-            this._onSearchChangedCallback?.(searchText);
+            if (this._onSearchChangedCallback) {
+                this._onSearchChangedCallback(searchText);
+            }
         }
 
         /**
@@ -114,16 +121,35 @@ export const SearchComponent = GObject.registerClass(
          * @private
          */
         _handleClearButtonKeyPress(event) {
-            if (FocusUtils.isKey(event, 'Right')) return Clutter.EVENT_STOP;
+            if (FocusUtils.isKey(event, 'Right')) {
+                return Clutter.EVENT_STOP;
+            }
 
             const tabNav = FocusUtils.getTabNavigation(event);
             if (FocusUtils.isKey(event, 'Left') || tabNav.isBackward) {
                 this._entry.grab_key_focus();
+                this._clutterText.set_cursor_position(-1);
                 return Clutter.EVENT_STOP;
             }
+
             if (tabNav.isForward) {
                 return this._handleTabNavigation(false);
             }
+
+            if (FocusUtils.isKey(event, 'Down')) {
+                if (this._onNavigateDown) {
+                    return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_STOP;
+            }
+
+            if (FocusUtils.isKey(event, 'Up')) {
+                if (this._onNavigateUp) {
+                    return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_STOP;
+            }
+
             return Clutter.EVENT_PROPAGATE;
         }
 
@@ -151,6 +177,31 @@ export const SearchComponent = GObject.registerClass(
         }
 
         /**
+         * Handle vertical arrow key navigation inside the entry.
+         *
+         * @param {Clutter.Event} event The key event.
+         * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
+         * @private
+         */
+        _handleVerticalNavigation(event) {
+            if (FocusUtils.isKey(event, 'Down')) {
+                if (this._onNavigateDown) {
+                    return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (FocusUtils.isKey(event, 'Up')) {
+                if (this._onNavigateUp) {
+                    return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
          * Handle horizontal arrow key navigation inside the entry.
          *
          * @param {Clutter.Event} event The key event.
@@ -159,13 +210,15 @@ export const SearchComponent = GObject.registerClass(
          */
         _handleHorizontalArrowPress(event) {
             const text = this._entry.get_text();
-            const cursorPosition = this._entry.clutter_text.get_cursor_position();
+            const cursorPosition = this._clutterText.get_cursor_position();
 
             if (FocusUtils.isKey(event, 'Left')) {
                 const isAtStart = cursorPosition === 0 || (text.length === 0 && cursorPosition === -1);
-                if (isAtStart) return Clutter.EVENT_STOP;
+                if (isAtStart) {
+                    return Clutter.EVENT_STOP;
+                }
             } else if (FocusUtils.isKey(event, 'Right')) {
-                const isAtEnd = cursorPosition === -1 || cursorPosition === text.length;
+                const isAtEnd = cursorPosition === -1 || cursorPosition >= text.length;
                 if (isAtEnd) {
                     if (this._clearButton.visible) {
                         this._clearButton.grab_key_focus();
@@ -181,37 +234,33 @@ export const SearchComponent = GObject.registerClass(
          * Handle key press events on the search entry to allow escaping with arrow keys and tab cycling.
          *
          * @param {Clutter.Actor} actor The source actor.
-         * @param {Clutter.Event} event The key event.
+         * @param {Clutter.Event} [event] The key event.
          * @returns {number} Clutter.EVENT_STOP or Clutter.EVENT_PROPAGATE.
          * @private
          */
         _onKeyPress(actor, event) {
-            const tabNav = FocusUtils.getTabNavigation(event);
-
             if (actor === this._clearButton) {
                 return this._handleClearButtonKeyPress(event);
             }
 
+            const keyEvent = event ?? Clutter.get_current_event();
+            const tabNav = FocusUtils.getTabNavigation(keyEvent);
+
             if (tabNav.isTab) {
+                if (tabNav.isForward && this._clearButton.visible) {
+                    this._clearButton.grab_key_focus();
+                    return Clutter.EVENT_STOP;
+                }
                 return this._handleTabNavigation(tabNav.isBackward);
             }
 
-            if (FocusUtils.isKey(event, 'Down')) {
-                if (this._onNavigateDown) {
-                    return this._onNavigateDown() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
-                }
-                return Clutter.EVENT_PROPAGATE;
+            const verticalResult = this._handleVerticalNavigation(keyEvent);
+            if (verticalResult === Clutter.EVENT_STOP) {
+                return Clutter.EVENT_STOP;
             }
 
-            if (FocusUtils.isKey(event, 'Up')) {
-                if (this._onNavigateUp) {
-                    return this._onNavigateUp() ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
-                }
-                return Clutter.EVENT_PROPAGATE;
-            }
-
-            if (FocusUtils.isKey(event, 'Left') || FocusUtils.isKey(event, 'Right')) {
-                return this._handleHorizontalArrowPress(event);
+            if (FocusUtils.isKey(keyEvent, 'Left') || FocusUtils.isKey(keyEvent, 'Right')) {
+                return this._handleHorizontalArrowPress(keyEvent);
             }
 
             return Clutter.EVENT_PROPAGATE;
@@ -354,9 +403,22 @@ export const SearchComponent = GObject.registerClass(
          */
         destroy() {
             if (this._mappedSignalId) {
-                this._entry?.disconnect(this._mappedSignalId);
+                this._entry.disconnect(this._mappedSignalId);
                 this._mappedSignalId = 0;
             }
+            if (this._keyControllerSignalId) {
+                this._keyController.disconnect(this._keyControllerSignalId);
+                this._keyControllerSignalId = 0;
+            }
+            if (this._keyController) {
+                this._entry.remove_action(this._keyController);
+                this._keyController = null;
+            }
+            if (this._hintWrapper) {
+                this._hintWrapper.destroy();
+                this._hintWrapper = null;
+            }
+            this._clutterText = null;
             this._entry = null;
             this._clearButton = null;
             this.actor = null;
