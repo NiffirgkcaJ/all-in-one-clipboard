@@ -178,7 +178,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
         /**
          * Attempt to intelligently focus the best widget upon rendering or activation.
-         * Prioritizes search field, then first content items, then section headers, then any element.
+         * Prioritizes the search field, then the first focusable element in the grid.
          */
         focusBestCandidate() {
             if (this._isSearchEnabled() && this._searchComponent) {
@@ -193,16 +193,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 }
             }
 
-            const showAllButtons = new Set();
-            for (const section of Object.values(this._sections)) {
-                if (section.showAllBtn) {
-                    showAllButtons.add(section.showAllBtn);
-                }
-            }
-
-            if (this._tryFocusContentItem(showAllButtons)) return;
-            if (this._tryFocusShowAllButton(showAllButtons)) return;
-            this._tryFocusAnyWidget();
+            this._focusFirstFocusableInGrid();
         }
 
         // ========================================================================
@@ -514,23 +505,12 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         }
 
         /**
-         * Focus the first content item in the grid, falling back to any focusable item.
+         * Focus the first focusable item in the grid, such as the first section header button.
          *
          * @returns {boolean} True when focus was moved.
          * @private
          */
         _focusFirstContentItem() {
-            const showAllButtons = new Set();
-            for (const section of Object.values(this._sections)) {
-                if (section.showAllBtn) {
-                    showAllButtons.add(section.showAllBtn);
-                }
-            }
-
-            if (this._tryFocusContentItem(showAllButtons)) {
-                return true;
-            }
-
             return this._focusFirstFocusableInGrid();
         }
 
@@ -922,60 +902,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             }
 
             this.focusBestCandidate();
-        }
-
-        /**
-         * Safely fallback focus attempts into section headings as initial user interaction surface.
-         *
-         * @param {Set<Clutter.Actor>} showAllButtons Target iterable reference widgets array
-         * @returns {boolean} Whether focus operation passed or failed visually
-         * @private
-         */
-        _tryFocusShowAllButton(showAllButtons) {
-            for (const button of showAllButtons) {
-                if (this._focusWidgetSafely(button)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Test the array of loaded layout arrays determining closest safe child widget to assign.
-         *
-         * @param {Set<Clutter.Actor>} showAllButtons Fallback headers preventing overlaps
-         * @returns {boolean} Outcome of focus logic check mapping
-         * @private
-         */
-        _tryFocusContentItem(showAllButtons) {
-            for (const row of this._focusGrid) {
-                if (!row || row.length === 0) continue;
-
-                const firstItem = row[0];
-                if (!firstItem || !firstItem.visible) continue;
-                if (firstItem === this._settingsBtn) continue;
-                if (showAllButtons.has(firstItem)) continue;
-
-                if (this._focusWidgetSafely(firstItem)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Iterate the whole component array returning truthy for any available nested or regular element mapping.
-         *
-         * @returns {boolean} Indicator of successful focus acquisition
-         * @private
-         */
-        _tryFocusAnyWidget() {
-            for (const row of this._focusGrid) {
-                if (this._focusWidgetSafely(row?.[0])) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         // ========================================================================
