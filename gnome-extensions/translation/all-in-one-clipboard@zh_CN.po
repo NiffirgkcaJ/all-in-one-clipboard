@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 15:06+0000\n"
+"POT-Creation-Date: 2026-10-05 10:40+0000\n"
 "PO-Revision-Date: 2026-06-26 15:50+0800\n"
 "Last-Translator: adinlead <adinlead@sina.cn>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -17,11 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: gnome-extensions/extension/extension.js:120
-#: gnome-extensions/extension/features/Emoji/tabEmoji.js:116
-#: gnome-extensions/extension/features/GIF/tabGIF.js:121
-#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:93
 #: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
-#: gnome-extensions/extension/features/Symbols/tabSymbols.js:93
 msgid "Recently Used"
 msgstr "最近使用"
 
@@ -194,73 +190,73 @@ msgstr "插入顺序"
 msgid "Order of items when merging selection."
 msgstr "合并选择时的项目顺序。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:96
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:277
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:283
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:98
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:279
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:285
 msgid "Select All"
 msgstr "全选"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
 msgid "Switch to Grid View"
 msgstr "切换到网格视图"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
 msgid "Switch to List View"
 msgstr "切换到列表视图"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:135
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:137
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
 msgid "Start Private Mode (Pause Recording)"
 msgstr "开始隐私模式（暂停记录）"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:154
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:214
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:156
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:216
 msgid "Pin/Unpin Selected"
 msgstr "固定/取消固定选中项"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:162
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:164
 msgid "Delete Selected"
 msgstr "删除选中项"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
 msgid "Pin Selected"
 msgstr "固定选中项"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
 msgid "Unpin Selected"
 msgstr "取消固定选中项"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
 msgid "Merge and Paste"
 msgstr "合并并粘贴"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
 msgid "Merge and Copy"
 msgstr "合并并复制"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:280
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:282
 msgid "Deselect All"
 msgstr "取消全选"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "停止隐私模式（恢复记录）"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
 msgid "No results found."
 msgstr "未找到结果。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
 msgid "Clipboard history is empty."
 msgstr "剪贴板历史为空。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:290
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:310
 msgid "Pinned"
 msgstr "已固定"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:307
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:327
 msgid "History"
 msgstr "历史"
 
@@ -402,7 +398,7 @@ msgid "Search %s..."
 msgstr "搜索 %s..."
 
 #: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:53
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:55
 msgid "Search..."
 msgstr "搜索..."
 
@@ -418,11 +414,11 @@ msgstr "无可用分类。"
 msgid "No trending GIFs found."
 msgstr "未找到热门动图。"
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:169
+#: gnome-extensions/extension/features/GIF/tabGIF.js:179
 msgid "Online search is disabled."
 msgstr "在线搜索已禁用。"
 
-#: gnome-extensions/extension/features/GIF/view/gifContentView.js:245
+#: gnome-extensions/extension/features/GIF/view/gifContentView.js:248
 #, javascript-format
 msgid ""
 "Error: %s\n"
@@ -431,23 +427,23 @@ msgstr ""
 "错误：%s\n"
 "请检查您的 API 密钥和网络连接。"
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:175
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:184
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:657
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:181
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:190
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:776
 msgid "Recents"
 msgstr "最近"
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:194
 #: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:200
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:206
 msgid "Trending"
 msgstr "热门"
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:201
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:207
 msgid "Trending GIFs"
 msgstr "热门动图"
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:981
 msgid "No recent items yet."
 msgstr "暂无最近项目。"
 
@@ -812,7 +808,7 @@ msgstr "自定义视图可见项目数禁用时的列表和网格全局上限。
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "自定义视图窗口限制禁用时的列表和网格全局行数上限。"
 
-#: gnome-extensions/extension/shared/menu/menuIndicator.js:28
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
 msgid "All-in-One Clipboard"
 msgstr "全能剪贴板"
 
@@ -1409,18 +1405,18 @@ msgstr "重置顺序"
 msgid "Restore the original tab order."
 msgstr "恢复原始标签页顺序。"
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:87
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:88
 msgid "Component configuration is invalid. Check logs."
 msgstr "组件配置无效。请检查日志。"
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:582
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:701
 msgid "Error loading data. Check logs."
 msgstr "数据加载错误。请检查日志。"
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:979
 msgid "No items available."
 msgstr "无可用项目。"
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:980
 msgid "No items match your search."
 msgstr "没有项目匹配您的搜索。"

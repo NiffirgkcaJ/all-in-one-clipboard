@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 15:06+0000\n"
+"POT-Creation-Date: 2026-10-05 10:40+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -18,11 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: gnome-extensions/extension/extension.js:120
-#: gnome-extensions/extension/features/Emoji/tabEmoji.js:116
-#: gnome-extensions/extension/features/GIF/tabGIF.js:121
-#: gnome-extensions/extension/features/Kaomoji/tabKaomoji.js:93
 #: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
-#: gnome-extensions/extension/features/Symbols/tabSymbols.js:93
 msgid "Recently Used"
 msgstr "Zuletzt genutzt"
 
@@ -200,73 +196,73 @@ msgstr "Reihenfolge zurücksetzen"
 msgid "Order of items when merging selection."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:96
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:277
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:283
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:98
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:279
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:285
 msgid "Select All"
 msgstr "Alle auswählen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
 msgid "Switch to Grid View"
 msgstr "Zu Rasteransicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:120
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:296
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
 msgid "Switch to List View"
 msgstr "Zu Listenansicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:135
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:137
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
 msgid "Start Private Mode (Pause Recording)"
 msgstr "Privater Modus starten (Aufnahme pausieren)"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:154
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:214
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:156
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:216
 msgid "Pin/Unpin Selected"
 msgstr "Ausgewählte an-/abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:162
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:164
 msgid "Delete Selected"
 msgstr "Ausgewählte löschen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
 msgid "Pin Selected"
 msgstr "Ausgewählte anheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:220
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
 msgid "Merge and Paste"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:230
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
 msgid "Merge and Copy"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:280
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:282
 msgid "Deselect All"
 msgstr "Alle abwählen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:328
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
 msgid "No results found."
 msgstr "Keine Resultate gefunden."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:154
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
 msgid "Clipboard history is empty."
 msgstr "Zwischenablageverlauf ist leer."
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:290
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:310
 msgid "Pinned"
 msgstr "Angeheftete Elemente"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:307
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:327
 msgid "History"
 msgstr "Geschichte"
 
@@ -408,7 +404,7 @@ msgid "Search %s..."
 msgstr "Suche %s..."
 
 #: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
-#: gnome-extensions/extension/shared/utilities/utilitySearch.js:53
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:55
 msgid "Search..."
 msgstr "Suche..."
 
@@ -424,11 +420,11 @@ msgstr "Keine Kategorien verfügbar."
 msgid "No trending GIFs found."
 msgstr "Keine beliebten GIFs gefunden."
 
-#: gnome-extensions/extension/features/GIF/tabGIF.js:169
+#: gnome-extensions/extension/features/GIF/tabGIF.js:179
 msgid "Online search is disabled."
 msgstr "Onlinesuche ist deaktiviert."
 
-#: gnome-extensions/extension/features/GIF/view/gifContentView.js:245
+#: gnome-extensions/extension/features/GIF/view/gifContentView.js:248
 #, javascript-format
 msgid ""
 "Error: %s\n"
@@ -437,23 +433,23 @@ msgstr ""
 "Fehler: %s\n"
 "Bitte prüfen Sie Ihren API-Schlüssel und die Netzwerkverbindung."
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:175
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:184
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:657
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:181
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:190
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:776
 msgid "Recents"
 msgstr "Letzte"
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:194
 #: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:200
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:206
 msgid "Trending"
 msgstr "Beliebt"
 
-#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:201
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:207
 msgid "Trending GIFs"
 msgstr "Beliebte GIFs"
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:862
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:981
 msgid "No recent items yet."
 msgstr "Bisher keine letzten Elemente."
 
@@ -826,7 +822,7 @@ msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sich
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
 
-#: gnome-extensions/extension/shared/menu/menuIndicator.js:28
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
 msgid "All-in-One Clipboard"
 msgstr "All-in-One Zwischenablage"
 
@@ -1433,19 +1429,19 @@ msgstr "Reihenfolge zurücksetzen"
 msgid "Restore the original tab order."
 msgstr "Ursprüngliche Reiter-Reihenfolge wiederherstellen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:87
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:88
 msgid "Component configuration is invalid. Check logs."
 msgstr "Komponentenkonfiguration ist ungültig. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:582
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:701
 msgid "Error loading data. Check logs."
 msgstr "Fehler beim Laden von Daten. Logs prüfen."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:860
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:979
 msgid "No items available."
 msgstr "Keine Elemente verfügbar."
 
-#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:861
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:980
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
 
