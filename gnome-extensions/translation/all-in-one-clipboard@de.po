@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 10:40+0000\n"
+"POT-Creation-Date: 2026-10-05 17:48+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -196,57 +196,131 @@ msgstr "Reihenfolge zurücksetzen"
 msgid "Order of items when merging selection."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:98
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:279
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:285
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:233
+#, fuzzy
+msgid "Rich Content Settings"
+msgstr "Zuletzt genutzt"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:234
+msgid "Formatting and paste options for rich text and images."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:240
+msgid "Rich Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:241
+msgid "Plain Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:245
+#, fuzzy
+msgid "Paste Format"
+msgstr "Bild einfügen"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:246
+msgid "Default format when pasting formatted text."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:275
+msgid "Per-Item Button"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:276
+msgid "Action Bar Switch"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:277
+msgid "None"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:281
+msgid "Paste Accessibility"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:282
+msgid "Controls for toggling paste formats."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:311
+msgid "Show Format Paste Button"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:312
+msgid "Show format button on formatted items."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:319
+msgid "Show Image Paste Button"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:320
+msgid "Show image button on items containing pictures."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:108
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:379
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:385
 msgid "Select All"
 msgstr "Alle auswählen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:132
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:398
 msgid "Switch to Grid View"
 msgstr "Zu Rasteransicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:122
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:132
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:398
 msgid "Switch to List View"
 msgstr "Zu Listenansicht wechseln"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:137
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:147
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:441
 msgid "Start Private Mode (Pause Recording)"
 msgstr "Privater Modus starten (Aufnahme pausieren)"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:156
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:216
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:182
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:250
 msgid "Pin/Unpin Selected"
 msgstr "Ausgewählte an-/abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:164
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:190
 msgid "Delete Selected"
 msgstr "Ausgewählte löschen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:256
 msgid "Pin Selected"
 msgstr "Ausgewählte anheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:222
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:256
 msgid "Unpin Selected"
 msgstr "Ausgewählte abheften"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:266
 msgid "Merge and Paste"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:232
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:266
 msgid "Merge and Copy"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:282
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:298
+msgid "Paste Mode: Rich Text - Click to switch to Plain Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:301
+msgid "Paste Mode: Plain Text - Click to switch to Image"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:303
+msgid "Paste Mode: Image - Click to switch to Rich Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:382
 msgid "Deselect All"
 msgstr "Alle abwählen"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:341
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:441
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "Privater Modus stoppen (Aufnahme fortsetzen)"
 
@@ -265,6 +339,23 @@ msgstr "Angeheftete Elemente"
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:327
 msgid "History"
 msgstr "Geschichte"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:103
+#: gnome-extensions/extension/features/Clipboard/view/clipboardGridItemFactory.js:129
+#: gnome-extensions/extension/features/Clipboard/view/clipboardListItemFactory.js:125
+msgid "Paste as Plain Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:103
+#: gnome-extensions/extension/features/Clipboard/view/clipboardGridItemFactory.js:129
+#: gnome-extensions/extension/features/Clipboard/view/clipboardListItemFactory.js:125
+msgid "Paste as Rich Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:131
+#, fuzzy
+msgid "Paste Images"
+msgstr "Bild einfügen"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
 msgid "Emoji Settings"
