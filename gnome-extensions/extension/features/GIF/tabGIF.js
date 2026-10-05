@@ -7,6 +7,7 @@ import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { IOFile } from '../../shared/utilities/utilityIO.js';
+import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
 import { ensureGifSearchProviderRegistered } from './integrations/gifSearchProvider.js';
@@ -29,13 +30,11 @@ import { GifUI, GifIcons } from './constants/gifConstants.js';
  * It delegates feature-specific orchestration to dedicated services.
  *
  * @fires set-main-tab-bar-visibility Emitted to show/hide the main tab bar.
- * @fires navigate-to-main-tab Emitted to navigate back to a main tab.
  */
 export const GIFTabContent = GObject.registerClass(
     {
         Signals: {
             'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
         },
     },
     class GIFTabContent extends St.BoxLayout {
@@ -72,8 +71,8 @@ export const GIFTabContent = GObject.registerClass(
 
             ensureGifSearchProviderRegistered({
                 settings,
-                extensionUuid: extension?.uuid,
-                extensionPath: extension?.path,
+                extensionUuid: extension.uuid,
+                extensionPath: extension.path,
                 gifManager: this._gifManager,
             });
 
@@ -100,7 +99,7 @@ export const GIFTabContent = GObject.registerClass(
                 selectionService: this._selectionService,
             });
 
-            this.connect('captured-event', (actor, event) => {
+            this._capturedEventId = this.connect('captured-event', (actor, event) => {
                 return this._runtimeService.handleGlobalEvent(event);
             });
 
@@ -112,56 +111,22 @@ export const GIFTabContent = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Navigates focus to the main tab bar if visible.
-         *
-         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
-         * @returns {boolean} True if tab bar was focused.
-         * @private
-         */
-        _navigateToTabBar(direction = 'first') {
-            const tabBar = this._extension?._indicator?._tabBar;
-            if (!tabBar || !tabBar.visible) {
-                return false;
-            }
-
-            if (direction === 'last') {
-                return tabBar.focusLastTab();
-            }
-            if (direction === 'active') {
-                return tabBar.focusActiveTab();
-            }
-            return tabBar.focusFirstTab();
-        }
-
-        /**
          * Build the orchestrated UI components.
          * @private
          */
         _buildUI() {
             this._headerView = new GifHeaderView(this._settings);
 
-            this._headerView.connect('navigate-back', () => {
-                this.emit('navigate-to-main-tab', _('Recently Used'));
-            });
-
-            this._headerView.connect('navigate-to-tab-bar', () => {
-                if (this._settings.get_boolean('always-show-main-tab')) {
-                    this._navigateToTabBar('active');
-                }
-            });
-
-            this._headerView.connect('focus-previous-up', () => {
-                if (this._settings.get_boolean('always-show-main-tab')) {
-                    this._navigateToTabBar('last');
-                } else {
+            this._headerView.connect('navigate-previous', () => {
+                if (!MenuNavigationService.focusTabBar('last')) {
                     this._contentView.focusLastItem();
                 }
             });
 
-            this._headerView.connect('focus-next-down', () => {
+            this._headerView.connect('navigate-down', () => {
                 const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._contentView.focusFirstItem()]);
                 if (!focused) {
-                    this._navigateToTabBar('first');
+                    MenuNavigationService.focusTabBar('first');
                 }
             });
             this.add_child(this._headerView);
@@ -176,17 +141,15 @@ export const GIFTabContent = GObject.registerClass(
 
             this._itemFactory.setScrollView(this._contentView.getScrollView());
 
-            this._contentView.connect('focus-next-up', () => {
-                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._headerView.focusLast()]);
+            this._contentView.connect('navigate-up', () => {
+                const focused = FocusUtils.tryFocusChain([() => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(), () => this._headerView.focusActive()]);
                 if (!focused) {
-                    this._navigateToTabBar('active');
+                    MenuNavigationService.focusTabBar('active');
                 }
             });
 
-            this._contentView.connect('focus-next-down', () => {
-                if (this._settings.get_boolean('always-show-main-tab')) {
-                    this._navigateToTabBar('first');
-                } else {
+            this._contentView.connect('navigate-next', () => {
+                if (!MenuNavigationService.focusTabBar('first')) {
                     this._headerView.focusFirst();
                 }
             });
@@ -223,31 +186,31 @@ export const GIFTabContent = GObject.registerClass(
          * @private
          */
         _buildSearchBar() {
-            this._searchComponent = new SearchComponent((searchText) => this._searchComponent.emit('search-changed', searchText), {
+            this._searchComponent = new SearchComponent(null, {
                 onNavigateDown: () => {
                     if (this._contentView.focusFirstItem()) {
                         return true;
                     }
-                    this._navigateToTabBar('first');
+                    MenuNavigationService.focusTabBar('first');
                     return true;
                 },
                 onNavigateUp: () => {
-                    if (this._headerView.focusLast()) {
+                    if (this._headerView.focusActive()) {
                         return true;
                     }
-                    return this._navigateToTabBar('active');
+                    return MenuNavigationService.focusTabBar('active');
                 },
                 onNavigateTab: (isBackward) => {
                     if (isBackward) {
                         if (this._headerView.focusLast()) {
                             return true;
                         }
-                        return this._navigateToTabBar('last');
+                        return MenuNavigationService.focusTabBar('last');
                     }
                     if (this._contentView.focusFirstItem()) {
                         return true;
                     }
-                    this._navigateToTabBar('first');
+                    MenuNavigationService.focusTabBar('first');
                     return true;
                 },
             });
@@ -269,7 +232,7 @@ export const GIFTabContent = GObject.registerClass(
         focusTopContent() {
             return FocusUtils.tryFocusChain([
                 () => this._headerView.focusFirst(),
-                () => this._searchComponent && this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
+                () => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
                 () => this._contentView.focusFirstItem(),
             ]);
         }
@@ -282,7 +245,7 @@ export const GIFTabContent = GObject.registerClass(
         focusBottomContent() {
             return FocusUtils.tryFocusChain([
                 () => this._contentView.focusLastItem(),
-                () => this._searchComponent && this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
+                () => this._searchComponent.getWidget().visible && this._searchComponent.grabFocus(),
                 () => this._headerView.focusLast(),
             ]);
         }
@@ -326,30 +289,61 @@ export const GIFTabContent = GObject.registerClass(
          * Cleanup.
          */
         destroy() {
-            this._searchService?.destroy();
-            this._runtimeService?.destroy();
-            this._selectionService?.destroy();
-            this._fetchService?.destroy();
-            this._downloadService?.destroy();
+            if (this._capturedEventId) {
+                this.disconnect(this._capturedEventId);
+                this._capturedEventId = 0;
+            }
 
-            this._searchComponent?.destroy();
-            this._itemFactory?.destroy();
-            this._gifManager?.destroy();
+            if (this._searchService) {
+                this._searchService.destroy();
+                this._searchService = null;
+            }
+            if (this._runtimeService) {
+                this._runtimeService.destroy();
+                this._runtimeService = null;
+            }
+            if (this._selectionService) {
+                this._selectionService.destroy();
+                this._selectionService = null;
+            }
+            if (this._fetchService) {
+                this._fetchService.destroy();
+                this._fetchService = null;
+            }
+            if (this._downloadService) {
+                this._downloadService.destroy();
+                this._downloadService = null;
+            }
+
+            if (this._searchComponent) {
+                this._searchComponent.destroy();
+                this._searchComponent = null;
+            }
+            if (this._itemFactory) {
+                this._itemFactory.destroy();
+                this._itemFactory = null;
+            }
+            if (this._gifManager) {
+                this._gifManager.destroy();
+                this._gifManager = null;
+            }
 
             if (this._headerView) {
                 this._headerView.destroy();
                 this._headerView = null;
             }
-
             if (this._contentView) {
                 this._contentView.destroy();
                 this._contentView = null;
             }
-
             if (this._httpService) {
                 this._httpService.destroy();
                 this._httpService = null;
             }
+
+            this._infoBar = null;
+            this._settings = null;
+            this._extension = null;
 
             super.destroy();
         }

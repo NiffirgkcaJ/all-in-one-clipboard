@@ -14,6 +14,7 @@ import { Logger } from './utilityLogger.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 import { IOJson, IOResource } from './utilityIO.js';
+import { MenuNavigationService } from '../services/serviceNavigation.js';
 
 const WIDTH_CHANGE_DEBOUNCE_MS = 200;
 const TAB_SCROLL_POLICY_DEBOUNCE_MS = 50;
@@ -120,8 +121,10 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._layoutSettingSignalIds = [];
             this._pendingExternalSearchText = null;
             this._suppressSearchTextChanged = false;
+            this._alwaysShowTabsSignalId = 0;
 
             this._buildUI();
+            this._alwaysShowTabsSignalId = this._settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
 
             if (this._config.targetItemWidth) {
                 this._widthChangeDebouncer = new Debouncer(() => {
@@ -219,8 +222,12 @@ export const CategorizedItemViewer = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
                 can_focus: true,
             });
-            this._backButton.connect('clicked', () => this.emit('back-requested'));
+            this._backButton.connect('clicked', () => {
+                MenuNavigationService.selectDefaultTab();
+                this.emit('back-requested');
+            });
             this._header.add_child(this._backButton);
+            this._applyBackButtonPreference();
 
             this._categoryTabBar = new St.BoxLayout({});
 
@@ -265,15 +272,10 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._searchComponent = new SearchComponent((searchText) => this._onSearchTextChanged(searchText), {
                 onNavigateDown: () => this._focusFirstGridItem(),
                 onNavigateUp: () => {
-                    const focusables = this._getHeaderFocusables();
-                    if (focusables.length > 0) {
-                        focusables[focusables.length - 1].grab_key_focus();
+                    if (this._focusActiveCategory()) {
                         return true;
                     }
-                    if (this._isMainTabBarVisible()) {
-                        return this._navigateToTabBar('active');
-                    }
-                    return false;
+                    return MenuNavigationService.focusTabBar('active');
                 },
                 onNavigateTab: (isBackward) => {
                     if (isBackward) {
@@ -282,8 +284,8 @@ export const CategorizedItemViewer = GObject.registerClass(
                             focusables[focusables.length - 1].grab_key_focus();
                             return true;
                         }
-                        if (this._isMainTabBarVisible()) {
-                            return this._navigateToTabBar('last');
+                        if (MenuNavigationService.focusTabBar('last')) {
+                            return true;
                         }
                         return this._focusLastGridItem();
                     }
@@ -385,35 +387,32 @@ export const CategorizedItemViewer = GObject.registerClass(
         }
 
         /**
-         * Checks whether the main tab bar is visible.
+         * Applies the user's preference for always showing the main tab back button.
          *
-         * @returns {boolean} True when in half-canvas mode with the main tab bar visible.
          * @private
          */
-        _isMainTabBarVisible() {
-            return this._settings.get_boolean('always-show-main-tab');
+        _applyBackButtonPreference() {
+            const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
+            this.setBackButtonVisible(shouldShowBackButton);
         }
 
         /**
-         * Navigates focus to the main tab bar if visible.
+         * Focuses the active category button or the first header focusable.
          *
-         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
-         * @returns {boolean} True if tab bar was focused.
+         * @returns {boolean} True if a header element grabbed focus.
          * @private
          */
-        _navigateToTabBar(direction = 'first') {
-            const tabBar = this._extension?._indicator?._tabBar;
-            if (!tabBar || !tabBar.visible) {
-                return false;
+        _focusActiveCategory() {
+            if (this._activeCategory && this._categoryButtons[this._activeCategory]?.visible && this._categoryButtons[this._activeCategory]?.can_focus) {
+                this._categoryButtons[this._activeCategory].grab_key_focus();
+                return true;
             }
-
-            if (direction === 'last') {
-                return tabBar.focusLastTab();
+            const focusables = this._getHeaderFocusables();
+            if (focusables.length > 0) {
+                focusables[0].grab_key_focus();
+                return true;
             }
-            if (direction === 'active') {
-                return tabBar.focusActiveTab();
-            }
-            return tabBar.focusFirstTab();
+            return false;
         }
 
         /**
@@ -438,9 +437,7 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
 
             if (FocusUtils.isKey(event, 'Up')) {
-                if (this._isMainTabBarVisible()) {
-                    this._navigateToTabBar('active');
-                }
+                MenuNavigationService.focusTabBar('active');
                 return Clutter.EVENT_STOP;
             }
 
@@ -457,8 +454,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                             this._searchComponent.grabFocus();
                             return Clutter.EVENT_STOP;
                         }
-                        if (this._isMainTabBarVisible()) {
-                            this._navigateToTabBar('last');
+                        if (MenuNavigationService.focusTabBar('last')) {
                             return Clutter.EVENT_STOP;
                         }
                         this._focusLastGridItem();
@@ -494,8 +490,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                         return Clutter.EVENT_STOP;
                     }
                     if (side === 'forward') {
-                        if (this._isMainTabBarVisible()) {
-                            this._navigateToTabBar('first');
+                        if (MenuNavigationService.focusTabBar('first')) {
                             return Clutter.EVENT_STOP;
                         }
                         const focusables = this._getHeaderFocusables();
@@ -1135,6 +1130,10 @@ export const CategorizedItemViewer = GObject.registerClass(
             }
             if (this._tabScrollPolicyWidthSignalId > 0 && this._settings) {
                 this._settings.disconnect(this._tabScrollPolicyWidthSignalId);
+            }
+            if (this._alwaysShowTabsSignalId > 0 && this._settings) {
+                this._settings.disconnect(this._alwaysShowTabsSignalId);
+                this._alwaysShowTabsSignalId = 0;
             }
             if (this._tabScrollPolicyAllocationSignalId > 0 && this._tabContainer) {
                 this._tabContainer.disconnect(this._tabScrollPolicyAllocationSignalId);

@@ -16,17 +16,17 @@ import { GifSettings, GifUI } from '../constants/gifConstants.js';
  * infinite scrolling detection, and state indicators.
  *
  * @fires load-more Emitted when the user scrolls near the bottom, requesting more results.
- * @fires focus-next-up Emitted when the up arrow key is pressed to move focus out of the grid.
+ * @fires navigate-up Emitted when the up arrow key is pressed to move focus out of the grid.
+ * @fires navigate-next Emitted when tab moves focus forward out of the grid.
  * @fires item-activated Emitted when a GIF item is selected.
  */
 export const GifContentView = GObject.registerClass(
     {
         Signals: {
             'load-more': { param_types: [] },
-            'focus-next-up': { param_types: [] },
-            'focus-next-down': { param_types: [] },
+            'navigate-up': { param_types: [] },
+            'navigate-next': { param_types: [] },
             'item-activated': { param_types: [GObject.TYPE_JSOBJECT] },
-            'navigate-to-tab-bar': { param_types: [] },
         },
     },
     class GifContentView extends St.BoxLayout {
@@ -325,12 +325,12 @@ export const GifContentView = GObject.registerClass(
             const tabNav = FocusUtils.getTabNavigation(event);
 
             if (FocusUtils.isKey(event, 'Up') || tabNav.isBackward) {
-                this.emit('focus-next-up');
+                this.emit('navigate-up');
                 return Clutter.EVENT_STOP;
             }
 
             if (tabNav.isForward) {
-                this.emit('focus-next-down');
+                this.emit('navigate-next');
                 return Clutter.EVENT_STOP;
             }
 

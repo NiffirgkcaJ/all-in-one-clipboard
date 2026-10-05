@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
+import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
@@ -135,20 +136,20 @@ export const ClipboardTabContent = GObject.registerClass(
                 onNavigateDown: () => {
                     const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
                     if (!focused) {
-                        this._navigateToTabBar('first');
+                        MenuNavigationService.focusTabBar('first');
                     }
                     return true;
                 },
                 onNavigateUp: () => {
-                    return this._navigateToTabBar('active');
+                    return MenuNavigationService.focusTabBar('active');
                 },
                 onNavigateTab: (isBackward) => {
                     if (isBackward) {
-                        return this._navigateToTabBar('last');
+                        return MenuNavigationService.focusTabBar('last');
                     }
                     const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._focusFirstContentItem()]);
                     if (!focused) {
-                        this._navigateToTabBar('first');
+                        MenuNavigationService.focusTabBar('first');
                     }
                     return true;
                 },
@@ -180,13 +181,19 @@ export const ClipboardTabContent = GObject.registerClass(
                 'navigate-up',
                 () => {
                     if (!this._searchComponent.grabFocus()) {
-                        this._navigateToTabBar('last');
+                        MenuNavigationService.focusTabBar('active');
+                    }
+                },
+                'navigate-previous',
+                () => {
+                    if (!this._searchComponent.grabFocus()) {
+                        MenuNavigationService.focusTabBar('last');
                     }
                 },
                 'navigate-down',
                 () => {
                     if (!this._focusFirstContentItem()) {
-                        this._navigateToTabBar('first');
+                        MenuNavigationService.focusTabBar('first');
                     }
                 },
                 this,
@@ -240,41 +247,26 @@ export const ClipboardTabContent = GObject.registerClass(
             this._currentView.connectObject(
                 'navigate-up',
                 () => {
-                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusLast(), () => this._searchComponent.grabFocus()]);
+                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusFirst(), () => this._searchComponent.grabFocus()]);
                     if (!focused) {
-                        this._navigateToTabBar('last');
+                        MenuNavigationService.focusTabBar('active');
                     }
                 },
-                'navigate-to-tab-bar',
+                'navigate-previous',
                 () => {
-                    this._navigateToTabBar('first');
+                    const focused = FocusUtils.tryFocusChain([() => this._actionBar?.visible && this._actionBar.focusLast(), () => this._searchComponent.grabFocus()]);
+                    if (!focused) {
+                        MenuNavigationService.focusTabBar('last');
+                    }
+                },
+                'navigate-next',
+                () => {
+                    MenuNavigationService.focusTabBar('first');
                 },
                 this,
             );
 
             this._scrollView.set_child(this._currentView);
-        }
-
-        /**
-         * Navigates focus to the main tab bar if visible.
-         *
-         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
-         * @returns {boolean} True if tab bar was focused.
-         * @private
-         */
-        _navigateToTabBar(direction = 'first') {
-            const tabBar = this._extension?._indicator?._tabBar;
-            if (!tabBar || !tabBar.visible) {
-                return false;
-            }
-
-            if (direction === 'last') {
-                return tabBar.focusLastTab();
-            }
-            if (direction === 'active') {
-                return tabBar.focusActiveTab();
-            }
-            return tabBar.focusFirstTab();
         }
 
         /**
@@ -626,21 +618,33 @@ export const ClipboardTabContent = GObject.registerClass(
             this._currentView?.disconnectObject(this);
             this.disconnectObject(this);
 
-            this._searchComponent?.destroy();
-            this._actionBar?.destroy();
-            this._currentView?.destroy();
-            this._copyService?.destroy();
-            this._searchService?.destroy();
-            this._selectionService?.destroy();
+            if (this._searchComponent) {
+                this._searchComponent.destroy();
+                this._searchComponent = null;
+            }
+            if (this._actionBar) {
+                this._actionBar.destroy();
+                this._actionBar = null;
+            }
+            if (this._currentView) {
+                this._currentView.destroy();
+                this._currentView = null;
+            }
+            if (this._copyService) {
+                this._copyService.destroy();
+                this._copyService = null;
+            }
+            if (this._searchService) {
+                this._searchService.destroy();
+                this._searchService = null;
+            }
+            if (this._selectionService) {
+                this._selectionService.destroy();
+                this._selectionService = null;
+            }
 
-            this._searchComponent = null;
-            this._actionBar = null;
-            this._currentView = null;
             this._scrollView = null;
             this._mainBox = null;
-            this._copyService = null;
-            this._searchService = null;
-            this._selectionService = null;
             this._manager = null;
             this._settings = null;
             this._extension = null;

@@ -12,13 +12,11 @@ import { RecentlyUsedRuntimeService } from './registry/recentlyUsedRuntimeServic
  * Hosts and coordinates the Recently Used tab view.
  *
  * @fires set-main-tab-bar-visibility Emitted when tab bar visibility should change.
- * @fires navigate-to-main-tab Emitted when navigation to a main tab is requested.
  */
 export const RecentlyUsedTabContent = GObject.registerClass(
     {
         Signals: {
             'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
         },
     },
     class RecentlyUsedTabContent extends St.Bin {
@@ -99,10 +97,6 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 },
             });
 
-            this._view.connect('navigate-to-main-tab', (_, tabName) => {
-                this.emit('navigate-to-main-tab', tabName);
-            });
-
             this.set_child(this._view);
         }
 
@@ -165,6 +159,33 @@ export const RecentlyUsedTabContent = GObject.registerClass(
         }
 
         /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusTopContent() {
+            return this._view ? this._view.focusTopContent() : false;
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusBottomContent() {
+            return this._view ? this._view.focusBottomContent() : false;
+        }
+
+        /**
+         * Cleans up view state when the menu is closed.
+         */
+        onMenuClosed() {
+            if (this._view) {
+                this._view.onMenuClosed();
+            }
+        }
+
+        /**
          * Releases resources associated with this tab.
          */
         destroy() {
@@ -173,11 +194,18 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 this._tabVisCheckIdleId = 0;
             }
 
-            this._runtimeService?.stop();
-            this._runtimeService = null;
+            if (this._runtimeService) {
+                this._runtimeService.stop();
+                this._runtimeService = null;
+            }
 
-            this._view?.destroy();
-            this._view = null;
+            if (this._view) {
+                this._view.destroy();
+                this._view = null;
+            }
+
+            this._settings = null;
+            this._extension = null;
 
             super.destroy();
         }

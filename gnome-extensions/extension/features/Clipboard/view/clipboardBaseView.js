@@ -20,7 +20,8 @@ export const ClipboardBaseView = GObject.registerClass(
     {
         Signals: {
             'navigate-up': {},
-            'navigate-to-tab-bar': {},
+            'navigate-previous': {},
+            'navigate-next': {},
         },
     },
     class ClipboardBaseView extends St.BoxLayout {
@@ -696,14 +697,14 @@ export const ClipboardBaseView = GObject.registerClass(
 
             if (tabNav.isTab) {
                 if (tabNav.isBackward) {
-                    this.emit('navigate-up');
+                    this.emit('navigate-previous');
                     return Clutter.EVENT_STOP;
                 }
                 if (historyHasItems) {
                     focusHistoryFromPinned();
                     return Clutter.EVENT_STOP;
                 }
-                this.emit('navigate-to-tab-bar');
+                this.emit('navigate-next');
                 return Clutter.EVENT_STOP;
             }
 
@@ -741,14 +742,14 @@ export const ClipboardBaseView = GObject.registerClass(
                     if (pinnedHasItems) {
                         focusPinnedFromHistory();
                     } else {
-                        this.emit('navigate-up');
+                        this.emit('navigate-previous');
                     }
                     return Clutter.EVENT_STOP;
                 }
                 if (this._consumeDownForHistoryPagination()) {
                     return Clutter.EVENT_STOP;
                 }
-                this.emit('navigate-to-tab-bar');
+                this.emit('navigate-next');
                 return Clutter.EVENT_STOP;
             }
 

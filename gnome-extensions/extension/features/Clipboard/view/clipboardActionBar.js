@@ -25,6 +25,7 @@ export const ClipboardActionBar = GObject.registerClass(
             'merge-selected-requested': {},
             'selection-cleared': {},
             'navigate-up': {},
+            'navigate-previous': {},
             'navigate-down': {},
         },
     },
@@ -394,7 +395,7 @@ export const ClipboardActionBar = GObject.registerClass(
                     wrap: false,
                     onBoundary: (side) => {
                         if (side === 'backward') {
-                            this.emit('navigate-up');
+                            this.emit('navigate-previous');
                         } else {
                             this.emit('navigate-down');
                         }

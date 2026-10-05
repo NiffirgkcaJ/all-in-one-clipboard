@@ -1,8 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
@@ -25,13 +23,11 @@ import { EmojiSettings, EmojiUI } from './constants/emojiConstants.js';
  * It handles emoji-specific logic such as skin tone modification.
  *
  * @fires set-main-tab-bar-visibility Requests to show or hide the main tab bar.
- * @fires navigate-to-main-tab Requests a navigation to a different main tab.
  */
 export const EmojiTabContent = GObject.registerClass(
     {
         Signals: {
             'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
         },
     },
     class EmojiTabContent extends St.Bin {
@@ -57,7 +53,6 @@ export const EmojiTabContent = GObject.registerClass(
             this._settings = settings;
             this._skinToneableBaseChars = new Set();
             this._skinToneSettingsSignalIds = [];
-            this._alwaysShowTabsSignalId = 0;
             this._viewer = null;
 
             ensureEmojiSearchProviderRegistered({ extensionUuid: extension?.uuid });
@@ -105,15 +100,8 @@ export const EmojiTabContent = GObject.registerClass(
             this._viewer = new CategorizedItemViewer(extension, settings, config);
             this.set_child(this._viewer);
 
-            this._applyBackButtonPreference();
-            this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
-
             this._viewer.connect('item-selected', (source, jsonPayload) => {
                 this._onItemSelected(jsonPayload, extension);
-            });
-
-            this._viewer.connect('back-requested', () => {
-                this.emit('navigate-to-main-tab', _('Recently Used'));
             });
 
             const skinToneKeys = [EmojiSettings.ENABLE_CUSTOM_SKIN_TONES_KEY, EmojiSettings.CUSTOM_SKIN_TONE_PRIMARY_KEY, EmojiSettings.CUSTOM_SKIN_TONE_SECONDARY_KEY];
@@ -121,16 +109,6 @@ export const EmojiTabContent = GObject.registerClass(
                 const signalId = settings.connect(`changed::${key}`, () => this._onSkinToneSettingsChanged());
                 this._skinToneSettingsSignalIds.push(signalId);
             });
-        }
-
-        /**
-         * Applies the user's preference for always showing the main tab back button.
-         *
-         * @private
-         */
-        _applyBackButtonPreference() {
-            const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
-            this._viewer?.setBackButtonVisible(shouldShowBackButton);
         }
 
         // ========================================================================
@@ -245,6 +223,33 @@ export const EmojiTabContent = GObject.registerClass(
             this._viewer?.clearExternalSearch({ focus: false });
         }
 
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusTopContent() {
+            return this._viewer ? this._viewer.focusTopContent() : false;
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusBottomContent() {
+            return this._viewer ? this._viewer.focusBottomContent() : false;
+        }
+
+        /**
+         * Cleans up view state when the menu is closed.
+         */
+        onMenuClosed() {
+            if (this._viewer) {
+                this._viewer.onMenuClosed();
+            }
+        }
+
         // ========================================================================
         // Lifecycle
         // ========================================================================
@@ -258,13 +263,15 @@ export const EmojiTabContent = GObject.registerClass(
                     this._settings.disconnect(id);
                 }
             });
+            this._skinToneSettingsSignalIds = [];
 
-            if (this._alwaysShowTabsSignalId) {
-                this._settings?.disconnect(this._alwaysShowTabsSignalId);
+            if (this._viewer) {
+                this._viewer.destroy();
+                this._viewer = null;
             }
-            this._alwaysShowTabsSignalId = 0;
 
-            this._viewer?.destroy();
+            this._settings = null;
+
             super.destroy();
         }
     },

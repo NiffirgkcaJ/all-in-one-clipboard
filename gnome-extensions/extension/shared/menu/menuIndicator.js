@@ -9,6 +9,7 @@ import { eventMatchesShortcut } from '../utilities/utilityShortcutMatcher.js';
 import { positionMenu } from '../utilities/utilityMenuPositioner.js';
 
 import { MenuContentArea } from './menuContentArea.js';
+import { MenuNavigationService } from '../services/serviceNavigation.js';
 import { MenuTabBar } from './menuTabBar.js';
 import { MenuTuning } from './menuConstants.js';
 
@@ -88,6 +89,22 @@ export const MenuIndicator = GObject.registerClass(
             this._settingsSignalIds.push(this._settings.connect('changed::extension-height', debounceDimensionUpdate));
 
             this._tabBar = new MenuTabBar(this._settings);
+            MenuNavigationService.registerController({
+                tabBar: this._tabBar,
+                onSelectTab: (tabName) => {
+                    if (this._tabBar.TAB_NAMES.includes(tabName)) {
+                        this._executeTabSelection(tabName);
+                    }
+                },
+                onSelectDefaultTab: () => {
+                    const userDefault = this._settings.get_string('default-tab');
+                    const translatedDefault = _(userDefault);
+                    const targetTab = this._tabBar.isTabAvailable(translatedDefault) ? translatedDefault : this._tabBar.getFirstVisibleTabName();
+                    if (targetTab) {
+                        this._executeTabSelection(targetTab);
+                    }
+                },
+            });
             this._mainVerticalBox.add_child(this._tabBar);
 
             this._contentArea = new MenuContentArea(this._settings, this._extension, this._clipboardManager);
@@ -98,12 +115,6 @@ export const MenuIndicator = GObject.registerClass(
                     this._executeTabSelection(tabName);
                 } else {
                     this._contentArea.clearContent();
-                }
-            });
-
-            this._contentArea.connect('navigate-to-main-tab', (actor, tabName) => {
-                if (this._tabBar.TAB_NAMES.includes(tabName)) {
-                    this._executeTabSelection(tabName);
                 }
             });
 
@@ -337,6 +348,8 @@ export const MenuIndicator = GObject.registerClass(
                 }
             });
             this._settingsSignalIds = [];
+
+            MenuNavigationService.unregisterController();
 
             this._tabBar?.destroy();
             this._tabBar = null;

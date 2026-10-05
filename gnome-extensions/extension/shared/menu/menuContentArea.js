@@ -18,7 +18,6 @@ export const MenuContentArea = GObject.registerClass(
     {
         Signals: {
             'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
         },
     },
     class MenuContentArea extends St.Bin {
@@ -59,7 +58,6 @@ export const MenuContentArea = GObject.registerClass(
             this._tabLoadPromises = new Map();
 
             this._currentTabVisibilitySignalId = 0;
-            this._currentTabNavigateSignalId = 0;
             this._preloadIdleId = 0;
 
             this._preloadIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
@@ -85,9 +83,8 @@ export const MenuContentArea = GObject.registerClass(
                 return;
             }
 
-            const targetViewer = this._currentTabActor._viewer || this._currentTabActor._view || this._currentTabActor;
-            if (targetViewer.focusTopContent) {
-                targetViewer.focusTopContent();
+            if (this._currentTabActor.focusTopContent) {
+                this._currentTabActor.focusTopContent();
                 return;
             }
 
@@ -102,9 +99,8 @@ export const MenuContentArea = GObject.registerClass(
                 return;
             }
 
-            const targetViewer = this._currentTabActor._viewer || this._currentTabActor._view || this._currentTabActor;
-            if (targetViewer.focusBottomContent) {
-                targetViewer.focusBottomContent();
+            if (this._currentTabActor.focusBottomContent) {
+                this._currentTabActor.focusBottomContent();
                 return;
             }
 
@@ -360,12 +356,6 @@ export const MenuContentArea = GObject.registerClass(
                     this.emit('set-main-tab-bar-visibility', isVisible);
                 });
             }
-
-            if (GObject.signal_lookup('navigate-to-main-tab', actor.constructor.$gtype)) {
-                this._currentTabNavigateSignalId = actor.connect('navigate-to-main-tab', (tabActor, targetTabName) => {
-                    this.emit('navigate-to-main-tab', targetTabName);
-                });
-            }
         }
 
         /**
@@ -381,14 +371,10 @@ export const MenuContentArea = GObject.registerClass(
                 if (this._currentTabVisibilitySignalId > 0 && GObject.signal_lookup('set-main-tab-bar-visibility', tabActor.constructor.$gtype)) {
                     tabActor.disconnect(this._currentTabVisibilitySignalId);
                 }
-                if (this._currentTabNavigateSignalId > 0 && GObject.signal_lookup('navigate-to-main-tab', tabActor.constructor.$gtype)) {
-                    tabActor.disconnect(this._currentTabNavigateSignalId);
-                }
             } catch {
-                // Ignore disconnect errors
+                // Ignore disconnect errors.
             } finally {
                 this._currentTabVisibilitySignalId = 0;
-                this._currentTabNavigateSignalId = 0;
             }
         }
 

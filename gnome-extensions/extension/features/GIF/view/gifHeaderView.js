@@ -8,6 +8,7 @@ import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { eventMatchesShortcut } from '../../../shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../../shared/utilities/utilityHorizontalScrollView.js';
+import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
 
 import { GifIcons } from '../constants/gifConstants.js';
 
@@ -19,17 +20,17 @@ import { GifIcons } from '../constants/gifConstants.js';
  * It includes recents, trending, and API-provided categories, and handles keyboard navigation within the header.
  *
  * @fires category-changed Emitted when a category tab is selected.
- * @fires navigate-back Emitted when the back button is clicked.
- * @fires focus-next-down Emitted when the down arrow key is pressed to move focus out of the header.
+ * @fires back-requested Emitted when the back button is clicked.
+ * @fires navigate-down Emitted when down arrow or tab forward moves focus out of the header.
+ * @fires navigate-previous Emitted when tab backward moves focus out of the header.
  */
 export const GifHeaderView = GObject.registerClass(
     {
         Signals: {
             'category-changed': { param_types: [GObject.TYPE_JSOBJECT] },
-            'navigate-back': { param_types: [] },
-            'focus-next-down': { param_types: [] },
-            'focus-previous-up': { param_types: [] },
-            'navigate-to-tab-bar': { param_types: [] },
+            'back-requested': { param_types: [] },
+            'navigate-down': { param_types: [] },
+            'navigate-previous': { param_types: [] },
         },
     },
     class GifHeaderView extends St.BoxLayout {
@@ -79,7 +80,8 @@ export const GifHeaderView = GObject.registerClass(
                 can_focus: true,
             });
             this._backButton.connect('clicked', () => {
-                this.emit('navigate-back');
+                MenuNavigationService.selectDefaultTab();
+                this.emit('back-requested');
             });
             this.add_child(this._backButton);
             this._updateBackButtonPreference();
@@ -355,12 +357,12 @@ export const GifHeaderView = GObject.registerClass(
             }
 
             if (FocusUtils.isKey(event, 'Up')) {
-                this.emit('navigate-to-tab-bar');
+                MenuNavigationService.focusTabBar('active');
                 return Clutter.EVENT_STOP;
             }
 
             if (FocusUtils.isKey(event, 'Down')) {
-                this.emit('focus-next-down');
+                this.emit('navigate-down');
                 return Clutter.EVENT_STOP;
             }
 
@@ -369,16 +371,29 @@ export const GifHeaderView = GObject.registerClass(
                     wrap: false,
                     onBoundary: (side) => {
                         if (side === 'forward') {
-                            this.emit('focus-next-down');
+                            this.emit('navigate-down');
                             return Clutter.EVENT_STOP;
                         }
-                        this.emit('focus-previous-up');
+                        this.emit('navigate-previous');
                         return Clutter.EVENT_STOP;
                     },
                 });
             }
 
             return Clutter.EVENT_PROPAGATE;
+        }
+
+        /**
+         * Focuses the active category button or falls back to the first button.
+         *
+         * @returns {boolean} True if focused, false otherwise.
+         */
+        focusActive() {
+            if (this._activeCategory && this._tabButtons[this._activeCategory.id]?.visible && this._tabButtons[this._activeCategory.id]?.can_focus) {
+                this._tabButtons[this._activeCategory.id].grab_key_focus();
+                return true;
+            }
+            return this.focusFirst();
         }
 
         /**

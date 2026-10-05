@@ -7,6 +7,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
 import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
@@ -24,15 +25,8 @@ import { RecentlyUsedUI, RecentlyUsedStyles } from '../constants/recentlyUsedCon
  *
  * Owns the Recently Used UI surface and delegates section rendering
  * to dedicated layout-specific section view modules.
- *
- * @fires navigate-to-main-tab Emitted when a section "Show All" is clicked
  */
 export const RecentlyUsedBaseView = GObject.registerClass(
-    {
-        Signals: {
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
-        },
-    },
     class RecentlyUsedBaseView extends St.BoxLayout {
         /**
          * @param {object} options
@@ -170,6 +164,19 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         }
 
         /**
+         * Cleans up view state when the menu is closed.
+         */
+        onMenuClosed() {
+            if (this._searchQuery.length > 0) {
+                this._searchDebouncer.cancel();
+                this._searchQuery = '';
+                this._ignoreSearchChange = true;
+                this._searchComponent.clearSearch();
+                this._ignoreSearchChange = false;
+            }
+        }
+
+        /**
          * Attempt to intelligently focus the best widget upon rendering or activation.
          * Prioritizes search field, then first content items, then section headers, then any element.
          */
@@ -210,11 +217,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._searchComponent = new SearchComponent((searchText) => this._onSearchChanged(searchText), {
                 onNavigateDown: () => this._focusFirstContentItem(),
                 onNavigateUp: () => {
-                    return this._navigateToTabBar('active');
+                    return MenuNavigationService.focusTabBar('active');
                 },
                 onNavigateTab: (isBackward) => {
                     if (isBackward) {
-                        return this._navigateToTabBar('last');
+                        return MenuNavigationService.focusTabBar('last');
                     }
                     return this._focusFirstContentItem();
                 },
@@ -300,7 +307,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                     sourceTab: 'Recently Used',
                     sourceSection: sectionScaffold.id,
                 });
-                this.emit('navigate-to-main-tab', targetTab);
+                MenuNavigationService.selectTab(targetTab);
             });
 
             showAllBtn.connect('key-focus-in', () => {
@@ -1016,28 +1023,6 @@ export const RecentlyUsedBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Navigates focus to the main tab bar if visible.
-         *
-         * @param {'first'|'last'|'active'} [direction='first'] Target tab button.
-         * @returns {boolean} True if tab bar was focused.
-         * @private
-         */
-        _navigateToTabBar(direction = 'first') {
-            const tabBar = this._extension?._indicator?._tabBar;
-            if (!tabBar || !tabBar.visible) {
-                return false;
-            }
-
-            if (direction === 'last') {
-                return tabBar.focusLastTab();
-            }
-            if (direction === 'active') {
-                return tabBar.focusActiveTab();
-            }
-            return tabBar.focusFirstTab();
-        }
-
-        /**
          * Find row and column coordinates for a focused actor in the grid.
          *
          * @param {Clutter.Actor} currentFocus The focused actor.
@@ -1077,10 +1062,10 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                             this._searchComponent.grabFocus();
                             return Clutter.EVENT_STOP;
                         }
-                        this._navigateToTabBar('last');
+                        MenuNavigationService.focusTabBar('last');
                         return Clutter.EVENT_STOP;
                     }
-                    this._navigateToTabBar('first');
+                    MenuNavigationService.focusTabBar('first');
                     return Clutter.EVENT_STOP;
                 },
             });
@@ -1143,7 +1128,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                         this._searchComponent.grabFocus();
                         return Clutter.EVENT_STOP;
                     }
-                    this._navigateToTabBar('active');
+                    MenuNavigationService.focusTabBar('active');
                     return Clutter.EVENT_STOP;
                 }
             } else if (FocusUtils.isKey(event, 'Down')) {

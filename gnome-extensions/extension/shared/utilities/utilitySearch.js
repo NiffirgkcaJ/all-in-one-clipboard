@@ -22,8 +22,6 @@ export const SearchComponent = GObject.registerClass(
     {
         Signals: {
             'search-changed': { param_types: [GObject.TYPE_STRING] },
-            'navigate-down': { param_types: [] },
-            'navigate-up': { param_types: [] },
         },
     },
     class SearchComponent extends GObject.Object {
@@ -104,6 +102,7 @@ export const SearchComponent = GObject.registerClass(
         _onSearchChanged() {
             const searchText = this._entry.get_text();
             this._clearButton.visible = searchText.length > 0;
+            this.emit('search-changed', searchText);
             this._onSearchChangedCallback?.(searchText);
         }
 

@@ -1,8 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../shared/services/serviceAction.js';
@@ -22,13 +20,11 @@ import { KaomojiSettings, KaomojiUI } from './constants/kaomojiConstants.js';
  * This class acts as a controller that configures and manages a CategorizedItemViewer component to display and interact with kaomojis.
  *
  * @fires set-main-tab-bar-visibility Requests to show or hide the main tab bar.
- * @fires navigate-to-main-tab Requests a navigation to a different main tab.
  */
 export const KaomojiTabContent = GObject.registerClass(
     {
         Signals: {
             'set-main-tab-bar-visibility': { param_types: [GObject.TYPE_BOOLEAN] },
-            'navigate-to-main-tab': { param_types: [GObject.TYPE_STRING] },
         },
     },
     class KaomojiTabContent extends St.Bin {
@@ -52,9 +48,8 @@ export const KaomojiTabContent = GObject.registerClass(
             });
 
             this._settings = settings;
-            this._alwaysShowTabsSignalId = 0;
 
-            ensureKaomojiSearchProviderRegistered({ extensionUuid: extension?.uuid });
+            ensureKaomojiSearchProviderRegistered({ extensionUuid: extension.uuid });
 
             this._viewRenderer = new KaomojiViewRenderer();
 
@@ -82,26 +77,9 @@ export const KaomojiTabContent = GObject.registerClass(
             this._viewer = new CategorizedItemViewer(extension, settings, config);
             this.set_child(this._viewer);
 
-            this._applyBackButtonPreference();
-            this._alwaysShowTabsSignalId = settings.connect('changed::always-show-main-tab', () => this._applyBackButtonPreference());
-
             this._viewer.connect('item-selected', (source, jsonPayload) => {
                 this._onItemSelected(jsonPayload, extension);
             });
-
-            this._viewer.connect('back-requested', () => {
-                this.emit('navigate-to-main-tab', _('Recently Used'));
-            });
-        }
-
-        /**
-         * Applies the user's preference for always showing the main tab back button.
-         *
-         * @private
-         */
-        _applyBackButtonPreference() {
-            const shouldShowBackButton = !this._settings.get_boolean('always-show-main-tab');
-            this._viewer?.setBackButtonVisible(shouldShowBackButton);
         }
 
         // ========================================================================
@@ -144,7 +122,7 @@ export const KaomojiTabContent = GObject.registerClass(
          */
         onTabSelected() {
             this.emit('set-main-tab-bar-visibility', false);
-            this._viewer?.onSelected();
+            this._viewer.onSelected();
         }
 
         /**
@@ -153,14 +131,39 @@ export const KaomojiTabContent = GObject.registerClass(
          * @param {string} query Query text.
          */
         async applyExternalSearch(query) {
-            this._viewer?.applyExternalSearch(query, { focus: false });
+            this._viewer.applyExternalSearch(query, { focus: false });
         }
 
         /**
          * Clears externally provided search state.
          */
         async clearExternalSearch() {
-            this._viewer?.clearExternalSearch({ focus: false });
+            this._viewer.clearExternalSearch({ focus: false });
+        }
+
+        /**
+         * Focuses the top-most content element when navigating from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusTopContent() {
+            return this._viewer.focusTopContent();
+        }
+
+        /**
+         * Focuses the bottom-most content element when navigating backward from the main tab bar.
+         *
+         * @returns {boolean} True if an element was focused.
+         */
+        focusBottomContent() {
+            return this._viewer.focusBottomContent();
+        }
+
+        /**
+         * Cleans up view state when the menu is closed.
+         */
+        onMenuClosed() {
+            this._viewer.onMenuClosed();
         }
 
         // ========================================================================
@@ -171,12 +174,13 @@ export const KaomojiTabContent = GObject.registerClass(
          * Cleans up resources when the widget is destroyed.
          */
         destroy() {
-            if (this._alwaysShowTabsSignalId) {
-                this._settings?.disconnect(this._alwaysShowTabsSignalId);
+            if (this._viewer) {
+                this._viewer.destroy();
+                this._viewer = null;
             }
-            this._alwaysShowTabsSignalId = 0;
+            this._viewRenderer = null;
+            this._settings = null;
 
-            this._viewer?.destroy();
             super.destroy();
         }
     },
