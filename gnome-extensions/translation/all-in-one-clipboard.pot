@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 17:48+0000\n"
+"POT-Creation-Date: 2026-10-07 15:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,6 +65,18 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:66
+msgid "Paste as Plain Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:66
+msgid "Paste as Rich Text"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:84
+msgid "Paste Images"
+msgstr ""
+
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:17
 msgid "Clipboard Settings"
 msgstr ""
@@ -99,155 +111,163 @@ msgid "Automatically unpin an item when it is pasted."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:58
-msgid "Show Clipboard Action Bar"
+msgid "Capture Files and Folders"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:59
-msgid "Show the toolbar above the clipboard list."
+msgid "Record files and folders copied in file managers."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:66
-msgid "List"
+msgid "Show Clipboard Action Bar"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:67
+msgid "Show the toolbar above the clipboard list."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:74
+msgid "List"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:75
 msgid "Grid"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:71
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:79
 msgid "Clipboard Layout"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:72
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:80
 msgid "Display clipboard history as a list or a grid."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:105
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:113
 msgid "Image Preview Size"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:106
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:114
 #, javascript-format
 msgid "Pixel size for clipboard image thumbnails (%d-%d). Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:118
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:126
 msgid "Merge Selected Items"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:119
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:127
 msgid "Allow selecting and merging multiple items using checkboxes."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:144
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:152
 msgid "Newline"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:145
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:153
 msgid "Double Newline"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:146
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:154
 msgid "Space"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:147
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:155
 msgid "Comma"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:148
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:156
 msgid "Tab"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:149
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:157
 msgid "Custom"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:153
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:161
 msgid "Delimiter"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:154
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:162
 msgid "Delimiter used to separate text items when merging."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:175
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:183
 msgid "Custom Delimiter"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:198
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:206
 msgid "Selection Order"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:199
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:207
 msgid "Chronological Order"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:203
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:211
 msgid "Insertion Order"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:204
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:212
 msgid "Order of items when merging selection."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:233
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:241
 msgid "Rich Content Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:234
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:242
 msgid "Formatting and paste options for rich text and images."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:240
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:248
 msgid "Rich Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:241
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:249
 msgid "Plain Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:245
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:253
 msgid "Paste Format"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:246
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:254
 msgid "Default format when pasting formatted text."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:275
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:283
 msgid "Per-Item Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:276
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:284
 msgid "Action Bar Switch"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:277
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:285
 msgid "None"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:281
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:289
 msgid "Paste Accessibility"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:282
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:290
 msgid "Controls for toggling paste formats."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:311
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:319
 msgid "Show Format Paste Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:312
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:320
 msgid "Show format button on formatted items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:319
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:327
 msgid "Show Image Paste Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:320
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:328
 msgid "Show image button on items containing pictures."
 msgstr ""
 
@@ -317,36 +337,20 @@ msgstr ""
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:158
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:157
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:158
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:310
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:311
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:327
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:328
 msgid "History"
-msgstr ""
-
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:103
-#: gnome-extensions/extension/features/Clipboard/view/clipboardGridItemFactory.js:129
-#: gnome-extensions/extension/features/Clipboard/view/clipboardListItemFactory.js:125
-msgid "Paste as Plain Text"
-msgstr ""
-
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:103
-#: gnome-extensions/extension/features/Clipboard/view/clipboardGridItemFactory.js:129
-#: gnome-extensions/extension/features/Clipboard/view/clipboardListItemFactory.js:125
-msgid "Paste as Rich Text"
-msgstr ""
-
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseWidgetFactory.js:131
-msgid "Paste Images"
 msgstr ""
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
@@ -895,7 +899,7 @@ msgstr ""
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr ""
 
-#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:28
 msgid "All-in-One Clipboard"
 msgstr ""
 
@@ -1098,7 +1102,19 @@ msgstr ""
 msgid "Link or Email Address"
 msgstr ""
 
-#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:97
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:51
+msgid "Paths"
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:52
+msgid "Prevent specific files, directories, or URI patterns from being captured."
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:55
+msgid "/path/to/folder or file://..."
+msgstr ""
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:105
 msgid "Add New Exclusion"
 msgstr ""
 
