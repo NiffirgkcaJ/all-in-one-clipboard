@@ -43,6 +43,7 @@ export function ClipboardDefinitionCode() {
         ...ClipboardIntegrationViewSnippet(),
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
+            pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
             copyItem: async (item, { manager }) => {
                 let content = item.text || (await manager.getContent(item.id));

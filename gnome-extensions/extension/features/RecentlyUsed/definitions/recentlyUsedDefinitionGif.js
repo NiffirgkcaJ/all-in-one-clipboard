@@ -237,12 +237,16 @@ function createRecentlyUsedDefinitionGifInstance() {
      * @returns {Promise<boolean>} True when copy succeeds.
      */
     definition.onClick = async ({ itemData, extension, settings }) => {
+        const isImageMode = settings.get_int('gif-paste-behavior') === 1;
+        const pasteShortcut = isImageMode ? 'ctrl-v' : 'shift-insert';
+
         return await GlobalActionService.executeCopyAction({
             onCopy: async () => await copyRecentlyUsedGifToClipboard(itemData, settings, extension),
             onPostCopy: () => recentManager.addItem(itemData),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension?._indicator?.menu,
+            pasteShortcut,
         });
     };
 

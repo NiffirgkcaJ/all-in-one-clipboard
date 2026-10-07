@@ -43,6 +43,7 @@ export function ClipboardDefinitionColor() {
         }),
         getSearchTerms: (item) => [item.color_value],
         copyOptions: {
+            pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
             copyItem: async (item, { manager }) => {
                 manager.captureGuard.registerText(item.color_value);

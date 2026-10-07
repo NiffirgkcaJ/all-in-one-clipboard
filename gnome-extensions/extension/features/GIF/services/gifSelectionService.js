@@ -67,6 +67,9 @@ export class GifSelectionService {
     async handleSelection(gifObject) {
         if (!gifObject || !gifObject.full_url) return;
 
+        const isImageMode = this._settings.get_int('gif-paste-behavior') === 1;
+        const pasteShortcut = isImageMode ? 'ctrl-v' : 'shift-insert';
+
         await GlobalActionService.executeCopyAction({
             onCopy: async () => {
                 await this._downloadService.copyToClipboard(gifObject, this._settings, this._clipboardManager);
@@ -81,6 +84,7 @@ export class GifSelectionService {
             settings: this._settings,
             autoPasteKey: 'auto-paste-gif',
             menu: this._extension._indicator.menu,
+            pasteShortcut,
         });
     }
 

@@ -59,6 +59,7 @@ export function ClipboardDefinitionImage() {
         }),
         getSearchTerms: (item) => [item.image_filename],
         copyOptions: {
+            pasteShortcut: 'ctrl-v',
             mergeBehavior: 'file',
             copyItem: async (item, { storage, manager }) => {
                 if (item.file_uri) {

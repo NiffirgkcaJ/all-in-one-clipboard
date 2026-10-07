@@ -56,6 +56,7 @@ export function ClipboardDefinitionContact() {
         ...ClipboardIntegrationViewRich(),
         getSearchTerms: (item) => [item.text, item.preview, item.metadata?.name, item.metadata?.email],
         copyOptions: {
+            pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
             copyItem: async (item, { manager }) => {
                 let content = item.text || (await manager.getContent(item.id));

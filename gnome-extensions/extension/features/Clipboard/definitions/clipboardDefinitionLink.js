@@ -49,6 +49,7 @@ export function ClipboardDefinitionLink() {
         ...ClipboardIntegrationViewRich(),
         getSearchTerms: (item) => [item.title, item.url],
         copyOptions: {
+            pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
             copyItem: async (item, { manager }) => {
                 manager.captureGuard.registerText(item.url);

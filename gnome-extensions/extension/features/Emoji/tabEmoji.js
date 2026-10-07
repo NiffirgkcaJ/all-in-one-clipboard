@@ -2,14 +2,13 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
-import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { Logger } from '../../shared/utilities/utilityLogger.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { EmojiJsonParser } from './parsers/emojiJsonParser.js';
 import { EmojiModifier } from './logic/emojiModifier.js';
+import { EmojiSelectionService } from './services/emojiSelectionService.js';
 import { EmojiViewRenderer } from './view/emojiViewRenderer.js';
 import { ensureEmojiSearchProviderRegistered } from './integrations/emojiSearchProvider.js';
 import { getSkinnableCharSet } from './logic/emojiDataCache.js';
@@ -51,6 +50,7 @@ export const EmojiTabContent = GObject.registerClass(
             });
 
             this._settings = settings;
+            this._selectionService = new EmojiSelectionService(settings);
             this._skinToneableBaseChars = new Set();
             this._skinToneSettingsSignalIds = [];
             this._viewer = null;
@@ -134,14 +134,7 @@ export const EmojiTabContent = GObject.registerClass(
                 charToCopy = this._getModifiedChar({ ...data, char: originalChar });
             }
 
-            clipboardSetText(charToCopy);
-
-            await GlobalActionService.executeCopyAction({
-                onCopy: async () => true,
-                settings: this._settings,
-                autoPasteKey: 'auto-paste-emoji',
-                menu: extension._indicator.menu,
-            });
+            await this._selectionService.handleSelection(charToCopy, extension._indicator?.menu);
         }
 
         /**
@@ -270,6 +263,7 @@ export const EmojiTabContent = GObject.registerClass(
                 this._viewer = null;
             }
 
+            this._selectionService = null;
             this._settings = null;
 
             super.destroy();

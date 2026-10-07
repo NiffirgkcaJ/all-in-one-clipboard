@@ -169,6 +169,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension?._indicator?.menu,
+            pasteShortcut: 'shift-insert',
         });
     };
 

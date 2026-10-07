@@ -2,14 +2,13 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
-import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { Logger } from '../../shared/utilities/utilityLogger.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureKaomojiSearchProviderRegistered } from './integrations/kaomojiSearchProvider.js';
 import { KaomojiJsonParser } from './parsers/kaomojiJsonParser.js';
+import { KaomojiSelectionService } from './services/kaomojiSelectionService.js';
 import { KaomojiViewRenderer } from './view/kaomojiViewRenderer.js';
 import { KaomojiSettings, KaomojiUI } from './constants/kaomojiConstants.js';
 
@@ -48,6 +47,7 @@ export const KaomojiTabContent = GObject.registerClass(
             });
 
             this._settings = settings;
+            this._selectionService = new KaomojiSelectionService(settings);
 
             ensureKaomojiSearchProviderRegistered({ extensionUuid: extension.uuid });
 
@@ -100,14 +100,7 @@ export const KaomojiTabContent = GObject.registerClass(
                 const kaomojiToCopy = data.kaomoji;
                 if (!kaomojiToCopy) return;
 
-                clipboardSetText(kaomojiToCopy);
-
-                await GlobalActionService.executeCopyAction({
-                    onCopy: async () => true,
-                    settings: this._settings,
-                    autoPasteKey: 'auto-paste-kaomoji',
-                    menu: extension._indicator.menu,
-                });
+                await this._selectionService.handleSelection(kaomojiToCopy, extension._indicator?.menu);
             } catch (e) {
                 Logger.error('Error in kaomoji item selection', e);
             }
@@ -179,6 +172,7 @@ export const KaomojiTabContent = GObject.registerClass(
                 this._viewer = null;
             }
             this._viewRenderer = null;
+            this._selectionService = null;
             this._settings = null;
 
             super.destroy();

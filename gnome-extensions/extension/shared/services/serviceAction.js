@@ -16,9 +16,10 @@ export class GlobalActionService {
      * @param {Gio.Settings} params.settings Extension settings object.
      * @param {string} [params.autoPasteKey] The settings key to check for auto-paste.
      * @param {Object} [params.menu] The extension indicator menu.
+     * @param {'ctrl-v'|'shift-insert'} [params.pasteShortcut] The keyboard shortcut to simulate when auto-paste triggers.
      * @returns {Promise<boolean>} True if the copy action succeeded.
      */
-    static async executeCopyAction({ onCopy, onPostCopy, settings, autoPasteKey, menu }) {
+    static async executeCopyAction({ onCopy, onPostCopy, settings, autoPasteKey, menu, pasteShortcut }) {
         if (!onCopy) return false;
         const copySuccess = await onCopy();
         if (!copySuccess) return false;
@@ -39,7 +40,7 @@ export class GlobalActionService {
         }
 
         if (settings && autoPasteKey && AutoPaster.shouldAutoPaste(settings, autoPasteKey)) {
-            await getAutoPaster().trigger();
+            await getAutoPaster().trigger(pasteShortcut);
         }
 
         return true;

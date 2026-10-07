@@ -3,6 +3,16 @@ import GLib from 'gi://GLib';
 
 import { Logger } from './utilityLogger.js';
 
+const KEY_LEFTSHIFT = 42;
+const KEY_INSERT = 110;
+const KEY_LEFTCTRL = 29;
+const KEY_V = 47;
+
+const SHORTCUT_KEYCODES = {
+    'shift-insert': { modifier: KEY_LEFTSHIFT, primary: KEY_INSERT },
+    'ctrl-v': { modifier: KEY_LEFTCTRL, primary: KEY_V },
+};
+
 let _instance = null;
 
 /**
@@ -31,27 +41,33 @@ class AutoPaster {
     }
 
     /**
-     * Simulate Shift+Insert key press to paste.
-     * This is more reliable than Ctrl+V across different applications.
-     * @returns {Promise<void>}
+     * Simulate a paste keystroke.
+     *
+     * @param {'ctrl-v'|'shift-insert'} shortcut The keyboard shortcut to simulate.
+     * @returns {Promise<void>} Resolves when keystroke simulation finishes.
      */
-    trigger() {
+    trigger(shortcut) {
         return new Promise((resolve) => {
             if (this._pasteTimeoutId) {
                 GLib.source_remove(this._pasteTimeoutId);
             }
             this._pasteTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
+                const keyMapping = SHORTCUT_KEYCODES[shortcut];
+                if (!keyMapping) {
+                    Logger.error(`AutoPaster: Unsupported or missing paste shortcut '${shortcut}'.`);
+                    this._pasteTimeoutId = 0;
+                    resolve();
+                    return GLib.SOURCE_REMOVE;
+                }
+
                 const keyboard = this._getVirtualKeyboard();
                 const timestamp = GLib.get_monotonic_time();
 
-                const KEY_LEFTSHIFT = 42;
-                const KEY_INSERT = 110;
-
                 try {
-                    keyboard.notify_key(timestamp, KEY_LEFTSHIFT, Clutter.KeyState.PRESSED);
-                    keyboard.notify_key(timestamp + 10, KEY_INSERT, Clutter.KeyState.PRESSED);
-                    keyboard.notify_key(timestamp + 20, KEY_INSERT, Clutter.KeyState.RELEASED);
-                    keyboard.notify_key(timestamp + 30, KEY_LEFTSHIFT, Clutter.KeyState.RELEASED);
+                    keyboard.notify_key(timestamp, keyMapping.modifier, Clutter.KeyState.PRESSED);
+                    keyboard.notify_key(timestamp + 10, keyMapping.primary, Clutter.KeyState.PRESSED);
+                    keyboard.notify_key(timestamp + 20, keyMapping.primary, Clutter.KeyState.RELEASED);
+                    keyboard.notify_key(timestamp + 30, keyMapping.modifier, Clutter.KeyState.RELEASED);
                 } catch (e) {
                     Logger.error('Failed to trigger paste', e);
                 }

@@ -2,14 +2,13 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
-import { clipboardSetText } from '../../shared/utilities/utilityClipboard.js';
-import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { Logger } from '../../shared/utilities/utilityLogger.js';
 import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureSymbolsSearchProviderRegistered } from './integrations/symbolsSearchProvider.js';
 import { SymbolsJsonParser } from './parsers/symbolsJsonParser.js';
+import { SymbolsSelectionService } from './services/symbolsSelectionService.js';
 import { SymbolsViewRenderer } from './view/symbolsViewRenderer.js';
 import { SymbolsSettings, SymbolsUI } from './constants/symbolsConstants.js';
 
@@ -48,6 +47,7 @@ export const SymbolsTabContent = GObject.registerClass(
             });
 
             this._settings = settings;
+            this._selectionService = new SymbolsSelectionService(settings);
 
             ensureSymbolsSearchProviderRegistered({ extensionUuid: extension.uuid });
 
@@ -100,14 +100,7 @@ export const SymbolsTabContent = GObject.registerClass(
                 const symbolToCopy = data.symbol;
                 if (!symbolToCopy) return;
 
-                clipboardSetText(symbolToCopy);
-
-                await GlobalActionService.executeCopyAction({
-                    onCopy: async () => true,
-                    settings: this._settings,
-                    autoPasteKey: 'auto-paste-symbols',
-                    menu: extension._indicator.menu,
-                });
+                await this._selectionService.handleSelection(symbolToCopy, extension._indicator?.menu);
             } catch (e) {
                 Logger.error('Error in symbols item selection', e);
             }
@@ -179,6 +172,7 @@ export const SymbolsTabContent = GObject.registerClass(
                 this._viewer = null;
             }
             this._viewRenderer = null;
+            this._selectionService = null;
             this._settings = null;
 
             super.destroy();
