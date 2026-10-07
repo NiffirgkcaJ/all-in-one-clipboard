@@ -4,8 +4,9 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { ClipboardConfig } from '../constants/clipboardConstants.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+
+import { ClipboardConfig } from '../constants/clipboardConstants.js';
 
 // Configuration
 const SCROLL_THRESHOLD_PX = 500;

@@ -1,7 +1,7 @@
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
-import { ensureClipboardDefinition } from './clipboardDefinition.js';
 import { getClipboardOrder } from '../definitions/clipboardOrder.js';
+import { ensureClipboardDefinition } from './clipboardDefinition.js';
 
 /**
  * ClipboardRegistry

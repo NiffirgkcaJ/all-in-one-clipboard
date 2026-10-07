@@ -1,11 +1,11 @@
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
-import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 import { normalizeRecentlyUsedSearchQuery } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedDisplayMode } from '../constants/recentlyUsedPolicyConstants.js';
+import { resolveRecentlyUsedSectionPolicy } from '../utilities/recentlyUsedDisplayPolicyResolver.js';
+import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 import { RecentlyUsedSearchStateManager } from './recentlyUsedSearchStateManager.js';
 import { RecentlyUsedSignalManager } from './recentlyUsedSignalManager.js';
-import { resolveRecentlyUsedSectionPolicy } from '../utilities/recentlyUsedDisplayPolicyResolver.js';
 import { getRecentlyUsedOrderedSections, getRecentlyUsedSectionOrder, initializeRecentlyUsedRegistry } from './recentlyUsedRegistry.js';
 import { resolveRecentlyUsedBaseLayout, resolveRecentlyUsedDisplayLayout, resolveRecentlyUsedSectionLayouts } from './recentlyUsedLayoutResolver.js';
 

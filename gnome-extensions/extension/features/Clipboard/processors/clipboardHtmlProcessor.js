@@ -6,7 +6,6 @@ import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
-
 import { ImageProcessor } from './clipboardImageProcessor.js';
 import { TextProcessor } from './clipboardTextProcessor.js';
 

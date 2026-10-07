@@ -2,9 +2,9 @@ import GObject from 'gi://GObject';
 
 import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
 
+import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
-import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 
 /**
  * ClipboardListView

@@ -3,8 +3,8 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
+import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
 import { ClipboardActionBar } from './view/clipboardActionBar.js';

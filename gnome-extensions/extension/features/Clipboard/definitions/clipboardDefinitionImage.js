@@ -10,7 +10,7 @@ import { ClipboardIntegrationPreviewWarmup } from '../integrations/clipboardInte
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationViewMedia } from '../integrations/clipboardIntegrationViewMedia.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the image clipboard definition.

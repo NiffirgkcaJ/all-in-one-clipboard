@@ -11,7 +11,7 @@ import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrati
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the contact clipboard definition.

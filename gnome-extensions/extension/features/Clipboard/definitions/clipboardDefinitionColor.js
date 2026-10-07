@@ -5,7 +5,7 @@ import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegra
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationViewSwatch } from '../integrations/clipboardIntegrationViewSwatch.js';
 import { ColorProcessor } from '../processors/clipboardColorProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the color clipboard definition.

@@ -5,10 +5,10 @@ import GObject from 'gi://GObject';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
-import { ClipboardBaseView } from './clipboardBaseView.js';
-import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutConstants.js';
+import { ClipboardBaseView } from './clipboardBaseView.js';
+import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
 
 /**
  * ClipboardGridView

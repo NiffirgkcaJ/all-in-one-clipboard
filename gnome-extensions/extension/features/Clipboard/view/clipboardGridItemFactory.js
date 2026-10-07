@@ -5,10 +5,10 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
-import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
-import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { IconSizes } from '../constants/clipboardConstants.js';
+import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
+import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 
 /**
  * ClipboardGridItemFactory

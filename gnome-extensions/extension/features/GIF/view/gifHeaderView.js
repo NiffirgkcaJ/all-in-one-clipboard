@@ -7,8 +7,8 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { eventMatchesShortcut } from '../../../shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
-import { HorizontalScrollView, scrollToItemCentered } from '../../../shared/utilities/utilityHorizontalScrollView.js';
 import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
+import { HorizontalScrollView, scrollToItemCentered } from '../../../shared/utilities/utilityHorizontalScrollView.js';
 
 import { GifIcons } from '../constants/gifConstants.js';
 

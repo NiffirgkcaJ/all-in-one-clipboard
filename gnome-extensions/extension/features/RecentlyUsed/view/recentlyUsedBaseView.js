@@ -8,17 +8,17 @@ import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
+import { queueSearchHandoff } from '../../../shared/services/serviceSearchHub.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
 
-import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
 import { RecentlyUsedBaseViewTiming } from '../constants/recentlyUsedViewConstants.js';
 import { RecentlyUsedScrollLockController } from '../utilities/recentlyUsedScrollLockController.js';
+import { RecentlyUsedStyles, RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
+import { RecentlyUsedBaseWidgetFactory } from './recentlyUsedBaseWidgetFactory.js';
 import { renderRecentlyUsedGridSection } from './recentlyUsedGridSectionView.js';
 import { renderRecentlyUsedListSection } from './recentlyUsedListSectionView.js';
 import { renderRecentlyUsedNestedGridSection } from './recentlyUsedNestedGridSectionView.js';
 import { renderRecentlyUsedNestedListSection } from './recentlyUsedNestedListSectionView.js';
-import { queueSearchHandoff } from '../../../shared/services/serviceSearchHub.js';
-import { RecentlyUsedUI, RecentlyUsedStyles } from '../constants/recentlyUsedConstants.js';
 
 /**
  * RecentlyUsedBaseView

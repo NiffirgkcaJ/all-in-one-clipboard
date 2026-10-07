@@ -5,7 +5,6 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { createStaticIcon } from '../utilities/utilityIcon.js';
 import { FocusUtils } from '../utilities/utilityFocus.js';
-
 import { getMenuOrderedSections } from './menuRegistry.js';
 
 /**

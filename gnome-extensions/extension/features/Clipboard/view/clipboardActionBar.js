@@ -4,7 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
-import { createStaticIconButton, createDynamicIconButton } from '../../../shared/utilities/utilityIcon.js';
+import { createDynamicIconButton, createStaticIconButton } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 

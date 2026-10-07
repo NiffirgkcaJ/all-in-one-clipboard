@@ -15,7 +15,7 @@ import { addPreferenceSettingsManagement } from './shared/preferences/preference
 import { addPreferenceTabManagement } from './shared/preferences/preferenceGroupTabManagement.js';
 import { getIconName } from './shared/preferences/preferenceUtilities.js';
 import { Logger } from './shared/utilities/utilityLogger.js';
-import { initStorage, ExtensionPath } from './shared/constants/storagePaths.js';
+import { ExtensionPath, initStorage } from './shared/constants/storagePaths.js';
 
 import { addPreferenceClipboardSettings } from './features/Clipboard/preferences/clipboardPreferenceGroup.js';
 import { addPreferenceEmojiSettings } from './features/Emoji/preferences/emojiPreferenceGroup.js';

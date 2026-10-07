@@ -3,8 +3,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createStaticIcon, createLogo } from './utilityIcon.js';
 import { FocusUtils } from './utilityFocus.js';
+import { createLogo, createStaticIcon } from './utilityIcon.js';
 
 const SearchIcons = {
     CLEAR: {

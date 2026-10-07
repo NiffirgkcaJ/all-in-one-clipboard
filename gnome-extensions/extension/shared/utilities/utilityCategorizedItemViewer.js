@@ -5,6 +5,7 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { MenuNavigationService } from '../services/serviceNavigation.js';
 import { createStaticIcon } from './utilityIcon.js';
 import { Debouncer } from './utilityDebouncer.js';
 import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
@@ -14,7 +15,6 @@ import { Logger } from './utilityLogger.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 import { IOJson, IOResource } from './utilityIO.js';
-import { MenuNavigationService } from '../services/serviceNavigation.js';
 
 const WIDTH_CHANGE_DEBOUNCE_MS = 200;
 const TAB_SCROLL_POLICY_DEBOUNCE_MS = 50;

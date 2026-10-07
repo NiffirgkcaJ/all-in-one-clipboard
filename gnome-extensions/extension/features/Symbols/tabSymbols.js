@@ -1,10 +1,11 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
+
 import { CategorizedItemViewer } from '../../shared/utilities/utilityCategorizedItemViewer.js';
 import { IOJson } from '../../shared/utilities/utilityIO.js';
 import { Logger } from '../../shared/utilities/utilityLogger.js';
-import { ResourceItem, FileItem } from '../../shared/constants/storagePaths.js';
+import { FileItem, ResourceItem } from '../../shared/constants/storagePaths.js';
 
 import { ensureSymbolsSearchProviderRegistered } from './integrations/symbolsSearchProvider.js';
 import { SymbolsJsonParser } from './parsers/symbolsJsonParser.js';

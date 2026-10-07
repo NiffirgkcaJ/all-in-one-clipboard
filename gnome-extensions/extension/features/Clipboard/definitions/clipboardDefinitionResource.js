@@ -6,7 +6,7 @@ import { IOText } from '../../../shared/utilities/utilityIO.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ResourceProcessor } from '../processors/clipboardResourceProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the resource clipboard definition.

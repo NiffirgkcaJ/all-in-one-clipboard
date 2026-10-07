@@ -6,7 +6,7 @@ import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegratio
 import { ClipboardIntegrationViewSnippet } from '../integrations/clipboardIntegrationViewSnippet.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the code clipboard definition.

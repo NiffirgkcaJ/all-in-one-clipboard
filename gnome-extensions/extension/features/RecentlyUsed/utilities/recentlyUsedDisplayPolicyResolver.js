@@ -1,5 +1,6 @@
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
-import { RecentlyUsedLimitMode, RecentlyUsedDisplayMode, RecentlyUsedDefaultPolicy, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
+
+import { RecentlyUsedDefaultPolicy, RecentlyUsedDisplayMode, RecentlyUsedLimitMode, RecentlyUsedPolicySettings } from '../constants/recentlyUsedPolicyConstants.js';
 
 const LIMIT_MODE = RecentlyUsedLimitMode;
 const DISPLAY_MODE = RecentlyUsedDisplayMode;

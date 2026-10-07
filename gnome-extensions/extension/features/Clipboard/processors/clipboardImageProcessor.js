@@ -2,8 +2,8 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
-import { clipboardGetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { clipboardGetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';

@@ -2,10 +2,9 @@ import Gio from 'gi://Gio';
 import Rsvg from 'gi://Rsvg';
 import St from 'gi://St';
 
+import { ResourcePath } from '../constants/storagePaths.js';
 import { IOText } from './utilityIO.js';
 import { Logger } from './utilityLogger.js';
-
-import { ResourcePath } from '../constants/storagePaths.js';
 
 /**
  * Create a static icon.

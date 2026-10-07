@@ -3,8 +3,8 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
 import { GifSettings, GifUI } from '../constants/gifConstants.js';
 

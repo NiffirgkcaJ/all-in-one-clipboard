@@ -8,8 +8,7 @@ import { applySearchHandoffToTab } from '../services/serviceSearchHub.js';
 import { FilePath } from '../constants/storagePaths.js';
 import { IOFile } from '../utilities/utilityIO.js';
 import { Logger } from '../utilities/utilityLogger.js';
-
-import { getMenuSectionByLocalizedName, getMenuOrderedSections } from './menuRegistry.js';
+import { getMenuOrderedSections, getMenuSectionByLocalizedName } from './menuRegistry.js';
 
 /**
  * The content area of the menu, which displays the active tab.

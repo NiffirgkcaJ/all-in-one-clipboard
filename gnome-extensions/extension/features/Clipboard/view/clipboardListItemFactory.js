@@ -3,9 +3,9 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
-import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 
 /**
  * ClipboardListItemFactory

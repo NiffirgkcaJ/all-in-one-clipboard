@@ -3,15 +3,15 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 
-import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
-import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
-import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewText } from '../integrations/clipboardIntegrationViewText.js';
-import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
-import { HtmlProcessor } from '../processors/clipboardHtmlProcessor.js';
 import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
+import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
+import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
+import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
+import { ClipboardIntegrationViewText } from '../integrations/clipboardIntegrationViewText.js';
+import { HtmlProcessor } from '../processors/clipboardHtmlProcessor.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the HTML clipboard definition.

@@ -2,8 +2,8 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
-import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
+import { ensureRecentlyUsedSectionDefinition } from './recentlyUsedSectionDefinition.js';
 
 let recentlyUsedRegistry = null;
 let recentlyUsedOrderRegistry = null;

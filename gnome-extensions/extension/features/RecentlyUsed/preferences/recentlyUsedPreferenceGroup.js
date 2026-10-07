@@ -7,9 +7,9 @@ import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensio
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { getRangeFromSchema } from '../../../shared/preferences/preferenceUtilities.js';
 
-import { addRecentlyUsedAdvancedOverridesPrefs } from './recentlyUsedAdvancedOverridesPrefs.js';
 import { getRecentlyUsedOrder } from '../definitions/recentlyUsedOrder.js';
 import { RecentlyUsedPolicyTuning } from '../constants/recentlyUsedPolicyConstants.js';
+import { addRecentlyUsedAdvancedOverridesPrefs } from './recentlyUsedAdvancedOverridesPrefs.js';
 
 /**
  * Adds the "Recently Used Settings" preferences group to the page.

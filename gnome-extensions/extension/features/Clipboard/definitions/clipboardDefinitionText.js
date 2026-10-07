@@ -5,7 +5,7 @@ import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardInte
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationViewText } from '../integrations/clipboardIntegrationViewText.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the text clipboard definition.

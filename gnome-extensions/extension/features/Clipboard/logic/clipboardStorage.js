@@ -2,7 +2,7 @@ import GLib from 'gi://GLib';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { FilePath, FileItem } from '../../../shared/constants/storagePaths.js';
+import { FileItem, FilePath } from '../../../shared/constants/storagePaths.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 // Configuration

@@ -21,7 +21,7 @@ import { GifManager } from './managers/gifManager.js';
 import { GifRuntimeService } from './services/gifRuntimeService.js';
 import { GifSearchService } from './services/gifSearchService.js';
 import { GifSelectionService } from './services/gifSelectionService.js';
-import { GifUI, GifIcons } from './constants/gifConstants.js';
+import { GifIcons, GifUI } from './constants/gifConstants.js';
 
 /**
  * GIFTabContent

@@ -9,7 +9,7 @@ import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegratio
 import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
-import { ClipboardType, ClipboardStyling, ClipboardPriority } from '../constants/clipboardPluginConstants.js';
+import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
  * Create the URL clipboard definition.

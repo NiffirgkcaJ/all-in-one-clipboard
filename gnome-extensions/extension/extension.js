@@ -11,8 +11,8 @@ import { IOFile } from './shared/utilities/utilityIO.js';
 import { Logger } from './shared/utilities/utilityLogger.js';
 import { MenuIndicator } from './shared/menu/menuIndicator.js';
 import { resetSearchHub } from './shared/services/serviceSearchHub.js';
-import { getAutoPaster, destroyAutoPaster } from './shared/utilities/utilityAutoPaste.js';
-import { initStorage, FileItem } from './shared/constants/storagePaths.js';
+import { destroyAutoPaster, getAutoPaster } from './shared/utilities/utilityAutoPaste.js';
+import { FileItem, initStorage } from './shared/constants/storagePaths.js';
 
 import { ClipboardManager } from './features/Clipboard/managers/clipboardManager.js';
 import { resetClipboardSearchProvider } from './features/Clipboard/integrations/clipboardSearchProvider.js';
@@ -20,8 +20,8 @@ import { resetEmojiSearchProvider } from './features/Emoji/integrations/emojiSea
 import { resetGifSearchProvider } from './features/GIF/integrations/gifSearchProvider.js';
 import { resetKaomojiSearchProvider } from './features/Kaomoji/integrations/kaomojiSearchProvider.js';
 import { resetSymbolsSearchProvider } from './features/Symbols/integrations/symbolsSearchProvider.js';
-import { getGifCacheManager, destroyGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
-import { getSkinnableCharSet, destroySkinnableCharSetCache } from './features/Emoji/logic/emojiDataCache.js';
+import { destroyGifCacheManager, getGifCacheManager } from './features/GIF/logic/gifCacheManager.js';
+import { destroySkinnableCharSetCache, getSkinnableCharSet } from './features/Emoji/logic/emojiDataCache.js';
 
 /**
  * The main extension class, responsible for the enable and disable lifecycle.

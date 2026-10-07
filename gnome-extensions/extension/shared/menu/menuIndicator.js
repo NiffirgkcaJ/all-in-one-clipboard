@@ -6,10 +6,9 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { eventMatchesShortcut } from '../utilities/utilityShortcutMatcher.js';
-import { positionMenu } from '../utilities/utilityMenuPositioner.js';
-
-import { MenuContentArea } from './menuContentArea.js';
 import { MenuNavigationService } from '../services/serviceNavigation.js';
+import { positionMenu } from '../utilities/utilityMenuPositioner.js';
+import { MenuContentArea } from './menuContentArea.js';
 import { MenuTabBar } from './menuTabBar.js';
 import { MenuTuning } from './menuConstants.js';
 

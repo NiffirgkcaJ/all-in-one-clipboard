@@ -5,7 +5,7 @@ import St from 'gi://St';
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
 import { RecentlyUsedListViewTuning } from '../constants/recentlyUsedViewConstants.js';
-import { RecentlyUsedStyles, RecentlyUsedIcons, RecentlyUsedMessages } from '../constants/recentlyUsedConstants.js';
+import { RecentlyUsedIcons, RecentlyUsedMessages, RecentlyUsedStyles } from '../constants/recentlyUsedConstants.js';
 
 /**
  * Static base factory for creating Recently Used UI widgets.

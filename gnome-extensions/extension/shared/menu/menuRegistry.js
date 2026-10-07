@@ -1,5 +1,4 @@
 import { Logger } from '../utilities/utilityLogger.js';
-
 import { getMenuOrder } from './menuOrder.js';
 
 let menuRegistry = null;

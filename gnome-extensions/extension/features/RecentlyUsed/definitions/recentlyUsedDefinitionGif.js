@@ -9,7 +9,7 @@ import { matchesRecentlyUsedSearch } from '../utilities/recentlyUsedSearch.js';
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedSectionDefinition } from '../registry/recentlyUsedSectionDefinition.js';
 import { createRecentlyUsedRecentsManager, resolveRecentlyUsedRecentFilePath } from '../integrations/recentlyUsedIntegrationRecents.js';
-import { getRecentlyUsedGifRuntime, destroyRecentlyUsedGifRuntime, copyRecentlyUsedGifToClipboard } from '../integrations/recentlyUsedIntegrationGif.js';
+import { copyRecentlyUsedGifToClipboard, destroyRecentlyUsedGifRuntime, getRecentlyUsedGifRuntime } from '../integrations/recentlyUsedIntegrationGif.js';
 
 import { ensureGifSearchProviderRegistered } from '../../GIF/integrations/gifSearchProvider.js';
 import { GifProvider } from '../../GIF/constants/gifConstants.js';
