@@ -1,5 +1,3 @@
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-
 import { createDynamicIconButton, createStaticIconButton } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
@@ -86,57 +84,38 @@ export class ClipboardBaseWidgetFactory {
             }
         });
 
+        pinButton._action = 'pin';
         return pinButton;
     }
 
     /**
-     * Create a format paste button.
+     * Create a generic action button for item controls.
      *
-     * @param {Object} itemData The item data.
-     * @param {Function} onPasteClick Callback when format button is clicked.
-     * @param {Object} [styleOptions] Additional style options.
-     * @param {boolean} [isAlternatePlain=false] True when the alternate action is plain text.
-     * @returns {St.Button} The configured format paste button.
+     * @param {Object} options Button configuration options.
+     * @param {Object} options.icon Icon definition for createStaticIconButton.
+     * @param {string} [options.tooltip] Tooltip text.
+     * @param {Function} options.onClick Click callback.
+     * @param {string} [options.action] Semantic action identifier.
+     * @param {Object} [options.styleOptions] Additional style options.
+     * @returns {St.Button} The configured action button.
      */
-    static createFormatPasteButton(itemData, onPasteClick, styleOptions = {}, isAlternatePlain = false) {
-        const iconDef = isAlternatePlain ? ClipboardIcons.ACTION_PASTE_PLAIN : ClipboardIcons.ACTION_PASTE_RICH;
-        const defaultTooltip = isAlternatePlain ? _('Paste as Plain Text') : _('Paste as Rich Text');
-
-        const formatPasteButton = createStaticIconButton(iconDef, {
+    static createActionButton({ icon, tooltip, onClick, action, styleOptions = {} }) {
+        const button = createStaticIconButton(icon, {
             style_class: 'button clipboard-control-button',
             can_focus: false,
-            tooltip_text: defaultTooltip,
+            tooltip_text: tooltip,
             ...styleOptions,
         });
 
-        formatPasteButton.connect('clicked', () => {
-            onPasteClick(itemData);
+        button.connect('clicked', () => {
+            onClick();
         });
 
-        return formatPasteButton;
-    }
+        if (action) {
+            button._action = action;
+        }
 
-    /**
-     * Create an image paste button.
-     *
-     * @param {Object} itemData The item data.
-     * @param {Function} onPasteClick Callback when paste image button is clicked.
-     * @param {Object} [styleOptions] Additional style options.
-     * @returns {St.Button} The configured image paste button.
-     */
-    static createImagePasteButton(itemData, onPasteClick, styleOptions = {}) {
-        const imagePasteButton = createStaticIconButton(ClipboardIcons.ACTION_PASTE_IMAGE, {
-            style_class: 'button clipboard-control-button',
-            can_focus: false,
-            tooltip_text: _('Paste Images'),
-            ...styleOptions,
-        });
-
-        imagePasteButton.connect('clicked', () => {
-            onPasteClick(itemData);
-        });
-
-        return imagePasteButton;
+        return button;
     }
 
     /**
@@ -159,6 +138,7 @@ export class ClipboardBaseWidgetFactory {
             options.manager.deleteItem(itemData.id);
         });
 
+        deleteButton._action = 'delete';
         return deleteButton;
     }
 }

@@ -5,7 +5,6 @@ import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { ClipboardCaptureGuardService } from '../services/clipboardCaptureGuardService.js';
 import { ClipboardContentRouterService } from '../services/clipboardContentRouterService.js';
-import { ClipboardCopyService } from '../services/clipboardCopyService.js';
 import { ClipboardHistoryDeduperService } from '../services/clipboardHistoryDeduperService.js';
 import { ClipboardHistoryService } from '../services/clipboardHistoryService.js';
 import { ClipboardItemRemovalService } from '../services/clipboardItemRemovalService.js';
@@ -23,7 +22,7 @@ const CLIPBOARD_HISTORY_MAX_ITEMS_KEY = 'clipboard-history-max-items';
  * ClipboardManager
  *
  * Orchestrates clipboard history and pinned items.
- * Delegates content routing to ClipboardContentRouterService and clipboard I/O to ClipboardCopyService.
+ * Delegates content routing to ClipboardContentRouterService.
  *
  * @emits history-changed Emitted when the clipboard history changes.
  * @emits pinned-changed Emitted when the pinned items list changes.
@@ -225,6 +224,17 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Get the paste shortcut for a specific item.
+         *
+         * @param {Object} itemData Clipboard item.
+         * @param {Object} [options] Copy options.
+         * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
+         */
+        getCopyPasteShortcut(itemData, options = {}) {
+            return this._clipboardRegistry.getCopyPasteShortcut(itemData, options);
+        }
+
+        /**
          * Get all clipboard history items.
          *
          * @returns {Array} List of history items.
@@ -253,24 +263,14 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Get rich HTML content for an item from disk.
+         * Get a multi-step copy/paste queue if supported by the item's definition.
          *
-         * @param {string} id Item ID.
-         * @returns {Promise<Uint8Array|null>} Full content or null if not found.
+         * @param {Object} itemData Clipboard item.
+         * @param {Object} [options] Copy options.
+         * @returns {Promise<Array<Object>|null>} Array of queue action items or null.
          */
-        async getRichContent(id) {
-            return await this._storage.getRichContent(id, this._itemStore.getAllItems());
-        }
-
-        /**
-         * Paste embedded images from a rich text item.
-         *
-         * @param {Object} itemData Rich text item data.
-         * @param {Object} [options] Paste options.
-         * @returns {Promise<boolean>} True if successful.
-         */
-        async pasteImagesFromItem(itemData, options = {}) {
-            return await this._copyService.pasteImagesFromItem(itemData, this._storage, this, options);
+        async getCopyQueue(itemData, options = {}) {
+            return await this._clipboardRegistry.getCopyQueue(itemData, { storage: this._storage, manager: this, ...options });
         }
 
         /**
@@ -281,7 +281,7 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if successful.
          */
         async copyToSystemClipboard(itemData, options = {}) {
-            return ClipboardCopyService.copy(itemData, this._storage, this, options);
+            return await this._clipboardRegistry.copyItem(itemData, { storage: this._storage, manager: this, ...options });
         }
 
         /**

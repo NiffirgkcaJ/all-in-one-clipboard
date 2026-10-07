@@ -108,6 +108,7 @@ export class ClipboardMonitor {
         try {
             const result = await this._extractClipboardContent();
             if (result) {
+                if (result.suppressed) return;
                 if (!this._shouldSuppress(result, true)) {
                     this._onContentCaptured(result);
                 }
@@ -146,6 +147,7 @@ export class ClipboardMonitor {
     async _extractClipboardContent() {
         return await this._clipboardRegistry.extractClipboardContent({
             imagesDir: this._imagesDir,
+            exclusionUtils: this._exclusionUtils,
         });
     }
 
@@ -181,6 +183,7 @@ export class ClipboardMonitor {
      * @private
      */
     _shouldSuppress(result, isSafeContext) {
+        if (result?.suppressed) return true;
         if (!result?.hash) return false;
 
         const hasFocus = !!global.display.focus_window;

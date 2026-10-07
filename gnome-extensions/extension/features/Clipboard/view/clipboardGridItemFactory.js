@@ -114,56 +114,22 @@ export class ClipboardGridItemFactory {
             y_align: Clutter.ActorAlign.END,
         });
 
-        // Secondary Controls (Paste Actions)
-        const showFormatPasteButton =
-            options.settings.get_string('clipboard-paste-accessibility') === 'per-item' && Boolean(itemData.has_rich_content) && options.settings.get_boolean('clipboard-show-format-paste-button');
-        let formatPasteButton = null;
-        if (showFormatPasteButton) {
-            const isDefaultRich = options.settings.get_string('clipboard-paste-format') === 'rich';
-            formatPasteButton = ClipboardBaseWidgetFactory.createFormatPasteButton(
-                itemData,
-                (data) => options.onItemCopy(data, { asRichText: !isDefaultRich }),
-                {
-                    style_class: 'button clipboard-grid-control-button',
-                    can_focus: false,
-                    tooltip_text: isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich Text'),
-                },
-                isDefaultRich,
-            );
-        }
+        // Action Controls
+        const definition = options.registry ? options.registry.getDefinition(itemData.type) : null;
+        const actionButtons = definition
+            ? definition.createActions(itemData, {
+                  settings: options.settings,
+                  manager: options.manager,
+                  onItemCopy: options.onItemCopy,
+                  isPinned,
+                  styleOptions: {
+                      style_class: 'button clipboard-grid-control-button',
+                      can_focus: false,
+                  },
+              })
+            : [];
 
-        const showImagePasteButton = Boolean(itemData.has_images) && options.settings.get_boolean('clipboard-show-image-paste-button');
-        let imagePasteButton = null;
-        if (showImagePasteButton) {
-            imagePasteButton = ClipboardBaseWidgetFactory.createImagePasteButton(
-                itemData,
-                (data) => {
-                    options.onItemCopy(data, { asImages: true });
-                },
-                {
-                    style_class: 'button clipboard-grid-control-button',
-                    can_focus: false,
-                },
-            );
-        }
-
-        if (formatPasteButton || imagePasteButton) {
-            const secondaryControls = new St.BoxLayout({
-                style_class: 'clipboard-grid-secondary-controls',
-                x_expand: true,
-                x_align: Clutter.ActorAlign.END,
-            });
-            if (formatPasteButton) {
-                secondaryControls.add_child(formatPasteButton);
-            }
-            if (imagePasteButton) {
-                secondaryControls.add_child(imagePasteButton);
-            }
-            actionsOverlay.add_child(secondaryControls);
-        }
-
-        // Primary Controls (Item Actions)
-        const primaryControls = new St.BoxLayout({
+        const controlsBox = new St.BoxLayout({
             style_class: 'clipboard-grid-primary-controls',
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
@@ -182,34 +148,14 @@ export class ClipboardGridItemFactory {
             },
         );
         itemCheckbox.visible = options.settings.get_boolean('clipboard-show-action-bar');
-        primaryControls.add_child(itemCheckbox);
+        controlsBox.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 
         const spacer = new St.Widget({ x_expand: true });
-        primaryControls.add_child(spacer);
+        controlsBox.add_child(spacer);
 
-        const pinButton = ClipboardBaseWidgetFactory.createPinButton(
-            itemData,
-            isPinned,
-            { manager: options.manager },
-            {
-                style_class: 'button clipboard-grid-control-button',
-                can_focus: false,
-            },
-        );
-
-        const deleteButton = ClipboardBaseWidgetFactory.createDeleteButton(
-            itemData,
-            { manager: options.manager },
-            {
-                style_class: 'button clipboard-grid-control-button',
-                can_focus: false,
-            },
-        );
-
-        primaryControls.add_child(pinButton);
-        primaryControls.add_child(deleteButton);
-        actionsOverlay.add_child(primaryControls);
+        actionButtons.forEach((button) => controlsBox.add_child(button));
+        actionsOverlay.add_child(controlsBox);
 
         cardStack.add_child(actionsOverlay);
 
@@ -240,8 +186,8 @@ export class ClipboardGridItemFactory {
         });
 
         itemWidget._itemCheckbox = itemCheckbox;
-        itemWidget._pinButton = pinButton;
-        itemWidget._deleteButton = deleteButton;
+        itemWidget._pinButton = actionButtons.find((btn) => btn._action === 'pin');
+        itemWidget._deleteButton = actionButtons.find((btn) => btn._action === 'delete');
         itemWidget._itemId = itemData.id;
         itemWidget._contentWrapper = contentWrapper;
         itemWidget._cardStack = cardStack;

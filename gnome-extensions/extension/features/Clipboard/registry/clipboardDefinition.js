@@ -1,3 +1,8 @@
+import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
+
+// Default action integration for standard item actions.
+const defaultItemActions = ClipboardIntegrationItemActions();
+
 /**
  * Base contract for Clipboard definitions.
  */
@@ -39,6 +44,17 @@ export class ClipboardDefinition {
      */
     warmupItem() {
         return false;
+    }
+
+    /**
+     * Create action buttons for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} context Action context.
+     * @returns {Array<St.Button>} List of action buttons.
+     */
+    createActions(item, context) {
+        return defaultItemActions.createActions(item, context);
     }
 
     /**

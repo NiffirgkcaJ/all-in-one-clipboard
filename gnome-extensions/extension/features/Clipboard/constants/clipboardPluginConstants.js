@@ -1,11 +1,12 @@
 // Internal Data Types
 export const ClipboardType = {
     IMAGE: 'image',
-    FILE: 'file',
+    RESOURCE: 'resource',
     URL: 'url',
     CONTACT: 'contact',
     COLOR: 'color',
     CODE: 'code',
+    HTML: 'html',
     TEXT: 'text',
 };
 
@@ -16,10 +17,29 @@ export const ClipboardStyling = {
         iconSize: 16,
         layout: 'image',
     },
-    [ClipboardType.FILE]: {
-        icon: 'clipboard-type-file-symbolic.svg',
+    [ClipboardType.RESOURCE]: {
         iconSize: 16,
         layout: 'rich',
+        subtypes: {
+            file: {
+                icon: 'clipboard-type-resource-file-symbolic.svg',
+            },
+            files: {
+                icon: 'clipboard-type-resource-files-symbolic.svg',
+            },
+            folder: {
+                icon: 'clipboard-type-resource-folder-symbolic.svg',
+            },
+            folders: {
+                icon: 'clipboard-type-resource-folders-symbolic.svg',
+            },
+            item: {
+                icon: 'clipboard-type-resource-item-symbolic.svg',
+            },
+            items: {
+                icon: 'clipboard-type-resource-items-symbolic.svg',
+            },
+        },
     },
     [ClipboardType.URL]: {
         icon: 'clipboard-type-link-symbolic.svg',
@@ -58,25 +78,26 @@ export const ClipboardStyling = {
         iconSize: 16,
         layout: 'code',
     },
+    [ClipboardType.HTML]: {
+        icon: 'clipboard-type-html-symbolic.svg',
+        iconSize: 16,
+        layout: 'text',
+    },
     [ClipboardType.TEXT]: {
         icon: 'clipboard-type-text-symbolic.svg',
         iconSize: 16,
         layout: 'text',
-        subtypes: {
-            html: {
-                icon: 'clipboard-type-html-symbolic.svg',
-            },
-        },
     },
 };
 
 // Execution Priority
 export const ClipboardPriority = {
     [ClipboardType.IMAGE]: 10,
-    [ClipboardType.FILE]: 20,
+    [ClipboardType.RESOURCE]: 20,
     [ClipboardType.URL]: 30,
     [ClipboardType.CONTACT]: 40,
     [ClipboardType.COLOR]: 50,
     [ClipboardType.CODE]: 60,
+    [ClipboardType.HTML]: 65,
     [ClipboardType.TEXT]: 70,
 };

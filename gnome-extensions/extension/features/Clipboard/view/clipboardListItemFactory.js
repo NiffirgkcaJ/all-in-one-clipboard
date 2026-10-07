@@ -111,73 +111,25 @@ export class ClipboardListItemFactory {
             style_class: 'clipboard-list-controls',
         });
 
-        const showFormatPasteButton =
-            options.settings.get_string('clipboard-paste-accessibility') === 'per-item' && Boolean(itemData.has_rich_content) && options.settings.get_boolean('clipboard-show-format-paste-button');
-        let formatPasteButton = null;
-        if (showFormatPasteButton) {
-            const isDefaultRich = options.settings.get_string('clipboard-paste-format') === 'rich';
-            formatPasteButton = ClipboardBaseWidgetFactory.createFormatPasteButton(
-                itemData,
-                (data) => options.onItemCopy(data, { asRichText: !isDefaultRich }),
-                {
-                    style_class: 'button clipboard-list-control-button',
-                    y_align: Clutter.ActorAlign.CENTER,
-                    tooltip_text: isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich Text'),
-                },
-                isDefaultRich,
-            );
-            buttonsBox.add_child(formatPasteButton);
-        }
-
-        const showImagePasteButton = Boolean(itemData.has_images) && options.settings.get_boolean('clipboard-show-image-paste-button');
-        let imagePasteButton = null;
-        if (showImagePasteButton) {
-            imagePasteButton = ClipboardBaseWidgetFactory.createImagePasteButton(
-                itemData,
-                (data) => {
-                    options.onItemCopy(data, { asImages: true });
-                },
-                {
-                    style_class: 'button clipboard-list-control-button',
-                    y_align: Clutter.ActorAlign.CENTER,
-                },
-            );
-            buttonsBox.add_child(imagePasteButton);
-        }
-
-        const pinButton = ClipboardBaseWidgetFactory.createPinButton(
-            itemData,
-            isPinned,
-            { manager: options.manager },
-            {
-                style_class: 'button clipboard-list-control-button',
-                y_align: Clutter.ActorAlign.CENTER,
-            },
-        );
-
-        const deleteButton = ClipboardBaseWidgetFactory.createDeleteButton(
-            itemData,
-            { manager: options.manager },
-            {
-                style_class: 'button clipboard-list-control-button',
-                y_align: Clutter.ActorAlign.CENTER,
-            },
-        );
-
-        buttonsBox.add_child(pinButton);
-        buttonsBox.add_child(deleteButton);
+        const definition = options.registry ? options.registry.getDefinition(itemData.type) : null;
+        const actionButtons = definition
+            ? definition.createActions(itemData, {
+                  settings: options.settings,
+                  manager: options.manager,
+                  onItemCopy: options.onItemCopy,
+                  isPinned,
+                  styleOptions: {
+                      style_class: 'button clipboard-list-control-button',
+                      y_align: Clutter.ActorAlign.CENTER,
+                  },
+              })
+            : [];
+        actionButtons.forEach((button) => buttonsBox.add_child(button));
         mainBox.add_child(buttonsBox);
 
         // Focus Handlers
         const updateFocusState = () => {
-            if (
-                itemWidget.has_key_focus() ||
-                itemCheckbox.has_key_focus() ||
-                (imagePasteButton && imagePasteButton.has_key_focus()) ||
-                (formatPasteButton && formatPasteButton.has_key_focus()) ||
-                pinButton.has_key_focus() ||
-                deleteButton.has_key_focus()
-            ) {
+            if (itemWidget.has_key_focus() || itemCheckbox.has_key_focus() || actionButtons.some((btn) => btn.has_key_focus())) {
                 itemWidget.add_style_pseudo_class('focused');
             } else {
                 itemWidget.remove_style_pseudo_class('focused');
@@ -188,18 +140,10 @@ export class ClipboardListItemFactory {
         itemWidget.connect('key-focus-out', updateFocusState);
         itemCheckbox.connect('key-focus-in', updateFocusState);
         itemCheckbox.connect('key-focus-out', updateFocusState);
-        if (formatPasteButton) {
-            formatPasteButton.connect('key-focus-in', updateFocusState);
-            formatPasteButton.connect('key-focus-out', updateFocusState);
-        }
-        if (imagePasteButton) {
-            imagePasteButton.connect('key-focus-in', updateFocusState);
-            imagePasteButton.connect('key-focus-out', updateFocusState);
-        }
-        pinButton.connect('key-focus-in', updateFocusState);
-        pinButton.connect('key-focus-out', updateFocusState);
-        deleteButton.connect('key-focus-in', updateFocusState);
-        deleteButton.connect('key-focus-out', updateFocusState);
+        actionButtons.forEach((btn) => {
+            btn.connect('key-focus-in', updateFocusState);
+            btn.connect('key-focus-out', updateFocusState);
+        });
 
         itemWidget.connect('key-press-event', (actor, event) => {
             return handleClipboardItemKeyPress(event, {
@@ -214,8 +158,8 @@ export class ClipboardListItemFactory {
         });
 
         itemWidget._itemCheckbox = itemCheckbox;
-        itemWidget._pinButton = pinButton;
-        itemWidget._deleteButton = deleteButton;
+        itemWidget._pinButton = actionButtons.find((btn) => btn._action === 'pin');
+        itemWidget._deleteButton = actionButtons.find((btn) => btn._action === 'delete');
         itemWidget._itemId = itemData.id;
         itemWidget._contentWidget = contentWidget;
         itemWidget._mainBox = mainBox;

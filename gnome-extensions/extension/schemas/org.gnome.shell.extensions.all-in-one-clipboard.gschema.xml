@@ -455,6 +455,11 @@
             <summary>Unpin item on paste</summary>
             <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
         </key>
+        <key name="capture-resource-items" type="b">
+            <default>true</default>
+            <summary>Capture files and folders</summary>
+            <description>When enabled, files and folders copied in file managers will be recorded in the clipboard history.</description>
+        </key>
         <key name="clipboard-show-action-bar" type="b">
             <default>true</default>
             <summary>Show Clipboard Action Bar</summary>
@@ -549,6 +554,11 @@
             <default>[]</default>
             <summary>List of excluded addresses</summary>
             <description>A list of domains, URLs, or email addresses that should be ignored when fetching metadata.</description>
+        </key>
+        <key name="excluded-paths" type="as">
+            <default>[]</default>
+            <summary>List of excluded paths</summary>
+            <description>A list of files, directories, or URI patterns that should be ignored by the clipboard manager.</description>
         </key>
 
         <!-- Data Management -->

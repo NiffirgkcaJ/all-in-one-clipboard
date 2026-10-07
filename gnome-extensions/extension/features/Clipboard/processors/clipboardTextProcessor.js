@@ -1,6 +1,6 @@
 import GLib from 'gi://GLib';
 
-import { clipboardGetContent, clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardGetText } from '../../../shared/utilities/utilityClipboard.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
@@ -13,7 +13,7 @@ const MAX_PREVIEW_LENGTH = 500;
 /**
  * TextProcessor
  *
- * Reads raw text from the clipboard, persists long text to files, and delegates to secondary processors.
+ * Reads raw text from the clipboard and persists long text to files.
  */
 export class TextProcessor {
     // ========================================================================
@@ -23,32 +23,19 @@ export class TextProcessor {
     /**
      * Extract text data from the clipboard.
      *
-     * @returns {Promise<Object|null>} An object containing text, hash, and bytes, or null if no text found.
+     * @returns {Promise<Object|null>} An object containing text, preview, and hash, or null if no text found.
      */
     static async extract() {
         const text = await clipboardGetText();
         if (!text) return null;
 
         const hash = ProcessorUtils.computeHashForString(text);
-        const htmlResult = await clipboardGetContent('text/html');
-        const hasRichContent = Boolean(htmlResult?.data && htmlResult.size > 0);
-        let hasImages = false;
-
-        if (hasRichContent) {
-            const htmlString = IOText.parseBytes(htmlResult.data);
-            if (htmlString && /<img\b/i.test(htmlString)) {
-                hasImages = true;
-            }
-        }
 
         return {
             type: ClipboardType.TEXT,
             text,
             preview: text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
             hash,
-            has_rich_content: hasRichContent,
-            has_images: hasImages,
-            html_data: hasRichContent ? htmlResult.data : null,
         };
     }
 
@@ -79,17 +66,6 @@ export class TextProcessor {
             }
         }
 
-        // Rich Content Persistence
-        if (item.has_rich_content && item.html_data) {
-            const htmlFilename = `${id}.html`;
-            const htmlPath = GLib.build_filenamev([textsDir, htmlFilename]);
-            const success = await IOFile.write(htmlPath, item.html_data);
-
-            if (!success) {
-                Logger.error('Failed to save html file', 'TextProcessor');
-            }
-        }
-
         const finalType = type || ClipboardType.TEXT;
 
         let preview = item.preview;
@@ -104,8 +80,6 @@ export class TextProcessor {
             preview: preview || '',
             hash,
             has_full_content,
-            has_rich_content: Boolean(item.has_rich_content && item.html_data),
-            has_images: Boolean(item.has_images),
             raw_lines: item.raw_lines || 0,
         };
 

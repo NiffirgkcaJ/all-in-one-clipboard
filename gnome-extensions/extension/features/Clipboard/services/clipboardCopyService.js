@@ -1,11 +1,8 @@
 import GLib from 'gi://GLib';
 
-import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
-import { IOText } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-
-import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 
 // Configuration
 const SEQUENTIAL_PASTE_DELAY_MS = 100;
@@ -14,7 +11,7 @@ const SEQUENTIAL_PASTE_DELAY_MS = 100;
  * ClipboardCopyService
  *
  * Handles copying clipboard items back to the system clipboard.
- * Supports all content types.
+ * Supports all content types without coupling to specific content processors.
  */
 export class ClipboardCopyService {
     // ========================================================================
@@ -33,97 +30,50 @@ export class ClipboardCopyService {
     // ========================================================================
 
     /**
-     * Copy an item's content to the system clipboard.
+     * Copy a single item and trigger the auto-paste lifecycle.
      *
-     * @param {Object} itemData Data of the item to copy.
-     * @param {ClipboardStorage} storage Storage instance for reading raw files.
-     * @param {ClipboardManager} manager Manager instance for content retrieval.
-     * @param {Object} [options] Copy options.
+     * @param {Object} itemData Clipboard item data.
+     * @param {ClipboardManager} manager Clipboard manager instance.
+     * @param {Object} [options] Execution options.
+     * @param {Gio.Settings} options.settings Extension settings.
+     * @param {Object} [options.menu] Extension menu.
      * @returns {Promise<boolean>} True if successful.
      */
-    static async copy(itemData, storage, manager, options = {}) {
-        try {
-            return await manager._clipboardRegistry.copyItem(itemData, { storage, manager, ...options });
-        } catch (e) {
-            Logger.error(`Copy failed: ${e.message}`);
-            return false;
-        }
-    }
+    async copySingleItem(itemData, manager, options = {}) {
+        const autoPasteEnabled = options.settings?.get_boolean('enable-auto-paste') && options.settings?.get_boolean('auto-paste-clipboard');
 
-    /**
-     * Paste all embedded images from a rich text item in HTML document order.
-     *
-     * @param {Object} itemData Rich text item data.
-     * @param {ClipboardStorage} storage Storage instance.
-     * @param {ClipboardManager} manager Manager instance.
-     * @param {Object} options Options containing settings and menu.
-     * @returns {Promise<boolean>} True if images were successfully pasted or copied.
-     */
-    async pasteImagesFromItem(itemData, storage, manager, options = {}) {
-        try {
-            if (!itemData?.has_rich_content) return false;
-
-            const htmlPath = GLib.build_filenamev([storage.textsDir, `${itemData.id}.html`]);
-            const rawBytes = await storage.readRaw(htmlPath);
-            if (!rawBytes) return false;
-
-            const htmlString = IOText.parseBytes(rawBytes);
-            if (!htmlString) return false;
-
-            const imgMatches = [...htmlString.matchAll(/<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^"'\s>]+))/gi)];
-            if (imgMatches.length === 0) return false;
-
-            const sources = imgMatches.map((m) => m[1] || m[2]).filter(Boolean);
-            if (sources.length === 0) return false;
-
-            const imageResults = await Promise.all(sources.map((src) => ImageProcessor.fetchImageFromSource(src)));
-            const images = imageResults.filter(Boolean);
-
-            if (images.length === 0) return false;
-
-            const autoPasteEnabled = options.settings.get_boolean('enable-auto-paste') && options.settings.get_boolean('auto-paste-clipboard');
-
-            if (autoPasteEnabled && images.length > 1) {
-                const queue = images.map((img) => async () => {
-                    manager.captureGuard.registerHash(img.hash);
-                    clipboardSetContent(img.mimetype || 'image/png', new GLib.Bytes(img.data));
-                    return true;
-                });
-
+        if (autoPasteEnabled) {
+            const queue = await manager.getCopyQueue(itemData, options);
+            if (queue && queue.length > 1) {
                 const completed = await this._runPasteQueue(queue, options);
                 if (completed) {
                     manager.promoteItemToTop(itemData.id);
                 }
                 return completed;
             }
-
-            return await GlobalActionService.executeCopyAction({
-                onCopy: async () => {
-                    const firstImage = images[0];
-                    manager.captureGuard.registerHash(firstImage.hash);
-                    clipboardSetContent(firstImage.mimetype || 'image/png', new GLib.Bytes(firstImage.data));
-                    return true;
-                },
-                onPostCopy: () => manager.promoteItemToTop(itemData.id),
-                settings: options.settings,
-                autoPasteKey: 'auto-paste-clipboard',
-                menu: options.menu,
-            });
-        } catch (e) {
-            Logger.error(`pasteImagesFromItem failed: ${e.message}`);
-            return false;
         }
+
+        const pasteShortcut = manager.getCopyPasteShortcut(itemData, options);
+
+        return await GlobalActionService.executeCopyAction({
+            onCopy: async () => await manager.copyToSystemClipboard(itemData, options),
+            onPostCopy: () => manager.promoteItemToTop(itemData.id),
+            settings: options.settings,
+            autoPasteKey: 'auto-paste-clipboard',
+            menu: options.menu,
+            pasteShortcut,
+        });
     }
 
     /**
-     * Merge multiple selected items based on user settings.
+     * Copy multiple selected items based on user settings.
      *
      * @param {Array<string>} selectedIds List of selected item IDs.
      * @param {ClipboardManager} manager Clipboard manager.
      * @param {Object} options Options containing settings and menu.
      * @returns {Promise<boolean>} True if successful.
      */
-    async mergeMultiple(selectedIds, manager, options) {
+    async copyMultipleItems(selectedIds, manager, options) {
         try {
             const selectedItems = ClipboardCopyService._resolveSelectedItems(selectedIds, manager, options);
             if (selectedItems.length === 0) {
@@ -161,15 +111,18 @@ export class ClipboardCopyService {
                     const needsTrailingDelimiter = pendingGroupNeedsTrailingDelimiter;
                     pendingGroupNeedsTrailingDelimiter = false;
 
-                    queue.push(async () => {
-                        let textBlock = await ClipboardCopyService._compileTexts(groupToFlush, textContents, delimiter, manager);
-                        if (!textBlock) return true;
-                        if (needsTrailingDelimiter) {
-                            textBlock += delimiter;
-                        }
-                        manager.captureGuard.registerText(textBlock);
-                        clipboardSetText(textBlock);
-                        return true;
+                    queue.push({
+                        pasteShortcut: 'shift-insert',
+                        execute: async () => {
+                            let textBlock = await ClipboardCopyService._compileTexts(groupToFlush, textContents, delimiter, manager);
+                            if (!textBlock) return true;
+                            if (needsTrailingDelimiter) {
+                                textBlock += delimiter;
+                            }
+                            manager.captureGuard.registerText(textBlock);
+                            clipboardSetText(textBlock);
+                            return true;
+                        },
                     });
                 };
 
@@ -180,8 +133,11 @@ export class ClipboardCopyService {
                             flushTextGroup();
                         }
 
-                        queue.push(async () => {
-                            return await ClipboardCopyService.copy(item, manager.storage, manager);
+                        queue.push({
+                            pasteShortcut: 'ctrl-v',
+                            execute: async () => {
+                                return await manager.copyToSystemClipboard(item);
+                            },
                         });
                     } else {
                         currentTextGroup.push(item);
@@ -195,6 +151,11 @@ export class ClipboardCopyService {
                     return false;
                 }
             } else {
+                let mergedShortcut = 'shift-insert';
+                if (selectedItems.every((item) => registry.getCopyPasteShortcut(item) === 'ctrl-v')) {
+                    mergedShortcut = 'ctrl-v';
+                }
+
                 const copySuccess = await GlobalActionService.executeCopyAction({
                     onCopy: async () => {
                         await ClipboardCopyService._copyMultipleCopyOnly(selectedItems, textContents, delimiter, manager);
@@ -203,6 +164,7 @@ export class ClipboardCopyService {
                     settings: options.settings,
                     autoPasteKey: 'auto-paste-clipboard',
                     menu: options.menu,
+                    pasteShortcut: mergedShortcut,
                 });
 
                 if (!copySuccess) {
@@ -212,17 +174,22 @@ export class ClipboardCopyService {
 
             return true;
         } catch (e) {
-            Logger.error(`mergeMultiple failed: ${e.message}\nStack: ${e.stack}`);
+            Logger.error(`copyMultipleItems failed: ${e.message}\nStack: ${e.stack}`);
             return false;
         }
     }
+
     // ========================================================================
     // Internal Helpers
     // ========================================================================
 
     /**
-     * Copy mixed or single types to clipboard once (when Auto-Paste is disabled).
+     * Copy mixed or single types to clipboard once when auto-paste is disabled.
      *
+     * @param {Array<Object>} selectedItems Selected clipboard items.
+     * @param {Map<string, string>} textContents Map of text contents.
+     * @param {string} delimiter Delimiter string.
+     * @param {ClipboardManager} manager Clipboard manager.
      * @private
      */
     static async _copyMultipleCopyOnly(selectedItems, textContents, delimiter, manager) {
@@ -247,8 +214,9 @@ export class ClipboardCopyService {
     /**
      * Run a queue of copy/paste actions sequentially with a delay.
      *
-     * @param {Array<Function>} queue List of async/sync copy functions.
+     * @param {Array<{execute: Function, pasteShortcut: string}>} queue List of copy step operations.
      * @param {Object} options Options containing settings and menu.
+     * @returns {Promise<boolean>} True if all steps completed.
      * @private
      */
     async _runPasteQueue(queue, options) {
@@ -260,14 +228,17 @@ export class ClipboardCopyService {
             }
 
             try {
+                const step = queue[index];
+
                 const copySuccess = await GlobalActionService.executeCopyAction({
                     onCopy: async () => {
-                        const stepSuccess = await queue[index]();
+                        const stepSuccess = await step.execute();
                         return stepSuccess !== false;
                     },
                     settings: options.settings,
                     autoPasteKey: 'auto-paste-clipboard',
                     menu: options.menu,
+                    pasteShortcut: step.pasteShortcut || options.pasteShortcut,
                 });
 
                 if (!copySuccess) {
@@ -312,6 +283,10 @@ export class ClipboardCopyService {
     /**
      * Resolve and sort selected items.
      *
+     * @param {Array<string>} selectedIds Selected item IDs.
+     * @param {ClipboardManager} manager Clipboard manager.
+     * @param {Object} options Options containing settings.
+     * @returns {Array<Object>} Sorted selected items.
      * @private
      */
     static _resolveSelectedItems(selectedIds, manager, options) {
@@ -330,6 +305,8 @@ export class ClipboardCopyService {
     /**
      * Resolve the string delimiter to use.
      *
+     * @param {Object} options Options containing settings.
+     * @returns {string} Resolved delimiter string.
      * @private
      */
     static _resolveDelimiter(options) {
@@ -354,6 +331,11 @@ export class ClipboardCopyService {
     /**
      * Resolve and concatenate text content for selected text items.
      *
+     * @param {Array<Object>} textItems Text items.
+     * @param {Map<string, string>} textContents Map of text contents.
+     * @param {string} delimiter Delimiter string.
+     * @param {ClipboardManager} manager Clipboard manager.
+     * @returns {Promise<string>} Concatenated string.
      * @private
      */
     static async _compileTexts(textItems, textContents, delimiter, manager) {

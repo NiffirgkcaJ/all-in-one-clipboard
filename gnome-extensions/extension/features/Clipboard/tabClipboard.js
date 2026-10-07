@@ -3,7 +3,6 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-import { GlobalActionService } from '../../shared/services/serviceAction.js';
 import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
@@ -330,39 +329,10 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         async _onItemCopyToClipboard(itemData, copyOptions = {}) {
-            let asRichText = copyOptions.asRichText;
-            let asImages = copyOptions.asImages;
-
-            if (asRichText === undefined && asImages === undefined) {
-                const switchMode = this._settings.get_string('clipboard-paste-accessibility') || 'per-item';
-                if (switchMode === 'action-bar' && this._actionBar) {
-                    if (this._actionBar.pasteMode === 'image') {
-                        if (itemData.has_images) {
-                            asImages = true;
-                        } else {
-                            asRichText = this._settings.get_string('clipboard-paste-format') === 'rich';
-                        }
-                    } else {
-                        asRichText = this._actionBar.pasteMode === 'rich';
-                    }
-                } else {
-                    asRichText = this._settings.get_string('clipboard-paste-format') === 'rich';
-                }
-            }
-
-            if (asImages) {
-                await this._copyService.pasteImagesFromItem(itemData, this._manager.storage, this._manager, {
-                    settings: this._settings,
-                    menu: this._extension._indicator?.menu,
-                });
-                return;
-            }
-
-            await GlobalActionService.executeCopyAction({
-                onCopy: async () => await this._manager.copyToSystemClipboard(itemData, { asRichText }),
-                onPostCopy: () => this._manager.promoteItemToTop(itemData.id),
+            await this._copyService.copySingleItem(itemData, this._manager, {
+                ...copyOptions,
+                actionBarPasteMode: this._actionBar?.pasteMode,
                 settings: this._settings,
-                autoPasteKey: 'auto-paste-clipboard',
                 menu: this._extension._indicator?.menu,
             });
         }
@@ -376,11 +346,11 @@ export const ClipboardTabContent = GObject.registerClass(
             const selectedIds = [...this._selectionService.selectedIds];
             if (selectedIds.length === 0) return;
 
-            const mergeSuccess = await this._copyService.mergeMultiple(selectedIds, this._manager, {
+            const copySuccess = await this._copyService.copyMultipleItems(selectedIds, this._manager, {
                 settings: this._settings,
                 menu: this._extension._indicator?.menu,
             });
-            if (!mergeSuccess) return;
+            if (!copySuccess) return;
 
             this._selectionService.clearSelection(() => this._currentView.getCheckboxIconsMap());
             this._updateSelectionState();

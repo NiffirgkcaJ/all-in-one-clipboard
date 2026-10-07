@@ -182,25 +182,6 @@ export class ClipboardStorage {
         return item.text || null;
     }
 
-    /**
-     * Get rich HTML content for a text item from disk.
-     *
-     * @param {string} id Item ID.
-     * @param {Array} allItems Combined history and pinned items.
-     * @returns {Promise<Uint8Array|null>} Raw HTML bytes or null if not found.
-     */
-    async getRichContent(id, allItems) {
-        const item = allItems.find((i) => i.id === id);
-        if (!item || !item.has_rich_content) return null;
-
-        try {
-            const fullPath = GLib.build_filenamev([this._textsDir, `${item.id}.html`]);
-            return await IOFile.read(fullPath);
-        } catch {
-            return null;
-        }
-    }
-
     // ========================================================================
     // Maintenance & Pruning
     // ========================================================================

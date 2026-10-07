@@ -53,6 +53,14 @@ export function addPreferenceClipboardSettings({ page, settings }) {
     group.add(unpinOnPasteRow);
     settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+    // Capture Files and Folders
+    const captureFilesRow = new Adw.SwitchRow({
+        title: _('Capture Files and Folders'),
+        subtitle: _('Record files and folders copied in file managers.'),
+    });
+    group.add(captureFilesRow);
+    settings.bind('capture-resource-items', captureFilesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
     // Show Action Bar
     const showActionBarRow = new Adw.SwitchRow({
         title: _('Show Clipboard Action Bar'),

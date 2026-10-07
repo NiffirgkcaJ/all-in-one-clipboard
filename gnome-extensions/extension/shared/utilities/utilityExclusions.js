@@ -228,6 +228,67 @@ export class ExclusionUtils {
     }
 
     /**
+     * Checks if a file path or URI is excluded by settings or path rules.
+     * @param {string|string[]} paths Single path/URI or array of paths/URIs.
+     * @returns {boolean} True if excluded.
+     */
+    isPathExcluded(paths) {
+        if (!paths || !this._settings) return false;
+
+        if (!this._settings.get_boolean('capture-resource-items')) {
+            return true;
+        }
+
+        const excludedPaths = this._settings.get_strv('excluded-paths');
+        if (!excludedPaths || excludedPaths.length === 0) return false;
+
+        const pathList = Array.isArray(paths) ? paths : [paths];
+        const normalizedExclusions = this._normalizeExclusions(excludedPaths);
+
+        return pathList.some((item) => {
+            if (!item) return false;
+            const normalizedItem = item.toLowerCase().trim();
+
+            let localPath = '';
+            if (normalizedItem.startsWith('file://')) {
+                try {
+                    const [decodedPath] = GLib.filename_from_uri(item);
+                    if (decodedPath) localPath = decodedPath.toLowerCase();
+                } catch {
+                    localPath = '';
+                }
+            } else if (normalizedItem.startsWith('/')) {
+                localPath = normalizedItem;
+            }
+
+            return normalizedExclusions.some((exclusion) => {
+                if (exclusion.includes('*')) {
+                    const regexStr =
+                        '^' +
+                        exclusion
+                            .split('*')
+                            .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                            .join('.*') +
+                        '$';
+                    const regex = new RegExp(regexStr);
+                    return regex.test(normalizedItem) || Boolean(localPath && regex.test(localPath));
+                }
+
+                if (normalizedItem === exclusion || (localPath && localPath === exclusion)) {
+                    return true;
+                }
+
+                const exclusionWithSlash = exclusion.endsWith('/') ? exclusion : `${exclusion}/`;
+                if (localPath && localPath.startsWith(exclusionWithSlash)) {
+                    return true;
+                }
+
+                return normalizedItem.startsWith(exclusionWithSlash);
+            });
+        });
+    }
+
+    /**
      * Gets the delay before checking clipboard content processing.
      * @returns {number} The delay in milliseconds.
      */

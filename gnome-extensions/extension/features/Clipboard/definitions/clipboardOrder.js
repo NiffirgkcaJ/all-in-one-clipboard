@@ -13,9 +13,9 @@ export function getClipboardOrder() {
             exportName: 'ClipboardDefinitionImage',
         },
         {
-            id: ClipboardType.FILE,
-            modulePath: '../definitions/clipboardDefinitionFile.js',
-            exportName: 'ClipboardDefinitionFile',
+            id: ClipboardType.RESOURCE,
+            modulePath: '../definitions/clipboardDefinitionResource.js',
+            exportName: 'ClipboardDefinitionResource',
         },
         {
             id: ClipboardType.URL,
@@ -36,6 +36,11 @@ export function getClipboardOrder() {
             id: ClipboardType.CODE,
             modulePath: '../definitions/clipboardDefinitionCode.js',
             exportName: 'ClipboardDefinitionCode',
+        },
+        {
+            id: ClipboardType.HTML,
+            modulePath: '../definitions/clipboardDefinitionHtml.js',
+            exportName: 'ClipboardDefinitionHtml',
         },
         {
             id: ClipboardType.TEXT,

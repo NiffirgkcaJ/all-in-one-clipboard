@@ -45,6 +45,14 @@ export function addPreferenceExclusions({ page, settings }) {
     });
     group.add(contentExclusionExpander);
     _setupExclusionList(contentExclusionExpander, settings, 'excluded-addresses', _('Link or Email Address'));
+
+    // Paths
+    const pathExclusionExpander = new Adw.ExpanderRow({
+        title: _('Paths'),
+        subtitle: _('Prevent specific files, directories, or URI patterns from being captured.'),
+    });
+    group.add(pathExclusionExpander);
+    _setupExclusionList(pathExclusionExpander, settings, 'excluded-paths', _('/path/to/folder or file://...'));
 }
 
 /**

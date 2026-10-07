@@ -36,7 +36,12 @@
         <file compressed="true">assets/icons/ui/clipboard-type-color-pipette-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-contact-email-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-contact-phone-symbolic.svg</file>
-        <file compressed="true">assets/icons/ui/clipboard-type-file-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-file-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-files-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-folder-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-folders-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-item-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-type-resource-items-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-html-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-image-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-link-symbolic.svg</file>

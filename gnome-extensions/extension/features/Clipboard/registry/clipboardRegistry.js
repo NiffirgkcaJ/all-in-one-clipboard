@@ -88,6 +88,26 @@ export class ClipboardRegistry {
         return [item.text, item.preview];
     }
 
+    /**
+     * Get the paste shortcut for an item type.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Copy options.
+     * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
+     */
+    getCopyPasteShortcut(item, options) {
+        const definition = this.getDefinition(item?.type);
+        if (!definition || !definition.copyOptions || !definition.copyOptions.pasteShortcut) {
+            Logger.error(`ClipboardRegistry: Definition for type '${item?.type}' is missing copyOptions.pasteShortcut.`);
+            return null;
+        }
+        const shortcut = definition.copyOptions.pasteShortcut;
+        if (typeof shortcut === 'function') {
+            return shortcut(item, options);
+        }
+        return shortcut;
+    }
+
     // ========================================================================
     // Copy Operations
     // ========================================================================
@@ -105,6 +125,21 @@ export class ClipboardRegistry {
             return await definition.copyOptions.copyItem(item, options);
         }
         return false;
+    }
+
+    /**
+     * Get a multi-step copy/paste queue if supported by the item's definition.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Options containing storage and manager.
+     * @returns {Promise<Array<Object>|null>} Array of queue action items or null.
+     */
+    async getCopyQueue(item, options) {
+        const definition = this.getDefinition(item?.type);
+        if (definition && definition.copyOptions && definition.copyOptions.getCopyQueue) {
+            return await definition.copyOptions.getCopyQueue(item, options);
+        }
+        return null;
     }
 
     /**
