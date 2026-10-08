@@ -12,6 +12,7 @@ import { eventMatchesShortcut } from './utilityShortcutMatcher.js';
 import { FocusUtils } from './utilityFocus.js';
 import { getRecentItemsManager } from './utilityRecents.js';
 import { Logger } from './utilityLogger.js';
+import { mapLayout } from './utilityLayout.js';
 import { SearchComponent } from './utilitySearch.js';
 import { HorizontalScrollView, scrollToItemCentered } from './utilityHorizontalScrollView.js';
 import { IOJson, IOResource } from './utilityIO.js';
@@ -71,12 +72,12 @@ export const CategorizedItemViewer = GObject.registerClass(
          */
         constructor(extension, settings, config) {
             super({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
-                y_expand: true,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                    align: 'fill',
+                }),
                 style_class: 'categorized-item-viewer',
-                x_align: Clutter.ActorAlign.FILL,
-                y_align: Clutter.ActorAlign.FILL,
             });
             this.spacing = 4;
 
@@ -211,9 +212,11 @@ export const CategorizedItemViewer = GObject.registerClass(
          */
         _buildUI() {
             this._header = new St.BoxLayout({
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                }),
                 style_class: 'internal-header',
-                orientation: Clutter.Orientation.HORIZONTAL,
-                x_expand: true,
             });
 
             this._backButton = new St.Button({
@@ -229,7 +232,11 @@ export const CategorizedItemViewer = GObject.registerClass(
             this._header.add_child(this._backButton);
             this._applyBackButtonPreference();
 
-            this._categoryTabBar = new St.BoxLayout({});
+            this._categoryTabBar = new St.BoxLayout({
+                ...mapLayout({
+                    horizontal: true,
+                }),
+            });
 
             if (this._config.enableTabScrolling) {
                 const scrollView = new HorizontalScrollView({
@@ -298,10 +305,11 @@ export const CategorizedItemViewer = GObject.registerClass(
             this.add_child(this._searchComponent.getWidget());
 
             this._contentArea = new St.BoxLayout({
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                }),
                 style_class: 'content-grid-area',
-                orientation: Clutter.Orientation.VERTICAL,
-                y_expand: true,
-                x_expand: true,
             });
             this._contentArea.set_reactive(true);
             this._contentArea.connect('key-press-event', this._onGridKeyPress.bind(this));
@@ -967,11 +975,11 @@ export const CategorizedItemViewer = GObject.registerClass(
             });
 
             let scrollableContainer = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
-                y_expand: true,
-                x_align: Clutter.ActorAlign.FILL,
-                y_align: Clutter.ActorAlign.FILL,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                    align: 'fill',
+                }),
             });
             scrollView.set_child(scrollableContainer);
 

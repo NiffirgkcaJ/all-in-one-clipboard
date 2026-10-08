@@ -6,7 +6,9 @@ import St from 'gi://St';
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
+import { ClipboardGradientStyles } from '../constants/clipboardStyleConstants.js';
 import { IconSizes } from '../constants/clipboardConstants.js';
 
 // ============================================================================
@@ -78,9 +80,11 @@ function createRichIcon({ icon, iconOptions, gicon, flagPath, iconSize, styleCla
  */
 function createListTitleSubtitleColumn({ title, subtitle }) {
     const textCol = new St.BoxLayout({
-        orientation: Clutter.Orientation.VERTICAL,
-        x_expand: true,
-        y_align: Clutter.ActorAlign.CENTER,
+        ...mapLayout({
+            vertical: true,
+            x_expand: true,
+            y_align: 'center',
+        }),
     });
 
     const titleLabel = new St.Label({
@@ -114,10 +118,11 @@ function createListTitleSubtitleColumn({ title, subtitle }) {
  */
 function createGridTitleSubtitleColumn({ title, subtitle }) {
     const labelsContainer = new St.BoxLayout({
-        orientation: Clutter.Orientation.VERTICAL,
+        ...mapLayout({
+            vertical: true,
+            expand: true,
+        }),
         style_class: 'clipboard-grid-rich-labels',
-        x_expand: true,
-        y_expand: true,
     });
 
     const titleLabel = new St.Label({
@@ -198,8 +203,11 @@ export function createTextGridContent({ text }) {
  */
 export function createRichListContent(params) {
     const contentWidget = new St.BoxLayout({
-        orientation: Clutter.Orientation.HORIZONTAL,
-        y_align: Clutter.ActorAlign.CENTER,
+        ...mapLayout({
+            horizontal: true,
+            x_expand: true,
+            y_align: 'center',
+        }),
         style_class: 'clipboard-list-rich-container',
     });
 
@@ -211,7 +219,6 @@ export function createRichListContent(params) {
         }),
     );
     contentWidget.add_child(createListTitleSubtitleColumn(params));
-    contentWidget.x_expand = true;
 
     return contentWidget;
 }
@@ -224,10 +231,11 @@ export function createRichListContent(params) {
  */
 export function createRichGridContent(params) {
     const contentWidget = new St.BoxLayout({
-        orientation: Clutter.Orientation.VERTICAL,
+        ...mapLayout({
+            vertical: true,
+            expand: true,
+        }),
         style_class: 'clipboard-grid-rich-container',
-        x_expand: true,
-        y_expand: true,
     });
 
     const hasIcon = Boolean(params.icon || params.gicon || params.flagPath);
@@ -351,8 +359,11 @@ export function createMediaGridContent({ sourcePath, previewPath, imagePreviewSi
  */
 export function createSwatchListContent(params) {
     const contentWidget = new St.BoxLayout({
-        orientation: Clutter.Orientation.HORIZONTAL,
-        y_align: Clutter.ActorAlign.CENTER,
+        ...mapLayout({
+            horizontal: true,
+            x_expand: true,
+            y_align: 'center',
+        }),
         style_class: 'clipboard-list-rich-container',
     });
 
@@ -378,7 +389,6 @@ export function createSwatchListContent(params) {
     swatchContainer.set_child(swatch);
     contentWidget.add_child(swatchContainer);
     contentWidget.add_child(createListTitleSubtitleColumn(params));
-    contentWidget.x_expand = true;
 
     return contentWidget;
 }
@@ -393,10 +403,11 @@ export function createSwatchListContent(params) {
  */
 export function createSwatchGridContent({ swatchStyle, title }) {
     const contentWidget = new St.BoxLayout({
-        orientation: Clutter.Orientation.VERTICAL,
+        ...mapLayout({
+            vertical: true,
+            expand: true,
+        }),
         style_class: 'clipboard-grid-color-container',
-        x_expand: true,
-        y_expand: true,
     });
 
     if (swatchStyle) {
@@ -407,11 +418,13 @@ export function createSwatchGridContent({ swatchStyle, title }) {
     contentWidget.add_child(spacer);
 
     const labelOverlay = new St.BoxLayout({
-        orientation: Clutter.Orientation.VERTICAL,
+        ...mapLayout({
+            vertical: true,
+            expand: true,
+        }),
         style_class: 'clipboard-grid-color-card',
-        x_expand: true,
-        y_expand: true,
     });
+    labelOverlay.set_style(ClipboardGradientStyles.COLOR_CARD);
 
     const colorLabel = new St.Label({
         text: title || '',
@@ -440,15 +453,23 @@ export function createSwatchGridContent({ swatchStyle, title }) {
  */
 export function createSnippetListContent(params) {
     const contentWidget = new St.BoxLayout({
-        orientation: Clutter.Orientation.HORIZONTAL,
-        y_align: Clutter.ActorAlign.CENTER,
+        ...mapLayout({
+            horizontal: true,
+            x_expand: true,
+            y_align: 'center',
+        }),
         style_class: 'clipboard-list-code-container',
     });
 
     const icon = createStaticIcon(params, { styleClass: 'clipboard-list-rich-icon' });
     contentWidget.add_child(icon);
 
-    const codeBox = new St.BoxLayout({ orientation: Clutter.Orientation.HORIZONTAL, x_expand: true });
+    const codeBox = new St.BoxLayout({
+        ...mapLayout({
+            horizontal: true,
+            x_expand: true,
+        }),
+    });
 
     const lineCount = params.previewLinesCount !== undefined ? params.previewLinesCount : params.rawLines || 0;
     const lineNumbersString = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
@@ -473,8 +494,6 @@ export function createSnippetListContent(params) {
 
     codeBox.add_child(codeLabel);
     contentWidget.add_child(codeBox);
-
-    contentWidget.x_expand = true;
 
     return contentWidget;
 }

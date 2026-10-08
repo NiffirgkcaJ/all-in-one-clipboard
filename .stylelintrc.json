@@ -1,10 +1,5 @@
 {
     "rules": {
-        "property-no-unknown": [
-            true,
-            {
-                "ignoreProperties": ["background-gradient-direction", "background-gradient-start", "background-gradient-end", "icon-size", "spacing"]
-            }
-        ]
+        "property-no-unknown": true
     }
 }

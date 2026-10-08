@@ -1,6 +1,8 @@
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+
 import { RecentlyUsedDefaultPolicy } from '../constants/recentlyUsedPolicyConstants.js';
 import { RecentlyUsedNestedScrollView } from '../utilities/recentlyUsedNestedScrollView.js';
 import { RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
@@ -213,7 +215,12 @@ export function renderRecentlyUsedNestedGridSection({ id, nestedLayout, resolved
         x_expand: true,
     });
 
-    const container = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL, x_expand: true });
+    const container = new St.BoxLayout({
+        ...mapLayout({
+            vertical: true,
+            x_expand: true,
+        }),
+    });
 
     const grid = new St.Widget({
         layout_manager: new Clutter.GridLayout({

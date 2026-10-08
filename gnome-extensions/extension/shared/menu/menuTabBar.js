@@ -5,6 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { createStaticIcon } from '../utilities/utilityIcon.js';
 import { FocusUtils } from '../utilities/utilityFocus.js';
+import { mapLayout } from '../utilities/utilityLayout.js';
 import { getMenuOrderedSections } from './menuRegistry.js';
 
 /**
@@ -33,7 +34,13 @@ export const MenuTabBar = GObject.registerClass(
          * @param {Gio.Settings} settings Extension settings object.
          */
         constructor(settings) {
-            super({ style_class: 'aio-clipboard-tab-topbar', reactive: true });
+            super({
+                ...mapLayout({
+                    horizontal: true,
+                }),
+                style_class: 'aio-clipboard-tab-topbar',
+                reactive: true,
+            });
 
             this._settings = settings;
             this._tabButtons = {};

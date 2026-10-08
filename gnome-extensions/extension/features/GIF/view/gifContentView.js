@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
 
 import { GifSettings, GifUI } from '../constants/gifConstants.js';
@@ -42,9 +43,10 @@ export const GifContentView = GObject.registerClass(
          */
         constructor(settings, itemFactory) {
             super({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
-                y_expand: true,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                }),
             });
 
             this._settings = settings;
@@ -79,9 +81,11 @@ export const GifContentView = GObject.registerClass(
             vadjustment.connect('notify::value', () => this._onScroll(vadjustment));
 
             this._scrollableContainer = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
-                x_align: Clutter.ActorAlign.FILL,
+                ...mapLayout({
+                    vertical: true,
+                    x_expand: true,
+                    x_align: 'fill',
+                }),
             });
             this._scrollView.set_child(this._scrollableContainer);
 

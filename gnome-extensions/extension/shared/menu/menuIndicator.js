@@ -6,6 +6,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { eventMatchesShortcut } from '../utilities/utilityShortcutMatcher.js';
+import { mapLayout } from '../utilities/utilityLayout.js';
 import { MenuNavigationService } from '../services/serviceNavigation.js';
 import { positionMenu } from '../utilities/utilityMenuPositioner.js';
 import { MenuContentArea } from './menuContentArea.js';
@@ -63,7 +64,9 @@ export const MenuIndicator = GObject.registerClass(
             this.menu.removeAll();
 
             this._mainVerticalBox = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                }),
                 width: this._settings.get_int('extension-width'),
                 height: this._settings.get_int('extension-height'),
                 style_class: 'aio-clipboard-container',

@@ -3,6 +3,8 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
@@ -69,9 +71,11 @@ export class ClipboardListItemFactory {
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
 
         const mainBox = new St.BoxLayout({
-            orientation: Clutter.Orientation.HORIZONTAL,
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER,
+            ...mapLayout({
+                horizontal: true,
+                x_expand: true,
+                y_align: 'center',
+            }),
             style_class: 'clipboard-row-content',
         });
         itemWidget.set_child(mainBox);
@@ -107,7 +111,10 @@ export class ClipboardListItemFactory {
 
         // Action Buttons
         const buttonsBox = new St.BoxLayout({
-            x_align: Clutter.ActorAlign.END,
+            ...mapLayout({
+                horizontal: true,
+                x_align: 'end',
+            }),
             style_class: 'clipboard-list-controls',
         });
 

@@ -5,6 +5,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
 
@@ -45,9 +46,10 @@ export const ClipboardBaseView = GObject.registerClass(
          */
         constructor(options, styleOptions = {}) {
             super({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
-                y_expand: true,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                }),
                 reactive: true,
                 ...styleOptions,
             });

@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 import { createDynamicIconButton, createStaticIconButton } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
@@ -45,9 +46,11 @@ export const ClipboardActionBar = GObject.registerClass(
          */
         constructor(settings, manager, selectedIds) {
             super({
+                ...mapLayout({
+                    horizontal: true,
+                    y_align: 'center',
+                }),
                 style_class: 'clipboard-selection-bar',
-                orientation: Clutter.Orientation.HORIZONTAL,
-                y_align: Clutter.ActorAlign.CENTER,
             });
             this.spacing = BAR_SPACING;
 
@@ -113,8 +116,11 @@ export const ClipboardActionBar = GObject.registerClass(
             this.add_child(this._selectAllButton);
 
             const actionButtonsBox = new St.BoxLayout({
-                x_expand: true,
-                x_align: Clutter.ActorAlign.END,
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                    x_align: 'end',
+                }),
             });
             actionButtonsBox.spacing = BUTTON_SPACING;
             this.add_child(actionButtonsBox);

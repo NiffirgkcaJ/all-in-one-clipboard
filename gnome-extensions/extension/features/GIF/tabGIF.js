@@ -7,6 +7,7 @@ import { createStaticIcon } from '../../shared/utilities/utilityIcon.js';
 import { FilePath } from '../../shared/constants/storagePaths.js';
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
 import { IOFile } from '../../shared/utilities/utilityIO.js';
+import { mapLayout } from '../../shared/utilities/utilityLayout.js';
 import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
@@ -51,10 +52,11 @@ export const GIFTabContent = GObject.registerClass(
          */
         constructor(extension, settings, clipboardManager) {
             super({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                }),
                 style_class: 'gif-tab-content',
-                x_expand: true,
-                y_expand: true,
                 reactive: true,
             });
 
@@ -167,10 +169,13 @@ export const GIFTabContent = GObject.registerClass(
          */
         _buildInfoBar() {
             this._infoBar = new St.BoxLayout({
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                    y_align: 'center',
+                }),
                 style_class: 'gif-info-bar',
                 visible: false,
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
             });
 
             const infoIcon = createStaticIcon(GifIcons.INFO);

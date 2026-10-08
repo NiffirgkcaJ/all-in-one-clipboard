@@ -1,5 +1,6 @@
-import Clutter from 'gi://Clutter';
 import St from 'gi://St';
+
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 /**
  * Render a flat list section with items in a single column.
@@ -17,7 +18,12 @@ export function renderRecentlyUsedListSection({ id, sections, items, focusGrid, 
     sectionData.section.show();
     focusGrid.push([sectionData.showAllBtn]);
 
-    const container = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL, x_expand: true });
+    const container = new St.BoxLayout({
+        ...mapLayout({
+            vertical: true,
+            x_expand: true,
+        }),
+    });
 
     items.forEach((item) => {
         const widget = createItemWidget(item, id);

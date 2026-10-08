@@ -7,6 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { eventMatchesShortcut } from '../../../shared/utilities/utilityShortcutMatcher.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
 import { HorizontalScrollView, scrollToItemCentered } from '../../../shared/utilities/utilityHorizontalScrollView.js';
 
@@ -47,7 +48,10 @@ export const GifHeaderView = GObject.registerClass(
          */
         constructor(settings) {
             super({
-                x_expand: true,
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                }),
                 reactive: true,
             });
 
@@ -95,8 +99,11 @@ export const GifHeaderView = GObject.registerClass(
             });
 
             this.headerBox = new St.BoxLayout({
-                x_expand: false,
-                x_align: Clutter.ActorAlign.START,
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: false,
+                    x_align: 'start',
+                }),
             });
 
             this.headerScrollView.set_child(this.headerBox);

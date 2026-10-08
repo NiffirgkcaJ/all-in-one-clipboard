@@ -5,6 +5,7 @@ import St from 'gi://St';
 import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
 import { FocusUtils } from './utilityFocus.js';
+import { mapLayout } from './utilityLayout.js';
 
 const StackVirtualization = {
     MIN_ITEMS: 120,
@@ -43,8 +44,10 @@ export const StackLayout = GObject.registerClass(
             } = params;
 
             super({
-                orientation: Clutter.Orientation.VERTICAL,
-                x_expand: true,
+                ...mapLayout({
+                    vertical: true,
+                    x_expand: true,
+                }),
                 ...otherParams,
             });
 

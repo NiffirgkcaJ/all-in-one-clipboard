@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import { FocusUtils } from '../../shared/utilities/utilityFocus.js';
+import { mapLayout } from '../../shared/utilities/utilityLayout.js';
 import { MenuNavigationService } from '../../shared/services/serviceNavigation.js';
 import { SearchComponent } from '../../shared/utilities/utilitySearch.js';
 
@@ -62,9 +63,11 @@ export const ClipboardTabContent = GObject.registerClass(
             this._selectionService = new ClipboardSelectionService();
 
             this._mainBox = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                    x_expand: true,
+                }),
                 style_class: 'aio-clipboard-container',
-                x_expand: true,
             });
             this.set_child(this._mainBox);
 

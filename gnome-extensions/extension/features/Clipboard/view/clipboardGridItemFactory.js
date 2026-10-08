@@ -4,7 +4,9 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
+import { ClipboardGradientStyles } from '../constants/clipboardStyleConstants.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { IconSizes } from '../constants/clipboardConstants.js';
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
@@ -106,13 +108,15 @@ export class ClipboardGridItemFactory {
 
         // Actions Overlay
         const actionsOverlay = new St.BoxLayout({
+            ...mapLayout({
+                vertical: true,
+                expand: true,
+                x_align: 'fill',
+                y_align: 'end',
+            }),
             style_class: 'clipboard-grid-controls-overlay',
-            orientation: Clutter.Orientation.VERTICAL,
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
-            y_align: Clutter.ActorAlign.END,
         });
+        actionsOverlay.set_style(ClipboardGradientStyles.CONTROLS_OVERLAY);
 
         // Action Controls
         const definition = options.registry ? options.registry.getDefinition(itemData.type) : null;
@@ -130,9 +134,12 @@ export class ClipboardGridItemFactory {
             : [];
 
         const controlsBox = new St.BoxLayout({
+            ...mapLayout({
+                horizontal: true,
+                x_expand: true,
+                x_align: 'fill',
+            }),
             style_class: 'clipboard-grid-primary-controls',
-            x_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
         });
 
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
@@ -310,12 +317,15 @@ export class ClipboardGridItemFactory {
         if (!config.icon) return null;
 
         const typeBadge = new St.BoxLayout({
+            ...mapLayout({
+                horizontal: true,
+                expand: true,
+                x_align: 'fill',
+                y_align: 'start',
+            }),
             style_class: 'clipboard-grid-type-badge',
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
-            y_align: Clutter.ActorAlign.START,
         });
+        typeBadge.set_style(ClipboardGradientStyles.BADGE_OVERLAY);
         const typeIcon = createStaticIcon({ ...config, iconSize: IconSizes.BADGE_TYPE_ICON }, { styleClass: 'clipboard-grid-type-icon' });
         typeBadge.add_child(typeIcon);
 

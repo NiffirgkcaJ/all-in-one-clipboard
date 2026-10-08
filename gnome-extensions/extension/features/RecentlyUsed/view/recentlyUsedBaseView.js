@@ -7,6 +7,7 @@ import { ensureActorVisibleInScrollView } from 'resource:///org/gnome/shell/misc
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 import { MenuNavigationService } from '../../../shared/services/serviceNavigation.js';
 import { queueSearchHandoff } from '../../../shared/services/serviceSearchHub.js';
 import { SearchComponent } from '../../../shared/utilities/utilitySearch.js';
@@ -41,10 +42,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
          */
         constructor({ settings, extension, sectionProvider, onItemClicked, onOpenPreferences }) {
             super({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                    expand: true,
+                }),
                 style_class: RecentlyUsedStyles.TAB_CONTENT,
-                x_expand: true,
-                y_expand: true,
             });
 
             this._settings = settings;
@@ -248,7 +250,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             wrapper.add_child(this._scrollView);
 
             this._mainContainer = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                }),
                 style_class: RecentlyUsedStyles.CONTAINER,
             });
             this._scrollView.set_child(this._mainContainer);
@@ -286,9 +290,11 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this._mainContainer.add_child(separator);
 
             const section = new St.BoxLayout({
-                orientation: Clutter.Orientation.VERTICAL,
+                ...mapLayout({
+                    vertical: true,
+                    x_expand: true,
+                }),
                 style_class: RecentlyUsedStyles.SECTION,
-                x_expand: true,
             });
 
             const baseTitle = sectionScaffold.title || '';

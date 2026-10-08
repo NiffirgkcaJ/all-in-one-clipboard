@@ -4,6 +4,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from './utilityFocus.js';
+import { mapLayout } from './utilityLayout.js';
 import { createLogo, createStaticIcon } from './utilityIcon.js';
 
 const SearchIcons = {
@@ -44,10 +45,12 @@ export const SearchComponent = GObject.registerClass(
             this._keyControllerSignalId = 0;
 
             this.actor = new St.BoxLayout({
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                    y_align: 'center',
+                }),
                 style_class: 'aio-search-bar-container',
-                orientation: Clutter.Orientation.HORIZONTAL,
-                y_align: Clutter.ActorAlign.CENTER,
-                x_expand: true,
             });
 
             this._entry = new St.Entry({
@@ -76,8 +79,11 @@ export const SearchComponent = GObject.registerClass(
             this._entry.add_action_full('search-key-capture', Clutter.EventPhase.CAPTURE, this._keyController);
 
             this._entryWrapper = new St.BoxLayout({
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                    y_align: 'center',
+                }),
             });
             this._entryWrapper.add_child(this._entry);
             this.actor.add_child(this._entryWrapper);
@@ -93,7 +99,10 @@ export const SearchComponent = GObject.registerClass(
             this._clearButton.connect('key-press-event', (actor, event) => this._onKeyPress(actor, event));
 
             this._clearButtonWrapper = new St.BoxLayout({
-                y_align: Clutter.ActorAlign.CENTER,
+                ...mapLayout({
+                    horizontal: true,
+                    y_align: 'center',
+                }),
             });
             this._clearButtonWrapper.add_child(this._clearButton);
             this.actor.add_child(this._clearButtonWrapper);
@@ -323,8 +332,10 @@ export const SearchComponent = GObject.registerClass(
             if (config.logo) {
                 this._entry.set_hint_text('');
                 this._hintWrapper = new St.BoxLayout({
-                    y_align: Clutter.ActorAlign.CENTER,
-                    style: `spacing: ${config.spacing ?? 4}px;`,
+                    ...mapLayout({
+                        horizontal: true,
+                        y_align: 'center',
+                    }),
                 });
 
                 let hintLabel = null;
@@ -340,6 +351,9 @@ export const SearchComponent = GObject.registerClass(
                 if (logo) {
                     logo.y_align = Clutter.ActorAlign.CENTER;
                     logo.y_expand = false;
+                    if (hintLabel) {
+                        logo.add_style_class_name('aio-search-logo');
+                    }
                     this._hintWrapper.add_child(logo);
                 }
 
@@ -349,9 +363,9 @@ export const SearchComponent = GObject.registerClass(
                     hintLabel.connect('style-changed', () => {
                         try {
                             const c = hintLabel.get_theme_node().get_color('color');
-                            this._hintWrapper.style = `spacing: ${config.spacing ?? 4}px; color: rgba(${c.red},${c.green},${c.blue},${c.alpha / 255});`;
+                            this._hintWrapper.style = `color: rgba(${c.red},${c.green},${c.blue},${c.alpha / 255});`;
                         } catch {
-                            // Ignore
+                            // Ignore theme node error.
                         }
                     });
                 }

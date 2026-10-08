@@ -58,6 +58,10 @@
     border-radius: 17.5px;
 }
 
+.aio-clipboard-container .aio-search-logo {
+    margin-left: 4px;
+}
+
 .aio-clipboard-container .aio-search-clear-button {
     background-color: transparent;
     width: 35px;
@@ -519,9 +523,6 @@
 .aio-clipboard-container .clipboard-grid-type-badge {
     padding: 6px;
     border-radius: 6px 6px 0 0;
-    background-gradient-direction: vertical;
-    background-gradient-start: rgba(0, 0, 0, 0.5);
-    background-gradient-end: transparent;
 }
 
 .aio-clipboard-container .clipboard-grid-type-icon {
@@ -531,9 +532,6 @@
 .aio-clipboard-container .clipboard-grid-controls-overlay {
     padding: 6px 6px;
     border-radius: 0 0 6px 6px;
-    background-gradient-direction: vertical;
-    background-gradient-start: transparent;
-    background-gradient-end: rgba(0, 0, 0, 0.6);
 }
 
 .aio-clipboard-container .clipboard-grid-primary-controls {
@@ -592,9 +590,6 @@
 .aio-clipboard-container .clipboard-grid-color-card {
     padding: 6px 8px;
     border-radius: 0 0 6px 6px;
-    background-gradient-direction: vertical;
-    background-gradient-start: transparent;
-    background-gradient-end: rgba(0, 0, 0, 0.6);
 }
 
 .aio-clipboard-container .clipboard-grid-color-label {
