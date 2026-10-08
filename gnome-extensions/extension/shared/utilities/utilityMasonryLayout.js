@@ -485,52 +485,119 @@ export const MasonryLayout = GObject.registerClass(
         focusByItemId(itemId) {
             if (!itemId) return false;
 
-            let target = this.get_children().find((child) => String(child._itemId) === String(itemId));
-            if (!target && this._virtualizationActive) {
+            if (this._virtualizationActive) {
                 const entry = this._layoutEntryById.get(itemId);
-                if (!entry) return false;
+                if (entry) {
+                    const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
+                    const itemTop = entry.layoutData.y;
+                    const itemBottom = itemTop + entry.layoutData.height;
+                    const currentTop = this._virtualViewportTop;
+                    const currentBottom = currentTop + viewportHeight;
 
-                const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : MasonryVirtualization.FALLBACK_VIEWPORT_HEIGHT;
-                this._virtualViewportTop = Math.max(0, entry.layoutData.y - viewportHeight * 0.4);
-                this._applyViewportCulling(true);
-                target = this.get_children().find((child) => String(child._itemId) === String(itemId));
+                    // Scroll Viewport.
+                    if (itemTop < currentTop || itemBottom > currentBottom) {
+                        const targetScrollTop = Math.max(0, itemTop - Math.floor((viewportHeight - entry.layoutData.height) / 2));
+                        this._virtualViewportTop = targetScrollTop;
+                        if (this._scrollView?.vadjustment) {
+                            const maxHeight = Math.max(...this._columnHeights);
+                            if (this._scrollView.vadjustment.upper < maxHeight) {
+                                this._scrollView.vadjustment.upper = maxHeight;
+                            }
+                            this._scrollView.vadjustment.value = targetScrollTop;
+                        }
+                        this._applyViewportCulling(true);
+                    }
+                }
             }
 
+            const target = this.get_children().find((child) => String(child._itemId) === String(itemId));
             if (!target) return false;
             this.focusItem(target);
             return true;
         }
 
         /**
+         * Find the best top row match for a target horizontal position.
+         * @param {Array} candidates Candidate items or layout entries.
+         * @param {number} targetCenterX Horizontal position.
+         * @param {Function} getLayoutData Function returning layout bounds.
+         * @returns {Object|null} Best matching candidate.
+         * @private
+         */
+        _findTopMatch(candidates, targetCenterX, getLayoutData) {
+            const topRowItems = candidates.filter((item) => getLayoutData(item)?.y === 0);
+            let bestMatch = null;
+            let minDistance = Infinity;
+
+            for (const item of topRowItems) {
+                const data = getLayoutData(item);
+                const itemCenterX = data.x + data.width / 2;
+                const distance = Math.abs(itemCenterX - targetCenterX);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestMatch = item;
+                }
+            }
+
+            return bestMatch;
+        }
+
+        /**
+         * Find the best bottom row match for a target horizontal position.
+         * @param {Array} candidates Candidate items or layout entries.
+         * @param {number} targetCenterX Horizontal position.
+         * @param {Function} getLayoutData Function returning layout bounds.
+         * @returns {Object|null} Best matching candidate.
+         * @private
+         */
+        _findBottomMatch(candidates, targetCenterX, getLayoutData) {
+            let bestMatch = null;
+            let bestY = -Infinity;
+            let minXDistance = Infinity;
+
+            for (const item of candidates) {
+                const data = getLayoutData(item);
+                if (!data) continue;
+
+                const itemCenterX = data.x + data.width / 2;
+                const xDistance = Math.abs(itemCenterX - targetCenterX);
+
+                const hasColumnOverlap = data.x < targetCenterX && data.x + data.width > targetCenterX;
+                if (!hasColumnOverlap && xDistance > data.width / 2) continue;
+
+                const itemBottomY = data.y + data.height;
+                if (itemBottomY > bestY || (itemBottomY === bestY && xDistance < minXDistance)) {
+                    bestY = itemBottomY;
+                    minXDistance = xDistance;
+                    bestMatch = item;
+                }
+            }
+
+            return bestMatch;
+        }
+
+        /**
          * Focus the first item in the masonry layout.
          * @param {number} [targetCenterX] Horizontal position to find item in the same column.
+         * @returns {boolean} True if an item was focused.
          */
         focusFirst(targetCenterX) {
-            const children = this._getItemChildren(true);
-            if (children.length === 0) {
-                if (this._items && this._items.length > 0) {
-                    return this.focusByItemId(this._items[0].id);
+            if (this._virtualizationActive && this._items && this._items.length > 0) {
+                if (targetCenterX !== undefined && this._layoutEntries.length > 0) {
+                    const match = this._findTopMatch(this._layoutEntries, targetCenterX, (e) => e.layoutData);
+                    if (match) return this.focusByItemId(match.itemId);
                 }
-                return false;
+                return this.focusByItemId(this._items[0].id);
             }
+
+            const children = this._getItemChildren(true);
+            if (children.length === 0) return false;
 
             let target = children[0];
 
             if (targetCenterX !== undefined) {
-                const topRowItems = children.filter((w) => w._masonryData.y === 0);
-                let bestMatch = null;
-                let minDistance = Infinity;
-
-                for (const item of topRowItems) {
-                    const data = item._masonryData;
-                    const itemCenterX = data.x + data.width / 2;
-                    const distance = Math.abs(itemCenterX - targetCenterX);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        bestMatch = item;
-                    }
-                }
-                if (bestMatch) target = bestMatch;
+                const match = this._findTopMatch(children, targetCenterX, (w) => w._masonryData);
+                if (match) target = match;
             }
 
             this.focusItem(target);
@@ -543,37 +610,22 @@ export const MasonryLayout = GObject.registerClass(
          * @returns {boolean} True if an item was focused.
          */
         focusLast(targetCenterX) {
-            const children = this._getItemChildren(true);
-            if (children.length === 0) {
-                if (this._items && this._items.length > 0) {
-                    return this.focusByItemId(this._items[this._items.length - 1].id);
+            if (this._virtualizationActive && this._items && this._items.length > 0) {
+                if (targetCenterX !== undefined && this._layoutEntries.length > 0) {
+                    const match = this._findBottomMatch(this._layoutEntries, targetCenterX, (e) => e.layoutData);
+                    if (match) return this.focusByItemId(match.itemId);
                 }
-                return false;
+                return this.focusByItemId(this._items[this._items.length - 1].id);
             }
+
+            const children = this._getItemChildren(true);
+            if (children.length === 0) return false;
 
             let target = children[children.length - 1];
 
             if (targetCenterX !== undefined) {
-                let bestMatch = null;
-                let bestY = -Infinity;
-                let minXDistance = Infinity;
-
-                for (const item of children) {
-                    const data = item._masonryData;
-                    const itemCenterX = data.x + data.width / 2;
-                    const xDistance = Math.abs(itemCenterX - targetCenterX);
-
-                    const hasColumnOverlap = data.x < targetCenterX && data.x + data.width > targetCenterX;
-                    if (!hasColumnOverlap && xDistance > data.width / 2) continue;
-
-                    const itemBottomY = data.y + data.height;
-                    if (itemBottomY > bestY || (itemBottomY === bestY && xDistance < minXDistance)) {
-                        bestY = itemBottomY;
-                        minXDistance = xDistance;
-                        bestMatch = item;
-                    }
-                }
-                if (bestMatch) target = bestMatch;
+                const match = this._findBottomMatch(children, targetCenterX, (w) => w._masonryData);
+                if (match) target = match;
             }
 
             this.focusItem(target);
@@ -594,17 +646,19 @@ export const MasonryLayout = GObject.registerClass(
 
             if (widget.visible && widget.mapped) {
                 widget.grab_key_focus();
-                if (this._scrollView) {
+                if (this._scrollView && widget.has_allocation() && widget.get_allocation_box().y2 > 0) {
                     ensureActorVisibleInScrollView(this._scrollView, widget);
                 }
                 return;
             }
 
-            this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+            this._focusTimeoutId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 this._focusTimeoutId = 0;
-                widget.grab_key_focus();
+                if (widget && widget.visible && widget.mapped) {
+                    widget.grab_key_focus();
+                }
 
-                if (this._scrollView) {
+                if (this._scrollView && widget.mapped && widget.has_allocation() && widget.get_allocation_box().y2 > 0) {
                     ensureActorVisibleInScrollView(this._scrollView, widget);
                 }
                 return GLib.SOURCE_REMOVE;

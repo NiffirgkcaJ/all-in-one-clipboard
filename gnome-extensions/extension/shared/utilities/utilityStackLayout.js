@@ -246,10 +246,24 @@ export const StackLayout = GObject.registerClass(
                 const index = this._itemIndexById.get(itemId) ?? -1;
                 if (index >= 0) {
                     const viewportHeight = this._virtualViewportHeight > 0 ? this._virtualViewportHeight : StackVirtualization.FALLBACK_VIEWPORT_HEIGHT;
-                    const visibleCount = Math.max(1, Math.ceil(viewportHeight / this._virtualEstimatedItemHeight));
-                    const targetStart = Math.max(0, index - Math.floor(visibleCount / 2));
-                    this._virtualViewportTop = targetStart * this._virtualEstimatedItemHeight;
-                    this._reconcileVirtualWindow(this._items, this._lastRenderSession, true);
+                    const itemTop = index * this._virtualEstimatedItemHeight;
+                    const itemBottom = (index + 1) * this._virtualEstimatedItemHeight;
+                    const currentTop = this._virtualViewportTop;
+                    const currentBottom = currentTop + viewportHeight;
+
+                    // Scroll Viewport.
+                    if (itemTop < currentTop || itemBottom > currentBottom) {
+                        const targetScrollTop = Math.max(0, itemTop - Math.floor((viewportHeight - this._virtualEstimatedItemHeight) / 2));
+                        this._virtualViewportTop = targetScrollTop;
+                        if (this._scrollView?.vadjustment) {
+                            const totalHeight = this._items.length * this._virtualEstimatedItemHeight;
+                            if (this._scrollView.vadjustment.upper < totalHeight) {
+                                this._scrollView.vadjustment.upper = totalHeight;
+                            }
+                            this._scrollView.vadjustment.value = targetScrollTop;
+                        }
+                        this._reconcileVirtualWindow(this._items, this._lastRenderSession, true);
+                    }
                 }
             }
 
@@ -265,14 +279,14 @@ export const StackLayout = GObject.registerClass(
          * @returns {boolean} True if an item was focused.
          */
         focusFirst(targetFinder) {
+            if (this._virtualizationActive && this._items && this._items.length > 0) {
+                return this.focusByItemId(this._items[0].id, targetFinder);
+            }
             const children = this._getItemChildren();
             if (children.length > 0) {
                 const first = children[0];
                 this.focusItem(first, targetFinder);
                 return true;
-            }
-            if (this._items && this._items.length > 0) {
-                return this.focusByItemId(this._items[0].id, targetFinder);
             }
             return false;
         }
@@ -283,14 +297,14 @@ export const StackLayout = GObject.registerClass(
          * @returns {boolean} True if an item was focused.
          */
         focusLast(targetFinder) {
+            if (this._virtualizationActive && this._items && this._items.length > 0) {
+                return this.focusByItemId(this._items[this._items.length - 1].id, targetFinder);
+            }
             const children = this._getItemChildren();
             if (children.length > 0) {
                 const last = children[children.length - 1];
                 this.focusItem(last, targetFinder);
                 return true;
-            }
-            if (this._items && this._items.length > 0) {
-                return this.focusByItemId(this._items[this._items.length - 1].id, targetFinder);
             }
             return false;
         }
@@ -316,13 +330,13 @@ export const StackLayout = GObject.registerClass(
 
             if (target && target.visible && target.mapped) {
                 target.grab_key_focus();
-                if (this._scrollView) {
+                if (this._scrollView && widget.has_allocation() && widget.get_allocation_box().y2 > 0) {
                     ensureActorVisibleInScrollView(this._scrollView, widget);
                 }
                 return;
             }
 
-            this._focusTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 0, () => {
+            this._focusTimeoutId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 this._focusTimeoutId = 0;
                 let deferredTarget = widget;
                 if (targetFinder) {
@@ -332,11 +346,11 @@ export const StackLayout = GObject.registerClass(
 
                 if (deferredTarget && deferredTarget.visible && deferredTarget.mapped) {
                     deferredTarget.grab_key_focus();
-                } else {
+                } else if (widget && widget.visible && widget.mapped) {
                     widget.grab_key_focus();
                 }
 
-                if (this._scrollView) {
+                if (this._scrollView && widget.mapped && widget.has_allocation() && widget.get_allocation_box().y2 > 0) {
                     ensureActorVisibleInScrollView(this._scrollView, widget);
                 }
                 return GLib.SOURCE_REMOVE;

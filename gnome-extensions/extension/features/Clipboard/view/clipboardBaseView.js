@@ -270,13 +270,17 @@ export const ClipboardBaseView = GObject.registerClass(
          * @returns {boolean} True if focus was moved.
          */
         focusLastContentItem() {
-            if (this._historyContainer && this._historyContainer.getItemCount() > 0) {
-                this._historyContainer.focusLast();
-                return true;
+            const historyItems = this._pendingHistoryItems || [];
+            if (this._historyContainer && (this._historyContainer.getItemCount() > 0 || historyItems.length > 0)) {
+                if (this._getHistoryItemCount() < historyItems.length) {
+                    this._updateHistoryItems(historyItems);
+                    this._syncVirtualizedViewports();
+                    this._rebuildCheckboxMap();
+                }
+                return this._historyContainer.focusLast();
             }
             if (this._pinnedContainer && this._pinnedContainer.getItemCount() > 0) {
-                this._pinnedContainer.focusLast();
-                return true;
+                return this._pinnedContainer.focusLast();
             }
             return false;
         }
