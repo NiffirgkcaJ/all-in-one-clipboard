@@ -41,8 +41,7 @@ export const SearchComponent = GObject.registerClass(
             this._onNavigateUp = onNavigateUp ?? null;
             this._onNavigateTab = onNavigateTab ?? null;
             this._mappedSignalId = 0;
-            this._keyController = null;
-            this._keyControllerSignalId = 0;
+            this._capturedEventId = 0;
 
             this.actor = new St.BoxLayout({
                 ...mapLayout({
@@ -72,11 +71,13 @@ export const SearchComponent = GObject.registerClass(
                 this._entry.remove_style_pseudo_class('focus');
             });
 
-            this._keyController = new Clutter.KeyController();
-            this._keyControllerSignalId = this._keyController.connect('key-press', () => {
-                return this._onKeyPress(this._entry, Clutter.get_current_event());
+            // captured-event runs in the capture phase and exists on every supported Shell version, unlike Clutter.KeyController.
+            this._capturedEventId = this._entry.connect('captured-event', (_actor, event) => {
+                if (event.type() !== Clutter.EventType.KEY_PRESS) {
+                    return Clutter.EVENT_PROPAGATE;
+                }
+                return this._onKeyPress(this._entry, event);
             });
-            this._entry.add_action_full('search-key-capture', Clutter.EventPhase.CAPTURE, this._keyController);
 
             this._entryWrapper = new St.BoxLayout({
                 ...mapLayout({
@@ -420,13 +421,9 @@ export const SearchComponent = GObject.registerClass(
                 this._entry.disconnect(this._mappedSignalId);
                 this._mappedSignalId = 0;
             }
-            if (this._keyControllerSignalId) {
-                this._keyController.disconnect(this._keyControllerSignalId);
-                this._keyControllerSignalId = 0;
-            }
-            if (this._keyController) {
-                this._entry.remove_action(this._keyController);
-                this._keyController = null;
+            if (this._capturedEventId) {
+                this._entry.disconnect(this._capturedEventId);
+                this._capturedEventId = 0;
             }
             if (this._hintWrapper) {
                 this._hintWrapper.destroy();
