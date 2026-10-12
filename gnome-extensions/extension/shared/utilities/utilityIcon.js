@@ -11,7 +11,7 @@ import { Logger } from './utilityLogger.js';
  *
  * @example
  * const icon = createStaticIcon(
- *     { icon: ClipboardIcons.CHECKBOX_UNCHECKED, iconSize: 16 },
+ *     { icon: 'view-conceal-symbolic', iconSize: 16 },
  *     { styleClass: 'my-icon-class' }
  * );
  *
@@ -36,10 +36,10 @@ export function createStaticIcon(config, options = {}) {
  *
  * @example
  * const icon = createDynamicIcon(
- *     { unchecked: ClipboardIcons.CHECKBOX_UNCHECKED, checked: ClipboardIcons.CHECKBOX_CHECKED },
- *     { initial: 'unchecked', styleClass: 'my-icon-class' }
+ *     { off: { icon: 'starred-symbolic' }, on: { icon: 'non-starred-symbolic' } },
+ *     { initial: 'off', styleClass: 'my-icon-class' }
  * );
- * icon.state = 'checked';
+ * icon.state = 'on';
  *
  * @param {Object} states State map including state names and icon configurations.
  * @param {Object} [options={}] Options object.
@@ -80,7 +80,7 @@ export function createDynamicIcon(states, options = {}) {
  *
  * @example
  * const button = createStaticIconButton(
- *     { icon: ClipboardIcons.CHECKBOX_UNCHECKED, iconSize: 16 },
+ *     { icon: 'view-conceal-symbolic', iconSize: 16 },
  *     { tooltip_text: 'Toggle' }
  * );
  *
@@ -113,10 +113,10 @@ export function createStaticIconButton(config, buttonParams = {}) {
  *
  * @example
  * const button = createDynamicIconButton(
- *     { unchecked: ClipboardIcons.X, checked: ClipboardIcons.Y },
- *     { initial: 'unchecked', tooltip_text: 'Toggle' }
+ *     { off: { icon: 'starred-symbolic' }, on: { icon: 'non-starred-symbolic' } },
+ *     { initial: 'off', tooltip_text: 'Toggle' }
  * );
- * button.child.state = 'checked';
+ * button.child.state = 'on';
  *
  * @param {Object} states State map including state names and icon configurations.
  * @param {Object} [buttonParams={}] Button parameters.
