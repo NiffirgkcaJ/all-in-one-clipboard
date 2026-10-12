@@ -188,14 +188,10 @@ export const ClipboardListView = GObject.registerClass(
 
             if (!itemWidget) return undefined;
 
-            const isCheckbox = currentFocus === itemWidget._itemCheckbox;
-            const isPin = currentFocus === itemWidget._pinButton;
-            const isDelete = currentFocus === itemWidget._deleteButton;
-
             return (targetItemWidget) => {
-                if (isCheckbox) return targetItemWidget._itemCheckbox;
-                if (isPin) return targetItemWidget._pinButton;
-                if (isDelete) return targetItemWidget._deleteButton;
+                if (typeof targetItemWidget.findMatchingFocus === 'function') {
+                    return targetItemWidget.findMatchingFocus(currentFocus);
+                }
                 return targetItemWidget;
             };
         }

@@ -167,11 +167,28 @@ export class ClipboardListItemFactory {
         itemWidget._itemCheckbox = itemCheckbox;
         itemWidget._pinButton = actionButtons.find((btn) => btn._action === 'pin');
         itemWidget._deleteButton = actionButtons.find((btn) => btn._action === 'delete');
+        itemWidget._actionButtons = actionButtons;
         itemWidget._itemId = itemData.id;
         itemWidget._contentWidget = contentWidget;
         itemWidget._mainBox = mainBox;
         itemWidget._viewConfig = config;
         itemWidget._renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, itemData, renderContext);
+
+        itemWidget.getFocusables = () => {
+            return [itemCheckbox, itemWidget, ...actionButtons].filter((actor) => actor && actor.visible && actor.mapped);
+        };
+
+        itemWidget.findMatchingFocus = (currentFocus) => {
+            const action = currentFocus?._action;
+            if (action === 'checkbox') {
+                return itemCheckbox.visible && itemCheckbox.mapped ? itemCheckbox : itemWidget;
+            }
+            if (action) {
+                const match = actionButtons.find((btn) => btn._action === action);
+                if (match && match.visible && match.mapped) return match;
+            }
+            return itemWidget;
+        };
 
         return itemWidget;
     }

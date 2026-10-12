@@ -418,10 +418,10 @@
 }
 
 .aio-clipboard-container .clipboard-list-checkbox {
-    min-width: 28px;
-    max-width: 28px;
-    min-height: 28px;
-    max-height: 28px;
+    min-width: 30px;
+    max-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
 }
 
 .aio-clipboard-container .clipboard-list-control-button {

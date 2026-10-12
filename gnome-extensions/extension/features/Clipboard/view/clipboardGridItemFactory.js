@@ -133,7 +133,23 @@ export class ClipboardGridItemFactory {
               })
             : [];
 
-        const controlsBox = new St.BoxLayout({
+        // Secondary Controls
+        const secondaryButtons = actionButtons.filter((btn) => btn._action !== 'pin' && btn._action !== 'delete');
+        if (secondaryButtons.length > 0) {
+            const secondaryControls = new St.BoxLayout({
+                ...mapLayout({
+                    horizontal: true,
+                    x_expand: true,
+                    x_align: 'end',
+                }),
+                style_class: 'clipboard-grid-secondary-controls',
+            });
+            secondaryButtons.forEach((button) => secondaryControls.add_child(button));
+            actionsOverlay.add_child(secondaryControls);
+        }
+
+        // Primary Controls
+        const primaryControls = new St.BoxLayout({
             ...mapLayout({
                 horizontal: true,
                 x_expand: true,
@@ -155,14 +171,18 @@ export class ClipboardGridItemFactory {
             },
         );
         itemCheckbox.visible = options.settings.get_boolean('clipboard-show-action-bar');
-        controlsBox.add_child(itemCheckbox);
+        primaryControls.add_child(itemCheckbox);
         const checkboxIcon = itemCheckbox.child;
 
         const spacer = new St.Widget({ x_expand: true });
-        controlsBox.add_child(spacer);
+        primaryControls.add_child(spacer);
 
-        actionButtons.forEach((button) => controlsBox.add_child(button));
-        actionsOverlay.add_child(controlsBox);
+        const pinButton = actionButtons.find((btn) => btn._action === 'pin');
+        const deleteButton = actionButtons.find((btn) => btn._action === 'delete');
+        if (pinButton) primaryControls.add_child(pinButton);
+        if (deleteButton) primaryControls.add_child(deleteButton);
+
+        actionsOverlay.add_child(primaryControls);
 
         cardStack.add_child(actionsOverlay);
 
@@ -193,8 +213,9 @@ export class ClipboardGridItemFactory {
         });
 
         itemWidget._itemCheckbox = itemCheckbox;
-        itemWidget._pinButton = actionButtons.find((btn) => btn._action === 'pin');
-        itemWidget._deleteButton = actionButtons.find((btn) => btn._action === 'delete');
+        itemWidget._pinButton = pinButton;
+        itemWidget._deleteButton = deleteButton;
+        itemWidget._actionButtons = actionButtons;
         itemWidget._itemId = itemData.id;
         itemWidget._contentWrapper = contentWrapper;
         itemWidget._cardStack = cardStack;

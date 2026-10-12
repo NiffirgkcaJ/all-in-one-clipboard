@@ -56,6 +56,7 @@ export class ClipboardBaseWidgetFactory {
             options.onSelectionChanged?.();
         });
 
+        checkbox._action = 'checkbox';
         return checkbox;
     }
 

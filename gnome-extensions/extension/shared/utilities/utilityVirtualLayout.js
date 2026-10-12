@@ -1130,7 +1130,7 @@ export const StackLayout = GObject.registerClass(
          * @private
          */
         _handleHorizontalNavigation(isLeft, currentFocus, itemWidget) {
-            const focusables = [itemWidget._itemCheckbox, itemWidget, itemWidget._pinButton, itemWidget._deleteButton].filter((actor) => actor && actor.visible && actor.mapped);
+            const focusables = typeof itemWidget.getFocusables === 'function' ? itemWidget.getFocusables() : [itemWidget];
 
             const currentIndex = focusables.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
@@ -1167,11 +1167,10 @@ export const StackLayout = GObject.registerClass(
             if (!layoutData) return Clutter.EVENT_PROPAGATE;
 
             const finder = (targetRow) => {
-                let targetButton = targetRow;
-                if (currentFocus === itemWidget._itemCheckbox) targetButton = targetRow._itemCheckbox;
-                else if (currentFocus === itemWidget._pinButton) targetButton = targetRow._pinButton;
-                else if (currentFocus === itemWidget._deleteButton) targetButton = targetRow._deleteButton;
-                return targetButton;
+                if (typeof targetRow.findMatchingFocus === 'function') {
+                    return targetRow.findMatchingFocus(currentFocus);
+                }
+                return targetRow;
             };
 
             this._scrollItemIntoView(layoutData, finder);
