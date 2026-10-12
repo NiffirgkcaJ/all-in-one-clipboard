@@ -260,6 +260,14 @@
     padding: 10px 0;
 }
 
+.aio-clipboard-container .gif-tab-content {
+    background: transparent;
+}
+
+.aio-clipboard-container .gif-container {
+    padding: 8px;
+}
+
 /* --- Kaomoji Tab Specific UI --- */
 .aio-clipboard-container .kaomoji-category-tab-button {
     padding: 0 8px;
@@ -385,7 +393,6 @@
 }
 
 .aio-clipboard-container .clipboard-list-item {
-    height: 48px;
     min-height: 48px;
     padding: 4px 8px;
     margin: 2px;
@@ -499,7 +506,7 @@
 
 /* Grid View */
 .aio-clipboard-container .clipboard-grid-view {
-    padding: 4px;
+    padding: 4px 8px;
 }
 
 .aio-clipboard-container .clipboard-grid-card {

@@ -3,12 +3,18 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
+import { MasonryLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardGridItemFactory } from './clipboardGridItemFactory.js';
+
+// ========================================================================
+// Constants
+// ========================================================================
+
+const GRID_SPACING_PX = 8;
 
 /**
  * ClipboardGridView
@@ -39,6 +45,7 @@ export const ClipboardGridView = GObject.registerClass(
 
             // Dimensions are cached incrementally and refined in the background as real image sizes arrive.
             this._dimensionCache = new Map();
+            this._dimensionIdleIds = new Set();
 
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
@@ -61,10 +68,9 @@ export const ClipboardGridView = GObject.registerClass(
         _createPinnedContainer() {
             return new MasonryLayout({
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
-                spacing: 8,
+                spacing: GRID_SPACING_PX,
                 maxColumns: this._getMaxColumnsSetting(),
                 virtualization: true,
-                virtualMinItems: GridVirtualization.PINNED_MIN_ITEMS,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, true),
@@ -82,10 +88,9 @@ export const ClipboardGridView = GObject.registerClass(
         _createHistoryContainer() {
             return new MasonryLayout({
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
-                spacing: 8,
+                spacing: GRID_SPACING_PX,
                 maxColumns: this._getMaxColumnsSetting(),
                 virtualization: true,
-                virtualMinItems: GridVirtualization.HISTORY_MIN_ITEMS,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
                 renderItemFn: (item) => this._createItemWidget(item, false),
@@ -113,9 +118,9 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _getItemOptions(isPinned) {
             return {
-                isPinned: isPinned,
-                registry: this._manager._clipboardRegistry,
-                storage: this._manager.storage,
+                isPinned,
+                registry: this._manager?._clipboardRegistry,
+                storage: this._manager?.storage,
                 previewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
@@ -171,9 +176,9 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         getFocusables() {
-            const pinnedFocusables = this._pinnedContainer.get_children().filter((w) => w._itemId && w.can_focus);
-            const historyFocusables = this._historyContainer.get_children().filter((w) => w._itemId && w.can_focus);
-            return [...pinnedFocusables, ...historyFocusables];
+            const pinned = this._pinnedContainer ? this._pinnedContainer.get_children().filter((w) => w._itemId && w.can_focus) : [];
+            const history = this._historyContainer ? this._historyContainer.get_children().filter((w) => w._itemId && w.can_focus) : [];
+            return [...pinned, ...history];
         }
 
         /**
@@ -200,13 +205,12 @@ export const ClipboardGridView = GObject.registerClass(
         /**
          * Create a single item widget for the masonry layout.
          *
-         * @param {Object} itemData The item data with _isPinned flag.
-         * @param {Object} _session Render session is unused.
+         * @param {Object} itemData The item data.
+         * @param {boolean} isPinned Whether this item is pinned.
          * @returns {St.Widget} The card widget.
          * @private
          */
-        _createItemWidget(itemData, _session) {
-            const isPinned = _session === true;
+        _createItemWidget(itemData, isPinned) {
             const options = this._getItemOptions(isPinned);
             return ClipboardGridItemFactory.createItem(itemData, options);
         }
@@ -322,7 +326,8 @@ export const ClipboardGridView = GObject.registerClass(
                     return;
                 }
 
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                const idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._dimensionIdleIds?.delete(idleId);
                     if (!this._dimensionCache) {
                         resolve();
                         return GLib.SOURCE_REMOVE;
@@ -344,15 +349,9 @@ export const ClipboardGridView = GObject.registerClass(
                     resolve();
                     return GLib.SOURCE_REMOVE;
                 });
+                this._dimensionIdleIds?.add(idleId);
             });
         }
-
-        /**
-         * Cancel any pending render tasks.
-         *
-         * @private
-         */
-        _cancelPendingRender() {}
 
         // ========================================================================
         // Event Handlers
@@ -403,6 +402,12 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         clear() {
+            if (this._dimensionIdleIds) {
+                for (const idleId of this._dimensionIdleIds) {
+                    GLib.source_remove(idleId);
+                }
+                this._dimensionIdleIds.clear();
+            }
             this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
@@ -417,17 +422,23 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         destroy() {
-            this._cancelPendingRender();
+            if (this._dimensionIdleIds) {
+                for (const idleId of this._dimensionIdleIds) {
+                    GLib.source_remove(idleId);
+                }
+                this._dimensionIdleIds.clear();
+                this._dimensionIdleIds = null;
+            }
+            if (this._gridColumnSignalIds.length > 0 && this._settings) {
+                this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
+                this._gridColumnSignalIds = [];
+            }
             this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
             this._gridPinnedItems = null;
             this._gridHistoryItems = null;
             this._gridIsSearching = false;
             this._dimensionCache?.clear();
             this._dimensionCache = null;
-            if (this._gridColumnSignalIds.length > 0 && this._settings) {
-                this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
-                this._gridColumnSignalIds = [];
-            }
             super.destroy();
         }
     },

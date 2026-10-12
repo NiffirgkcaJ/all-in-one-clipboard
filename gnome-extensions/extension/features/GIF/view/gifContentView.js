@@ -5,9 +5,9 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
-import { MasonryLayout } from '../../../shared/utilities/utilityMasonryLayout.js';
+import { MasonryLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
-import { GifSettings, GifUI } from '../constants/gifConstants.js';
+import { GifSettings, GifStyles, GifUI } from '../constants/gifConstants.js';
 
 /**
  * GifContentView
@@ -86,6 +86,7 @@ export const GifContentView = GObject.registerClass(
                     x_expand: true,
                     x_align: 'fill',
                 }),
+                style_class: GifStyles.CONTAINER,
             });
             this._scrollView.set_child(this._scrollableContainer);
 

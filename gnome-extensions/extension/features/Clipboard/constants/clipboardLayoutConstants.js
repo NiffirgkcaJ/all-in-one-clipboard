@@ -19,10 +19,15 @@ export const GridVirtualization = {
     OVERSCAN_PX: 1400,
 };
 
+// List Metrics
+export const ListMetrics = {
+    ITEM_HEIGHT: 64,
+    ITEM_PADDING_MARGIN_PX: 12,
+};
+
 // List Virtualization Metrics
 export const ListVirtualization = {
     HISTORY_MIN_ITEMS: 120,
     PINNED_MIN_ITEMS: 300,
-    ESTIMATED_ITEM_HEIGHT: 84,
-    OVERSCAN_ITEMS: 24,
+    OVERSCAN_PX: 1000,
 };

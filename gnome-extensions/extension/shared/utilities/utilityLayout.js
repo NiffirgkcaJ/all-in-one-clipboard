@@ -1,6 +1,12 @@
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
+import { adjustAnimationTime } from 'resource:///org/gnome/shell/misc/animationUtils.js';
 
+// ========================================================================
+// Constants
+// ========================================================================
+
+const SCROLL_TIME = 100;
 const SUPPORTS_ORIENTATION = 'orientation' in St.BoxLayout.prototype;
 
 const ALIGN_MAP = Object.freeze({
@@ -9,6 +15,10 @@ const ALIGN_MAP = Object.freeze({
     center: Clutter.ActorAlign.CENTER,
     end: Clutter.ActorAlign.END,
 });
+
+// ========================================================================
+// Layout Mapping
+// ========================================================================
 
 /**
  * Resolve clutter alignment enum from string or enum value.
@@ -105,4 +115,83 @@ export function mapLayout(options = {}) {
         transformExpansion({ expand, x_expand, y_expand }),
         transformAlignment({ align, x_align, y_align }),
     );
+}
+
+/**
+ * Calculate vertical offset of an actor relative to an ancestor scroll view.
+ *
+ * @param {St.ScrollView} scrollView Scroll view ancestor.
+ * @param {Clutter.Actor} actor Descendant actor.
+ * @returns {number} Vertical offset in pixels.
+ */
+export function getActorScrollOffset(scrollView, actor) {
+    if (!scrollView || !actor) return 0;
+
+    const scrollChild = scrollView.get_child ? scrollView.get_child() : null;
+    let offset = 0;
+    let current = actor;
+    let hasUnallocated = false;
+
+    while (current && current !== scrollView && current !== scrollChild) {
+        if (current.has_allocation()) {
+            const y1 = current.get_allocation_box().y1;
+            current._lastKnownAllocationY1 = y1;
+            offset += y1;
+        } else if (typeof current._lastKnownAllocationY1 === 'number') {
+            offset += current._lastKnownAllocationY1;
+        } else {
+            hasUnallocated = true;
+        }
+        current = current.get_parent();
+    }
+
+    if (!hasUnallocated && offset > 0) {
+        actor._lastKnownScrollOffset = offset;
+    } else if (offset === 0 && typeof actor._lastKnownScrollOffset === 'number') {
+        offset = actor._lastKnownScrollOffset;
+    }
+
+    return offset;
+}
+
+// ========================================================================
+// Scroll & Focus Utilities
+// ========================================================================
+
+/**
+ * Smoothly adjust scroll adjustment value with system animation support.
+ *
+ * @param {St.Adjustment} adjustment Adjustment to animate.
+ * @param {number} targetValue Target value to reach.
+ */
+export function easeAdjustment(adjustment, targetValue) {
+    if (!adjustment || !Number.isFinite(targetValue)) return;
+
+    const duration = adjustAnimationTime(SCROLL_TIME);
+    if (duration > 0) {
+        adjustment.ease(targetValue, {
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            duration,
+        });
+    } else {
+        adjustment.value = targetValue;
+    }
+}
+
+/**
+ * Resolve focused item identifier within container actor.
+ *
+ * @param {Clutter.Actor} container Parent container actor.
+ * @returns {string|null} The focused item identifier or null.
+ */
+export function getFocusedItemId(container) {
+    if (!container || typeof global === 'undefined' || !global.stage) return null;
+
+    let focused = global.stage.get_key_focus();
+    while (focused && !focused._itemId) {
+        focused = focused.get_parent();
+    }
+
+    if (!focused || !container.contains(focused)) return null;
+    return focused._itemId || null;
 }

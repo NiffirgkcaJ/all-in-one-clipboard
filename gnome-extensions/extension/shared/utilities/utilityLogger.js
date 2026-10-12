@@ -69,4 +69,18 @@ export const Logger = {
     debug(msg, tag, ...args) {
         this._log('debug', msg, tag, ...args);
     },
+
+    /**
+     * Assert condition and throw error on failure.
+     *
+     * @param {boolean} condition Condition that must be truthy.
+     * @param {string} msg Failure message.
+     * @param {string} [tag] Optional tag identifier.
+     * @param {Function} [ErrorType] Error constructor to instantiate.
+     */
+    assert(condition, msg, tag, ErrorType = Error) {
+        if (!condition) {
+            throw new ErrorType(this._format(msg, tag));
+        }
+    },
 };

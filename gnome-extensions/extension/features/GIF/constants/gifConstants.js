@@ -35,6 +35,16 @@ export const GifUI = {
     INFO_BAR_SPACER_WIDTH: 8,
 };
 
+// UI Style Classes
+export const GifStyles = {
+    CONTAINER: 'gif-container',
+    TAB_CONTENT: 'gif-tab-content',
+    INFO_BAR: 'gif-info-bar',
+    CATEGORY_TAB_BUTTON: 'gif-category-tab-button',
+    GRID_BUTTON: 'gif-grid-button',
+    SPINNER_BOX: 'gif-spinner-box',
+};
+
 // Icon Definitions
 export const GifIcons = {
     RECENTS: {

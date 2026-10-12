@@ -65,6 +65,7 @@ export const ClipboardBaseView = GObject.registerClass(
             this._allItems = [];
             this._pendingHistoryItems = [];
             this._batchSize = ClipboardConfig.HISTORY_BATCH_SIZE;
+            // this._batchSize = Number.MAX_SAFE_INTEGER;
             this._isLoadingMore = false;
             this._restoreFocusTimeoutId = 0;
             this._scrollIdleId = 0;
@@ -897,14 +898,6 @@ export const ClipboardBaseView = GObject.registerClass(
             }
             this._scrollView = null;
 
-            this._allItems = null;
-            this._pendingHistoryItems = null;
-            this._manager = null;
-            this._onItemCopy = null;
-            this._onSelectionChanged = null;
-            this._selectedIds = null;
-            this._checkboxIconsMap.clear();
-
             const pinnedContainer = this._pinnedContainer;
             const historyContainer = this._historyContainer;
 
@@ -923,6 +916,14 @@ export const ClipboardBaseView = GObject.registerClass(
                 historyContainer.clear();
                 historyContainer.destroy();
             }
+
+            this._allItems = null;
+            this._pendingHistoryItems = null;
+            this._manager = null;
+            this._onItemCopy = null;
+            this._onSelectionChanged = null;
+            this._selectedIds = null;
+            this._checkboxIconsMap.clear();
 
             super.destroy();
         }

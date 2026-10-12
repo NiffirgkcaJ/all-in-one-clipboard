@@ -1,8 +1,8 @@
 import GObject from 'gi://GObject';
 
-import { StackLayout } from '../../../shared/utilities/utilityStackLayout.js';
+import { StackLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
-import { ListVirtualization } from '../constants/clipboardLayoutConstants.js';
+import { ListMetrics, ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 
@@ -49,9 +49,8 @@ export const ClipboardListView = GObject.registerClass(
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 virtualization: true,
-                virtualMinItems: ListVirtualization.PINNED_MIN_ITEMS,
-                virtualEstimatedItemHeight: ListVirtualization.ESTIMATED_ITEM_HEIGHT,
-                virtualOverscanItems: ListVirtualization.OVERSCAN_ITEMS,
+                virtualOverscanPx: ListVirtualization.OVERSCAN_PX,
+                calculateItemHeight: (item) => this._calculateItemHeight(item),
                 renderItemFn: (item) => this._createItemWidget(item, true),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
             });
@@ -68,9 +67,8 @@ export const ClipboardListView = GObject.registerClass(
                 style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 virtualization: true,
-                virtualMinItems: ListVirtualization.HISTORY_MIN_ITEMS,
-                virtualEstimatedItemHeight: ListVirtualization.ESTIMATED_ITEM_HEIGHT,
-                virtualOverscanItems: ListVirtualization.OVERSCAN_ITEMS,
+                virtualOverscanPx: ListVirtualization.OVERSCAN_PX,
+                calculateItemHeight: (item) => this._calculateItemHeight(item),
                 renderItemFn: (item) => this._createItemWidget(item, false),
                 updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
             });
@@ -95,9 +93,9 @@ export const ClipboardListView = GObject.registerClass(
          */
         _getItemOptions(isPinned) {
             return {
-                isPinned: isPinned,
-                registry: this._manager._clipboardRegistry,
-                storage: this._manager.storage,
+                isPinned,
+                registry: this._manager?._clipboardRegistry,
+                storage: this._manager?.storage,
                 previewSize: this._imagePreviewSize,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
@@ -139,6 +137,20 @@ export const ClipboardListView = GObject.registerClass(
         _createItemWidget(itemData, isPinned) {
             const options = this._getItemOptions(isPinned);
             return ClipboardListItemFactory.createItem(itemData, options);
+        }
+
+        /**
+         * Calculate the height of a list item.
+         *
+         * @param {Object} item The item data.
+         * @returns {number} The resolved height in pixels.
+         * @private
+         */
+        _calculateItemHeight(item) {
+            if (item?.type === 'image' && this._imagePreviewSize) {
+                return this._imagePreviewSize + ListMetrics.ITEM_PADDING_MARGIN_PX;
+            }
+            return ListMetrics.ITEM_HEIGHT;
         }
 
         // ========================================================================
