@@ -2,7 +2,7 @@
 export const ClipboardType = {
     IMAGE: 'image',
     RESOURCE: 'resource',
-    URL: 'url',
+    LINK: 'link',
     CONTACT: 'contact',
     COLOR: 'color',
     CODE: 'code',
@@ -41,7 +41,7 @@ export const ClipboardStyling = {
             },
         },
     },
-    [ClipboardType.URL]: {
+    [ClipboardType.LINK]: {
         icon: 'clipboard-type-link-symbolic.svg',
         iconSize: 16,
         layout: 'rich',
@@ -94,7 +94,7 @@ export const ClipboardStyling = {
 export const ClipboardPriority = {
     [ClipboardType.IMAGE]: 10,
     [ClipboardType.RESOURCE]: 20,
-    [ClipboardType.URL]: 30,
+    [ClipboardType.LINK]: 30,
     [ClipboardType.CONTACT]: 40,
     [ClipboardType.COLOR]: 50,
     [ClipboardType.CODE]: 60,

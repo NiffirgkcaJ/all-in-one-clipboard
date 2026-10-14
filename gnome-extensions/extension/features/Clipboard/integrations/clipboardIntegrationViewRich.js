@@ -1,3 +1,4 @@
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { createRichGridContent, createRichListContent } from './clipboardViewTemplates.js';
 
 // ============================================================================
@@ -31,6 +32,17 @@ export function ClipboardIntegrationViewRich() {
                 title: config.title,
                 subtitle: config.subtitle,
             });
+        },
+
+        getViewFingerprint: (config) => {
+            return [config.title || '', config.subtitle || '', config.icon || ''].join('|');
+        },
+
+        getViewMetadata: () => {
+            return {
+                gridHeight: GridMetrics.HEIGHT_DEFAULT,
+                listHeight: ListMetrics.ITEM_HEIGHT,
+            };
         },
     };
 }

@@ -119,9 +119,8 @@ export class ClipboardGridItemFactory {
         actionsOverlay.set_style(ClipboardGradientStyles.CONTROLS_OVERLAY);
 
         // Action Controls
-        const definition = options.registry ? options.registry.getDefinition(itemData.type) : null;
-        const actionButtons = definition
-            ? definition.createActions(itemData, {
+        const actionButtons = options.registry
+            ? options.registry.createItemActions(itemData, {
                   settings: options.settings,
                   manager: options.manager,
                   onItemCopy: options.onItemCopy,
@@ -373,7 +372,7 @@ export class ClipboardGridItemFactory {
      * @private
      */
     static _createFallbackContent(config) {
-        const safeText = config.text || config.title || config.subtitle || '';
+        const safeText = config.title || config.text || config.subtitle || '';
         const contentWidget = new St.Label({
             text: safeText,
             style_class: 'clipboard-grid-text-label',

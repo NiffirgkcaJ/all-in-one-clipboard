@@ -1,7 +1,7 @@
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getClipboardOrder } from '../definitions/clipboardOrder.js';
-import { ensureClipboardDefinition } from './clipboardDefinition.js';
+import { defaultItemActions, ensureClipboardDefinition } from './clipboardDefinition.js';
 
 /**
  * ClipboardRegistry
@@ -236,6 +236,21 @@ export class ClipboardRegistry {
     }
 
     /**
+     * Create action buttons for an item through its definition or default actions.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Action options.
+     * @returns {Array<St.Button>} Action buttons.
+     */
+    createItemActions(item, options) {
+        const definition = this.getDefinition(item?.type);
+        if (definition && definition.createActions) {
+            return definition.createActions(item, options);
+        }
+        return defaultItemActions.createActions(item, options);
+    }
+
+    /**
      * Build a view fingerprint through an item's definition.
      *
      * @param {Object} config View config.
@@ -394,7 +409,11 @@ export class ClipboardRegistry {
         await this.initialize();
 
         const definition = this.getDefinition(item.type);
-        if (!definition || !definition.healItem) {
+        if (!definition) {
+            return { healed: false, isCorrupted: true };
+        }
+
+        if (!definition.healItem) {
             return { healed: false, isCorrupted: false };
         }
 

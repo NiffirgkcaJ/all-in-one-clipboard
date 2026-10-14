@@ -1,7 +1,13 @@
 import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 
-// Default action integration for standard item actions.
-const defaultItemActions = ClipboardIntegrationItemActions();
+// ========================================================================
+// Defaults
+// ========================================================================
+
+/**
+ * Default action integration for standard item actions.
+ */
+export const defaultItemActions = ClipboardIntegrationItemActions();
 
 /**
  * Base contract for Clipboard definitions.

@@ -1,5 +1,6 @@
 import GLib from 'gi://GLib';
 
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { createMediaGridContent, createMediaListContent } from './clipboardViewTemplates.js';
 
 // ============================================================================
@@ -81,10 +82,14 @@ export function ClipboardIntegrationViewMedia({ resolveFilename, resolvePreviewF
             return [resolveFilename(item) || '', resolvePreviewFilename(item) || '', options.previewSize || ''].join('|');
         },
 
-        getViewMetadata: (_config, _item, options) => {
+        getViewMetadata: (_config, item, options) => {
+            const previewSize = options?.previewSize;
             return {
-                listMinHeight: options.previewSize || null,
+                listHeight: previewSize ? previewSize + ListMetrics.ITEM_PADDING_MARGIN_PX : null,
+                listMinHeight: previewSize || null,
                 isFullBleedGrid: true,
+                gridHeight: GridMetrics.HEIGHT_IMAGE,
+                dimensionKey: resolveFilename(item),
             };
         },
     };

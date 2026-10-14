@@ -54,7 +54,7 @@ export class LinkProcessor {
             const hash = ProcessorUtils.computeHashForString(cleanText);
 
             return {
-                type: ClipboardType.URL,
+                type: ClipboardType.LINK,
                 url: cleanText,
                 title: cleanText,
                 hash: hash,

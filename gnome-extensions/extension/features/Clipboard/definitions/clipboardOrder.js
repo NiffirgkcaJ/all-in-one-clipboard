@@ -18,7 +18,7 @@ export function getClipboardOrder() {
             exportName: 'ClipboardDefinitionResource',
         },
         {
-            id: ClipboardType.URL,
+            id: ClipboardType.LINK,
             modulePath: '../definitions/clipboardDefinitionLink.js',
             exportName: 'ClipboardDefinitionLink',
         },

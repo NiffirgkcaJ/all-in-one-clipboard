@@ -12,7 +12,7 @@ import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
- * Create the URL clipboard definition.
+ * Create the link clipboard definition.
  *
  * @returns {object} Clipboard definition.
  */
@@ -20,9 +20,9 @@ export function ClipboardDefinitionLink() {
     const linkProcessor = new LinkProcessor();
 
     return {
-        id: ClipboardType.URL,
-        priority: ClipboardPriority[ClipboardType.URL],
-        styling: ClipboardStyling[ClipboardType.URL],
+        id: ClipboardType.LINK,
+        priority: ClipboardPriority[ClipboardType.LINK],
+        styling: ClipboardStyling[ClipboardType.LINK],
         processText: (text) => LinkProcessor.process(text),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['url', 'title', 'hash'],

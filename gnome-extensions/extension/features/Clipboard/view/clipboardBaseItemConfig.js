@@ -25,7 +25,6 @@ export class ClipboardBaseItemConfig {
         const style = registry ? registry.getItemStyle(item) : null;
 
         const config = {
-            layoutMode: style?.layout || 'text',
             icon: style?.icon || null,
             text: '',
         };
@@ -38,21 +37,12 @@ export class ClipboardBaseItemConfig {
         }
 
         // Corruption Fallback
-        if (item.is_corrupted) {
+        const isCorrupted = item.is_corrupted || Boolean(registry && !registry.getDefinition(item.type));
+        if (isCorrupted) {
             config.icon = ClipboardIcons.ERROR_WARNING.icon;
             config.iconOptions = ClipboardIcons.ERROR_WARNING.iconOptions;
-
-            if (config.layoutMode === 'image') {
-                config.layoutMode = 'rich';
-                config.title = 'Image (Data Lost)';
-            } else if (config.layoutMode === 'code') {
-                config.title = 'Code (Full Content Lost)';
-            } else if (config.layoutMode === 'text') {
-                config.layoutMode = 'rich';
-                config.title = config.text ? config.text.substring(0, 50) + '...' : 'Text (Full Content Lost)';
-            }
-
             config.subtitle = 'Cannot be recovered';
+            config.title = config.title || (config.text ? `${config.text.substring(0, 50)}...` : item.preview || 'Item (Data Lost)');
         }
 
         config._fingerprint = ClipboardBaseItemConfig._buildConfigFingerprint(config);
@@ -91,7 +81,6 @@ export class ClipboardBaseItemConfig {
         const iconOptionsFingerprint = iconOptions ? `${iconOptions.color || ''}:${iconOptions.styleClass || ''}` : '';
 
         return [
-            config.layoutMode || '',
             config.icon || '',
             config.title || '',
             config.subtitle || '',

@@ -1,5 +1,6 @@
 import GLib from 'gi://GLib';
 
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { createSwatchGridContent, createSwatchListContent } from './clipboardViewTemplates.js';
 
 // ============================================================================
@@ -89,6 +90,8 @@ export function ClipboardIntegrationViewSwatch({ resolveFilename }) {
         getViewMetadata: () => {
             return {
                 isFullBleedGrid: true,
+                gridHeight: GridMetrics.HEIGHT_DEFAULT,
+                listHeight: ListMetrics.ITEM_HEIGHT,
             };
         },
     };

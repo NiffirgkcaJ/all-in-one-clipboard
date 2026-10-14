@@ -1,3 +1,4 @@
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { createTextGridContent, createTextListContent } from './clipboardViewTemplates.js';
 
 // ============================================================================
@@ -21,6 +22,27 @@ export function ClipboardIntegrationViewText() {
             return createTextGridContent({
                 text: config.text,
             });
+        },
+
+        getViewFingerprint: (config) => {
+            return config.text || '';
+        },
+
+        getViewMetadata: (_config, item) => {
+            const len = item?.preview?.length || 0;
+            let gridHeight = GridMetrics.TEXT_WEIGHTS.TINY.height;
+            if (len > GridMetrics.TEXT_WEIGHTS.LONG.threshold) {
+                gridHeight = GridMetrics.TEXT_WEIGHTS.LONG.height;
+            } else if (len > GridMetrics.TEXT_WEIGHTS.MEDIUM.threshold) {
+                gridHeight = GridMetrics.TEXT_WEIGHTS.MEDIUM.height;
+            } else if (len > GridMetrics.TEXT_WEIGHTS.SHORT.threshold) {
+                gridHeight = GridMetrics.TEXT_WEIGHTS.SHORT.height;
+            }
+
+            return {
+                gridHeight,
+                listHeight: ListMetrics.ITEM_HEIGHT,
+            };
         },
     };
 }

@@ -94,7 +94,7 @@ export const ClipboardListView = GObject.registerClass(
         _getItemOptions(isPinned) {
             return {
                 isPinned,
-                registry: this._manager?._clipboardRegistry,
+                registry: this._registry,
                 storage: this._manager?.storage,
                 previewSize: this._imagePreviewSize,
                 onItemCopy: this._onItemCopy,
@@ -127,6 +127,16 @@ export const ClipboardListView = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Get the clipboard registry.
+         *
+         * @returns {ClipboardRegistry|null} The registry instance.
+         * @private
+         */
+        get _registry() {
+            return this._manager?._clipboardRegistry;
+        }
+
+        /**
          * Create a single item widget for the stack layout.
          *
          * @param {Object} itemData The item data.
@@ -147,10 +157,8 @@ export const ClipboardListView = GObject.registerClass(
          * @private
          */
         _calculateItemHeight(item) {
-            if (item?.type === 'image' && this._imagePreviewSize) {
-                return this._imagePreviewSize + ListMetrics.ITEM_PADDING_MARGIN_PX;
-            }
-            return ListMetrics.ITEM_HEIGHT;
+            const metadata = this._registry?.getViewMetadata(null, item, { previewSize: this._imagePreviewSize });
+            return metadata?.listHeight || ListMetrics.ITEM_HEIGHT;
         }
 
         // ========================================================================

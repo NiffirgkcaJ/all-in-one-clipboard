@@ -3,6 +3,7 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
@@ -118,9 +119,8 @@ export class ClipboardListItemFactory {
             style_class: 'clipboard-list-controls',
         });
 
-        const definition = options.registry ? options.registry.getDefinition(itemData.type) : null;
-        const actionButtons = definition
-            ? definition.createActions(itemData, {
+        const actionButtons = options.registry
+            ? options.registry.createItemActions(itemData, {
                   settings: options.settings,
                   manager: options.manager,
                   onItemCopy: options.onItemCopy,
@@ -279,16 +279,44 @@ export class ClipboardListItemFactory {
      * @private
      */
     static _createFallbackContent(config) {
-        const safeText = config.text || config.title || config.subtitle || '';
-        const contentWidget = new St.Label({
+        const safeText = config.title || config.text || config.subtitle || '';
+        const label = new St.Label({
             text: safeText,
             style_class: 'clipboard-list-text-label',
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
         });
-        contentWidget.get_clutter_text().set_line_wrap(false);
-        contentWidget.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
+        label.get_clutter_text().set_line_wrap(false);
+        label.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
 
-        return contentWidget;
+        if (!config.icon) {
+            return label;
+        }
+
+        const container = new St.BoxLayout({
+            ...mapLayout({
+                horizontal: true,
+                x_expand: true,
+                y_align: 'center',
+            }),
+            style_class: 'clipboard-list-rich-container',
+        });
+
+        const iconWidget = createStaticIcon(
+            {
+                icon: config.icon,
+                iconOptions: config.iconOptions,
+                iconSize: 16,
+            },
+            {
+                iconSize: 16,
+                styleClass: 'clipboard-list-rich-icon',
+            },
+        );
+
+        container.add_child(iconWidget);
+        container.add_child(label);
+
+        return container;
     }
 }

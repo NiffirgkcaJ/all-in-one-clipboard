@@ -119,7 +119,7 @@ export const ClipboardGridView = GObject.registerClass(
         _getItemOptions(isPinned) {
             return {
                 isPinned,
-                registry: this._manager?._clipboardRegistry,
+                registry: this._registry,
                 storage: this._manager?.storage,
                 previewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
@@ -157,8 +157,11 @@ export const ClipboardGridView = GObject.registerClass(
             const initialHistoryBatch = historyItems.slice(0, GridMetrics.FAST_PAINT_BATCH_SIZE);
             const initialItems = [...pinnedItems.slice(0, GridMetrics.FAST_PAINT_BATCH_SIZE), ...initialHistoryBatch];
 
-            const hasUncachedImage = initialItems.some((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache?.has(item.image_filename));
-            if (!hasUncachedImage) return;
+            const hasUncached = initialItems.some((item) => {
+                const key = this._getDimensionKey(item);
+                return key && !this._dimensionCache?.has(key);
+            });
+            if (!hasUncached) return;
 
             this._prepareBatchAsync(initialItems).then(() => {
                 // Prevent race conditions if the view was reset during async loading.
@@ -190,17 +193,46 @@ export const ClipboardGridView = GObject.registerClass(
          * @override
          */
         async _prepareBatchAsync(batch) {
-            const imagesToResolve = batch.filter((item) => item && item.type === 'image' && item.image_filename && !this._dimensionCache.has(item.image_filename));
+            const itemsToResolve = batch.filter((item) => {
+                const key = this._getDimensionKey(item);
+                return key && !this._dimensionCache.has(key);
+            });
 
-            if (imagesToResolve.length === 0) return;
+            if (itemsToResolve.length === 0) return;
 
-            const promises = imagesToResolve.map((item) => this._resolveImageDimensionsAsync(item.image_filename));
+            const promises = itemsToResolve.map((item) => {
+                const key = this._getDimensionKey(item);
+                return this._resolveDimensionsAsync(key);
+            });
             await Promise.all(promises);
         }
 
         // ========================================================================
         // Private Helpers
         // ========================================================================
+
+        /**
+         * Get the clipboard registry.
+         *
+         * @returns {ClipboardRegistry|null} The registry instance.
+         * @private
+         */
+        get _registry() {
+            return this._manager?._clipboardRegistry;
+        }
+
+        /**
+         * Resolve the dimension cache key for an item.
+         *
+         * @param {Object} item The item data.
+         * @returns {string|null} The dimension key or null.
+         * @private
+         */
+        _getDimensionKey(item) {
+            if (!item) return null;
+            const metadata = this._registry?.getViewMetadata(null, item);
+            return metadata?.dimensionKey || null;
+        }
 
         /**
          * Create a single item widget for the masonry layout.
@@ -264,13 +296,14 @@ export const ClipboardGridView = GObject.registerClass(
             let width = 1;
             let height = this._estimateCardHeight(item);
 
-            if (item.type === 'image' && item.image_filename) {
+            const dimensionKey = this._getDimensionKey(item);
+            if (dimensionKey) {
                 if (item.width && item.height) {
                     width = item.width;
                     const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
                     height = Math.max(item.height, minHeight);
                 } else {
-                    const dims = this._dimensionCache.get(item.image_filename);
+                    const dims = this._dimensionCache.get(dimensionKey);
                     if (dims) {
                         width = dims.width;
                         const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
@@ -288,38 +321,26 @@ export const ClipboardGridView = GObject.registerClass(
         }
 
         /**
-         * Estimate the relative height of a card based on item type.
+         * Estimate the relative height of a card based on item view metadata.
          *
          * @param {Object} item The clipboard item.
          * @returns {number} Estimated relative height.
          * @private
          */
         _estimateCardHeight(item) {
-            switch (item.type) {
-                case 'image':
-                    return GridMetrics.HEIGHT_IMAGE;
-                case 'text':
-                case 'code': {
-                    const len = item.preview?.length || 0;
-                    if (len > GridMetrics.TEXT_WEIGHTS.LONG.threshold) return GridMetrics.TEXT_WEIGHTS.LONG.height;
-                    if (len > GridMetrics.TEXT_WEIGHTS.MEDIUM.threshold) return GridMetrics.TEXT_WEIGHTS.MEDIUM.height;
-                    if (len > GridMetrics.TEXT_WEIGHTS.SHORT.threshold) return GridMetrics.TEXT_WEIGHTS.SHORT.height;
-                    return GridMetrics.TEXT_WEIGHTS.TINY.height;
-                }
-                default:
-                    return GridMetrics.HEIGHT_DEFAULT;
-            }
+            const metadata = this._registry?.getViewMetadata(null, item);
+            return metadata?.gridHeight || GridMetrics.HEIGHT_DEFAULT;
         }
 
         /**
-         * Fetch image dimensions asynchronously in the background.
+         * Fetch dimensions asynchronously in the background.
          * Allows the main thread to stay responsive without triggering massive layout recalculations.
          *
          * @param {string} filename The image filename.
          * @returns {Promise<void>} Resolves when cached.
          * @private
          */
-        _resolveImageDimensionsAsync(filename) {
+        _resolveDimensionsAsync(filename) {
             return new Promise((resolve) => {
                 if (!this._dimensionCache || this._dimensionCache.has(filename)) {
                     resolve();
