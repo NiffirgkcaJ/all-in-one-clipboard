@@ -365,7 +365,7 @@ export class ClipboardGridItemFactory {
     }
 
     /**
-     * Create fallback content for unregistered item definitions.
+     * Create emergency fallback content when registry is unavailable.
      *
      * @param {Object} config The view configuration.
      * @returns {St.Widget} The fallback content widget.

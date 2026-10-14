@@ -1,6 +1,8 @@
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getClipboardOrder } from '../definitions/clipboardOrder.js';
+
+import { getFallbackView } from './clipboardFallbackView.js';
 import { defaultItemActions, ensureClipboardDefinition } from './clipboardDefinition.js';
 
 /**
@@ -214,9 +216,10 @@ export class ClipboardRegistry {
     createListContent(config, item, options) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.createListContent) {
-            return definition.createListContent(config, item, { ...options, definition });
+            const content = definition.createListContent(config, item, { ...options, definition });
+            if (content) return content;
         }
-        return null;
+        return getFallbackView(config).createListContent(config, item, { ...options, definition });
     }
 
     /**
@@ -230,9 +233,10 @@ export class ClipboardRegistry {
     createGridContent(config, item, options) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.createGridContent) {
-            return definition.createGridContent(config, item, { ...options, definition });
+            const content = definition.createGridContent(config, item, { ...options, definition });
+            if (content) return content;
         }
-        return null;
+        return getFallbackView(config).createGridContent(config, item, { ...options, definition });
     }
 
     /**
@@ -261,10 +265,9 @@ export class ClipboardRegistry {
     getViewFingerprint(config, item, options) {
         const configFingerprint = config._fingerprint || '';
         const definition = this.getDefinition(item.type);
-        if (definition && definition.getViewFingerprint) {
-            return [configFingerprint, definition.getViewFingerprint(config, item, { ...options, definition }) || ''].join('|');
-        }
-        return configFingerprint;
+        const view = definition && definition.getViewFingerprint ? definition : getFallbackView(config);
+        const viewFingerprint = view.getViewFingerprint(config, item, { ...options, definition }) || '';
+        return [configFingerprint, viewFingerprint].join('|');
     }
 
     /**
@@ -293,10 +296,8 @@ export class ClipboardRegistry {
      */
     getViewMetadata(config, item, options) {
         const definition = this.getDefinition(item.type);
-        if (definition && definition.getViewMetadata) {
-            return definition.getViewMetadata(config, item, { ...options, definition }) || {};
-        }
-        return {};
+        const view = definition && definition.getViewMetadata ? definition : getFallbackView(config);
+        return view.getViewMetadata(config, item, { ...options, definition }) || {};
     }
 
     // ========================================================================

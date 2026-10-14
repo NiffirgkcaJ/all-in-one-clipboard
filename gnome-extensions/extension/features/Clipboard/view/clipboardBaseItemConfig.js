@@ -25,7 +25,7 @@ export class ClipboardBaseItemConfig {
         const style = registry ? registry.getItemStyle(item) : null;
 
         const config = {
-            icon: style?.icon || null,
+            icon: style ? style.icon : null,
             text: '',
         };
 
@@ -42,7 +42,7 @@ export class ClipboardBaseItemConfig {
             config.icon = ClipboardIcons.ERROR_WARNING.icon;
             config.iconOptions = ClipboardIcons.ERROR_WARNING.iconOptions;
             config.subtitle = 'Cannot be recovered';
-            config.title = config.title || (config.text ? `${config.text.substring(0, 50)}...` : item.preview || 'Item (Data Lost)');
+            config.title = ClipboardBaseItemConfig._resolveFallbackTitle(config, item);
         }
 
         config._fingerprint = ClipboardBaseItemConfig._buildConfigFingerprint(config);
@@ -68,6 +68,22 @@ export class ClipboardBaseItemConfig {
     // ========================================================================
     // Internal Helpers
     // ========================================================================
+
+    /**
+     * Resolve a safe display title for corrupted items.
+     *
+     * @param {Object} config View configuration.
+     * @param {Object} item Raw clipboard item.
+     * @returns {string} Safe display title.
+     * @private
+     */
+    static _resolveFallbackTitle(config, item) {
+        const candidates = [config.title, item.title, item.name, item.url, config.text, item.text, item.preview];
+        const rawCandidate = candidates.find(Boolean) || '';
+        const safeText = String(rawCandidate).trim();
+        const textPreview = safeText.length > 50 ? `${safeText.slice(0, 50)}...` : safeText;
+        return textPreview || 'Item (Data Lost)';
+    }
 
     /**
      * Build a lightweight stable fingerprint for update fast-path checks.

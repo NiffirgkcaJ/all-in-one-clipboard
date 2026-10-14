@@ -3,10 +3,10 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
+
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
 
@@ -272,7 +272,7 @@ export class ClipboardListItemFactory {
     }
 
     /**
-     * Create fallback content for unregistered item definitions.
+     * Create emergency fallback content when registry is unavailable.
      *
      * @param {Object} config The view configuration.
      * @returns {St.Widget} The fallback content widget.
@@ -288,35 +288,6 @@ export class ClipboardListItemFactory {
         });
         label.get_clutter_text().set_line_wrap(false);
         label.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
-
-        if (!config.icon) {
-            return label;
-        }
-
-        const container = new St.BoxLayout({
-            ...mapLayout({
-                horizontal: true,
-                x_expand: true,
-                y_align: 'center',
-            }),
-            style_class: 'clipboard-list-rich-container',
-        });
-
-        const iconWidget = createStaticIcon(
-            {
-                icon: config.icon,
-                iconOptions: config.iconOptions,
-                iconSize: 16,
-            },
-            {
-                iconSize: 16,
-                styleClass: 'clipboard-list-rich-icon',
-            },
-        );
-
-        container.add_child(iconWidget);
-        container.add_child(label);
-
-        return container;
+        return label;
     }
 }
