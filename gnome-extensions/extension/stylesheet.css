@@ -438,7 +438,11 @@
     background-color: rgba(128, 128, 128, 0.3);
 }
 
-.aio-clipboard-container .clipboard-list-text-label {
+.aio-clipboard-container .clipboard-list-label-container,
+.aio-clipboard-container .clipboard-list-media-container,
+.aio-clipboard-container .clipboard-list-header-container,
+.aio-clipboard-container .clipboard-list-tile-container,
+.aio-clipboard-container .clipboard-list-gutter-container {
     margin-left: 8px;
     margin-right: 8px;
 }
@@ -460,37 +464,28 @@
     color: inherit;
 }
 
-.aio-clipboard-container .clipboard-list-rich-container {
-    margin-left: 8px;
+.aio-clipboard-container .clipboard-list-label-visual,
+.aio-clipboard-container .clipboard-list-header-visual {
     margin-right: 8px;
 }
 
-.aio-clipboard-container .clipboard-list-rich-icon {
-    margin-right: 8px;
+.aio-clipboard-container .clipboard-list-media-visual {
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.aio-clipboard-container .clipboard-list-color-container {
+.aio-clipboard-container .clipboard-list-tile-visual {
+    min-width: 48px;
+    max-width: 48px;
+    min-height: 24px;
+    max-height: 24px;
     padding: 0;
     margin-right: 8px;
     border: 5px solid rgba(128, 128, 128, 0.4);
     border-radius: 8px;
 }
 
-.aio-clipboard-container .clipboard-list-color-swatch {
-    min-width: 48px;
-    max-width: 48px;
-    min-height: 24px;
-    max-height: 24px;
-    border-radius: 3px;
-}
-
-.aio-clipboard-container .clipboard-list-code-container {
-    padding: 0;
-    margin-left: 8px;
-    margin-right: 8px;
-}
-
-.aio-clipboard-container .clipboard-list-code-numbers {
+.aio-clipboard-container .clipboard-list-gutter-visual {
     min-width: 13px;
     margin-right: 8px;
     font-family: monospace;
@@ -499,7 +494,21 @@
     color: rgba(128, 128, 128, 0.6);
 }
 
-.aio-clipboard-container .clipboard-list-code-content {
+.aio-clipboard-container .clipboard-list-label-content {
+    font-size: 0.95em;
+}
+
+.aio-clipboard-container .clipboard-list-media-content {
+    margin-left: 8px;
+    font-size: 0.95em;
+}
+
+.aio-clipboard-container .clipboard-list-header-content,
+.aio-clipboard-container .clipboard-list-tile-content {
+    margin: 0;
+}
+
+.aio-clipboard-container .clipboard-list-gutter-content {
     font-family: monospace;
     font-size: 0.8em;
 }
@@ -568,7 +577,13 @@
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.aio-clipboard-container .clipboard-grid-text-label {
+.aio-clipboard-container .clipboard-grid-label-container,
+.aio-clipboard-container .clipboard-grid-header-container,
+.aio-clipboard-container .clipboard-grid-gutter-container {
+    padding: 0;
+}
+
+.aio-clipboard-container .clipboard-grid-label-content {
     font-size: 11px;
 }
 
@@ -581,37 +596,48 @@
     font-size: 10px;
 }
 
-.aio-clipboard-container .clipboard-grid-rich-labels {
+.aio-clipboard-container .clipboard-grid-label-visual,
+.aio-clipboard-container .clipboard-grid-header-visual {
+    padding: 8px;
+}
+
+.aio-clipboard-container .clipboard-grid-header-content {
     margin-top: 4px;
 }
 
-.aio-clipboard-container .clipboard-grid-image-content {
+.aio-clipboard-container .clipboard-grid-media-container,
+.aio-clipboard-container .clipboard-grid-media-visual {
     border-radius: 6px;
     overflow: hidden;
 }
 
-.aio-clipboard-container .clipboard-grid-color-container {
+.aio-clipboard-container .clipboard-grid-media-content {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+.aio-clipboard-container .clipboard-grid-tile-container {
     border-radius: 6px;
 }
 
-.aio-clipboard-container .clipboard-grid-color-card {
+.aio-clipboard-container .clipboard-grid-tile-visual {
     padding: 6px 8px;
     border-radius: 0 0 6px 6px;
 }
 
-.aio-clipboard-container .clipboard-grid-color-label {
+.aio-clipboard-container .clipboard-grid-tile-content {
     font-size: 12px;
     font-weight: bold;
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.aio-clipboard-container .clipboard-grid-code-line-count {
+.aio-clipboard-container .clipboard-grid-gutter-visual {
     font-size: 10px;
     color: rgba(255, 255, 255, 0.8);
 }
 
-.aio-clipboard-container .clipboard-grid-code-content {
+.aio-clipboard-container .clipboard-grid-gutter-content {
     font-family: monospace;
     font-size: 10px;
 }

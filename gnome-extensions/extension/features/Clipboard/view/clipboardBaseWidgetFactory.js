@@ -34,7 +34,7 @@ export class ClipboardBaseWidgetFactory {
             },
             {
                 initial: isChecked ? 'checked' : 'unchecked',
-                style_class: 'button clipboard-checkbox',
+                style_class: 'button',
                 can_focus: false,
                 ...styleOptions,
             },
@@ -72,7 +72,7 @@ export class ClipboardBaseWidgetFactory {
      */
     static createPinButton(itemData, isPinned, options, styleOptions = {}) {
         const pinButton = createStaticIconButton(isPinned ? ClipboardIcons.STAR_FILLED : ClipboardIcons.STAR_UNFILLED, {
-            style_class: 'button clipboard-control-button',
+            style_class: 'button',
             can_focus: false,
             ...styleOptions,
         });
@@ -102,7 +102,7 @@ export class ClipboardBaseWidgetFactory {
      */
     static createActionButton({ icon, tooltip, onClick, action, styleOptions = {} }) {
         const button = createStaticIconButton(icon, {
-            style_class: 'button clipboard-control-button',
+            style_class: 'button',
             can_focus: false,
             tooltip_text: tooltip,
             ...styleOptions,
@@ -130,7 +130,7 @@ export class ClipboardBaseWidgetFactory {
      */
     static createDeleteButton(itemData, options, styleOptions = {}) {
         const deleteButton = createStaticIconButton(ClipboardIcons.ACTION_DELETE, {
-            style_class: 'button clipboard-control-button',
+            style_class: 'button',
             can_focus: false,
             ...styleOptions,
         });

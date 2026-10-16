@@ -5,6 +5,7 @@ import GObject from 'gi://GObject';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
 import { GridMetrics, GridVirtualization } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
@@ -40,7 +41,7 @@ export const ClipboardGridView = GObject.registerClass(
          */
         constructor(options) {
             super(options, {
-                style_class: 'clipboard-grid-view',
+                style_class: ClipboardStyles.GRID_VIEW,
             });
 
             // Dimensions are cached incrementally and refined in the background as real image sizes arrive.

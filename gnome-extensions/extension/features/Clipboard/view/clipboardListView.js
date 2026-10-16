@@ -2,6 +2,7 @@ import GObject from 'gi://GObject';
 
 import { StackLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ListMetrics, ListVirtualization } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
@@ -29,7 +30,7 @@ export const ClipboardListView = GObject.registerClass(
          * @param {Object} options Configuration options.
          */
         constructor(options) {
-            super(options, { style_class: 'clipboard-list-view' });
+            super(options, { style_class: ClipboardStyles.LIST_VIEW });
 
             this.connect('key-press-event', this._onKeyPress.bind(this));
         }
@@ -46,7 +47,6 @@ export const ClipboardListView = GObject.registerClass(
          */
         _createPinnedContainer() {
             return new StackLayout({
-                style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 virtualization: true,
                 virtualOverscanPx: ListVirtualization.OVERSCAN_PX,
@@ -64,7 +64,6 @@ export const ClipboardListView = GObject.registerClass(
          */
         _createHistoryContainer() {
             return new StackLayout({
-                style_class: 'clipboard-stack-container',
                 scrollView: this._scrollView,
                 virtualization: true,
                 virtualOverscanPx: ListVirtualization.OVERSCAN_PX,

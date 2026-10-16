@@ -8,6 +8,7 @@ import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 import { createDynamicIconButton, createStaticIconButton } from '../../../shared/utilities/utilityIcon.js';
 
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 
 // Spacing Configuration
 const BAR_SPACING = 8;
@@ -50,7 +51,7 @@ export const ClipboardActionBar = GObject.registerClass(
                     horizontal: true,
                     y_align: 'center',
                 }),
-                style_class: 'clipboard-selection-bar',
+                style_class: ClipboardStyles.SELECTION_BAR,
             });
             this.spacing = BAR_SPACING;
 
@@ -107,7 +108,7 @@ export const ClipboardActionBar = GObject.registerClass(
                 },
                 {
                     initial: 'unchecked',
-                    style_class: 'button clipboard-icon-button',
+                    style_class: ClipboardStyles.ICON_BUTTON,
                     tooltip_text: _('Select All'),
                 },
             );
@@ -134,7 +135,7 @@ export const ClipboardActionBar = GObject.registerClass(
                 },
                 {
                     initial: layoutMode,
-                    style_class: 'button clipboard-icon-button',
+                    style_class: ClipboardStyles.ICON_BUTTON,
                     tooltip_text: layoutMode === 'list' ? _('Switch to Grid View') : _('Switch to List View'),
                 },
             );
@@ -149,7 +150,7 @@ export const ClipboardActionBar = GObject.registerClass(
                 },
                 {
                     initial: 'inactive',
-                    style_class: 'button clipboard-icon-button',
+                    style_class: ClipboardStyles.ICON_BUTTON,
                     tooltip_text: _('Start Private Mode (Pause Recording)'),
                 },
             );
@@ -165,7 +166,7 @@ export const ClipboardActionBar = GObject.registerClass(
                 },
                 {
                     initial: this._pasteMode,
-                    style_class: 'button clipboard-icon-button',
+                    style_class: ClipboardStyles.ICON_BUTTON,
                     tooltip_text: this._getPasteModeTooltip(this._pasteMode),
                 },
             );
@@ -174,7 +175,7 @@ export const ClipboardActionBar = GObject.registerClass(
 
             // Selection Actions
             this._mergeSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_MERGE, {
-                style_class: 'button clipboard-icon-button',
+                style_class: ClipboardStyles.ICON_BUTTON,
                 can_focus: false,
                 reactive: false,
             });
@@ -182,7 +183,7 @@ export const ClipboardActionBar = GObject.registerClass(
             this._updateMergeSelectedButtonTooltip();
 
             this._pinSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_PIN, {
-                style_class: 'button clipboard-icon-button',
+                style_class: ClipboardStyles.ICON_BUTTON,
                 can_focus: false,
                 reactive: false,
                 tooltip_text: _('Pin/Unpin Selected'),
@@ -190,7 +191,7 @@ export const ClipboardActionBar = GObject.registerClass(
             this._pinSelectedButton.connect('clicked', () => this._onPinSelected());
 
             this._deleteSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_DELETE, {
-                style_class: 'button clipboard-icon-button',
+                style_class: ClipboardStyles.ICON_BUTTON,
                 can_focus: false,
                 reactive: false,
                 tooltip_text: _('Delete Selected'),

@@ -3,9 +3,10 @@ import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js'
 import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
 import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewSnippet } from '../integrations/clipboardIntegrationViewSnippet.js';
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -18,6 +19,7 @@ export function ClipboardDefinitionCode() {
         id: ClipboardType.CODE,
         priority: ClipboardPriority[ClipboardType.CODE],
         styling: ClipboardStyling[ClipboardType.CODE],
+        viewType: 'gutter',
         processText: (text) => CodeProcessor.process(text),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: TextProcessor,
@@ -40,7 +42,31 @@ export function ClipboardDefinitionCode() {
             ],
         }),
         hasFullContent: true,
-        ...ClipboardIntegrationViewSnippet(),
+        getViewFingerprint: (config) => [config.text || '', config.gutterText || '', config.badgeText || ''].join('|'),
+        getGridBadge: (config) => {
+            if (!config.badgeText) return null;
+
+            return {
+                text: config.badgeText,
+                style_class: ClipboardStyles.GRID_GUTTER_VISUAL,
+            };
+        },
+        getViewMetadata: (_config, item) => {
+            const len = item?.preview?.length || 0;
+            let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
+            if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.LONG.height;
+            } else if (len > GridMetrics.LABEL_WEIGHTS.MEDIUM.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.MEDIUM.height;
+            } else if (len > GridMetrics.LABEL_WEIGHTS.SHORT.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
+            }
+
+            return {
+                gridHeight,
+                listHeight: ListMetrics.ITEM_HEIGHT,
+            };
+        },
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
             pasteShortcut: 'shift-insert',
@@ -58,8 +84,11 @@ export function ClipboardDefinitionCode() {
         },
         configureView: (config, item) => {
             config.text = item.preview || '';
-            config.rawLines = item.raw_lines || 0;
-            config.previewLinesCount = config.text ? config.text.split('\n').length : 0;
+            const rawLines = item.raw_lines || 0;
+            const previewLinesCount = config.text ? config.text.split('\n').length : 0;
+            const lineCount = previewLinesCount || rawLines;
+            config.gutterText = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
+            config.badgeText = rawLines > 0 ? `${rawLines} lines` : null;
         },
     };
 }

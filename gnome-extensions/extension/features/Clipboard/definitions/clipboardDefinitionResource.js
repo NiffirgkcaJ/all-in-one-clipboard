@@ -4,8 +4,8 @@ import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
-import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ResourceProcessor } from '../processors/clipboardResourceProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -50,6 +50,7 @@ export function ClipboardDefinitionResource() {
         id: ClipboardType.RESOURCE,
         priority: ClipboardPriority[ClipboardType.RESOURCE],
         styling: ClipboardStyling[ClipboardType.RESOURCE],
+        viewType: 'header',
         processText: (text, context) => ResourceProcessor.process(text, context),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['preview', 'file_uri', 'hash', 'subtype', 'count'],
@@ -62,7 +63,11 @@ export function ClipboardDefinitionResource() {
             const exists = verifyResourceUrisExist(item.file_uri);
             return { healed: false, isCorrupted: !exists };
         },
-        ...ClipboardIntegrationViewRich(),
+        getViewFingerprint: (config) => [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || ''].join('|'),
+        getViewMetadata: () => ({
+            gridHeight: GridMetrics.HEIGHT_DEFAULT,
+            listHeight: ListMetrics.ITEM_HEIGHT,
+        }),
         getSearchTerms: (item) => [item.preview, item.file_uri],
         copyOptions: {
             pasteShortcut: 'ctrl-v',

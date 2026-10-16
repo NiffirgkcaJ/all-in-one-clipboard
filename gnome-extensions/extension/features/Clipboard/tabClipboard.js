@@ -14,6 +14,7 @@ import { ClipboardGridView } from './view/clipboardGridView.js';
 import { ClipboardListView } from './view/clipboardListView.js';
 import { ClipboardSearchService } from './services/clipboardSearchService.js';
 import { ClipboardSelectionService } from './services/clipboardSelectionService.js';
+import { ClipboardStyles } from './constants/clipboardStyleConstants.js';
 import { ensureClipboardSearchProviderRegistered } from './integrations/clipboardSearchProvider.js';
 
 // Configuration
@@ -67,7 +68,7 @@ export const ClipboardTabContent = GObject.registerClass(
                     vertical: true,
                     x_expand: true,
                 }),
-                style_class: 'aio-clipboard-container',
+                style_class: ClipboardStyles.CONTAINER,
             });
             this.set_child(this._mainBox);
 
@@ -219,7 +220,7 @@ export const ClipboardTabContent = GObject.registerClass(
          */
         _buildScrollableList() {
             this._scrollView = new St.ScrollView({
-                style_class: 'menu-scrollview',
+                style_class: ClipboardStyles.SCROLLVIEW,
                 overlay_scrollbars: true,
                 x_expand: true,
                 y_expand: true,

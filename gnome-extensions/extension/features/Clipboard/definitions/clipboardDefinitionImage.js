@@ -8,8 +8,8 @@ import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardInt
 import { ClipboardIntegrationImageFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationPreviewWarmup } from '../integrations/clipboardIntegrationPreviewWarmup.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewMedia } from '../integrations/clipboardIntegrationViewMedia.js';
 import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -22,6 +22,7 @@ export function ClipboardDefinitionImage() {
         id: ClipboardType.IMAGE,
         priority: ClipboardPriority[ClipboardType.IMAGE],
         styling: ClipboardStyling[ClipboardType.IMAGE],
+        viewType: 'media',
         extract: () => ImageProcessor.extract(),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: ImageProcessor,
@@ -50,13 +51,19 @@ export function ClipboardDefinitionImage() {
             warmupItem: (item, { storage }) => ImageProcessor.ensurePreviewForItem(item, storage.imagesDir, storage.imagePreviewsDir),
             warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
         }),
-        ...ClipboardIntegrationViewMedia({
-            resolveFilename: (item) => item.image_filename,
-            resolvePreviewFilename: (item) => item.preview_filename,
-            sourceDirKey: 'imagesDir',
-            previewDirKey: 'imagePreviewsDir',
-            logLabel: 'image',
-        }),
+        getViewFingerprint: (_config, item, options) => {
+            return [item.image_filename || '', item.preview_filename || '', options.previewSize || ''].join('|');
+        },
+        getViewMetadata: (_config, item, options) => {
+            const previewSize = options?.previewSize;
+            return {
+                listHeight: previewSize ? previewSize + ListMetrics.ITEM_PADDING_MARGIN_PX : null,
+                listMinHeight: previewSize || null,
+                isFullBleedGrid: true,
+                gridHeight: GridMetrics.HEIGHT_MEDIA,
+                dimensionKey: item.image_filename,
+            };
+        },
         getSearchTerms: (item) => [item.image_filename],
         copyOptions: {
             pasteShortcut: 'ctrl-v',
@@ -96,8 +103,17 @@ export function ClipboardDefinitionImage() {
                 return null;
             },
         },
-        configureView: (config, item) => {
+        configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';
+            const filename = item.image_filename;
+            const sourceDir = options?.storage?.imagesDir;
+            const previewDir = options?.storage?.imagePreviewsDir;
+            if (filename && sourceDir && previewDir) {
+                config.sourcePath = GLib.build_filenamev([sourceDir, filename]);
+                const base = filename.replace(/\.[^/.]+$/, '');
+                const previewName = item.preview_filename || `preview_${base}.png`;
+                config.previewPath = GLib.build_filenamev([previewDir, previewName]);
+            }
         },
     };
 }

@@ -6,11 +6,12 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
-import { ClipboardGradientStyles } from '../constants/clipboardStyleConstants.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { IconSizes } from '../constants/clipboardConstants.js';
+import { ClipboardGradientStyles, ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
+import { renderGridArchetype } from './clipboardViewTemplates.js';
 
 /**
  * ClipboardGridItemFactory
@@ -68,7 +69,7 @@ export class ClipboardGridItemFactory {
         const isPinned = options.isPinned !== undefined ? options.isPinned : itemData._isPinned;
 
         const itemWidget = new St.Button({
-            style_class: 'clipboard-grid-card button',
+            style_class: ClipboardStyles.GRID_CARD,
             can_focus: true,
         });
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
@@ -92,7 +93,7 @@ export class ClipboardGridItemFactory {
         const metadata = ClipboardGridItemFactory.getItemViewMetadata(config, itemData, renderContext);
 
         if (!metadata.isFullBleedGrid) {
-            contentWrapper.add_style_class_name('clipboard-grid-card-content');
+            contentWrapper.add_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
         }
 
         const contentWidget = ClipboardGridItemFactory.createGridContent(config, itemData, renderContext);
@@ -114,7 +115,7 @@ export class ClipboardGridItemFactory {
                 x_align: 'fill',
                 y_align: 'end',
             }),
-            style_class: 'clipboard-grid-controls-overlay',
+            style_class: ClipboardStyles.GRID_CONTROLS_OVERLAY,
         });
         actionsOverlay.set_style(ClipboardGradientStyles.CONTROLS_OVERLAY);
 
@@ -126,7 +127,7 @@ export class ClipboardGridItemFactory {
                   onItemCopy: options.onItemCopy,
                   isPinned,
                   styleOptions: {
-                      style_class: 'button clipboard-grid-control-button',
+                      style_class: ClipboardStyles.GRID_CONTROL_BUTTON,
                       can_focus: false,
                   },
               })
@@ -141,7 +142,7 @@ export class ClipboardGridItemFactory {
                     x_expand: true,
                     x_align: 'end',
                 }),
-                style_class: 'clipboard-grid-secondary-controls',
+                style_class: ClipboardStyles.GRID_SECONDARY_CONTROLS,
             });
             secondaryButtons.forEach((button) => secondaryControls.add_child(button));
             actionsOverlay.add_child(secondaryControls);
@@ -154,7 +155,7 @@ export class ClipboardGridItemFactory {
                 x_expand: true,
                 x_align: 'fill',
             }),
-            style_class: 'clipboard-grid-primary-controls',
+            style_class: ClipboardStyles.GRID_PRIMARY_CONTROLS,
         });
 
         const itemCheckbox = ClipboardBaseWidgetFactory.createCheckbox(
@@ -165,7 +166,7 @@ export class ClipboardGridItemFactory {
                 onSelectionChanged: options.onSelectionChanged,
             },
             {
-                style_class: 'button clipboard-grid-checkbox',
+                style_class: ClipboardStyles.GRID_CHECKBOX,
                 can_focus: false,
             },
         );
@@ -258,9 +259,9 @@ export class ClipboardGridItemFactory {
             contentWrapper.set_child(newContentWidget);
 
             if (!metadata.isFullBleedGrid) {
-                contentWrapper.add_style_class_name('clipboard-grid-card-content');
+                contentWrapper.add_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
             } else {
-                contentWrapper.remove_style_class_name('clipboard-grid-card-content');
+                contentWrapper.remove_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
             }
         }
 
@@ -276,7 +277,7 @@ export class ClipboardGridItemFactory {
                 cardStack.add_child(typeBadge);
                 itemWidget._typeBadge = typeBadge;
 
-                const actionsOverlay = cardStack.get_children().find((c) => c.has_style_class_name('clipboard-grid-controls-overlay'));
+                const actionsOverlay = cardStack.get_children().find((c) => c.has_style_class_name(ClipboardStyles.GRID_CONTROLS_OVERLAY));
                 if (actionsOverlay) {
                     cardStack.set_child_above_sibling(actionsOverlay, typeBadge);
                 }
@@ -298,8 +299,14 @@ export class ClipboardGridItemFactory {
      * @returns {St.Widget} The content widget.
      */
     static createGridContent(config, itemData, options) {
-        const registryContent = options.registry ? options.registry.createGridContent(config, itemData, options) : null;
-        if (registryContent) return registryContent;
+        const definition = options.registry?.getDefinition(itemData.type);
+        if (definition?.createGridContent) {
+            const customContent = definition.createGridContent(config, itemData, { ...options, definition });
+            if (customContent) return customContent;
+        }
+
+        const archetypeContent = renderGridArchetype(definition?.viewType, config, options, definition?.id || itemData.type);
+        if (archetypeContent) return archetypeContent;
 
         return ClipboardGridItemFactory._createFallbackContent(config);
     }
@@ -343,10 +350,10 @@ export class ClipboardGridItemFactory {
                 x_align: 'fill',
                 y_align: 'start',
             }),
-            style_class: 'clipboard-grid-type-badge',
+            style_class: ClipboardStyles.GRID_TYPE_BADGE,
         });
         typeBadge.set_style(ClipboardGradientStyles.BADGE_OVERLAY);
-        const typeIcon = createStaticIcon({ ...config, iconSize: IconSizes.BADGE_TYPE_ICON }, { styleClass: 'clipboard-grid-type-icon' });
+        const typeIcon = createStaticIcon({ ...config, iconSize: IconSizes.BADGE_TYPE_ICON }, { styleClass: ClipboardStyles.GRID_TYPE_ICON });
         typeBadge.add_child(typeIcon);
 
         const badge = options.registry ? options.registry.getGridBadge(config, itemData, options) : null;
@@ -356,7 +363,7 @@ export class ClipboardGridItemFactory {
 
             const badgeLabel = new St.Label({
                 text: badge.text,
-                style_class: badge.style_class || 'clipboard-grid-badge-label',
+                style_class: badge.style_class || null,
             });
             typeBadge.add_child(badgeLabel);
         }
@@ -375,7 +382,7 @@ export class ClipboardGridItemFactory {
         const safeText = config.title || config.text || config.subtitle || '';
         const contentWidget = new St.Label({
             text: safeText,
-            style_class: 'clipboard-grid-text-label',
+            style_class: ClipboardStyles.GRID_LABEL_CONTENT,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
         });

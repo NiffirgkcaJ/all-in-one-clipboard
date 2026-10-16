@@ -7,10 +7,10 @@ import { ResourcePath } from '../../../shared/constants/storagePaths.js';
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { ContactProcessor } from '../processors/clipboardContactProcessor.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -25,6 +25,7 @@ export function ClipboardDefinitionContact() {
         id: ClipboardType.CONTACT,
         priority: ClipboardPriority[ClipboardType.CONTACT],
         styling: ClipboardStyling[ClipboardType.CONTACT],
+        viewType: 'header',
         initialize: () => ContactProcessor.init(),
         processText: (text) => ContactProcessor.process(text),
         createItem: ClipboardIntegrationInlineItem({
@@ -53,7 +54,11 @@ export function ClipboardDefinitionContact() {
                 },
             ],
         }),
-        ...ClipboardIntegrationViewRich(),
+        getViewFingerprint: (config) => [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || ''].join('|'),
+        getViewMetadata: () => ({
+            gridHeight: GridMetrics.HEIGHT_DEFAULT,
+            listHeight: ListMetrics.ITEM_HEIGHT,
+        }),
         getSearchTerms: (item) => [item.text, item.preview, item.metadata?.name, item.metadata?.email],
         copyOptions: {
             pasteShortcut: 'shift-insert',

@@ -5,10 +5,11 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
-
 import { ClipboardBaseItemConfig } from './clipboardBaseItemConfig.js';
 import { ClipboardBaseWidgetFactory } from './clipboardBaseWidgetFactory.js';
+import { renderListArchetype } from './clipboardViewTemplates.js';
 
 /**
  * ClipboardListItemFactory
@@ -66,7 +67,7 @@ export class ClipboardListItemFactory {
         const isPinned = options.isPinned !== undefined ? options.isPinned : itemData._isPinned;
 
         const itemWidget = new St.Button({
-            style_class: 'button clipboard-list-item',
+            style_class: ClipboardStyles.LIST_ITEM,
             can_focus: true,
         });
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
@@ -77,7 +78,6 @@ export class ClipboardListItemFactory {
                 x_expand: true,
                 y_align: 'center',
             }),
-            style_class: 'clipboard-row-content',
         });
         itemWidget.set_child(mainBox);
 
@@ -90,7 +90,7 @@ export class ClipboardListItemFactory {
                 onSelectionChanged: options.onSelectionChanged,
             },
             {
-                style_class: 'button clipboard-list-checkbox',
+                style_class: ClipboardStyles.LIST_CHECKBOX,
                 y_expand: false,
                 y_align: Clutter.ActorAlign.CENTER,
             },
@@ -116,7 +116,7 @@ export class ClipboardListItemFactory {
                 horizontal: true,
                 x_align: 'end',
             }),
-            style_class: 'clipboard-list-controls',
+            style_class: ClipboardStyles.LIST_CONTROLS,
         });
 
         const actionButtons = options.registry
@@ -126,7 +126,7 @@ export class ClipboardListItemFactory {
                   onItemCopy: options.onItemCopy,
                   isPinned,
                   styleOptions: {
-                      style_class: 'button clipboard-list-control-button',
+                      style_class: ClipboardStyles.LIST_CONTROL_BUTTON,
                       y_align: Clutter.ActorAlign.CENTER,
                   },
               })
@@ -246,8 +246,14 @@ export class ClipboardListItemFactory {
      * @returns {St.Widget} The content widget.
      */
     static createListContent(config, itemData, options) {
-        const registryContent = options.registry ? options.registry.createListContent(config, itemData, options) : null;
-        if (registryContent) return registryContent;
+        const definition = options.registry?.getDefinition(itemData.type);
+        if (definition?.createListContent) {
+            const customContent = definition.createListContent(config, itemData, { ...options, definition });
+            if (customContent) return customContent;
+        }
+
+        const archetypeContent = renderListArchetype(definition?.viewType, config, options, definition?.id || itemData.type);
+        if (archetypeContent) return archetypeContent;
 
         return ClipboardListItemFactory._createFallbackContent(config);
     }
@@ -282,7 +288,7 @@ export class ClipboardListItemFactory {
         const safeText = config.title || config.text || config.subtitle || '';
         const label = new St.Label({
             text: safeText,
-            style_class: 'clipboard-list-text-label',
+            style_class: ClipboardStyles.LIST_LABEL_CONTENT,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,
         });

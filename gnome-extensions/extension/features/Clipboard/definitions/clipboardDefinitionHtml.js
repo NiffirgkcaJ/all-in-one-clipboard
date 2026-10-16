@@ -9,8 +9,8 @@ import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardInt
 import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewText } from '../integrations/clipboardIntegrationViewText.js';
 import { HtmlProcessor } from '../processors/clipboardHtmlProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -23,6 +23,7 @@ export function ClipboardDefinitionHtml() {
         id: ClipboardType.HTML,
         priority: ClipboardPriority[ClipboardType.HTML],
         styling: ClipboardStyling[ClipboardType.HTML],
+        viewType: 'label',
         extract: () => HtmlProcessor.extract(),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: HtmlProcessor,
@@ -47,9 +48,25 @@ export function ClipboardDefinitionHtml() {
             ],
         }),
         hasFullContent: true,
-        ...ClipboardIntegrationViewText(),
         configureView: (config, item) => {
             config.text = item.preview || item.text || '';
+        },
+        getViewFingerprint: (config) => config.text || '',
+        getViewMetadata: (_config, item) => {
+            const len = item?.preview?.length || 0;
+            let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
+            if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.LONG.height;
+            } else if (len > GridMetrics.LABEL_WEIGHTS.MEDIUM.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.MEDIUM.height;
+            } else if (len > GridMetrics.LABEL_WEIGHTS.SHORT.threshold) {
+                gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
+            }
+
+            return {
+                gridHeight,
+                listHeight: ListMetrics.ITEM_HEIGHT,
+            };
         },
         ...ClipboardIntegrationItemActions({
             customActions: (item, context) => {

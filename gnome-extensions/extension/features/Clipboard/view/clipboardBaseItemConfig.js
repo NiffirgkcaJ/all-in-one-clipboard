@@ -96,17 +96,6 @@ export class ClipboardBaseItemConfig {
         const iconOptions = config.iconOptions;
         const iconOptionsFingerprint = iconOptions ? `${iconOptions.color || ''}:${iconOptions.styleClass || ''}` : '';
 
-        return [
-            config.icon || '',
-            config.title || '',
-            config.subtitle || '',
-            config.text || '',
-            config.cssColor || '',
-            config.rawLines || 0,
-            config.previewLinesCount || 0,
-            config.flagPath || '',
-            config.giconPath || '',
-            iconOptionsFingerprint,
-        ].join('|');
+        return [config.icon || '', config.title || '', config.subtitle || '', config.text || '', iconOptionsFingerprint].join('|');
     }
 }

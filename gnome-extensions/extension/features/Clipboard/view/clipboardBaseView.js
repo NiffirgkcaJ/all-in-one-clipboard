@@ -8,6 +8,7 @@ import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
+import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 
 // Configuration
 const SCROLL_THRESHOLD_PX = 500;
@@ -316,7 +317,7 @@ export const ClipboardBaseView = GObject.registerClass(
         _buildCommonUI() {
             this._pinnedHeader = new St.Label({
                 text: _('Pinned'),
-                style_class: 'clipboard-section-header',
+                style_class: ClipboardStyles.SECTION_HEADER,
             });
             this.add_child(this._pinnedHeader);
 
@@ -326,14 +327,14 @@ export const ClipboardBaseView = GObject.registerClass(
             }
 
             this._separator = new St.Widget({
-                style_class: 'clipboard-separator',
+                style_class: ClipboardStyles.SEPARATOR,
                 x_expand: true,
             });
             this.add_child(this._separator);
 
             this._historyHeader = new St.Label({
                 text: _('History'),
-                style_class: 'clipboard-section-header',
+                style_class: ClipboardStyles.SECTION_HEADER,
             });
             this.add_child(this._historyHeader);
 

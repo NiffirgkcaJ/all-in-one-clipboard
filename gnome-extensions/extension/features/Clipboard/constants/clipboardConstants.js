@@ -84,8 +84,8 @@ export const ClipboardIcons = {
 
 // Icon Size Configuration
 export const IconSizes = {
-    LIST_RICH_ICON: 16,
-    GRID_RICH_ICON: 48,
+    LIST_VISUAL: 16,
+    GRID_VISUAL: 48,
     BADGE_TYPE_ICON: 14,
 };
 

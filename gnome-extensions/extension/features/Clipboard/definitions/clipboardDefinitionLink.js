@@ -6,9 +6,9 @@ import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
-import { ClipboardIntegrationViewRich } from '../integrations/clipboardIntegrationViewRich.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
+import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
@@ -23,6 +23,7 @@ export function ClipboardDefinitionLink() {
         id: ClipboardType.LINK,
         priority: ClipboardPriority[ClipboardType.LINK],
         styling: ClipboardStyling[ClipboardType.LINK],
+        viewType: 'header',
         processText: (text) => LinkProcessor.process(text),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['url', 'title', 'hash'],
@@ -46,7 +47,11 @@ export function ClipboardDefinitionLink() {
                 },
             ],
         }),
-        ...ClipboardIntegrationViewRich(),
+        getViewFingerprint: (config) => [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || ''].join('|'),
+        getViewMetadata: () => ({
+            gridHeight: GridMetrics.HEIGHT_DEFAULT,
+            listHeight: ListMetrics.ITEM_HEIGHT,
+        }),
         getSearchTerms: (item) => [item.title, item.url],
         copyOptions: {
             pasteShortcut: 'shift-insert',
