@@ -91,11 +91,12 @@ export const ClipboardListView = GObject.registerClass(
          * @override
          */
         _getItemOptions(isPinned) {
+            const sizingOptions = this._getListSizingOptions();
             return {
+                ...sizingOptions,
                 isPinned,
                 registry: this._registry,
                 storage: this._manager?.storage,
-                previewSize: this._imagePreviewSize,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
                 selectedIds: this._selectedIds,
@@ -124,6 +125,31 @@ export const ClipboardListView = GObject.registerClass(
         // ========================================================================
         // Private Helpers
         // ========================================================================
+
+        /**
+         * Get the list sizing options from settings.
+         *
+         * @returns {Object} Sizing options.
+         * @private
+         */
+        _getListSizingOptions() {
+            if (!this._settings) {
+                return { previewSize: this._imagePreviewSize };
+            }
+
+            return {
+                previewSize: this._imagePreviewSize,
+                imagePreviewSize: this._imagePreviewSize,
+                imageEnforceDefaultHeight: this._settings.get_boolean('clipboard-image-enforce-default-height'),
+                codePreviewLines: this._settings.get_int('clipboard-code-preview-lines'),
+                codeEnforceDefaultHeight: this._settings.get_boolean('clipboard-code-enforce-default-height'),
+                textPreviewLines: this._settings.get_int('clipboard-text-preview-lines'),
+                textEnforceDefaultHeight: this._settings.get_boolean('clipboard-text-enforce-default-height'),
+                htmlPreviewLines: this._settings.get_int('clipboard-html-preview-lines'),
+                htmlEnforceDefaultHeight: this._settings.get_boolean('clipboard-html-enforce-default-height'),
+                metadataEnforceDefaultHeight: this._settings.get_boolean('clipboard-metadata-enforce-default-height'),
+            };
+        }
 
         /**
          * Get the clipboard registry.
@@ -156,7 +182,8 @@ export const ClipboardListView = GObject.registerClass(
          * @private
          */
         _calculateItemHeight(item) {
-            const metadata = this._registry?.getViewMetadata(null, item, { previewSize: this._imagePreviewSize });
+            const sizingOptions = this._getListSizingOptions();
+            const metadata = this._registry?.getViewMetadata(null, item, sizingOptions);
             return metadata?.listHeight || ListMetrics.ITEM_HEIGHT;
         }
 

@@ -112,6 +112,47 @@ export const ClipboardTabContent = GObject.registerClass(
                 () => {
                     this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
                     this._currentView.setImagePreviewSize(this._imagePreviewSize);
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-image-enforce-default-height',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-code-preview-lines',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-code-enforce-default-height',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-text-preview-lines',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-text-enforce-default-height',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-html-preview-lines',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-html-enforce-default-height',
+                () => {
+                    this._currentView.resetScrollAndPagination();
+                    this._scheduleRedraw();
+                },
+                'changed::clipboard-metadata-enforce-default-height',
+                () => {
+                    this._currentView.resetScrollAndPagination();
                     this._scheduleRedraw();
                 },
                 'changed::clipboard-layout-mode',

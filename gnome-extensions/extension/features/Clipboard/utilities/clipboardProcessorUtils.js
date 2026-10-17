@@ -61,4 +61,36 @@ export class ProcessorUtils {
     static getCurrentTimestamp() {
         return Math.floor(Date.now() / 1000);
     }
+
+    /**
+     * Truncate text content strictly to a maximum line count.
+     *
+     * @param {string} text Raw text content.
+     * @param {number} maxLines Maximum lines allowed.
+     * @returns {string} Truncated text content.
+     */
+    static clampLines(text, maxLines) {
+        if (!text || maxLines <= 0) {
+            return '';
+        }
+
+        const clean = text.replace(/\r?\n+$/, '');
+        const lines = clean.split('\n');
+        if (lines.length <= maxLines) {
+            return clean;
+        }
+
+        return lines.slice(0, maxLines).join('\n');
+    }
+
+    /**
+     * Count the non-empty-ending lines in rendered text.
+     *
+     * @param {string} text Rendered text content.
+     * @returns {number} Number of rendered lines.
+     */
+    static getLineCount(text) {
+        if (!text) return 1;
+        return text.replace(/\r?\n+$/, '').split(/\r?\n/).length;
+    }
 }

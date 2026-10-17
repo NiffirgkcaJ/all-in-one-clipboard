@@ -92,7 +92,7 @@ export default class AllInOneClipboardPreferences extends ExtensionPreferences {
         addPreferenceRecentlyUsedSettings({ page: featuresPage, settings, window });
         addPreferenceEmojiSettings({ page: featuresPage, settings });
         addPreferenceGifSettings({ page: featuresPage, settings, path: this.path, dir: this.dir });
-        addPreferenceClipboardSettings({ page: featuresPage, settings });
+        addPreferenceClipboardSettings({ page: featuresPage, settings, window });
 
         // Advanced Page
         const advancedPage = new Adw.PreferencesPage({

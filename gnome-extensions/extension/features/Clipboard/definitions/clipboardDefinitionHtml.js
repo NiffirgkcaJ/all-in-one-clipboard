@@ -10,6 +10,7 @@ import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardInte
 import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { HtmlProcessor } from '../processors/clipboardHtmlProcessor.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
@@ -48,12 +49,19 @@ export function ClipboardDefinitionHtml() {
             ],
         }),
         hasFullContent: true,
-        configureView: (config, item) => {
-            config.text = item.preview || item.text || '';
+        configureView: (config, item, options) => {
+            const raw = (item.text || item.preview || '').replace(/\r?\n+$/, '');
+            const previewLines = options.htmlPreviewLines;
+            config.text = ProcessorUtils.clampLines(raw, previewLines);
         },
-        getViewFingerprint: (config) => config.text || '',
-        getViewMetadata: (_config, item) => {
-            const len = item?.preview?.length || 0;
+        getViewFingerprint: (config, _item, options) => {
+            const lines = options.htmlPreviewLines || '';
+            const floor = options.htmlEnforceDefaultHeight ? '1' : '0';
+            return [config.text || '', lines, floor].join('|');
+        },
+        getViewMetadata: (_config, item, options) => {
+            const raw = item?.text || item?.preview || '';
+            const len = raw.length;
             let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
             if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.LONG.height;
@@ -63,9 +71,15 @@ export function ClipboardDefinitionHtml() {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
             }
 
+            const rawLines = ProcessorUtils.getLineCount(raw);
+            const previewLines = options.htmlPreviewLines;
+            const lines = previewLines !== undefined ? Math.min(rawLines, previewLines) : rawLines;
+            const contentHeight = lines * ListMetrics.LINE_HEIGHT_LABEL + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const listHeight = options.htmlEnforceDefaultHeight ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+
             return {
                 gridHeight,
-                listHeight: ListMetrics.ITEM_HEIGHT,
+                listHeight,
             };
         },
         ...ClipboardIntegrationItemActions({

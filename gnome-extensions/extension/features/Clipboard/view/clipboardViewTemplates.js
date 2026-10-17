@@ -497,7 +497,7 @@ export function createGridTile({ tileStyle, title }) {
  * @param {string} [params.text] Gutter content text.
  * @returns {St.Widget} Gutter content widget.
  */
-export function createListGutter(params) {
+export function createListGutter({ gutterText, text }) {
     const contentWidget = new St.BoxLayout({
         ...mapLayout({
             horizontal: true,
@@ -508,7 +508,7 @@ export function createListGutter(params) {
     });
 
     const prefixLabel = new St.Label({
-        text: params.gutterText || '',
+        text: gutterText || '',
         style_class: ClipboardStyles.LIST_GUTTER_VISUAL,
         x_align: Clutter.ActorAlign.CENTER,
         y_align: Clutter.ActorAlign.CENTER,
@@ -516,7 +516,7 @@ export function createListGutter(params) {
     contentWidget.add_child(prefixLabel);
 
     const gutterContentLabel = new St.Label({
-        text: params.text || '',
+        text: text || '',
         style_class: ClipboardStyles.LIST_GUTTER_CONTENT,
         x_expand: true,
         x_align: Clutter.ActorAlign.START,

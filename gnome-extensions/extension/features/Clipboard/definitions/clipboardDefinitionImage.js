@@ -52,13 +52,18 @@ export function ClipboardDefinitionImage() {
             warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
         }),
         getViewFingerprint: (_config, item, options) => {
-            return [item.image_filename || '', item.preview_filename || '', options.previewSize || ''].join('|');
+            const size = options.previewSize || options.imagePreviewSize || '';
+            const floor = options.imageEnforceDefaultHeight ? '1' : '0';
+            return [item.image_filename || '', item.preview_filename || '', size, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
-            const previewSize = options?.previewSize;
+            const size = options.imagePreviewSize || options.previewSize;
+            const contentHeight = size + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const listHeight = options.imageEnforceDefaultHeight ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+
             return {
-                listHeight: previewSize ? previewSize + ListMetrics.ITEM_PADDING_MARGIN_PX : null,
-                listMinHeight: previewSize || null,
+                listHeight,
+                listMinHeight: size || null,
                 isFullBleedGrid: true,
                 gridHeight: GridMetrics.HEIGHT_MEDIA,
                 dimensionKey: item.image_filename,
@@ -106,8 +111,8 @@ export function ClipboardDefinitionImage() {
         configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';
             const filename = item.image_filename;
-            const sourceDir = options?.storage?.imagesDir;
-            const previewDir = options?.storage?.imagePreviewsDir;
+            const sourceDir = options.storage?.imagesDir;
+            const previewDir = options.storage?.imagePreviewsDir;
             if (filename && sourceDir && previewDir) {
                 config.sourcePath = GLib.build_filenamev([sourceDir, filename]);
                 const base = filename.replace(/\.[^/.]+$/, '');

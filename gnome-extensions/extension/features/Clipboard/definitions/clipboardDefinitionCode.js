@@ -5,6 +5,7 @@ import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardInte
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
@@ -42,7 +43,11 @@ export function ClipboardDefinitionCode() {
             ],
         }),
         hasFullContent: true,
-        getViewFingerprint: (config) => [config.text || '', config.gutterText || '', config.badgeText || ''].join('|'),
+        getViewFingerprint: (config, _item, options) => {
+            const lines = options.codePreviewLines || '';
+            const floor = options.codeEnforceDefaultHeight ? '1' : '0';
+            return [config.text || '', config.gutterText || '', config.badgeText || '', lines, floor].join('|');
+        },
         getGridBadge: (config) => {
             if (!config.badgeText) return null;
 
@@ -51,8 +56,9 @@ export function ClipboardDefinitionCode() {
                 style_class: ClipboardStyles.GRID_GUTTER_VISUAL,
             };
         },
-        getViewMetadata: (_config, item) => {
-            const len = item?.preview?.length || 0;
+        getViewMetadata: (_config, item, options) => {
+            const raw = item?.preview || item?.text || '';
+            const len = raw.length;
             let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
             if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.LONG.height;
@@ -62,9 +68,15 @@ export function ClipboardDefinitionCode() {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
             }
 
+            const rawLines = item?.raw_lines || (raw ? ProcessorUtils.getLineCount(raw) : 1);
+            const previewLines = options.codePreviewLines;
+            const lines = previewLines !== undefined ? Math.min(rawLines, previewLines) : rawLines;
+            const contentHeight = lines * ListMetrics.LINE_HEIGHT_GUTTER + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const listHeight = options.codeEnforceDefaultHeight ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+
             return {
                 gridHeight,
-                listHeight: ListMetrics.ITEM_HEIGHT,
+                listHeight,
             };
         },
         getSearchTerms: (item) => [item.text, item.preview],
@@ -82,11 +94,13 @@ export function ClipboardDefinitionCode() {
                 return textContents.get(item.id) || item.preview || item.text || '';
             },
         },
-        configureView: (config, item) => {
-            config.text = item.preview || '';
+        configureView: (config, item, options) => {
+            const raw = item.preview || item.text || '';
+            const previewLines = options.codePreviewLines;
+            config.text = ProcessorUtils.clampLines(raw, previewLines);
             const rawLines = item.raw_lines || 0;
-            const previewLinesCount = config.text ? config.text.split('\n').length : 0;
-            const lineCount = previewLinesCount || rawLines;
+            const previewLinesCount = config.text ? ProcessorUtils.getLineCount(config.text) : 0;
+            const lineCount = Math.min(previewLines, previewLinesCount || rawLines);
             config.gutterText = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
             config.badgeText = rawLines > 0 ? `${rawLines} lines` : null;
         },

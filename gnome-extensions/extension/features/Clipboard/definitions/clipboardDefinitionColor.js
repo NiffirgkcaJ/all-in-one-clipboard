@@ -41,14 +41,18 @@ export function ClipboardDefinitionColor() {
                 },
             ],
         }),
-        getViewFingerprint: (config, item) => {
-            return [item.gradient_filename || '', config.cssColor || ''].join('|');
+        getViewFingerprint: (config, item, options) => {
+            const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
+            return [item.gradient_filename || '', config.cssColor || '', floor].join('|');
         },
-        getViewMetadata: () => {
+        getViewMetadata: (_config, _item, options) => {
+            const contentHeight = ListMetrics.LINE_COUNT_HEADER * ListMetrics.LINE_HEIGHT_HEADER + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const listHeight = options.metadataEnforceDefaultHeight ? ListMetrics.ITEM_HEIGHT : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+
             return {
                 isFullBleedGrid: true,
                 gridHeight: GridMetrics.HEIGHT_DEFAULT,
-                listHeight: ListMetrics.ITEM_HEIGHT,
+                listHeight,
             };
         },
         getSearchTerms: (item) => [item.color_value],

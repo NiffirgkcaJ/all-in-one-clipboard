@@ -22,7 +22,12 @@ export const GridVirtualization = {
 // List Metrics
 export const ListMetrics = {
     ITEM_HEIGHT: 64,
-    ITEM_PADDING_MARGIN_PX: 12,
+    MIN_ITEM_HEIGHT: 48,
+    LINE_HEIGHT_LABEL: 17,
+    LINE_HEIGHT_GUTTER: 15,
+    LINE_HEIGHT_HEADER: 18,
+    LINE_COUNT_HEADER: 2,
+    ROW_PADDING_MARGIN_PX: 12,
 };
 
 // List Virtualization Metrics

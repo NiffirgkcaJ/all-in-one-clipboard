@@ -465,17 +465,6 @@
             <summary>Show Clipboard Action Bar</summary>
             <description>Show the top action bar in the Clipboard tab with select-all, layout, private mode, pin, and delete controls.</description>
         </key>
-        <key name="clipboard-layout-mode" type="s">
-            <default>'list'</default>
-            <summary>Clipboard Layout Mode</summary>
-            <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
-        </key>
-        <key name="clipboard-image-preview-size" type="i">
-            <default>48</default>
-            <range min="48" max="300"/>
-            <summary>Clipboard image preview size</summary>
-            <description>Sets the pixel size for clipboard image previews. Applies to the clipboard history tab and the recently used overview.</description>
-        </key>
         <key name="enable-clipboard-merge-selection" type="b">
             <default>true</default>
             <summary>Enable merging selected items</summary>
@@ -536,6 +525,60 @@
             <default>true</default>
             <summary>Show Image Paste Button</summary>
             <description>Show image button on items containing pictures.</description>
+        </key>
+        <key name="clipboard-layout-mode" type="s">
+            <default>'list'</default>
+            <summary>Clipboard Layout Mode</summary>
+            <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
+        </key>
+        <key name="clipboard-text-preview-lines" type="i">
+            <default>1</default>
+            <range min="1" max="10"/>
+            <summary>Text Preview Lines</summary>
+            <description>Number of lines displayed for text previews in clipboard list rows.</description>
+        </key>
+        <key name="clipboard-text-enforce-default-height" type="b">
+            <default>true</default>
+            <summary>Text Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for text items.</description>
+        </key>
+        <key name="clipboard-code-preview-lines" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Code Preview Lines</summary>
+            <description>Number of lines displayed for code previews in clipboard list rows.</description>
+        </key>
+        <key name="clipboard-code-enforce-default-height" type="b">
+            <default>true</default>
+            <summary>Code Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for code items.</description>
+        </key>
+        <key name="clipboard-html-preview-lines" type="i">
+            <default>1</default>
+            <range min="1" max="10"/>
+            <summary>HTML Preview Lines</summary>
+            <description>Number of lines displayed for HTML previews in clipboard list rows.</description>
+        </key>
+        <key name="clipboard-html-enforce-default-height" type="b">
+            <default>true</default>
+            <summary>HTML Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for HTML items.</description>
+        </key>
+        <key name="clipboard-image-preview-size" type="i">
+            <default>48</default>
+            <range min="20" max="300"/>
+            <summary>Image Preview Size</summary>
+            <description>Number of pixels displayed for image previews in clipboard list rows.</description>
+        </key>
+        <key name="clipboard-image-enforce-default-height" type="b">
+            <default>true</default>
+            <summary>Image Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for image items.</description>
+        </key>
+        <key name="clipboard-metadata-enforce-default-height" type="b">
+            <default>true</default>
+            <summary>Metadata Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for metadata items.</description>
         </key>
 
         <!-- Advanced Page -->

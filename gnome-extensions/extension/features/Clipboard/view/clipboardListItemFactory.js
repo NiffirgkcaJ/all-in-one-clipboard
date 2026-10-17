@@ -65,6 +65,9 @@ export class ClipboardListItemFactory {
      */
     static createItem(itemData, options) {
         const isPinned = options.isPinned !== undefined ? options.isPinned : itemData._isPinned;
+        const renderContext = ClipboardListItemFactory._createRenderContext(options);
+        const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
+        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
 
         const itemWidget = new St.Button({
             style_class: ClipboardStyles.LIST_ITEM,
@@ -100,9 +103,6 @@ export class ClipboardListItemFactory {
         const checkboxIcon = itemCheckbox.child;
 
         // Content
-        const renderContext = ClipboardListItemFactory._createRenderContext(options);
-        const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
-        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
         const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
         mainBox.add_child(contentWidget);
 
@@ -225,6 +225,10 @@ export class ClipboardListItemFactory {
         const mainBox = itemWidget._mainBox || itemWidget.get_child();
         const oldContentWidget = itemWidget._contentWidget;
 
+        if (mainBox) {
+            mainBox.y_align = Clutter.ActorAlign.CENTER;
+        }
+
         if (mainBox && oldContentWidget) {
             mainBox.replace_child(oldContentWidget, newContentWidget);
             itemWidget._contentWidget = newContentWidget;
@@ -274,6 +278,16 @@ export class ClipboardListItemFactory {
             registry: options.registry,
             storage: options.storage,
             previewSize: options.previewSize,
+            imagePreviewSize: options.imagePreviewSize,
+            imageEnforceDefaultHeight: options.imageEnforceDefaultHeight,
+            codePreviewLines: options.codePreviewLines,
+            codeEnforceDefaultHeight: options.codeEnforceDefaultHeight,
+            textPreviewLines: options.textPreviewLines,
+            textEnforceDefaultHeight: options.textEnforceDefaultHeight,
+            htmlPreviewLines: options.htmlPreviewLines,
+            htmlEnforceDefaultHeight: options.htmlEnforceDefaultHeight,
+            metadataEnforceDefaultHeight: options.metadataEnforceDefaultHeight,
+            settings: options.settings,
         };
     }
 

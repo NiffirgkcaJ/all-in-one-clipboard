@@ -73,6 +73,7 @@ export class TextProcessor {
             preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
         }
 
+        const detectedLines = text ? text.replace(/\r?\n+$/, '').split('\n').length : 1;
         const resultItem = {
             id,
             type: finalType,
@@ -80,7 +81,7 @@ export class TextProcessor {
             preview: preview || '',
             hash,
             has_full_content,
-            raw_lines: item.raw_lines || 0,
+            raw_lines: item.raw_lines || detectedLines,
         };
 
         // Inline Persistence

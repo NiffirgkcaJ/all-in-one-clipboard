@@ -47,11 +47,19 @@ export function ClipboardDefinitionLink() {
                 },
             ],
         }),
-        getViewFingerprint: (config) => [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || ''].join('|'),
-        getViewMetadata: () => ({
-            gridHeight: GridMetrics.HEIGHT_DEFAULT,
-            listHeight: ListMetrics.ITEM_HEIGHT,
-        }),
+        getViewFingerprint: (config, _item, options) => {
+            const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
+            return [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || '', floor].join('|');
+        },
+        getViewMetadata: (_config, _item, options) => {
+            const contentHeight = ListMetrics.LINE_COUNT_HEADER * ListMetrics.LINE_HEIGHT_HEADER + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const listHeight = options.metadataEnforceDefaultHeight ? ListMetrics.ITEM_HEIGHT : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+
+            return {
+                gridHeight: GridMetrics.HEIGHT_DEFAULT,
+                listHeight,
+            };
+        },
         getSearchTerms: (item) => [item.title, item.url],
         copyOptions: {
             pasteShortcut: 'shift-insert',
