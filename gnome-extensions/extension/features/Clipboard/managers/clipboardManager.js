@@ -270,7 +270,12 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<Array<Object>|null>} Array of queue action items or null.
          */
         async getCopyQueue(itemData, options = {}) {
-            return await this._clipboardRegistry.getCopyQueue(itemData, { storage: this._storage, manager: this, ...options });
+            return await this._clipboardRegistry.getCopyQueue(itemData, {
+                storage: this._storage,
+                manager: this,
+                settings: this._settings,
+                ...options,
+            });
         }
 
         /**
@@ -281,7 +286,12 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {Promise<boolean>} True if successful.
          */
         async copyToSystemClipboard(itemData, options = {}) {
-            return await this._clipboardRegistry.copyItem(itemData, { storage: this._storage, manager: this, ...options });
+            return await this._clipboardRegistry.copyItem(itemData, {
+                storage: this._storage,
+                manager: this,
+                settings: this._settings,
+                ...options,
+            });
         }
 
         /**

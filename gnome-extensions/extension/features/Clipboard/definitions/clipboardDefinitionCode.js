@@ -57,7 +57,7 @@ export function ClipboardDefinitionCode() {
             };
         },
         getViewMetadata: (_config, item, options) => {
-            const raw = item?.preview || item?.text || '';
+            const raw = item.preview || item.text || '';
             const len = raw.length;
             let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
             if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
@@ -91,7 +91,7 @@ export function ClipboardDefinitionCode() {
                 return true;
             },
             getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.preview || item.text || '';
+                return textContents.get(item.id) || item.text || item.preview || '';
             },
         },
         configureView: (config, item, options) => {

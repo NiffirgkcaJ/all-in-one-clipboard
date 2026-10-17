@@ -51,7 +51,7 @@ export function ClipboardDefinitionText() {
             return [config.text || '', lines, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
-            const raw = item?.text || item?.preview || '';
+            const raw = item.text || item.preview || '';
             const len = raw.length;
             let gridHeight = GridMetrics.LABEL_WEIGHTS.TINY.height;
             if (len > GridMetrics.LABEL_WEIGHTS.LONG.threshold) {
@@ -86,7 +86,7 @@ export function ClipboardDefinitionText() {
                 return true;
             },
             getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.preview || item.text || '';
+                return textContents.get(item.id) || item.text || item.preview || '';
             },
         },
     };
