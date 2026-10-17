@@ -26,7 +26,6 @@ export const ClipboardActionBar = GObject.registerClass(
             'layout-toggled': {},
             'merge-selected-requested': {},
             'selection-cleared': {},
-            'paste-mode-toggled': { param_types: [GObject.TYPE_STRING] },
             'navigate-up': {},
             'navigate-previous': {},
             'navigate-next': {},
@@ -59,7 +58,6 @@ export const ClipboardActionBar = GObject.registerClass(
             this._manager = manager;
             this._selectedIds = selectedIds;
             this._isPrivateMode = false;
-            this._pasteMode = this._settings.get_string('clipboard-paste-format') || 'rich';
 
             this._buildUI();
             this._syncVisibility();
@@ -78,14 +76,6 @@ export const ClipboardActionBar = GObject.registerClass(
 
             this._enableAutoPasteSignalId = this._settings.connect('changed::enable-auto-paste', () => {
                 this._updateMergeSelectedButtonTooltip();
-            });
-
-            this._pasteFormatSignalId = this._settings.connect('changed::clipboard-paste-format', () => {
-                this._syncPasteMode();
-            });
-
-            this._pasteAccessibilitySignalId = this._settings.connect('changed::clipboard-paste-accessibility', () => {
-                this._updatePasteModeButtonVisibility();
             });
         }
 
@@ -157,22 +147,6 @@ export const ClipboardActionBar = GObject.registerClass(
             this._privateModeButton.connect('clicked', () => this._onPrivateModeToggled());
             actionButtonsBox.add_child(this._privateModeButton);
 
-            // Paste Mode Toggle
-            this._pasteModeToggleButton = createDynamicIconButton(
-                {
-                    plain: ClipboardIcons.ACTION_PASTE_PLAIN,
-                    rich: ClipboardIcons.ACTION_PASTE_RICH,
-                    image: ClipboardIcons.ACTION_PASTE_IMAGE,
-                },
-                {
-                    initial: this._pasteMode,
-                    style_class: ClipboardStyles.ICON_BUTTON,
-                    tooltip_text: this._getPasteModeTooltip(this._pasteMode),
-                },
-            );
-            this._pasteModeToggleButton.connect('clicked', () => this._onPasteModeToggled());
-            actionButtonsBox.add_child(this._pasteModeToggleButton);
-
             // Selection Actions
             this._mergeSelectedButton = createStaticIconButton(ClipboardIcons.ACTION_MERGE, {
                 style_class: ClipboardStyles.ICON_BUTTON,
@@ -203,7 +177,6 @@ export const ClipboardActionBar = GObject.registerClass(
             actionButtonsBox.add_child(this._deleteSelectedButton);
 
             this._updateMergeSelectionButtonVisibility();
-            this._updatePasteModeButtonVisibility();
 
             this.set_reactive(true);
             this.connect('key-press-event', this._onKeyPress.bind(this));
@@ -217,7 +190,6 @@ export const ClipboardActionBar = GObject.registerClass(
         _syncVisibility() {
             if (this._settings.get_boolean('clipboard-show-action-bar')) {
                 this.show();
-                this._updatePasteModeButtonVisibility();
             } else {
                 const currentFocus = global.stage.get_key_focus();
                 if (currentFocus && this.contains(currentFocus)) {
@@ -236,15 +208,9 @@ export const ClipboardActionBar = GObject.registerClass(
          * @private
          */
         _getHeaderButtons() {
-            return [
-                this._selectAllButton,
-                this._layoutToggleButton,
-                this._privateModeButton,
-                this._pasteModeToggleButton,
-                this._mergeSelectedButton,
-                this._pinSelectedButton,
-                this._deleteSelectedButton,
-            ].filter((b) => b.can_focus && b.visible);
+            return [this._selectAllButton, this._layoutToggleButton, this._privateModeButton, this._mergeSelectedButton, this._pinSelectedButton, this._deleteSelectedButton].filter(
+                (b) => b.can_focus && b.visible,
+            );
         }
 
         /**
@@ -283,75 +249,9 @@ export const ClipboardActionBar = GObject.registerClass(
             this._mergeSelectedButton.visible = enabled;
         }
 
-        /**
-         * Update visibility of the paste mode toggle button.
-         *
-         * @private
-         */
-        _updatePasteModeButtonVisibility() {
-            const switchMode = this._settings.get_string('clipboard-paste-accessibility') || 'per-item';
-            this._pasteModeToggleButton.visible = switchMode === 'action-bar';
-        }
-
-        /**
-         * Get tooltip text for the current paste mode.
-         *
-         * @param {string} mode Current mode.
-         * @returns {string} Localized tooltip.
-         * @private
-         */
-        _getPasteModeTooltip(mode) {
-            if (mode === 'rich') {
-                return _('Paste Mode: Rich Text - Click to switch to Plain Text');
-            }
-            if (mode === 'plain') {
-                return _('Paste Mode: Plain Text - Click to switch to Image');
-            }
-            return _('Paste Mode: Image - Click to switch to Rich Text');
-        }
-
-        /**
-         * Sync paste mode with settings.
-         *
-         * @private
-         */
-        _syncPasteMode() {
-            const defaultFormat = this._settings.get_string('clipboard-paste-format') || 'rich';
-            this._pasteMode = defaultFormat;
-            this._pasteModeToggleButton.child.state = defaultFormat;
-            this._pasteModeToggleButton.set_tooltip_text(this._getPasteModeTooltip(defaultFormat));
-        }
-
-        /**
-         * Handle toggling the paste mode.
-         *
-         * @private
-         */
-        _onPasteModeToggled() {
-            if (this._pasteMode === 'rich') {
-                this._pasteMode = 'plain';
-            } else if (this._pasteMode === 'plain') {
-                this._pasteMode = 'image';
-            } else {
-                this._pasteMode = 'rich';
-            }
-            this._pasteModeToggleButton.child.state = this._pasteMode;
-            this._pasteModeToggleButton.set_tooltip_text(this._getPasteModeTooltip(this._pasteMode));
-            this.emit('paste-mode-toggled', this._pasteMode);
-        }
-
         // ========================================================================
         // Public API
         // ========================================================================
-
-        /**
-         * Get the current paste mode.
-         *
-         * @returns {string} Current mode.
-         */
-        get pasteMode() {
-            return this._pasteMode;
-        }
 
         /**
          * Update the selection state of the bar.
@@ -541,8 +441,6 @@ export const ClipboardActionBar = GObject.registerClass(
             if (this._mergeSelectionSignalId) this._settings.disconnect(this._mergeSelectionSignalId);
             if (this._autoPasteSignalId) this._settings.disconnect(this._autoPasteSignalId);
             if (this._enableAutoPasteSignalId) this._settings.disconnect(this._enableAutoPasteSignalId);
-            if (this._pasteFormatSignalId) this._settings.disconnect(this._pasteFormatSignalId);
-            if (this._pasteAccessibilitySignalId) this._settings.disconnect(this._pasteAccessibilitySignalId);
             super.destroy();
         }
     },

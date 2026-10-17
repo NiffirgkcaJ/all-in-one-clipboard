@@ -99,7 +99,7 @@ export class HtmlProcessor {
      * @returns {Promise<Array<Object>>} Array of extracted image objects.
      */
     static async extractEmbeddedImages(itemData, storage) {
-        if (!itemData?.has_images) return [];
+        if (!itemData.has_images) return [];
 
         const htmlPath = GLib.build_filenamev([storage.textsDir, `${itemData.id}.html`]);
         const rawBytes = await storage.readRaw(htmlPath);

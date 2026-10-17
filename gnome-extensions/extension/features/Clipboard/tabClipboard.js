@@ -166,13 +166,11 @@ export const ClipboardTabContent = GObject.registerClass(
                 },
                 'changed::extension-height',
                 () => this._scheduleRedraw(),
-                'changed::clipboard-paste-accessibility',
+                'changed::clipboard-html-paste-format',
                 () => this._scheduleRedraw(),
-                'changed::clipboard-paste-format',
+                'changed::clipboard-html-show-format-paste-button',
                 () => this._scheduleRedraw(),
-                'changed::clipboard-show-format-paste-button',
-                () => this._scheduleRedraw(),
-                'changed::clipboard-show-image-paste-button',
+                'changed::clipboard-html-show-image-paste-button',
                 () => this._scheduleRedraw(),
                 this,
             );
@@ -376,7 +374,6 @@ export const ClipboardTabContent = GObject.registerClass(
         async _onItemCopyToClipboard(itemData, copyOptions = {}) {
             await this._copyService.copySingleItem(itemData, this._manager, {
                 ...copyOptions,
-                actionBarPasteMode: this._actionBar?.pasteMode,
                 settings: this._settings,
                 menu: this._extension._indicator?.menu,
             });
