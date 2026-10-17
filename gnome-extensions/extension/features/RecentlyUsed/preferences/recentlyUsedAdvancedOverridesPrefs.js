@@ -5,6 +5,7 @@ import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensio
 import { Debouncer } from '../../../shared/utilities/utilityDebouncer.js';
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { createNavigationPage, presentSubpage } from '../../../shared/preferences/preferenceUtilities.js';
 
 import { RecentlyUsedPolicySettingKeys, RecentlyUsedPolicySettings, RecentlyUsedPolicyTuning } from '../constants/recentlyUsedPolicyConstants.js';
 
@@ -64,66 +65,6 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
         } catch {
             return false;
         }
-    };
-
-    const presentSubpage = (sourceWidget, subpage) => {
-        const root = sourceWidget?.get_root() ?? null;
-
-        try {
-            if (window && window.push_subpage) {
-                window.push_subpage(subpage);
-                return;
-            }
-        } catch {
-            // Fall through to alternate APIs.
-        }
-
-        try {
-            if (window && window.present_subpage) {
-                window.present_subpage(subpage);
-                return;
-            }
-        } catch {
-            // Fall through to root APIs.
-        }
-
-        try {
-            if (root && root.push_subpage) {
-                root.push_subpage(subpage);
-                return;
-            }
-        } catch {
-            // Fall through to root present API.
-        }
-
-        try {
-            if (root && root.present_subpage) {
-                root.present_subpage(subpage);
-            }
-        } catch {
-            // Keep preferences stable without throwing if all presentation APIs fail.
-        }
-    };
-
-    const createNavigationPage = ({ title, tag }) => {
-        const page = new Adw.NavigationPage({ title, tag });
-        const toolbar = new Adw.ToolbarView();
-        page.set_child(toolbar);
-
-        const header = new Adw.HeaderBar({
-            title_widget: new Adw.WindowTitle({ title }),
-            show_end_title_buttons: true,
-        });
-        toolbar.add_top_bar(header);
-
-        const scroll = new Gtk.ScrolledWindow({
-            vexpand: true,
-        });
-        const content = new Adw.PreferencesPage({ title });
-        scroll.set_child(content);
-        toolbar.set_content(scroll);
-
-        return { page, content };
     };
 
     const policyModeOptions = [
@@ -457,6 +398,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
         });
     };
 
+    // Advanced Section Overrides
     const advancedOverridesRow = new Adw.ActionRow({
         title: _('Advanced Section Overrides'),
         subtitle: _('Open section-level overrides.'),
@@ -475,6 +417,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
         tag: 'recently-used-advanced-overrides',
     });
 
+    // Definitions
     const advancedGroup = new Adw.PreferencesGroup({
         title: _('Definitions'),
         description: _('Choose a section to edit its override definition.'),
@@ -482,7 +425,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
     advancedNav.content.add(advancedGroup);
 
     advancedOverridesRow.connect('activated', () => {
-        presentSubpage(advancedOverridesRow, advancedNav.page);
+        presentSubpage(advancedOverridesRow, advancedNav.page, window);
     });
 
     if (!hasSchemaKey(advancedOverridesKey)) {
@@ -521,6 +464,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
         });
         detailNav.content.add(detailGroup);
 
+        // Enable Custom Overrides
         const sectionEnabledRow = new Adw.SwitchRow({
             title: _('Enable Custom Overrides'),
             subtitle: _('When disabled, this definition uses global policy.'),
@@ -562,6 +506,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             refreshAll();
         };
 
+        // Global Limit Policy
         const globalLimitPolicyRow = createOverrideComboRow({
             container: detailGroup,
             title: _('Global Limit Policy'),
@@ -571,6 +516,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Customize Limit Policy by Context
         const limitPolicyByContextExpander = new Adw.ExpanderRow({
             title: _('Customize Limit Policy by Context'),
             subtitle: _('Configure browse and search limit policy independently.'),
@@ -586,6 +532,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             patchSectionPolicy({ customLimitByContext: limitPolicyByContextExpander.enable_expansion });
         });
 
+        // Browse Policy
         const browsePolicyRow = createOverrideComboRow({
             container: limitPolicyByContextExpander,
             title: _('Browse Policy'),
@@ -595,6 +542,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Search Policy
         const searchPolicyRow = createOverrideComboRow({
             container: limitPolicyByContextExpander,
             title: _('Search Policy'),
@@ -604,6 +552,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Global Display Mode
         const globalDisplayModeRow = createOverrideComboRow({
             container: detailGroup,
             title: _('Global Display Mode'),
@@ -613,6 +562,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Customize Display Mode by View
         const displayByViewExpander = new Adw.ExpanderRow({
             title: _('Customize Display Mode by View'),
             subtitle: _('Configure list and grid display mode independently.'),
@@ -628,6 +578,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             patchSectionPolicy({ customDisplayByView: displayByViewExpander.enable_expansion });
         });
 
+        // List Display Mode
         const listDisplayModeRow = createOverrideComboRow({
             container: displayByViewExpander,
             title: _('List Display Mode'),
@@ -637,6 +588,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Grid Display Mode
         const gridDisplayModeRow = createOverrideComboRow({
             container: displayByViewExpander,
             title: _('Grid Display Mode'),
@@ -646,6 +598,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Global Visible Items
         const globalVisibleItemsRow = createOverrideSpinRow({
             container: detailGroup,
             schemaKey: policyKeys.GLOBAL_VISIBLE_ITEMS,
@@ -655,6 +608,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Customize Visible Items by View
         const visibleItemsByViewExpander = new Adw.ExpanderRow({
             title: _('Customize Visible Items by View'),
             subtitle: _('Configure list and grid item caps independently.'),
@@ -670,6 +624,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             patchSectionPolicy({ customVisibleByView: visibleItemsByViewExpander.enable_expansion });
         });
 
+        // List Visible Items
         const listVisibleItemsRow = createOverrideSpinRow({
             container: visibleItemsByViewExpander,
             schemaKey: policyKeys.LIST_VISIBLE_ITEMS,
@@ -679,6 +634,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Grid Visible Items
         const gridVisibleItemsRow = createOverrideSpinRow({
             container: visibleItemsByViewExpander,
             schemaKey: policyKeys.GRID_VISIBLE_ITEMS,
@@ -688,6 +644,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Global Window Rows
         const globalWindowRowsRow = createOverrideSpinRow({
             container: detailGroup,
             schemaKey: policyKeys.GLOBAL_WINDOW_ROWS,
@@ -697,6 +654,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Customize Window Limits by View
         const windowByViewExpander = new Adw.ExpanderRow({
             title: _('Customize Window Limits by View'),
             subtitle: _('Configure list and grid window rows and grid columns independently.'),
@@ -712,6 +670,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             patchSectionPolicy({ customWindowByView: windowByViewExpander.enable_expansion });
         });
 
+        // List Window Rows
         const listWindowRowsRow = createOverrideSpinRow({
             container: windowByViewExpander,
             schemaKey: policyKeys.LIST_WINDOW_ROWS,
@@ -721,6 +680,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Grid Window Rows
         const gridWindowRowsRow = createOverrideSpinRow({
             container: windowByViewExpander,
             schemaKey: policyKeys.GRID_WINDOW_ROWS,
@@ -730,6 +690,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Grid Window Columns
         const gridWindowColumnsRow = createOverrideSpinRow({
             container: windowByViewExpander,
             schemaKey: policyKeys.GRID_WINDOW_COLUMNS,
@@ -739,6 +700,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
             isSyncingRef,
         });
 
+        // Unlimited Safety Cap
         const unlimitedSafetyCapRow = createOverrideSpinRow({
             container: detailGroup,
             schemaKey: policyKeys.UNLIMITED_SAFETY_CAP,
@@ -860,6 +822,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
         };
     };
 
+    // Section Definitions
     sectionDescriptors.forEach((descriptor) => {
         const definitionRow = new Adw.ActionRow({
             title: _(descriptor.title),
@@ -876,7 +839,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
 
         const detail = createSectionDetailPage(descriptor);
         definitionRow.connect('activated', () => {
-            presentSubpage(definitionRow, detail.page);
+            presentSubpage(definitionRow, detail.page, window);
         });
 
         refreshers.push(() => {

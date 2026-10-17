@@ -1,3 +1,72 @@
+import Adw from 'gi://Adw';
+import Gtk from 'gi://Gtk';
+
+// ========================================================================
+// Navigation Utilities
+// ========================================================================
+
+/**
+ * Creates a navigation subpage with a standard toolbar and scroll container.
+ *
+ * @param {Object} params Configuration parameters.
+ * @param {string} params.title Window and page title.
+ * @param {string} params.tag Unique navigation tag.
+ * @returns {Object} Navigation page and preferences page child.
+ */
+export function createNavigationPage({ title, tag }) {
+    const page = new Adw.NavigationPage({ title, tag });
+    const toolbar = new Adw.ToolbarView();
+    page.set_child(toolbar);
+
+    const header = new Adw.HeaderBar({
+        title_widget: new Adw.WindowTitle({ title }),
+        show_end_title_buttons: true,
+    });
+    toolbar.add_top_bar(header);
+
+    const scroll = new Gtk.ScrolledWindow({
+        vexpand: true,
+    });
+    const content = new Adw.PreferencesPage({ title });
+    scroll.set_child(content);
+    toolbar.set_content(scroll);
+
+    return { page, content };
+}
+
+/**
+ * Presents a subpage using available preferences window navigation APIs.
+ *
+ * @param {Gtk.Widget} sourceWidget Source trigger widget.
+ * @param {Adw.NavigationPage} subpage Navigation page to push.
+ * @param {Adw.PreferencesWindow} [window] Root preferences window.
+ */
+export function presentSubpage(sourceWidget, subpage, window = null) {
+    if (window && window.push_subpage) {
+        window.push_subpage(subpage);
+        return;
+    }
+
+    if (window && window.present_subpage) {
+        window.present_subpage(subpage);
+        return;
+    }
+
+    const root = sourceWidget.get_root();
+    if (root && root.push_subpage) {
+        root.push_subpage(subpage);
+        return;
+    }
+
+    if (root && root.present_subpage) {
+        root.present_subpage(subpage);
+    }
+}
+
+// ========================================================================
+// Schema and Icon Utilities
+// ========================================================================
+
 /**
  * Extracts the min and max range from a GSettings schema key.
  *
@@ -24,7 +93,7 @@ export function getRangeFromSchema(settings, key) {
 /**
  * Normalizes an icon config into a usable icon theme name by stripping the .svg extension.
  *
- * @param {string|Object} config The icon name string or a configuration object with an `icon` property.
+ * @param {string|Object} config The icon name string or a configuration object with an icon property.
  * @returns {string} The normalized icon name.
  */
 export function getIconName(config) {
