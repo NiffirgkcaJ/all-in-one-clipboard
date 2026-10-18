@@ -66,9 +66,9 @@ export const ClipboardBaseView = GObject.registerClass(
             this._allItems = [];
             this._pendingHistoryItems = [];
             this._batchSize = ClipboardConfig.HISTORY_BATCH_SIZE;
-            // this._batchSize = Number.MAX_SAFE_INTEGER;
             this._isLoadingMore = false;
             this._restoreFocusTimeoutId = 0;
+            this._focusIdleId = 0;
             this._scrollIdleId = 0;
             this._scrollSignalIds = [];
             this._checkboxIconsMap = new Map();
@@ -278,6 +278,19 @@ export const ClipboardBaseView = GObject.registerClass(
                     this._updateHistoryItems(historyItems);
                     this._syncVirtualizedViewports();
                     this._rebuildCheckboxMap();
+
+                    if (this._focusIdleId) {
+                        GLib.source_remove(this._focusIdleId);
+                        this._focusIdleId = 0;
+                    }
+                    this._focusIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        this._focusIdleId = 0;
+                        if (this._historyContainer) {
+                            this._historyContainer.focusLast();
+                        }
+                        return GLib.SOURCE_REMOVE;
+                    });
+                    return true;
                 }
                 return this._historyContainer.focusLast();
             }
@@ -853,6 +866,10 @@ export const ClipboardBaseView = GObject.registerClass(
          * Clear the view and reset pagination properties before a structural redraw.
          */
         resetScrollAndPagination() {
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
+            }
             if (this._scrollView) {
                 this._scrollView.vadjustment.value = 0;
             }
@@ -884,6 +901,10 @@ export const ClipboardBaseView = GObject.registerClass(
             if (this._restoreFocusTimeoutId) {
                 GLib.source_remove(this._restoreFocusTimeoutId);
                 this._restoreFocusTimeoutId = 0;
+            }
+            if (this._focusIdleId) {
+                GLib.source_remove(this._focusIdleId);
+                this._focusIdleId = 0;
             }
             if (this._scrollIdleId) {
                 GLib.source_remove(this._scrollIdleId);
