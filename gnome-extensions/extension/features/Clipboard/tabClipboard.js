@@ -339,7 +339,9 @@ export const ClipboardTabContent = GObject.registerClass(
             this._createView(mode);
             this._scheduleRedraw(true);
 
-            if (this._extension?._indicator?.menu?.isOpen) this._searchComponent.grabFocus();
+            if (this._extension && this._extension._indicator && this._extension._indicator.menu.isOpen) {
+                this._searchComponent.grabFocus();
+            }
         }
 
         // ========================================================================
@@ -379,7 +381,7 @@ export const ClipboardTabContent = GObject.registerClass(
             await this._copyService.copySingleItem(itemData, this._manager, {
                 ...copyOptions,
                 settings: this._settings,
-                menu: this._extension._indicator?.menu,
+                menu: this._extension._indicator.menu,
             });
         }
 
@@ -394,7 +396,7 @@ export const ClipboardTabContent = GObject.registerClass(
 
             const copySuccess = await this._copyService.copyMultipleItems(selectedIds, this._manager, {
                 settings: this._settings,
-                menu: this._extension._indicator?.menu,
+                menu: this._extension._indicator.menu,
             });
             if (!copySuccess) return;
 
@@ -668,10 +670,20 @@ export const ClipboardTabContent = GObject.registerClass(
         destroy() {
             this._clearRedrawSources();
 
-            this._settings?.disconnectObject(this);
-            this._manager?.disconnectObject(this);
-            this._actionBar?.disconnectObject(this);
-            this._currentView?.disconnectObject(this);
+            if (this._settings) {
+                this._settings.disconnectObject(this);
+                this._settings = null;
+            }
+            if (this._manager) {
+                this._manager.disconnectObject(this);
+                this._manager = null;
+            }
+            if (this._actionBar) {
+                this._actionBar.disconnectObject(this);
+            }
+            if (this._currentView) {
+                this._currentView.disconnectObject(this);
+            }
             this.disconnectObject(this);
 
             if (this._searchComponent) {

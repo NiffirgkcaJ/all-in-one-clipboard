@@ -573,7 +573,9 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Public method called by the parent when this view becomes visible.
          */
         onSelected() {
-            this._searchComponent?.grabFocus();
+            if (this._searchComponent) {
+                this._searchComponent.grabFocus();
+            }
 
             if (this._config.enableTabScrolling && this._tabScrollPolicyDebouncer) {
                 this._tabScrollPolicyState = null;
@@ -626,7 +628,9 @@ export const CategorizedItemViewer = GObject.registerClass(
          * Public method called by the parent when the main menu is closed.
          */
         onMenuClosed() {
-            this._searchComponent?.clearSearch();
+            if (this._searchComponent) {
+                this._searchComponent.clearSearch();
+            }
         }
 
         /**
@@ -895,8 +899,8 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _setActiveCategory(id) {
-            if (this._currentSearchText) {
-                this._searchComponent?.clearSearch();
+            if (this._currentSearchText && this._searchComponent) {
+                this._searchComponent.clearSearch();
             }
             if (this._activeCategory === id) return;
             this._activeCategory = id;
@@ -913,7 +917,9 @@ export const CategorizedItemViewer = GObject.registerClass(
 
             if (this._setActiveCategoryTimeoutId) GLib.source_remove(this._setActiveCategoryTimeoutId);
             this._setActiveCategoryTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 100, () => {
-                this._searchComponent?.grabFocus();
+                if (this._searchComponent) {
+                    this._searchComponent.grabFocus();
+                }
                 this._setActiveCategoryTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
             });
@@ -1157,13 +1163,30 @@ export const CategorizedItemViewer = GObject.registerClass(
          * @private
          */
         _destroyChildObjects() {
-            this._searchDebouncer?.destroy();
-            this._widthChangeDebouncer?.destroy();
-            this._tabScrollPolicyDebouncer?.destroy();
-            this._recentItemsManager?.destroy();
-            this._searchComponent?.destroy();
-            this._categoryTabScrollView?.destroy();
-            this._categoryTabScrollView = null;
+            if (this._searchDebouncer) {
+                this._searchDebouncer.destroy();
+                this._searchDebouncer = null;
+            }
+            if (this._widthChangeDebouncer) {
+                this._widthChangeDebouncer.destroy();
+                this._widthChangeDebouncer = null;
+            }
+            if (this._tabScrollPolicyDebouncer) {
+                this._tabScrollPolicyDebouncer.destroy();
+                this._tabScrollPolicyDebouncer = null;
+            }
+            if (this._recentItemsManager) {
+                this._recentItemsManager.destroy();
+                this._recentItemsManager = null;
+            }
+            if (this._searchComponent) {
+                this._searchComponent.destroy();
+                this._searchComponent = null;
+            }
+            if (this._categoryTabScrollView) {
+                this._categoryTabScrollView.destroy();
+                this._categoryTabScrollView = null;
+            }
         }
 
         /**

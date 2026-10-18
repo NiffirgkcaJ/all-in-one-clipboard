@@ -51,7 +51,6 @@ export const MenuContentArea = GObject.registerClass(
 
             this._activeTabName = null;
             this._currentTabActor = null;
-            this._isDestroyed = false;
 
             this._tabActors = new Map();
             this._tabLoadPromises = new Map();
@@ -61,11 +60,9 @@ export const MenuContentArea = GObject.registerClass(
 
             this._preloadIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                 this._preloadIdleId = 0;
-                if (!this._isDestroyed) {
-                    this._preloadAllTabs().catch((e) => {
-                        Logger.error(`Background tab preload failed: ${e.message}`);
-                    });
-                }
+                this._preloadAllTabs().catch((e) => {
+                    Logger.error(`Background tab preload failed: ${e.message}`);
+                });
                 return GLib.SOURCE_REMOVE;
             });
         }
@@ -257,8 +254,10 @@ export const MenuContentArea = GObject.registerClass(
                 .then((actor) => {
                     this._tabLoadPromises.delete(tabName);
 
-                    if (this._isDestroyed || !actor) {
-                        actor?.destroy();
+                    if (!this._tabWrapper || !actor) {
+                        if (actor) {
+                            actor.destroy();
+                        }
                         return null;
                     }
                     actor.x_align = Clutter.ActorAlign.FILL;
@@ -385,7 +384,9 @@ export const MenuContentArea = GObject.registerClass(
          */
         _notifyTabSelected(afterTabSelected = null) {
             const selectedActor = this._currentTabActor;
-            selectedActor?.onTabSelected();
+            if (selectedActor && typeof selectedActor.onTabSelected === 'function') {
+                selectedActor.onTabSelected();
+            }
 
             if (afterTabSelected) {
                 Promise.resolve(afterTabSelected(selectedActor)).catch((e) => {
@@ -432,15 +433,16 @@ export const MenuContentArea = GObject.registerClass(
          * @override
          */
         destroy() {
-            this._isDestroyed = true;
             if (this._preloadIdleId) {
                 GLib.source_remove(this._preloadIdleId);
                 this._preloadIdleId = 0;
             }
             this.clearContent();
 
-            this._tabWrapper?.destroy();
-            this._tabWrapper = null;
+            if (this._tabWrapper) {
+                this._tabWrapper.destroy();
+                this._tabWrapper = null;
+            }
 
             this._settings = null;
             this._extension = null;

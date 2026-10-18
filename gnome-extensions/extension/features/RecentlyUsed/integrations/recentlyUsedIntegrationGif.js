@@ -57,7 +57,7 @@ export function destroyRecentlyUsedGifRuntime() {
  * @returns {Promise<boolean>} True when copy succeeds.
  */
 export async function copyRecentlyUsedGifToClipboard(itemData, settings, extension) {
-    const clipboardManager = extension?._clipboardManager;
+    const clipboardManager = extension ? extension._clipboardManager : null;
     const { gifDownloadService: service } = getRecentlyUsedGifRuntime();
     return service.copyToClipboard(itemData, settings, clipboardManager);
 }

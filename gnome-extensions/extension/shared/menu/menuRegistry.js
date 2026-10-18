@@ -16,19 +16,17 @@ let initializeMenuRegistryPromise = null;
  * @returns {Promise<object|null>} Section definition or null.
  */
 async function loadMenuDefinition(orderEntry) {
-    const sectionId = orderEntry?.id;
-    const modulePath = orderEntry?.modulePath;
-    const exportName = orderEntry?.exportName;
-
-    if (!modulePath || !exportName) {
+    if (!orderEntry || !orderEntry.modulePath || !orderEntry.exportName) {
         return null;
     }
 
+    const { id: sectionId, modulePath, exportName } = orderEntry;
+
     try {
         const module = await import(modulePath);
-        return module?.[exportName] || null;
+        return module && module[exportName] ? module[exportName] : null;
     } catch (e) {
-        const message = e?.message ?? String(e);
+        const message = e && e.message ? e.message : String(e);
         Logger.error(`Failed to load main menu definition '${sectionId}': ${message}`);
         return null;
     }
@@ -44,7 +42,7 @@ async function loadMenuDefinition(orderEntry) {
  * @param {object} sectionDefinition Section definition object.
  */
 export function registerMenuSection(sectionDefinition) {
-    if (!sectionDefinition?.id) {
+    if (!sectionDefinition || !sectionDefinition.id) {
         return;
     }
 

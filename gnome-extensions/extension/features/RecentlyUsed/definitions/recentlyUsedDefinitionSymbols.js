@@ -61,8 +61,10 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
      * Cleans up symbols recents resources.
      */
     definition.destroy = () => {
-        recentManager?.destroy();
-        recentManager = null;
+        if (recentManager) {
+            recentManager.destroy();
+            recentManager = null;
+        }
     };
 
     /**
@@ -170,7 +172,7 @@ function createRecentlyUsedDefinitionSymbolsInstance() {
             onPostCopy: () => recentManager.addItem({ ...itemData, value: contentToCopy, char: itemData?.char || itemData?.symbol || contentToCopy }),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
-            menu: extension?._indicator?.menu,
+            menu: extension._indicator.menu,
             pasteShortcut: 'shift-insert',
         });
     };

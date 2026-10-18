@@ -204,7 +204,9 @@ export class RecentlyUsedSearchStateManager {
 
         this._renderSourceId = GLib.idle_add(GLib.PRIORITY_LOW, () => {
             this._renderSourceId = 0;
-            this._onRender?.();
+            if (this._onRender) {
+                this._onRender();
+            }
             return GLib.SOURCE_REMOVE;
         });
     }

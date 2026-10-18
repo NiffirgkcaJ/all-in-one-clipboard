@@ -61,8 +61,10 @@ function createRecentlyUsedDefinitionEmojiInstance() {
      * Cleans up emoji recents resources.
      */
     definition.destroy = () => {
-        recentManager?.destroy();
-        recentManager = null;
+        if (recentManager) {
+            recentManager.destroy();
+            recentManager = null;
+        }
     };
 
     /**
@@ -168,7 +170,7 @@ function createRecentlyUsedDefinitionEmojiInstance() {
             onPostCopy: () => recentManager.addItem({ ...itemData, value: contentToCopy }),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
-            menu: extension?._indicator?.menu,
+            menu: extension._indicator.menu,
             pasteShortcut: 'shift-insert',
         });
     };

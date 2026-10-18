@@ -71,8 +71,10 @@ function createRecentlyUsedDefinitionGifInstance() {
      * Cleans up GIF recents and runtime services.
      */
     definition.destroy = () => {
-        recentManager?.destroy();
-        recentManager = null;
+        if (recentManager) {
+            recentManager.destroy();
+            recentManager = null;
+        }
 
         destroyRecentlyUsedGifRuntime();
     };
@@ -245,7 +247,7 @@ function createRecentlyUsedDefinitionGifInstance() {
             onPostCopy: () => recentManager.addItem(itemData),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
-            menu: extension?._indicator?.menu,
+            menu: extension._indicator.menu,
             pasteShortcut,
         });
     };

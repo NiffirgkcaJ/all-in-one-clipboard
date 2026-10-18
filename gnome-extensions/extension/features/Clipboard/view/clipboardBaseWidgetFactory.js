@@ -53,7 +53,9 @@ export class ClipboardBaseWidgetFactory {
                 options.selectedIds.add(itemData.id);
                 checkboxIcon.state = 'checked';
             }
-            options.onSelectionChanged?.();
+            if (options.onSelectionChanged) {
+                options.onSelectionChanged();
+            }
         });
 
         checkbox._action = 'checkbox';

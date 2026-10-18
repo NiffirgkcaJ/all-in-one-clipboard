@@ -59,7 +59,9 @@ export function handleClipboardItemKeyPress(event, options) {
             selectedIds.add(itemId);
             checkboxIcon.state = 'checked';
         }
-        onSelectionChanged?.();
+        if (onSelectionChanged) {
+            onSelectionChanged();
+        }
         return Clutter.EVENT_STOP;
     }
 

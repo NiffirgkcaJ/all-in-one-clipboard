@@ -166,8 +166,8 @@ function readAdvancedOverridesRoot(settings) {
  */
 function writeAdvancedOverridesRoot(settings, root) {
     const safeRoot = {
-        version: Number.isInteger(root?.version) ? root.version : 1,
-        sections: root?.sections && typeof root.sections === 'object' && !Array.isArray(root.sections) ? root.sections : {},
+        version: root && Number.isInteger(root.version) ? root.version : 1,
+        sections: root && root.sections && typeof root.sections === 'object' && !Array.isArray(root.sections) ? root.sections : {},
     };
 
     setSettingsJsonObject(settings, SETTINGS.ADVANCED_SECTION_OVERRIDES, safeRoot);
@@ -231,7 +231,7 @@ function normalizeDisplayMode(value, fallbackValue) {
  * @returns {string} The normalized layout family.
  */
 function normalizeLayoutFamily(effectiveLayout, sectionConfig) {
-    const candidate = effectiveLayout || sectionConfig?.layoutType || 'list';
+    const candidate = effectiveLayout || (sectionConfig && sectionConfig.layoutType) || 'list';
 
     if (candidate === 'grid' || candidate === 'nested-grid') {
         return 'grid';
@@ -274,8 +274,9 @@ function normalizeBooleanWithFallback(value, fallbackValue) {
  * @returns {object} Visible-item related fields.
  */
 function normalizeVisibleItemsPolicy(candidate, safeFallback) {
-    const globalVisibleItems = normalizePositiveInteger(candidate?.globalVisibleItems, safeFallback.globalVisibleItems);
-    const customVisibleByView = normalizeBooleanWithFallback(candidate?.customVisibleByView, safeFallback.customVisibleByView);
+    const src = candidate || {};
+    const globalVisibleItems = normalizePositiveInteger(src.globalVisibleItems, safeFallback.globalVisibleItems);
+    const customVisibleByView = normalizeBooleanWithFallback(src.customVisibleByView, safeFallback.customVisibleByView);
 
     if (!customVisibleByView) {
         return {
@@ -288,8 +289,8 @@ function normalizeVisibleItemsPolicy(candidate, safeFallback) {
 
     return {
         globalVisibleItems,
-        listVisibleItems: normalizePositiveInteger(candidate?.listVisibleItems, globalVisibleItems),
-        gridVisibleItems: normalizePositiveInteger(candidate?.gridVisibleItems, globalVisibleItems),
+        listVisibleItems: normalizePositiveInteger(src.listVisibleItems, globalVisibleItems),
+        gridVisibleItems: normalizePositiveInteger(src.gridVisibleItems, globalVisibleItems),
         customVisibleByView,
     };
 }
@@ -302,8 +303,9 @@ function normalizeVisibleItemsPolicy(candidate, safeFallback) {
  * @returns {object} Window-limit related fields.
  */
 function normalizeWindowLimitPolicy(candidate, safeFallback) {
-    const globalWindowRows = normalizePositiveInteger(candidate?.globalWindowRows, safeFallback.globalWindowRows);
-    const customWindowByView = normalizeBooleanWithFallback(candidate?.customWindowByView, safeFallback.customWindowByView);
+    const src = candidate || {};
+    const globalWindowRows = normalizePositiveInteger(src.globalWindowRows, safeFallback.globalWindowRows);
+    const customWindowByView = normalizeBooleanWithFallback(src.customWindowByView, safeFallback.customWindowByView);
 
     if (!customWindowByView) {
         return {
@@ -317,9 +319,9 @@ function normalizeWindowLimitPolicy(candidate, safeFallback) {
 
     return {
         globalWindowRows,
-        listWindowRows: normalizePositiveInteger(candidate?.listWindowRows, globalWindowRows),
-        gridWindowRows: normalizePositiveInteger(candidate?.gridWindowRows, globalWindowRows),
-        gridWindowColumns: normalizePositiveInteger(candidate?.gridWindowColumns, safeFallback.gridWindowColumns),
+        listWindowRows: normalizePositiveInteger(src.listWindowRows, globalWindowRows),
+        gridWindowRows: normalizePositiveInteger(src.gridWindowRows, globalWindowRows),
+        gridWindowColumns: normalizePositiveInteger(src.gridWindowColumns, safeFallback.gridWindowColumns),
         customWindowByView,
     };
 }
@@ -332,8 +334,9 @@ function normalizeWindowLimitPolicy(candidate, safeFallback) {
  * @returns {object} Display related fields.
  */
 function normalizeDisplayPolicy(candidate, safeFallback) {
-    const displayMode = normalizeDisplayMode(candidate?.displayMode, safeFallback.displayMode);
-    const customDisplayByView = normalizeBooleanWithFallback(candidate?.customDisplayByView, safeFallback.customDisplayByView);
+    const src = candidate || {};
+    const displayMode = normalizeDisplayMode(src.displayMode, safeFallback.displayMode);
+    const customDisplayByView = normalizeBooleanWithFallback(src.customDisplayByView, safeFallback.customDisplayByView);
 
     if (!customDisplayByView) {
         return {
@@ -346,8 +349,8 @@ function normalizeDisplayPolicy(candidate, safeFallback) {
 
     return {
         displayMode,
-        listDisplayMode: normalizeDisplayMode(candidate?.listDisplayMode, displayMode),
-        gridDisplayMode: normalizeDisplayMode(candidate?.gridDisplayMode, displayMode),
+        listDisplayMode: normalizeDisplayMode(src.listDisplayMode, displayMode),
+        gridDisplayMode: normalizeDisplayMode(src.gridDisplayMode, displayMode),
         customDisplayByView,
     };
 }
@@ -360,8 +363,9 @@ function normalizeDisplayPolicy(candidate, safeFallback) {
  * @returns {object} Limit related fields.
  */
 function normalizeLimitPolicy(candidate, safeFallback) {
-    const defaultLimitMode = normalizeLimitMode(candidate?.defaultLimitMode, safeFallback.defaultLimitMode);
-    const customLimitByContext = normalizeBooleanWithFallback(candidate?.customLimitByContext, safeFallback.customLimitByContext);
+    const src = candidate || {};
+    const defaultLimitMode = normalizeLimitMode(src.defaultLimitMode, safeFallback.defaultLimitMode);
+    const customLimitByContext = normalizeBooleanWithFallback(src.customLimitByContext, safeFallback.customLimitByContext);
 
     if (!customLimitByContext) {
         return {
@@ -374,8 +378,8 @@ function normalizeLimitPolicy(candidate, safeFallback) {
 
     return {
         defaultLimitMode,
-        historyLimitMode: normalizeLimitMode(candidate?.historyLimitMode, safeFallback.historyLimitMode),
-        searchLimitMode: normalizeLimitMode(candidate?.searchLimitMode, safeFallback.searchLimitMode),
+        historyLimitMode: normalizeLimitMode(src.historyLimitMode, safeFallback.historyLimitMode),
+        searchLimitMode: normalizeLimitMode(src.searchLimitMode, safeFallback.searchLimitMode),
         customLimitByContext,
     };
 }
@@ -393,7 +397,7 @@ function normalizeResolvedPolicy(candidate = {}, fallbackPolicy = DEFAULT_RESOLV
     const windowLimits = normalizeWindowLimitPolicy(candidate, safeFallback);
     const displayPolicy = normalizeDisplayPolicy(candidate, safeFallback);
     const limitPolicy = normalizeLimitPolicy(candidate, safeFallback);
-    const unlimitedSafetyCap = normalizePositiveInteger(candidate?.unlimitedSafetyCap, safeFallback.unlimitedSafetyCap);
+    const unlimitedSafetyCap = normalizePositiveInteger(candidate.unlimitedSafetyCap, safeFallback.unlimitedSafetyCap);
 
     return {
         globalVisibleItems: visibleItems.globalVisibleItems,
@@ -432,7 +436,7 @@ function resolveSectionPolicyOverride(settings, sectionId, sectionConfig = null,
     }
 
     const root = readAdvancedOverridesRoot(settings);
-    const sectionOverride = root.sections?.[sectionId];
+    const sectionOverride = root.sections ? root.sections[sectionId] : null;
     const hasValidEntry = sectionOverride && typeof sectionOverride === 'object' && !Array.isArray(sectionOverride);
     const isEnabled = hasValidEntry && sectionOverride.enabled === true;
 
@@ -447,7 +451,7 @@ function resolveSectionPolicyOverride(settings, sectionId, sectionConfig = null,
         }
     }
 
-    const defaultPolicy = sectionConfig?.defaultPolicy;
+    const defaultPolicy = sectionConfig ? sectionConfig.defaultPolicy : null;
     if (!defaultPolicy || typeof defaultPolicy !== 'object' || Array.isArray(defaultPolicy)) {
         return null;
     }
@@ -595,7 +599,7 @@ function resolveWindowLimit(layoutFamily, resolvedPolicy) {
 export function resolveRecentlyUsedSectionPolicy({ settings, sectionId, sectionConfig = null, effectiveLayout = null, contextMode = 'history' } = {}) {
     const normalizedContextMode = contextMode === 'search' ? 'search' : 'history';
     const layoutFamily = normalizeLayoutFamily(effectiveLayout, sectionConfig);
-    const normalizedSectionId = sectionId || sectionConfig?.id || null;
+    const normalizedSectionId = sectionId || (sectionConfig && sectionConfig.id) || null;
 
     const globalPolicy = readGlobalPolicy(settings);
     const sectionPolicyOverride = resolveSectionPolicyOverride(settings, normalizedSectionId, sectionConfig, globalPolicy);

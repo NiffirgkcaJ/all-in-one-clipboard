@@ -21,7 +21,7 @@ let _isProviderRegistered = false;
  * @returns {Array} An array of unique clipboard items.
  */
 function collectClipboardItems(extension) {
-    const clipboardManager = extension?._clipboardManager;
+    const clipboardManager = extension ? extension._clipboardManager : null;
     if (!clipboardManager) {
         return [];
     }
@@ -68,8 +68,9 @@ export function ensureClipboardSearchProviderRegistered() {
                 return [];
             }
 
-            const items = collectClipboardItems(context?.extension);
-            const registry = context?.extension?._clipboardManager?._clipboardRegistry;
+            const extension = context ? context.extension : null;
+            const items = collectClipboardItems(extension);
+            const registry = extension && extension._clipboardManager ? extension._clipboardManager._clipboardRegistry : null;
             return items.filter((item) => ClipboardSearchUtils.isMatch(item, query, registry));
         },
         applyToTab: async ({ tabActor, query }) => {

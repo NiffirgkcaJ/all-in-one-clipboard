@@ -61,7 +61,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
      * @returns {Array<object>} Signal descriptors.
      */
     definition.getSignals = ({ extension, onRender }) => {
-        const clipboardManager = extension?._clipboardManager;
+        const clipboardManager = extension ? extension._clipboardManager : null;
         if (!clipboardManager) return [];
         return [{ obj: clipboardManager, id: clipboardManager.connect('history-changed', onRender) }];
     };
@@ -85,7 +85,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
      * @returns {Array<object>} Clipboard history items.
      */
     definition.getItems = ({ extension }) => {
-        const clipboardManager = extension?._clipboardManager;
+        const clipboardManager = extension ? extension._clipboardManager : null;
         return clipboardManager ? clipboardManager.getHistoryItems() : [];
     };
 
@@ -102,8 +102,8 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
             return [];
         }
 
-        const extension = runtimeContext?.extension;
-        const clipboardManager = extension?._clipboardManager;
+        const extension = runtimeContext ? runtimeContext.extension : null;
+        const clipboardManager = extension ? extension._clipboardManager : null;
         const historyIds = new Set((clipboardManager ? clipboardManager.getHistoryItems() : []).map((item) => item?.id));
         const providerItems = await searchViaProvider(ClipboardProvider.SEARCH_PROVIDER_ID, {
             query,
@@ -170,7 +170,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
      * @returns {Promise<boolean>} True when copy succeeds.
      */
     definition.onClick = async ({ itemData, extension, settings }) => {
-        const clipboardManager = extension?._clipboardManager;
+        const clipboardManager = extension ? extension._clipboardManager : null;
         if (!clipboardManager) return false;
 
         return await GlobalActionService.executeCopyAction({
@@ -178,7 +178,7 @@ function createRecentlyUsedDefinitionClipboardHistoryInstance() {
             onPostCopy: () => clipboardManager.promoteItemToTop(itemData.id),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
-            menu: extension?._indicator?.menu,
+            menu: extension._indicator.menu,
             pasteShortcut: clipboardManager.getCopyPasteShortcut(itemData),
         });
     };

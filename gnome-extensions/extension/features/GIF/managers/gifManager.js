@@ -30,7 +30,6 @@ export const GifManager = GObject.registerClass(
             this._uuid = extensionUUID;
             this._registry = new GifProviderRegistry(extensionPath, httpService, settings);
             this._activeProvider = null;
-            this._isDestroyed = false;
 
             this._readyPromise = this._initialize();
 
@@ -48,7 +47,7 @@ export const GifManager = GObject.registerClass(
         async _initialize() {
             await this._registry.loadProviders();
 
-            if (this._isDestroyed) {
+            if (!this._registry) {
                 return;
             }
 
@@ -192,8 +191,6 @@ export const GifManager = GObject.registerClass(
          * Clean up resources.
          */
         destroy() {
-            this._isDestroyed = true;
-
             if (this._providerChangedSignalId) {
                 this._settings.disconnect(this._providerChangedSignalId);
                 this._providerChangedSignalId = 0;
@@ -203,6 +200,9 @@ export const GifManager = GObject.registerClass(
                 this._activeProvider.destroy();
                 this._activeProvider = null;
             }
+
+            this._registry = null;
+            this._settings = null;
         }
     },
 );

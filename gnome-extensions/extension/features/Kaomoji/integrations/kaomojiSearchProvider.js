@@ -1,3 +1,4 @@
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { IOResource, ResourceItem } from '../../../shared/constants/storagePaths.js';
 import { registerSearchProvider, unregisterSearchProvider } from '../../../shared/services/serviceSearchHub.js';
 
@@ -39,7 +40,10 @@ async function loadKaomojiCatalog() {
         _kaomojiCatalogItems = Array.isArray(parsedItems) ? parsedItems : [];
         return _kaomojiCatalogItems;
     })()
-        .catch(() => [])
+        .catch((error) => {
+            Logger.error(`Failed to load kaomoji catalog: ${error.message}`, error);
+            return [];
+        })
         .finally(() => {
             _kaomojiCatalogPromise = null;
         });

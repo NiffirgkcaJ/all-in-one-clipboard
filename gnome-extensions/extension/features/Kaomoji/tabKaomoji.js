@@ -101,7 +101,7 @@ export const KaomojiTabContent = GObject.registerClass(
                 const kaomojiToCopy = data.kaomoji;
                 if (!kaomojiToCopy) return;
 
-                await this._selectionService.handleSelection(kaomojiToCopy, extension._indicator?.menu);
+                await this._selectionService.handleSelection(kaomojiToCopy, extension._indicator.menu);
             } catch (e) {
                 Logger.error('Error in kaomoji item selection', e);
             }

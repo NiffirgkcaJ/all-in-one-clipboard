@@ -101,7 +101,7 @@ export const SymbolsTabContent = GObject.registerClass(
                 const symbolToCopy = data.symbol;
                 if (!symbolToCopy) return;
 
-                await this._selectionService.handleSelection(symbolToCopy, extension._indicator?.menu);
+                await this._selectionService.handleSelection(symbolToCopy, extension._indicator.menu);
             } catch (e) {
                 Logger.error('Error in symbols item selection', e);
             }

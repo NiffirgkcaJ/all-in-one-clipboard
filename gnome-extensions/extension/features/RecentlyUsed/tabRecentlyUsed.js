@@ -125,8 +125,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          * @private
          */
         _closeMenuSafely() {
-            const menu = this._extension?._indicator?.menu;
-            if (!menu || !menu.close) {
+            const menu = this._extension && this._extension._indicator ? this._extension._indicator.menu : null;
+            if (!menu || typeof menu.close !== 'function') {
                 return;
             }
 
@@ -155,7 +155,17 @@ export const RecentlyUsedTabContent = GObject.registerClass(
                 return GLib.SOURCE_REMOVE;
             });
 
-            this._view?.onActivated();
+            if (this._view) {
+                this._view.onActivated();
+            } else {
+                this.initializationPromise
+                    .then(() => {
+                        if (this._view) {
+                            this._view.onActivated();
+                        }
+                    })
+                    .catch((e) => Logger.error(e));
+            }
         }
 
         /**

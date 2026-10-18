@@ -101,7 +101,9 @@ export class RecentlyUsedSignalManager {
             RecentlyUsedPolicySettingKeys.forEach((settingKey) => {
                 try {
                     const signalId = this._settings.connect(`changed::${settingKey}`, () => {
-                        this._onRender?.();
+                        if (this._onRender) {
+                            this._onRender();
+                        }
                     });
                     const normalized = this._normalizeSignalDescriptor(
                         {

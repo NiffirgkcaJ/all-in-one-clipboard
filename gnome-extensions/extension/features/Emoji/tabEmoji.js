@@ -56,7 +56,7 @@ export const EmojiTabContent = GObject.registerClass(
             this._skinToneSettingsSignalIds = [];
             this._viewer = null;
 
-            ensureEmojiSearchProviderRegistered({ extensionUuid: extension?.uuid });
+            ensureEmojiSearchProviderRegistered({ extensionUuid: extension.uuid });
 
             this._setupPromise = this._setup(extension, settings);
             this._setupPromise.catch((e) => {
@@ -135,7 +135,7 @@ export const EmojiTabContent = GObject.registerClass(
                 charToCopy = this._getModifiedChar({ ...data, char: originalChar });
             }
 
-            await this._selectionService.handleSelection(charToCopy, extension._indicator?.menu);
+            await this._selectionService.handleSelection(charToCopy, extension._indicator.menu);
         }
 
         /**
@@ -146,7 +146,9 @@ export const EmojiTabContent = GObject.registerClass(
          */
         _onSkinToneSettingsChanged() {
             this._loadAndApplyCustomSkinToneSettings();
-            this._viewer?.rerenderGrid();
+            if (this._viewer) {
+                this._viewer.rerenderGrid();
+            }
         }
 
         // ========================================================================
@@ -193,7 +195,9 @@ export const EmojiTabContent = GObject.registerClass(
                 this._setupPromise
                     .then(() => {
                         this.emit('set-main-tab-bar-visibility', false);
-                        this._viewer?.onSelected();
+                        if (this._viewer) {
+                            this._viewer.onSelected();
+                        }
                     })
                     .catch((e) => Logger.error(e));
             }
@@ -206,7 +210,9 @@ export const EmojiTabContent = GObject.registerClass(
          */
         async applyExternalSearch(query) {
             await this._setupPromise;
-            this._viewer?.applyExternalSearch(query, { focus: false });
+            if (this._viewer) {
+                this._viewer.applyExternalSearch(query, { focus: false });
+            }
         }
 
         /**
@@ -214,7 +220,9 @@ export const EmojiTabContent = GObject.registerClass(
          */
         async clearExternalSearch() {
             await this._setupPromise;
-            this._viewer?.clearExternalSearch({ focus: false });
+            if (this._viewer) {
+                this._viewer.clearExternalSearch({ focus: false });
+            }
         }
 
         /**

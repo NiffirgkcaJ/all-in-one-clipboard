@@ -1130,7 +1130,7 @@ export const StackLayout = GObject.registerClass(
          * @private
          */
         _handleHorizontalNavigation(isLeft, currentFocus, itemWidget) {
-            const focusables = typeof itemWidget.getFocusables === 'function' ? itemWidget.getFocusables() : [itemWidget];
+            const focusables = itemWidget.getFocusables ? itemWidget.getFocusables() : [itemWidget];
 
             const currentIndex = focusables.indexOf(currentFocus);
             if (currentIndex === -1) return Clutter.EVENT_PROPAGATE;
@@ -1167,7 +1167,7 @@ export const StackLayout = GObject.registerClass(
             if (!layoutData) return Clutter.EVENT_PROPAGATE;
 
             const finder = (targetRow) => {
-                if (typeof targetRow.findMatchingFocus === 'function') {
+                if (targetRow.findMatchingFocus) {
                     return targetRow.findMatchingFocus(currentFocus);
                 }
                 return targetRow;

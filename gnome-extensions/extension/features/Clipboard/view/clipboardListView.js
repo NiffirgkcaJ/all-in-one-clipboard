@@ -223,7 +223,7 @@ export const ClipboardListView = GObject.registerClass(
             if (!itemWidget) return undefined;
 
             return (targetItemWidget) => {
-                if (typeof targetItemWidget.findMatchingFocus === 'function') {
+                if (targetItemWidget.findMatchingFocus) {
                     return targetItemWidget.findMatchingFocus(currentFocus);
                 }
                 return targetItemWidget;

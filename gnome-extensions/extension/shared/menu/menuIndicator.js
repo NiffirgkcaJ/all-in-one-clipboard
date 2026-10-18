@@ -353,11 +353,15 @@ export const MenuIndicator = GObject.registerClass(
 
             MenuNavigationService.unregisterController();
 
-            this._tabBar?.destroy();
-            this._tabBar = null;
+            if (this._tabBar) {
+                this._tabBar.destroy();
+                this._tabBar = null;
+            }
 
-            this._contentArea?.destroy();
-            this._contentArea = null;
+            if (this._contentArea) {
+                this._contentArea.destroy();
+                this._contentArea = null;
+            }
 
             this._mainVerticalBox = null;
             this._settings = null;

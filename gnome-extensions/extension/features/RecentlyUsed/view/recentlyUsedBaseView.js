@@ -262,7 +262,9 @@ export const RecentlyUsedBaseView = GObject.registerClass(
 
             this._settingsBtn = RecentlyUsedBaseWidgetFactory.createSettingsButton();
             this._settingsBtn.connect('clicked', () => {
-                this._onOpenPreferences?.();
+                if (this._onOpenPreferences) {
+                    this._onOpenPreferences();
+                }
             });
             wrapper.add_child(this._settingsBtn);
 

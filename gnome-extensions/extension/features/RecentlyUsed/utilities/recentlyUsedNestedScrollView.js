@@ -103,11 +103,15 @@ export const RecentlyUsedNestedScrollView = GObject.registerClass(
             }
 
             if (isScrollAdjustmentAtBoundary(adjustment, scrollIntent)) {
-                this._onBoundaryHandoff?.();
+                if (this._onBoundaryHandoff) {
+                    this._onBoundaryHandoff();
+                }
                 return Clutter.EVENT_PROPAGATE;
             }
 
-            this._onInnerScroll?.();
+            if (this._onInnerScroll) {
+                this._onInnerScroll();
+            }
             return super.vfunc_scroll_event(event);
         }
     },

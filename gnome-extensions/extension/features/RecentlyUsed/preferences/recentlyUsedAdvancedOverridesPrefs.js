@@ -46,25 +46,16 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
     // ========================================================================
 
     const addRowToContainer = (container, row) => {
-        if (container?.add_row) {
+        if (container.add_row) {
             container.add_row(row);
             return;
         }
 
-        container?.add(row);
+        container.add(row);
     };
 
     const hasSchemaKey = (key) => {
-        if (!settings?.settings_schema || !settings.settings_schema.get_key) {
-            return false;
-        }
-
-        try {
-            settings.settings_schema.get_key(key);
-            return true;
-        } catch {
-            return false;
-        }
+        return settings.settings_schema.has_key(key);
     };
 
     const policyModeOptions = [
@@ -853,11 +844,7 @@ export function addRecentlyUsedAdvancedOverridesPrefs({ preferencesPage = null, 
     advancedWatchKeys.add(advancedOverridesKey);
 
     advancedWatchKeys.forEach((key) => {
-        try {
-            signalIds.push(settings.connect(`changed::${key}`, refreshAll));
-        } catch {
-            // Ignore missing keys to keep preferences resilient.
-        }
+        signalIds.push(settings.connect(`changed::${key}`, refreshAll));
     });
 
     refreshAll();

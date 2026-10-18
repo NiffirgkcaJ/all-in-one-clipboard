@@ -160,7 +160,7 @@ export const ClipboardGridView = GObject.registerClass(
 
             const hasUncached = initialItems.some((item) => {
                 const key = this._getDimensionKey(item);
-                return key && !this._dimensionCache?.has(key);
+                return key && Boolean(this._dimensionCache && !this._dimensionCache.has(key));
             });
             if (!hasUncached) return;
 
@@ -231,7 +231,7 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _getDimensionKey(item) {
             if (!item) return null;
-            const metadata = this._registry?.getViewMetadata(null, item);
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item) : null;
             return metadata?.dimensionKey || null;
         }
 
@@ -329,7 +329,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _estimateCardHeight(item) {
-            const metadata = this._registry?.getViewMetadata(null, item);
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item) : null;
             return metadata?.gridHeight || GridMetrics.HEIGHT_DEFAULT;
         }
 
@@ -349,7 +349,9 @@ export const ClipboardGridView = GObject.registerClass(
                 }
 
                 const idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    this._dimensionIdleIds?.delete(idleId);
+                    if (this._dimensionIdleIds) {
+                        this._dimensionIdleIds.delete(idleId);
+                    }
                     if (!this._dimensionCache) {
                         resolve();
                         return GLib.SOURCE_REMOVE;
@@ -371,7 +373,9 @@ export const ClipboardGridView = GObject.registerClass(
                     resolve();
                     return GLib.SOURCE_REMOVE;
                 });
-                this._dimensionIdleIds?.add(idleId);
+                if (this._dimensionIdleIds) {
+                    this._dimensionIdleIds.add(idleId);
+                }
             });
         }
 
@@ -434,7 +438,9 @@ export const ClipboardGridView = GObject.registerClass(
             this._gridPinnedItems = [];
             this._gridHistoryItems = [];
             this._gridIsSearching = false;
-            this._dimensionCache?.clear();
+            if (this._dimensionCache) {
+                this._dimensionCache.clear();
+            }
             super.clear();
         }
 
@@ -459,8 +465,10 @@ export const ClipboardGridView = GObject.registerClass(
             this._gridPinnedItems = null;
             this._gridHistoryItems = null;
             this._gridIsSearching = false;
-            this._dimensionCache?.clear();
-            this._dimensionCache = null;
+            if (this._dimensionCache) {
+                this._dimensionCache.clear();
+                this._dimensionCache = null;
+            }
             super.destroy();
         }
     },

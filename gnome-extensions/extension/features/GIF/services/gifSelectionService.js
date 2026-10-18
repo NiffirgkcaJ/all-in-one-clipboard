@@ -53,7 +53,7 @@ export class GifSelectionService {
      * @returns {Array} The list of recent GIFs.
      */
     getRecents() {
-        return this._recentsManager?.getRecents() || [];
+        return this._recentsManager ? this._recentsManager.getRecents() : [];
     }
 
     // ========================================================================
@@ -76,9 +76,9 @@ export class GifSelectionService {
                 return true;
             },
             onPostCopy: () => {
-                if (gifObject.preview_url) {
+                if (gifObject.preview_url && this._recentsManager) {
                     const recentItem = { ...gifObject, value: gifObject.full_url };
-                    this._recentsManager?.addItem(recentItem);
+                    this._recentsManager.addItem(recentItem);
                 }
             },
             settings: this._settings,

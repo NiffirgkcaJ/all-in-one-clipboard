@@ -44,13 +44,21 @@ export class RecentlyUsedRuntimeService {
         this._orderedSections = [];
         this._sectionsById = new Map();
         this._searchStateManager = new RecentlyUsedSearchStateManager({
-            onRender: () => this._onRender?.(),
+            onRender: () => {
+                if (this._onRender) {
+                    this._onRender();
+                }
+            },
         });
         this._signalManager = new RecentlyUsedSignalManager({
             getOrderedSections: () => this.getOrderedSections(),
             extension: this._extension,
             settings: this._settings,
-            onRender: () => this._onRender?.(),
+            onRender: () => {
+                if (this._onRender) {
+                    this._onRender();
+                }
+            },
         });
     }
 

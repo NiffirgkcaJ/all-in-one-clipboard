@@ -1,3 +1,5 @@
+import { Logger } from '../utilities/utilityLogger.js';
+
 const SEARCH_HANDOFF_TTL_MS = 10000;
 
 let _providersById = null;
@@ -71,8 +73,8 @@ function notifySearchHubSubscribers(event, payload) {
     getSubscribers().forEach((listener) => {
         try {
             listener({ event, payload });
-        } catch {
-            // No action needed for subscriber errors.
+        } catch (error) {
+            Logger.warn(`Subscriber error on "${event}": ${error.message}`, error);
         }
     });
 }
@@ -175,19 +177,23 @@ export function subscribeSearchHub(listener) {
  * @returns {boolean} True if registration succeeded.
  */
 export function registerSearchProvider(provider) {
-    const providerId = normalizeLookupKey(provider?.id);
+    if (!provider || typeof provider.id !== 'string') {
+        return false;
+    }
+
+    const providerId = normalizeLookupKey(provider.id);
     if (!providerId) {
         return false;
     }
 
-    const targetTabs = Array.isArray(provider?.targetTabs) ? provider.targetTabs.filter((tabName) => typeof tabName === 'string' && tabName.trim().length > 0) : [];
+    const targetTabs = Array.isArray(provider.targetTabs) ? provider.targetTabs.filter((tabName) => typeof tabName === 'string' && tabName.trim().length > 0) : [];
 
     getProvidersById().set(providerId, {
         id: providerId,
         targetTabs,
-        search: provider?.search || null,
-        applyToTab: provider?.applyToTab || null,
-        clearOnTab: provider?.clearOnTab || null,
+        search: typeof provider.search === 'function' ? provider.search : null,
+        applyToTab: typeof provider.applyToTab === 'function' ? provider.applyToTab : null,
+        clearOnTab: typeof provider.clearOnTab === 'function' ? provider.clearOnTab : null,
     });
 
     targetTabs.forEach((tabName) => {
@@ -243,14 +249,15 @@ export async function searchViaProvider(providerId, { query, context } = {}) {
     const provider = resolveProvider(providerId);
     const normalizedQuery = normalizeQuery(query);
 
-    if (!provider?.search || !normalizedQuery) {
+    if (!provider || !provider.search || !normalizedQuery) {
         return [];
     }
 
     try {
         const items = await provider.search({ query: normalizedQuery, context: context || {} });
         return Array.isArray(items) ? items : [];
-    } catch {
+    } catch (error) {
+        Logger.warn(`Provider search failed for "${providerId}": ${error.message}`, error);
         return [];
     }
 }
@@ -319,7 +326,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
     }
 
     let applied = false;
-    if (provider?.applyToTab) {
+    if (provider && provider.applyToTab) {
         try {
             applied = Boolean(
                 await provider.applyToTab({
@@ -328,15 +335,17 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
                     tabActor,
                 }),
             );
-        } catch {
+        } catch (error) {
+            Logger.warn(`Failed to apply search handoff via provider "${provider.id || handoff.providerId}": ${error.message}`, error);
             applied = false;
         }
     }
 
-    if (!applied && tabActor?.applyExternalSearch) {
+    if (!applied && tabActor && typeof tabActor.applyExternalSearch === 'function') {
         try {
             applied = Boolean(await tabActor.applyExternalSearch(handoff.query, handoff));
-        } catch {
+        } catch (error) {
+            Logger.warn(`Failed to apply search handoff on tab "${targetTab}": ${error.message}`, error);
             applied = false;
         }
     }
@@ -361,7 +370,7 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
     const resolvedProviderId = resolveProviderIdByTab(targetTab);
     const provider = resolveProvider(resolvedProviderId);
 
-    if (provider?.clearOnTab) {
+    if (provider && provider.clearOnTab) {
         try {
             return Boolean(
                 await provider.clearOnTab({
@@ -369,15 +378,17 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
                     targetTab: normalizeQuery(targetTab),
                 }),
             );
-        } catch {
+        } catch (error) {
+            Logger.warn(`Failed to clear search on tab via provider "${resolvedProviderId}": ${error.message}`, error);
             return false;
         }
     }
 
-    if (tabActor?.clearExternalSearch) {
+    if (tabActor && typeof tabActor.clearExternalSearch === 'function') {
         try {
             return Boolean(await tabActor.clearExternalSearch());
-        } catch {
+        } catch (error) {
+            Logger.warn(`Failed to clear search directly on tab "${targetTab}": ${error.message}`, error);
             return false;
         }
     }
@@ -391,11 +402,17 @@ export async function clearSearchOnTab({ targetTab, tabActor } = {}) {
  * @returns {void}
  */
 export function resetSearchHub() {
-    _providersById?.clear();
-    _providerIdByTab?.clear();
-    _subscribers?.clear();
+    if (_providersById) {
+        _providersById.clear();
+        _providersById = null;
+    }
+    if (_providerIdByTab) {
+        _providerIdByTab.clear();
+        _providerIdByTab = null;
+    }
+    if (_subscribers) {
+        _subscribers.clear();
+        _subscribers = null;
+    }
     _pendingHandoff = null;
-    _providersById = null;
-    _providerIdByTab = null;
-    _subscribers = null;
 }

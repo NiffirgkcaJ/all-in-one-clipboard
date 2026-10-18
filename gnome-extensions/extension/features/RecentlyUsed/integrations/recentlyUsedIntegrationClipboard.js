@@ -58,7 +58,7 @@ export async function triggerRecentlyUsedAutoPaste() {
  * @returns {boolean} True when custom rendering succeeds.
  */
 export function renderRecentlyUsedClipboardListContent({ button, box, itemData, styleClass, runtimeContext, imagePreviewSizeSettingKey }) {
-    const clipboardManager = runtimeContext?.extension?._clipboardManager;
+    const clipboardManager = runtimeContext && runtimeContext.extension ? runtimeContext.extension._clipboardManager : null;
     if (!clipboardManager) {
         return false;
     }
