@@ -54,6 +54,26 @@ export function ClipboardDefinitionContact() {
                 },
             ],
         }),
+        configureView: (config, item, options) => {
+            config.title = item.preview || item.text || 'Unknown Contact';
+            config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
+
+            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
+                config.icon = options.style.subtypes[item.subtype].icon;
+            }
+
+            const linkPreviewsDir = options.storage?.linkPreviewsDir;
+            if (item.subtype === 'email' && item.icon_filename && linkPreviewsDir) {
+                const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+                config.giconPath = iconPath;
+                config.gicon = IOImage.loadIcon(iconPath);
+            }
+
+            if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
+                const countryCode = item.metadata.code.toLowerCase();
+                config.flagPath = `${ResourcePath.FLAGS}/${countryCode}.svg`;
+            }
+        },
         getViewFingerprint: (config, _item, options) => {
             const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
             return [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || '', floor].join('|');
@@ -82,26 +102,6 @@ export function ClipboardDefinitionContact() {
             getMergeText: async (item, { textContents }) => {
                 return textContents.get(item.id) || item.preview || item.text || '';
             },
-        },
-        configureView: (config, item, options) => {
-            config.title = item.preview || item.text || 'Unknown Contact';
-            config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
-
-            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
-                config.icon = options.style.subtypes[item.subtype].icon;
-            }
-
-            const linkPreviewsDir = options.storage?.linkPreviewsDir;
-            if (item.subtype === 'email' && item.icon_filename && linkPreviewsDir) {
-                const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
-                config.giconPath = iconPath;
-                config.gicon = IOImage.loadIcon(iconPath);
-            }
-
-            if (item.subtype === 'phone' && item.metadata && item.metadata.code) {
-                const countryCode = item.metadata.code.toLowerCase();
-                config.flagPath = `${ResourcePath.FLAGS}/${countryCode}.svg`;
-            }
         },
         destroy: () => linkProcessor.destroy(),
     };

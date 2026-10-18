@@ -67,6 +67,23 @@ export function ClipboardDefinitionResource() {
             const exists = verifyResourceUrisExist(item.file_uri);
             return { healed: false, isCorrupted: !exists };
         },
+        configureView: (config, item, options) => {
+            config.title = item.preview;
+
+            if (item.count && item.count > 1) {
+                config.subtitle = `${item.count} ${item.subtype}`;
+            } else {
+                config.subtitle = item.file_uri;
+            }
+
+            if (!verifyResourceUrisExist(item.file_uri)) {
+                item.is_corrupted = true;
+            }
+
+            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
+                config.icon = options.style.subtypes[item.subtype].icon;
+            }
+        },
         getViewFingerprint: (config, _item, options) => {
             const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
             return [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || '', floor].join('|');
@@ -184,27 +201,6 @@ export function ClipboardDefinitionResource() {
             },
             getMergeUri: (item) => item.file_uri,
             getMergeText: async (item) => item.text || item.file_uri || item.preview || '',
-        },
-        configureView: (config, item, options) => {
-            config.title = item.preview;
-
-            if (item.count && item.count > 1) {
-                config.subtitle = `${item.count} ${item.subtype}`;
-            } else {
-                config.subtitle = item.file_uri;
-            }
-
-            if (!verifyResourceUrisExist(item.file_uri)) {
-                item.is_corrupted = true;
-            }
-
-            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
-                config.icon = options.style.subtypes[item.subtype].icon;
-            } else if (options.style?.icon) {
-                config.icon = options.style.icon;
-            } else {
-                config.icon = 'clipboard-type-resource-item-symbolic.svg';
-            }
         },
     };
 }

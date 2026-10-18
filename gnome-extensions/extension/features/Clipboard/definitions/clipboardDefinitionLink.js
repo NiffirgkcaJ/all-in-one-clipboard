@@ -47,6 +47,17 @@ export function ClipboardDefinitionLink() {
                 },
             ],
         }),
+        configureView: (config, item, options) => {
+            config.title = item.title || item.url;
+            config.subtitle = item.url;
+
+            const linkPreviewsDir = options.storage?.linkPreviewsDir;
+            if (item.icon_filename && linkPreviewsDir) {
+                const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
+                config.giconPath = iconPath;
+                config.gicon = IOImage.loadIcon(iconPath);
+            }
+        },
         getViewFingerprint: (config, _item, options) => {
             const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
             return [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || '', floor].join('|');
@@ -70,17 +81,6 @@ export function ClipboardDefinitionLink() {
                 return true;
             },
             getMergeText: (item) => item.url,
-        },
-        configureView: (config, item, options) => {
-            config.title = item.title || item.url;
-            config.subtitle = item.url;
-
-            const linkPreviewsDir = options.storage?.linkPreviewsDir;
-            if (item.icon_filename && linkPreviewsDir) {
-                const iconPath = GLib.build_filenamev([linkPreviewsDir, item.icon_filename]);
-                config.giconPath = iconPath;
-                config.gicon = IOImage.loadIcon(iconPath);
-            }
         },
         destroy: () => linkProcessor.destroy(),
     };

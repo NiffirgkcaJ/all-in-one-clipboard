@@ -51,6 +51,18 @@ export function ClipboardDefinitionImage() {
             warmupItem: (item, { storage }) => ImageProcessor.ensurePreviewForItem(item, storage.imagesDir, storage.imagePreviewsDir),
             warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
         }),
+        configureView: (config, item, options) => {
+            config.text = item.preview || item.text || '';
+            const filename = item.image_filename;
+            const sourceDir = options.storage?.imagesDir;
+            const previewDir = options.storage?.imagePreviewsDir;
+            if (filename && sourceDir && previewDir) {
+                config.sourcePath = GLib.build_filenamev([sourceDir, filename]);
+                const base = filename.replace(/\.[^/.]+$/, '');
+                const previewName = item.preview_filename || `preview_${base}.png`;
+                config.previewPath = GLib.build_filenamev([previewDir, previewName]);
+            }
+        },
         getViewFingerprint: (_config, item, options) => {
             const size = options.previewSize || options.imagePreviewSize || '';
             const floor = options.imageEnforceDefaultHeight ? '1' : '0';
@@ -107,18 +119,6 @@ export function ClipboardDefinitionImage() {
                 }
                 return null;
             },
-        },
-        configureView: (config, item, options) => {
-            config.text = item.preview || item.text || '';
-            const filename = item.image_filename;
-            const sourceDir = options.storage?.imagesDir;
-            const previewDir = options.storage?.imagePreviewsDir;
-            if (filename && sourceDir && previewDir) {
-                config.sourcePath = GLib.build_filenamev([sourceDir, filename]);
-                const base = filename.replace(/\.[^/.]+$/, '');
-                const previewName = item.preview_filename || `preview_${base}.png`;
-                config.previewPath = GLib.build_filenamev([previewDir, previewName]);
-            }
         },
     };
 }

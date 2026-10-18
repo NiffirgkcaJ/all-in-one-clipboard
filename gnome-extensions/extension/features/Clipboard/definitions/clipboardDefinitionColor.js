@@ -41,6 +41,27 @@ export function ClipboardDefinitionColor() {
                 },
             ],
         }),
+        configureView: (config, item, options) => {
+            config.title = item.color_value;
+            config.subtitle = item.format_type;
+            config.cssColor = item.color_value;
+
+            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
+                config.icon = options.style.subtypes[item.subtype].icon;
+            }
+
+            const filename = item.gradient_filename;
+            const imagesDir = options.storage?.imagesDir;
+            if (filename && imagesDir) {
+                const gradientPath = GLib.build_filenamev([imagesDir, filename]);
+                config.tileStyle = `background-image: url('file://${gradientPath}'); background-size: cover;`;
+                config.gridTileStyle = `background-image: url('file://${gradientPath}'); background-size: contain; background-repeat: repeat;`;
+            } else {
+                const color = config.cssColor || '#000000';
+                config.tileStyle = `background-color: ${color};`;
+                config.gridTileStyle = config.cssColor ? `background-color: ${config.cssColor};` : '';
+            }
+        },
         getViewFingerprint: (config, item, options) => {
             const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
             return [item.gradient_filename || '', config.cssColor || '', floor].join('|');
@@ -65,27 +86,6 @@ export function ClipboardDefinitionColor() {
                 return true;
             },
             getMergeText: (item) => item.color_value,
-        },
-        configureView: (config, item, options) => {
-            config.title = item.color_value;
-            config.subtitle = item.format_type;
-            config.cssColor = item.color_value;
-
-            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
-                config.icon = options.style.subtypes[item.subtype].icon;
-            }
-
-            const filename = item.gradient_filename;
-            const imagesDir = options.storage?.imagesDir;
-            if (filename && imagesDir) {
-                const gradientPath = GLib.build_filenamev([imagesDir, filename]);
-                config.tileStyle = `background-image: url('file://${gradientPath}'); background-size: cover;`;
-                config.gridTileStyle = `background-image: url('file://${gradientPath}'); background-size: contain; background-repeat: repeat;`;
-            } else {
-                const color = config.cssColor || '#000000';
-                config.tileStyle = `background-color: ${color};`;
-                config.gridTileStyle = config.cssColor ? `background-color: ${config.cssColor};` : '';
-            }
         },
     };
 }

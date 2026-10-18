@@ -43,6 +43,16 @@ export function ClipboardDefinitionCode() {
             ],
         }),
         hasFullContent: true,
+        configureView: (config, item, options) => {
+            const raw = item.preview || item.text || '';
+            const previewLines = options.codePreviewLines;
+            config.text = ProcessorUtils.clampLines(raw, previewLines);
+            const rawLines = item.raw_lines || 0;
+            const previewLinesCount = config.text ? ProcessorUtils.getLineCount(config.text) : 0;
+            const lineCount = Math.min(previewLines, previewLinesCount || rawLines);
+            config.gutterText = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
+            config.badgeText = rawLines > 0 ? `${rawLines} lines` : null;
+        },
         getViewFingerprint: (config, _item, options) => {
             const lines = options.codePreviewLines || '';
             const floor = options.codeEnforceDefaultHeight ? '1' : '0';
@@ -93,16 +103,6 @@ export function ClipboardDefinitionCode() {
             getMergeText: async (item, { textContents }) => {
                 return textContents.get(item.id) || item.text || item.preview || '';
             },
-        },
-        configureView: (config, item, options) => {
-            const raw = item.preview || item.text || '';
-            const previewLines = options.codePreviewLines;
-            config.text = ProcessorUtils.clampLines(raw, previewLines);
-            const rawLines = item.raw_lines || 0;
-            const previewLinesCount = config.text ? ProcessorUtils.getLineCount(config.text) : 0;
-            const lineCount = Math.min(previewLines, previewLinesCount || rawLines);
-            config.gutterText = Array.from({ length: lineCount }, (_unused, i) => (i + 1).toString()).join('\n');
-            config.badgeText = rawLines > 0 ? `${rawLines} lines` : null;
         },
     };
 }
