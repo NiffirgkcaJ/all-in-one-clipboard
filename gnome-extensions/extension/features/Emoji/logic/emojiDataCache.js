@@ -33,9 +33,7 @@ export function getSkinnableCharSet() {
     _cachePromise = (async () => {
         try {
             const rawData = await IOResource.readJson(ResourceItem.EMOJI);
-            if (!rawData) {
-                throw new Error('Failed to load emojis.json from GResource.');
-            }
+            Logger.assert(rawData, 'Failed to load emojis.json from GResource.', 'EmojiDataCache');
 
             const parser = new EmojiJsonParser();
             const emojiData = parser.parse(rawData);

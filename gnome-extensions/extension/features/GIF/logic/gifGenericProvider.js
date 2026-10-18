@@ -23,9 +23,7 @@ export class GifGenericProvider {
         this._httpService = httpService;
         this._settings = settings;
 
-        if (!this._def.base_url || !this._def.endpoints) {
-            throw new Error(`Invalid provider definition for ${this._def.name}: missing base_url or endpoints`);
-        }
+        Logger.assert(this._def.base_url && this._def.endpoints, `Invalid provider definition for ${this._def.name}: missing base_url or endpoints`, 'GifGenericProvider');
     }
 
     /**

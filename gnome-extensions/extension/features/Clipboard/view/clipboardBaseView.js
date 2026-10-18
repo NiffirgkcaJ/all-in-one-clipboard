@@ -5,6 +5,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
@@ -88,7 +89,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _createPinnedContainer() {
-            throw new Error('Method _createPinnedContainer must be implemented by subclass');
+            Logger.assert(false, 'Method _createPinnedContainer must be implemented by subclass', 'ClipboardBaseView');
         }
 
         /**
@@ -98,7 +99,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _createHistoryContainer() {
-            throw new Error('Method _createHistoryContainer must be implemented by subclass');
+            Logger.assert(false, 'Method _createHistoryContainer must be implemented by subclass', 'ClipboardBaseView');
         }
 
         /**
@@ -108,7 +109,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _getItemFactory() {
-            throw new Error('Method _getItemFactory must be implemented by subclass');
+            Logger.assert(false, 'Method _getItemFactory must be implemented by subclass', 'ClipboardBaseView');
         }
 
         /**
@@ -119,7 +120,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @abstract
          */
         _getItemOptions(_isPinned) {
-            throw new Error('Method _getItemOptions must be implemented by subclass');
+            Logger.assert(false, 'Method _getItemOptions must be implemented by subclass', 'ClipboardBaseView');
         }
 
         /**

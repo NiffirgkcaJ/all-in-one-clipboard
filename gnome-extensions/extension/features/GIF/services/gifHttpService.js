@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 import { IOJson } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { GifProvider } from '../constants/gifConstants.js';
 
@@ -140,11 +141,9 @@ export class GifHttpService {
             });
         });
 
-        if (!bytes) throw new GifHttpError('No data received');
+        Logger.assert(bytes, 'No data received', 'GifHttpService', GifHttpError);
         const parsed = IOJson.parseBytes(bytes.get_data());
-        if (!parsed) {
-            throw new GifHttpError('Invalid JSON response');
-        }
+        Logger.assert(parsed, 'Invalid JSON response', 'GifHttpService', GifHttpError);
         return parsed;
     }
 

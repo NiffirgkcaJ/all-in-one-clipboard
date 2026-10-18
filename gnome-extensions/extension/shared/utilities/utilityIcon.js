@@ -317,9 +317,7 @@ export function createLogo(config) {
 
             try {
                 const [ok, contents] = source.load_contents_finish(res);
-                if (!ok) {
-                    throw new Error('Failed to read logo contents.');
-                }
+                Logger.assert(ok, 'Failed to read logo contents.', 'UtilityIcon');
 
                 applySvgContents(contents);
             } catch (e) {

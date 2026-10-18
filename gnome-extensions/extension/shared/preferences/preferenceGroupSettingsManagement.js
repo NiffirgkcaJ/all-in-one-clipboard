@@ -164,14 +164,10 @@ function handleImportSettings(settings, window) {
             file.load_contents_async(null, (fileSource, readResult) => {
                 try {
                     const [success, contents] = fileSource.load_contents_finish(readResult);
-                    if (!success) {
-                        throw new Error('Failed to read file contents.');
-                    }
+                    Logger.assert(success, 'Failed to read file contents.', 'SettingsManagement');
 
                     const importedData = IOJson.parseBytes(contents);
-                    if (!importedData) {
-                        throw new Error('Failed to parse JSON.');
-                    }
+                    Logger.assert(importedData, 'Failed to parse JSON.', 'SettingsManagement');
                     applyImportedSettings(settings, importedData);
                     showToast(window, _('Settings successfully imported.'));
                 } catch (err) {
@@ -230,9 +226,7 @@ function handleResetSettings(settings, window) {
  * @param {Object} importedData
  */
 function applyImportedSettings(settings, importedData) {
-    if (typeof importedData !== 'object' || importedData === null) {
-        throw new Error('Config file root must be an object.');
-    }
+    Logger.assert(Boolean(importedData && typeof importedData === 'object' && !Array.isArray(importedData)), 'Config file root must be an object.', 'SettingsManagement');
 
     const availableKeys = settings.list_keys();
     for (const [key, value] of Object.entries(importedData)) {

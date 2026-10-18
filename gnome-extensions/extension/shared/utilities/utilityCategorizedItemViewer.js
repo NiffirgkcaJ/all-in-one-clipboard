@@ -662,7 +662,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                 });
 
                 const contents = await IOResource.read(this._config.jsonPath);
-                if (!contents) throw new Error('Failed to load resource contents');
+                Logger.assert(contents, 'Failed to load resource contents', 'CategorizedItemViewer');
 
                 await new Promise((resolve) => {
                     if (this._yieldTimeoutId) {
@@ -679,7 +679,7 @@ export const CategorizedItemViewer = GObject.registerClass(
                 const rawData = IOJson.parseBytes(contents);
 
                 this._mainData = this._parser.parse(rawData);
-                if (!this._mainData) throw new Error('Parser returned invalid data.');
+                Logger.assert(this._mainData, 'Parser returned invalid data.', 'CategorizedItemViewer');
 
                 const categoryProp = this._config.categoryPropertyName;
                 const uniqueCategoriesInOrder = [];

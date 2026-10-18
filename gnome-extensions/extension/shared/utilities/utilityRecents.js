@@ -49,14 +49,14 @@ export const RecentItemsManager = GObject.registerClass(
             this._refCount = 1;
             this._recents = [];
 
-            if (!absolutePath || typeof absolutePath !== 'string' || absolutePath.trim() === '') {
-                throw new Error(`RecentItemsManager requires a valid absolutePath.`);
-            }
+            Logger.assert(Boolean(absolutePath && typeof absolutePath === 'string' && absolutePath.trim() !== ''), 'RecentItemsManager requires a valid absolutePath.', 'RecentItemsManager');
             this._cacheFilePath = absolutePath.trim();
 
-            if (!maxItemsSettingKey || typeof maxItemsSettingKey !== 'string' || maxItemsSettingKey.trim() === '') {
-                throw new Error(`RecentItemsManager requires a valid maxItemsSettingKey for ${this._cacheFilePath}.`);
-            }
+            Logger.assert(
+                Boolean(maxItemsSettingKey && typeof maxItemsSettingKey === 'string' && maxItemsSettingKey.trim() !== ''),
+                `RecentItemsManager requires a valid maxItemsSettingKey for ${this._cacheFilePath}.`,
+                'RecentItemsManager',
+            );
             this._maxItemsSettingKey = maxItemsSettingKey.trim();
 
             this._isLoaded = false;

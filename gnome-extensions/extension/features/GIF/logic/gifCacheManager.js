@@ -91,9 +91,7 @@ class GifCacheManager {
  */
 export function getGifCacheManager(uuid, settings) {
     if (_instance === null) {
-        if (!uuid || !settings) {
-            throw new Error('GifCacheManager must be initialized with uuid and settings.');
-        }
+        Logger.assert(uuid && settings, 'GifCacheManager must be initialized with uuid and settings.', 'GifCacheManager');
         _instance = new GifCacheManager(uuid, settings);
     }
     return _instance;
