@@ -56,14 +56,6 @@ export function addPreferenceClipboardSettings({ page, settings, window }) {
     group.add(unpinOnPasteRow);
     settings.bind('unpin-on-paste', unpinOnPasteRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    // Capture Files and Folders
-    const captureFilesRow = new Adw.SwitchRow({
-        title: _('Capture Files and Folders'),
-        subtitle: _('Record files and folders copied in file managers.'),
-    });
-    group.add(captureFilesRow);
-    settings.bind('capture-resource-items', captureFilesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
     // Show Action Bar
     const showActionBarRow = new Adw.SwitchRow({
         title: _('Show Clipboard Action Bar'),
@@ -244,6 +236,72 @@ export function addPreferenceClipboardSettings({ page, settings, window }) {
     });
     htmlExpander.add_row(showImagePasteButtonRow);
     settings.bind('clipboard-html-show-image-paste-button', showImagePasteButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    // Resource Content Settings
+    const resourceExpander = new Adw.ExpanderRow({
+        title: _('Resource Content Settings'),
+        subtitle: _('Capture and paste options for file and folder items.'),
+    });
+    group.add(resourceExpander);
+
+    // Capture Files and Folders
+    const captureFilesRow = new Adw.SwitchRow({
+        title: _('Capture Files and Folders'),
+        subtitle: _('Record files and folders copied in file managers.'),
+    });
+    resourceExpander.add_row(captureFilesRow);
+    settings.bind('capture-resource-items', captureFilesRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    // Paste Format
+    const resourceFormatModes = [
+        { id: 'resource', label: _('Files & Folders') },
+        { id: 'uri', label: _('URI Links') },
+    ];
+
+    const resourcePasteFormatRow = new Adw.ComboRow({
+        title: _('Paste Format'),
+        subtitle: _('Default paste format for file and folder items.'),
+        model: new Gtk.StringList({ strings: resourceFormatModes.map((f) => f.label) }),
+    });
+    resourceExpander.add_row(resourcePasteFormatRow);
+
+    const currentResourcePasteFormat = settings.get_string('clipboard-resource-paste-format') || 'resource';
+    const initialResourceFormatIndex = resourceFormatModes.findIndex((f) => f.id === currentResourcePasteFormat);
+    resourcePasteFormatRow.set_selected(initialResourceFormatIndex > -1 ? initialResourceFormatIndex : 0);
+
+    resourcePasteFormatRow.connect('notify::selected', () => {
+        const index = resourcePasteFormatRow.get_selected();
+        if (index >= 0 && index < resourceFormatModes.length) {
+            const newFormat = resourceFormatModes[index].id;
+            if (settings.get_string('clipboard-resource-paste-format') !== newFormat) {
+                settings.set_string('clipboard-resource-paste-format', newFormat);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-resource-paste-format', () => {
+        const newFormat = settings.get_string('clipboard-resource-paste-format');
+        const newIndex = resourceFormatModes.findIndex((f) => f.id === newFormat);
+        if (newIndex > -1 && resourcePasteFormatRow.get_selected() !== newIndex) {
+            resourcePasteFormatRow.set_selected(newIndex);
+        }
+    });
+
+    // Show Format Paste Button
+    const showResourceFormatPasteButtonRow = new Adw.SwitchRow({
+        title: _('Show Format Paste Button'),
+        subtitle: _('Show button to paste alternative format.'),
+    });
+    resourceExpander.add_row(showResourceFormatPasteButtonRow);
+    settings.bind('clipboard-resource-show-format-paste-button', showResourceFormatPasteButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    const syncResourceSensitivity = () => {
+        const captureEnabled = settings.get_boolean('capture-resource-items');
+        resourcePasteFormatRow.sensitive = captureEnabled;
+        showResourceFormatPasteButtonRow.sensitive = captureEnabled;
+    };
+    syncResourceSensitivity();
+    settings.connect('changed::capture-resource-items', syncResourceSensitivity);
 
     // Clipboard Layout Mode
     const layoutModes = [

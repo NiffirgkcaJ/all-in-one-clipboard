@@ -57,10 +57,10 @@ export class ResourceProcessor {
         }
 
         if (validItems.length === 1) {
-            return await ResourceProcessor._createSingleResult(validItems[0]);
+            return await ResourceProcessor._createSingleResult(validItems[0], cleanText);
         }
 
-        return ResourceProcessor._createMultipleResult(validItems);
+        return ResourceProcessor._createMultipleResult(validItems, cleanText);
     }
 
     // ========================================================================
@@ -129,10 +129,11 @@ export class ResourceProcessor {
      * Create result for a single file or directory item.
      *
      * @param {object} single Resolved item descriptor.
+     * @param {string} cleanText Cleaned input text.
      * @returns {Promise<object>} Clipboard result object.
      * @private
      */
-    static async _createSingleResult(single) {
+    static async _createSingleResult(single, cleanText) {
         if (single.isRegular && single.mime && single.mime.startsWith('image/') && single.size <= MAX_PREVIEW_SIZE_BYTES) {
             const bytes = await IOFile.read(single.path);
 
@@ -157,6 +158,7 @@ export class ResourceProcessor {
             subtype,
             count: 1,
             file_uri: single.uri,
+            text: cleanText,
             preview: single.name,
             hash: uriHash,
         };
@@ -166,10 +168,11 @@ export class ResourceProcessor {
      * Create result for multiple file and directory items.
      *
      * @param {Array<object>} validItems Resolved item descriptors.
+     * @param {string} cleanText Cleaned input text.
      * @returns {object} Clipboard result object.
      * @private
      */
-    static _createMultipleResult(validItems) {
+    static _createMultipleResult(validItems, cleanText) {
         const allDirectories = validItems.every((item) => item.isDirectory);
         const allRegular = validItems.every((item) => item.isRegular);
         let subtype = 'items';
@@ -199,6 +202,7 @@ export class ResourceProcessor {
             subtype,
             count,
             file_uri: allUris,
+            text: cleanText,
             preview,
             hash: uriHash,
         };

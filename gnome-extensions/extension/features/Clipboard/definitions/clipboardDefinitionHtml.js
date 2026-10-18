@@ -84,6 +84,8 @@ export function ClipboardDefinitionHtml() {
         },
         ...ClipboardIntegrationItemActions({
             customActions: (item, context) => {
+                if (item.is_corrupted) return [];
+
                 const buttons = [];
                 const { settings, onItemCopy, styleOptions } = context;
 

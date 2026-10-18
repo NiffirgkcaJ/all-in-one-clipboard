@@ -28,6 +28,14 @@
         <file compressed="true">assets/icons/ui/clipboard-paste-html-image-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-html-plain-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-html-rich-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-file-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-files-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-folder-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-folders-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-item-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-items-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-uri-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-resource-uris-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-pin-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-star-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-type-code-symbolic.svg</file>

@@ -172,6 +172,10 @@ export const ClipboardTabContent = GObject.registerClass(
                 () => this._scheduleRedraw(),
                 'changed::clipboard-html-show-image-paste-button',
                 () => this._scheduleRedraw(),
+                'changed::clipboard-resource-paste-format',
+                () => this._scheduleRedraw(),
+                'changed::clipboard-resource-show-format-paste-button',
+                () => this._scheduleRedraw(),
                 this,
             );
         }

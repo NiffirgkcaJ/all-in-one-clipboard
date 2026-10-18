@@ -231,7 +231,10 @@ export const ClipboardManager = GObject.registerClass(
          * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
          */
         getCopyPasteShortcut(itemData, options = {}) {
-            return this._clipboardRegistry.getCopyPasteShortcut(itemData, options);
+            return this._clipboardRegistry.getCopyPasteShortcut(itemData, {
+                settings: this._settings,
+                ...options,
+            });
         }
 
         /**

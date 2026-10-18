@@ -52,6 +52,38 @@ export const ClipboardIcons = {
         icon: 'clipboard-paste-html-rich-symbolic.svg',
         iconSize: 16,
     },
+    ACTION_PASTE_RESOURCE_FILE: {
+        icon: 'clipboard-paste-resource-file-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_FILES: {
+        icon: 'clipboard-paste-resource-files-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_FOLDER: {
+        icon: 'clipboard-paste-resource-folder-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_FOLDERS: {
+        icon: 'clipboard-paste-resource-folders-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_ITEM: {
+        icon: 'clipboard-paste-resource-item-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_ITEMS: {
+        icon: 'clipboard-paste-resource-items-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_URI: {
+        icon: 'clipboard-paste-resource-uri-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_URIS: {
+        icon: 'clipboard-paste-resource-uris-symbolic.svg',
+        iconSize: 16,
+    },
     ACTION_PIN: {
         icon: 'clipboard-pin-symbolic.svg',
         iconSize: 16,

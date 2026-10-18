@@ -455,11 +455,6 @@
             <summary>Unpin item on paste</summary>
             <description>When a pinned item is pasted, automatically unpin it and move it to the top of the history. If disabled, pinned items will remain pinned after pasting.</description>
         </key>
-        <key name="capture-resource-items" type="b">
-            <default>true</default>
-            <summary>Capture files and folders</summary>
-            <description>When enabled, files and folders copied in file managers will be recorded in the clipboard history.</description>
-        </key>
         <key name="clipboard-show-action-bar" type="b">
             <default>true</default>
             <summary>Show Clipboard Action Bar</summary>
@@ -515,6 +510,25 @@
             <default>true</default>
             <summary>Show HTML Image Paste Button</summary>
             <description>Show button to paste embedded images on HTML items.</description>
+        </key>
+        <key name="capture-resource-items" type="b">
+            <default>true</default>
+            <summary>Capture files and folders</summary>
+            <description>When enabled, files and folders copied in file managers will be recorded in the clipboard history.</description>
+        </key>
+        <key name="clipboard-resource-paste-format" type="s">
+            <default>'resource'</default>
+            <choices>
+                <choice value='resource'/>
+                <choice value='uri'/>
+            </choices>
+            <summary>Resource Paste Format</summary>
+            <description>Default paste format for file and folder items.</description>
+        </key>
+        <key name="clipboard-resource-show-format-paste-button" type="b">
+            <default>true</default>
+            <summary>Show Resource Format Paste Button</summary>
+            <description>Show button to paste alternative format on file and folder items.</description>
         </key>
         <key name="clipboard-layout-mode" type="s">
             <default>'list'</default>

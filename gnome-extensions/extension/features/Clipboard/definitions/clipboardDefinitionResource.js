@@ -1,9 +1,13 @@
 import GLib from 'gi://GLib';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
+import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
+import { ClipboardIcons } from '../constants/clipboardConstants.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
+import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 import { ResourceProcessor } from '../processors/clipboardResourceProcessor.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
@@ -53,7 +57,7 @@ export function ClipboardDefinitionResource() {
         viewType: 'header',
         processText: (text, context) => ResourceProcessor.process(text, context),
         createItem: ClipboardIntegrationInlineItem({
-            fields: ['preview', 'file_uri', 'hash', 'subtype', 'count'],
+            fields: ['preview', 'file_uri', 'text', 'hash', 'subtype', 'count'],
             defaults: {
                 subtype: 'file',
                 count: 1,
@@ -76,14 +80,78 @@ export function ClipboardDefinitionResource() {
                 listHeight,
             };
         },
+        ...ClipboardIntegrationItemActions({
+            customActions: (item, context) => {
+                if (item.is_corrupted) return [];
+
+                const buttons = [];
+                const { settings, onItemCopy, styleOptions } = context;
+
+                // Format Action
+                if (settings.get_boolean('clipboard-resource-show-format-paste-button')) {
+                    const isDefaultResource = settings.get_string('clipboard-resource-paste-format') === 'resource';
+                    const isMultiple = Boolean(item.count && item.count > 1);
+
+                    let iconDef;
+                    let tooltip;
+
+                    if (isDefaultResource) {
+                        iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_URIS : ClipboardIcons.ACTION_PASTE_RESOURCE_URI;
+                        tooltip = isMultiple ? _('Paste as URIs') : _('Paste as URI');
+                    } else {
+                        const subtype = item.subtype || 'file';
+                        if (subtype.startsWith('folder')) {
+                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDERS : ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDER;
+                            tooltip = isMultiple ? _('Paste as Folders') : _('Paste as Folder');
+                        } else if (subtype.startsWith('file')) {
+                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FILES : ClipboardIcons.ACTION_PASTE_RESOURCE_FILE;
+                            tooltip = isMultiple ? _('Paste as Files') : _('Paste as File');
+                        } else {
+                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_ITEMS : ClipboardIcons.ACTION_PASTE_RESOURCE_ITEM;
+                            tooltip = isMultiple ? _('Paste as Items') : _('Paste as Item');
+                        }
+                    }
+
+                    buttons.push(
+                        ClipboardBaseWidgetFactory.createActionButton({
+                            icon: iconDef,
+                            tooltip,
+                            action: 'format-paste',
+                            styleOptions,
+                            onClick: () => onItemCopy(item, { format: isDefaultResource ? 'uri' : 'resource' }),
+                        }),
+                    );
+                }
+
+                return buttons;
+            },
+        }),
         getSearchTerms: (item) => [item.preview, item.file_uri],
         copyOptions: {
-            pasteShortcut: 'ctrl-v',
+            pasteShortcut: (_item, options) => {
+                const isUri = options?.format === 'uri' || (!options?.format && options?.settings?.get_string('clipboard-resource-paste-format') === 'uri');
+                return isUri ? 'shift-insert' : 'ctrl-v';
+            },
             mergeBehavior: 'file',
-            copyItem: async (item, { manager }) => {
+            copyItem: async (item, { manager, format, settings }) => {
                 if (item.is_corrupted || !verifyResourceUrisExist(item.file_uri)) {
                     item.is_corrupted = true;
                     return false;
+                }
+
+                const targetFormat = format ?? settings?.get_string('clipboard-resource-paste-format') ?? 'resource';
+
+                if (targetFormat === 'uri') {
+                    const textPayload = item.text || item.file_uri;
+                    if (!textPayload) return false;
+
+                    manager.captureGuard.registerText(textPayload);
+                    if (item.hash) {
+                        manager.captureGuard.registerHash(item.hash);
+                    }
+
+                    clipboardSetText(textPayload);
+                    return true;
                 }
 
                 const lines = item.file_uri
@@ -106,6 +174,7 @@ export function ClipboardDefinitionResource() {
                 return true;
             },
             getMergeUri: (item) => item.file_uri,
+            getMergeText: async (item) => item.text || item.file_uri || item.preview || '',
         },
         configureView: (config, item, options) => {
             config.title = item.preview;
