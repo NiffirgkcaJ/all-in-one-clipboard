@@ -89,36 +89,45 @@ export function ClipboardDefinitionResource() {
 
                 // Format Action
                 if (settings.get_boolean('clipboard-resource-show-format-paste-button')) {
-                    const isDefaultResource = settings.get_string('clipboard-resource-paste-format') === 'resource';
                     const isMultiple = Boolean(item.count && item.count > 1);
+                    const currentFormat = settings.get_string('clipboard-resource-paste-format');
+                    const targetFormat = currentFormat === 'resource' ? 'uri' : 'resource';
 
-                    let iconDef;
-                    let tooltip;
+                    const RESOURCE_SUBTYPE_ACTIONS = {
+                        [isMultiple ? 'files' : 'file']: {
+                            icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FILES : ClipboardIcons.ACTION_PASTE_RESOURCE_FILE,
+                            tooltip: isMultiple ? _('Paste as Files') : _('Paste as File'),
+                        },
+                        [isMultiple ? 'folders' : 'folder']: {
+                            icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDERS : ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDER,
+                            tooltip: isMultiple ? _('Paste as Folders') : _('Paste as Folder'),
+                        },
+                        [isMultiple ? 'items' : 'item']: {
+                            icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_ITEMS : ClipboardIcons.ACTION_PASTE_RESOURCE_ITEM,
+                            tooltip: isMultiple ? _('Paste as Items') : _('Paste as Item'),
+                        },
+                    };
 
-                    if (isDefaultResource) {
-                        iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_URIS : ClipboardIcons.ACTION_PASTE_RESOURCE_URI;
-                        tooltip = isMultiple ? _('Paste as URIs') : _('Paste as URI');
-                    } else {
-                        const subtype = item.subtype || 'file';
-                        if (subtype.startsWith('folder')) {
-                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDERS : ClipboardIcons.ACTION_PASTE_RESOURCE_FOLDER;
-                            tooltip = isMultiple ? _('Paste as Folders') : _('Paste as Folder');
-                        } else if (subtype.startsWith('file')) {
-                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_FILES : ClipboardIcons.ACTION_PASTE_RESOURCE_FILE;
-                            tooltip = isMultiple ? _('Paste as Files') : _('Paste as File');
-                        } else {
-                            iconDef = isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_ITEMS : ClipboardIcons.ACTION_PASTE_RESOURCE_ITEM;
-                            tooltip = isMultiple ? _('Paste as Items') : _('Paste as Item');
-                        }
-                    }
+                    const RESOURCE_FORMAT_ACTIONS = {
+                        uri: {
+                            icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_URIS : ClipboardIcons.ACTION_PASTE_RESOURCE_URI,
+                            tooltip: isMultiple ? _('Paste as URIs') : _('Paste as URI'),
+                        },
+                        resource: {
+                            icon: RESOURCE_SUBTYPE_ACTIONS[item.subtype].icon,
+                            tooltip: RESOURCE_SUBTYPE_ACTIONS[item.subtype].tooltip,
+                        },
+                    };
+
+                    const actionMeta = RESOURCE_FORMAT_ACTIONS[targetFormat];
 
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
-                            icon: iconDef,
-                            tooltip,
+                            icon: actionMeta.icon,
+                            tooltip: actionMeta.tooltip,
                             action: 'format-paste',
                             styleOptions,
-                            onClick: () => onItemCopy(item, { format: isDefaultResource ? 'uri' : 'resource' }),
+                            onClick: () => onItemCopy(item, { format: targetFormat }),
                         }),
                     );
                 }

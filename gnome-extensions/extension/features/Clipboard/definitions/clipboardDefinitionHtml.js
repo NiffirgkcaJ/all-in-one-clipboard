@@ -91,17 +91,29 @@ export function ClipboardDefinitionHtml() {
 
                 // Format Action
                 if (settings.get_boolean('clipboard-html-show-format-paste-button')) {
-                    const isDefaultRich = settings.get_string('clipboard-html-paste-format') === 'rich';
-                    const iconDef = isDefaultRich ? ClipboardIcons.ACTION_PASTE_HTML_PLAIN : ClipboardIcons.ACTION_PASTE_HTML_RICH;
-                    const tooltip = isDefaultRich ? _('Paste as Plain Text') : _('Paste as Rich HTML');
+                    const currentFormat = settings.get_string('clipboard-html-paste-format');
+                    const targetFormat = currentFormat === 'rich' ? 'plain' : 'rich';
+
+                    const HTML_FORMAT_ACTIONS = {
+                        plain: {
+                            icon: ClipboardIcons.ACTION_PASTE_HTML_PLAIN,
+                            tooltip: _('Paste as Plain Text'),
+                        },
+                        rich: {
+                            icon: ClipboardIcons.ACTION_PASTE_HTML_RICH,
+                            tooltip: _('Paste as Rich HTML'),
+                        },
+                    };
+
+                    const actionMeta = HTML_FORMAT_ACTIONS[targetFormat];
 
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
-                            icon: iconDef,
-                            tooltip,
+                            icon: actionMeta.icon,
+                            tooltip: actionMeta.tooltip,
                             action: 'format-paste',
                             styleOptions,
-                            onClick: () => onItemCopy(item, { format: isDefaultRich ? 'plain' : 'rich' }),
+                            onClick: () => onItemCopy(item, { format: targetFormat }),
                         }),
                     );
                 }
