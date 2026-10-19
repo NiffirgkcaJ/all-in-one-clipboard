@@ -530,6 +530,31 @@
             <summary>Show Resource Format Paste Button</summary>
             <description>Show button to paste alternative format on file and folder items.</description>
         </key>
+        <key name="clipboard-link-extract-from-text" type="b">
+            <default>true</default>
+            <summary>Extract Links from Copied Text</summary>
+            <description>Automatically extract web links found in copied text into individual link items.</description>
+        </key>
+        <key name="clipboard-link-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Links to Extract</summary>
+            <description>Maximum number of web links to extract from a single copied text item.</description>
+        </key>
+        <key name="clipboard-link-default-action" type="s">
+            <default>'paste'</default>
+            <choices>
+                <choice value='paste'/>
+                <choice value='launch'/>
+            </choices>
+            <summary>Link Primary Action</summary>
+            <description>Default action when clicking a link item: paste link or launch link in default application.</description>
+        </key>
+        <key name="clipboard-link-show-action-button" type="b">
+            <default>true</default>
+            <summary>Show Link Action Button</summary>
+            <description>Show a button on link items to trigger the alternative action.</description>
+        </key>
         <key name="clipboard-layout-mode" type="s">
             <default>'list'</default>
             <summary>Clipboard Layout Mode</summary>

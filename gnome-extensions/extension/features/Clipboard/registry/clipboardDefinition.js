@@ -64,6 +64,17 @@ export class ClipboardDefinition {
     }
 
     /**
+     * Extract actionable intent items embedded within content.
+     *
+     * @param {object} _result Processor result to scan for intents.
+     * @param {object} _context Intent resolution context.
+     * @returns {Promise<Array<object>>|Array<object>} List of extracted intent results.
+     */
+    extractIntents(_result, _context) {
+        return [];
+    }
+
+    /**
      * Clean up definition runtime resources.
      */
     destroy() {}

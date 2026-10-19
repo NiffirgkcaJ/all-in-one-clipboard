@@ -102,6 +102,7 @@ function _initResourcePaths() {
         EMOJI: `${ResourcePath.EMOJI}/emojis.json`,
         KAOMOJI: `${ResourcePath.KAOMOJI}/kaomojis.json`,
         SYMBOLS: `${ResourcePath.SYMBOLS}/symbols.json`,
+        TLDS: `${ResourcePath.CLIPBOARD}/tlds.json`,
     };
 }
 
@@ -127,6 +128,7 @@ function _initExtensionPaths() {
         EMOJI: `${ExtensionPath.EMOJI}/emojis.json`,
         KAOMOJI: `${ExtensionPath.KAOMOJI}/kaomojis.json`,
         SYMBOLS: `${ExtensionPath.SYMBOLS}/symbols.json`,
+        TLDS: `${ExtensionPath.CLIPBOARD}/tlds.json`,
     };
 }
 

@@ -1,19 +1,23 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
-import { IOFile, IOImage, IOJson, IOText } from '../../../shared/utilities/utilityIO.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { ResourceItem } from '../../../shared/constants/storagePaths.js';
+import { IOFile, IOImage, IOJson, IOResource, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Validation Patterns
-const URL_REGEX = /^(https?:\/\/[^\s]+)$/i;
+const EMBEDDED_URL_REGEX = /(https?:\/\/[^\s<>"'\]}]+|\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}(?::\d+)?(?:\/[^\s<>"'\]}]*)?)/gi;
+const BARE_CODE_EXTENSIONS = new Set(['py', 'sh', 'pl']);
 
 // Configuration
 const SESSION_TIMEOUT = 5;
 const HTML_CHUNK_SIZE = 50000;
 const MAX_URL_LENGTH = 2048;
 const GOOGLE_FAVICON_SIZE = 64;
+const IGNORED_HOSTS = new Set(['schemas.microsoft.com', 'schemas.openxmlformats.org', 'w3.org', 'www.w3.org']);
 
 /**
  * LinkProcessor
@@ -21,6 +25,9 @@ const GOOGLE_FAVICON_SIZE = 64;
  * Handles URL detection and metadata fetching with comprehensive favicon detection.
  */
 export class LinkProcessor {
+    static _validTlds = null;
+    static _initPromise = null;
+
     // ========================================================================
     // Initialization
     // ========================================================================
@@ -33,9 +40,66 @@ export class LinkProcessor {
         this._httpSession.timeout = SESSION_TIMEOUT;
     }
 
+    /**
+     * Asynchronously initialize authoritative top level domain set from GResource.
+     *
+     * @returns {Promise<void>} Initialization promise.
+     */
+    static init() {
+        if (this._initPromise) return this._initPromise;
+
+        this._initPromise = (async () => {
+            try {
+                const rawData = await IOResource.readJson(ResourceItem.TLDS);
+                const tldsPayload = rawData ? rawData.data : null;
+
+                if (tldsPayload && Array.isArray(tldsPayload.all)) {
+                    this._validTlds = new Set(tldsPayload.all.map((tld) => tld.toLowerCase()));
+                } else if (Array.isArray(tldsPayload)) {
+                    this._validTlds = new Set(tldsPayload.map((tld) => tld.toLowerCase()));
+                } else {
+                    Logger.error('Failed to load tlds.json from GResource', 'LinkProcessor');
+                }
+            } catch (e) {
+                Logger.warn(`Failed to load TLD data: ${e.message}`, 'LinkProcessor');
+            }
+        })();
+
+        return this._initPromise;
+    }
+
     // ========================================================================
     // Public API
     // ========================================================================
+
+    /**
+     * Check if a top level domain label is valid.
+     *
+     * @param {string} tld Top level domain string.
+     * @returns {boolean} True when top level domain is valid.
+     */
+    static isValidTld(tld) {
+        if (!tld) return false;
+        if (!this._validTlds || this._validTlds.size === 0) return true;
+        return this._validTlds.has(tld.toLowerCase().replace(/^\./, ''));
+    }
+
+    /**
+     * Sanitize and validate a candidate URL string.
+     *
+     * @param {string} candidate The candidate URL string.
+     * @returns {string|null} The clean URL or null when invalid.
+     */
+    static sanitizeUrl(candidate) {
+        if (!candidate || candidate.length > MAX_URL_LENGTH) return null;
+
+        let clean = candidate.trim();
+        clean = LinkProcessor._stripWrappersAndDelimiters(clean);
+        clean = LinkProcessor._normalizeCandidate(clean);
+        if (!clean) return null;
+
+        return LinkProcessor._validateUri(clean);
+    }
 
     /**
      * Extract link data from the clipboard text.
@@ -49,19 +113,46 @@ export class LinkProcessor {
         if (text.length > MAX_URL_LENGTH) return null;
 
         const cleanText = text.trim();
+        const sanitizedUrl = LinkProcessor.sanitizeUrl(cleanText);
 
-        if (URL_REGEX.test(cleanText)) {
-            const hash = ProcessorUtils.computeHashForString(cleanText);
+        if (sanitizedUrl) {
+            const hash = ProcessorUtils.computeHashForString(sanitizedUrl);
 
             return {
                 type: ClipboardType.LINK,
-                url: cleanText,
-                title: cleanText,
+                url: sanitizedUrl,
+                title: sanitizedUrl,
                 hash: hash,
             };
         }
 
         return null;
+    }
+
+    /**
+     * Extract unique web links embedded within text.
+     *
+     * @param {string} text The text to scan for web links.
+     * @param {number} limit Maximum number of links to extract.
+     * @returns {Array<string>} Array of clean URL strings.
+     */
+    static extractLinks(text, limit = Infinity) {
+        if (!text) return [];
+
+        const matches = text.matchAll(EMBEDDED_URL_REGEX);
+        const extracted = new Set();
+
+        for (const match of matches) {
+            if (extracted.size >= limit) break;
+
+            const candidate = match[1];
+            const sanitized = LinkProcessor.sanitizeUrl(candidate);
+            if (sanitized) {
+                extracted.add(sanitized);
+            }
+        }
+
+        return Array.from(extracted);
     }
 
     /**
@@ -157,8 +248,149 @@ export class LinkProcessor {
     }
 
     // ========================================================================
-    // Metadata Fetching
+    // Internal Helpers
     // ========================================================================
+
+    /**
+     * Strip outer wrapper characters, punctuation, and unclosed trailing delimiters.
+     *
+     * @param {string} str Candidate string to clean.
+     * @returns {string} Cleaned candidate string.
+     * @private
+     */
+    static _stripWrappersAndDelimiters(str) {
+        let clean = str;
+        let prev;
+        do {
+            prev = clean;
+
+            // Markdown
+            const markdownMatch = clean.match(/^\[[^\]]*\]\((.*?)\)$/);
+            if (markdownMatch) {
+                clean = markdownMatch[1].trim();
+            }
+
+            // Wrappers
+            while (/^[<([{ "']/.test(clean)) {
+                clean = clean.slice(1).trim();
+            }
+
+            // Punctuation
+            while (/[.,;!?:]$/.test(clean)) {
+                clean = clean.slice(0, -1);
+            }
+
+            // Delimiters
+            while (
+                /[>"'}]$/.test(clean) ||
+                (clean.endsWith(']') && (clean.match(/\]/g) || []).length > (clean.match(/\[/g) || []).length) ||
+                (clean.endsWith(')') && (clean.match(/\)/g) || []).length > (clean.match(/\(/g) || []).length)
+            ) {
+                clean = clean.slice(0, -1).trim();
+            }
+        } while (clean !== prev);
+
+        return clean;
+    }
+
+    /**
+     * Normalize candidate scheme and synthesize protocol for bare domains.
+     *
+     * @param {string} clean Candidate string.
+     * @returns {string|null} Normalized candidate string or null when invalid.
+     * @private
+     */
+    static _normalizeCandidate(clean) {
+        if (clean.startsWith('xhttp://')) {
+            return `http://${clean.slice(8)}`;
+        }
+
+        if (clean.startsWith('xhttps://')) {
+            return `https://${clean.slice(9)}`;
+        }
+
+        if (clean.startsWith('http://') || clean.startsWith('https://')) {
+            return clean;
+        }
+
+        const host = clean.split('/')[0].split(':')[0];
+        if (LinkProcessor._isBareCodeFile(clean, host)) return null;
+
+        if (LinkProcessor._isValidHost(host)) {
+            return `https://${clean}`;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate candidate URL scheme and hostname.
+     *
+     * @param {string} clean Candidate string.
+     * @returns {string|null} Validated string or null.
+     * @private
+     */
+    static _validateUri(clean) {
+        if (!clean.startsWith('http://') && !clean.startsWith('https://')) return null;
+
+        try {
+            const uri = GLib.Uri.parse(clean, GLib.UriFlags.NONE);
+            const scheme = uri.get_scheme();
+            const host = uri.get_host();
+            if ((scheme === 'http' || scheme === 'https') && LinkProcessor._isValidHost(host)) {
+                return clean;
+            }
+        } catch {
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a hostname is valid.
+     *
+     * @param {string} host Hostname string to check.
+     * @returns {boolean} True when hostname is valid.
+     * @private
+     */
+    static _isValidHost(host) {
+        if (!host) return false;
+
+        const lowerHost = host.toLowerCase();
+        if (IGNORED_HOSTS.has(lowerHost)) return false;
+
+        if (lowerHost === 'localhost') return true;
+
+        if (lowerHost.includes(':')) return true;
+
+        if (/^(\d{1,3}\.){3}\d{1,3}$/.test(lowerHost)) return true;
+
+        if (!lowerHost.includes('.')) return false;
+
+        const labels = lowerHost.replace(/\.+$/, '').split('.');
+        const tld = labels[labels.length - 1];
+
+        return LinkProcessor.isValidTld(tld);
+    }
+
+    /**
+     * Check if a candidate string is a standalone script file rather than a web domain.
+     *
+     * @param {string} candidate Candidate string.
+     * @param {string} host Hostname string.
+     * @returns {boolean} True when candidate is a standalone script file.
+     * @private
+     */
+    static _isBareCodeFile(candidate, host) {
+        if (candidate.includes('/') || candidate.toLowerCase().startsWith('www.')) return false;
+
+        const labels = host.replace(/\.+$/, '').split('.');
+        if (labels.length !== 2) return false;
+
+        const tld = labels[1].toLowerCase();
+        return BARE_CODE_EXTENSIONS.has(tld);
+    }
 
     /**
      * Extract the page title from HTML content using multiple strategies.
@@ -341,15 +573,11 @@ export class LinkProcessor {
                 }
             }
         } catch {
-            // head request failed.
+            // Head request failed.
         }
 
         return null;
     }
-
-    // ========================================================================
-    // Internal Helpers
-    // ========================================================================
 
     /**
      * Get Google's S2 Favicon API URL as ultimate fallback.

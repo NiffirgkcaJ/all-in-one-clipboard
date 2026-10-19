@@ -1,13 +1,19 @@
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOImage } from '../../../shared/utilities/utilityIO.js';
 
+import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
+import { ClipboardIcons } from '../constants/clipboardConstants.js';
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
+import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
+import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
@@ -24,7 +30,27 @@ export function ClipboardDefinitionLink() {
         priority: ClipboardPriority[ClipboardType.LINK],
         styling: ClipboardStyling[ClipboardType.LINK],
         viewType: 'header',
+        initialize: () => LinkProcessor.init(),
         processText: (text) => LinkProcessor.process(text),
+        extractIntents: (result, context) => {
+            if (result?.type === ClipboardType.LINK || !result?.text) {
+                return [];
+            }
+
+            const { settings } = context;
+            if (settings && !settings.get_boolean('clipboard-link-extract-from-text')) {
+                return [];
+            }
+            const limit = settings?.get_int('clipboard-link-extract-limit');
+            const urls = LinkProcessor.extractLinks(result.text, limit);
+
+            return urls.map((url) => ({
+                type: ClipboardType.LINK,
+                url,
+                title: url,
+                hash: ProcessorUtils.computeHashForString(url),
+            }));
+        },
         createItem: ClipboardIntegrationInlineItem({
             fields: ['url', 'title', 'hash'],
             defaults: {
@@ -72,10 +98,68 @@ export function ClipboardDefinitionLink() {
             };
         },
         getSearchTerms: (item) => [item.title, item.url],
+        ...ClipboardIntegrationItemActions({
+            customActions: (item, context) => {
+                const buttons = [];
+                const { settings, onItemCopy, styleOptions } = context;
+
+                // Link Actions
+                if (settings && settings.get_boolean('clipboard-link-show-action-button')) {
+                    const defaultAction = settings.get_string('clipboard-link-default-action');
+                    const targetAction = defaultAction === 'launch' ? 'paste' : 'launch';
+
+                    const LINK_ACTIONS = {
+                        launch: {
+                            icon: ClipboardIcons.ACTION_LAUNCH,
+                            tooltip: _('Launch Link'),
+                            action: 'launch-link',
+                            onClick: () => {
+                                try {
+                                    Gio.AppInfo.launch_default_for_uri(item.url, null);
+                                } catch {
+                                    // Launch request failed.
+                                }
+                            },
+                        },
+                        paste: {
+                            icon: ClipboardIcons.ACTION_PASTE_LINK,
+                            tooltip: _('Paste Link'),
+                            action: 'paste-link',
+                            onClick: () => onItemCopy(item, { forcePaste: true }),
+                        },
+                    };
+
+                    const actionMeta = LINK_ACTIONS[targetAction];
+
+                    buttons.push(
+                        ClipboardBaseWidgetFactory.createActionButton({
+                            icon: actionMeta.icon,
+                            tooltip: actionMeta.tooltip,
+                            action: actionMeta.action,
+                            styleOptions,
+                            onClick: actionMeta.onClick,
+                        }),
+                    );
+                }
+
+                return buttons;
+            },
+        }),
         copyOptions: {
             pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            copyItem: async (item, { manager, settings, forcePaste }) => {
+                const defaultAction = settings ? settings.get_string('clipboard-link-default-action') : 'paste';
+
+                if (defaultAction === 'launch' && !forcePaste) {
+                    try {
+                        Gio.AppInfo.launch_default_for_uri(item.url, null);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                }
+
                 manager.captureGuard.registerText(item.url);
                 clipboardSetText(item.url);
                 return true;

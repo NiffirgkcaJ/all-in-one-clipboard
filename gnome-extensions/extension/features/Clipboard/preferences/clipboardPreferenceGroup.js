@@ -303,6 +303,89 @@ export function addPreferenceClipboardSettings({ page, settings, window }) {
     syncResourceSensitivity();
     settings.connect('changed::capture-resource-items', syncResourceSensitivity);
 
+    // Link Content Settings
+    const linkExpander = new Adw.ExpanderRow({
+        title: _('Link Content Settings'),
+        subtitle: _('Capture and action options for web link items.'),
+    });
+    group.add(linkExpander);
+
+    // Extract Links from Copied Text
+    const extractLinksRow = new Adw.SwitchRow({
+        title: _('Extract Links from Copied Text'),
+        subtitle: _('Automatically extract web links from text into individual link items.'),
+    });
+    linkExpander.add_row(extractLinksRow);
+    settings.bind('clipboard-link-extract-from-text', extractLinksRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    // Maximum Links to Extract
+    const extractLimitKey = 'clipboard-link-extract-limit';
+    const extractLimitDefault = settings.get_default_value(extractLimitKey).get_int32();
+    const extractLimitRange = getRangeFromSchema(settings, extractLimitKey);
+    const EXTRACT_LIMIT_INCREMENT = 1;
+
+    const extractLimitRow = new Adw.SpinRow({
+        title: _('Maximum Links to Extract'),
+        subtitle: _('Maximum number of links to extract from a single copied text item between %d and %d. Default: %d.').format(extractLimitRange.min, extractLimitRange.max, extractLimitDefault),
+        adjustment: new Gtk.Adjustment({
+            lower: extractLimitRange.min,
+            upper: extractLimitRange.max,
+            step_increment: EXTRACT_LIMIT_INCREMENT,
+        }),
+    });
+    linkExpander.add_row(extractLimitRow);
+    settings.bind(extractLimitKey, extractLimitRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+    // Primary Action
+    const linkActionModes = [
+        { id: 'paste', label: _('Paste Link') },
+        { id: 'launch', label: _('Launch Link') },
+    ];
+
+    const linkActionRow = new Adw.ComboRow({
+        title: _('Primary Action'),
+        subtitle: _('Default action when clicking a link item.'),
+        model: new Gtk.StringList({ strings: linkActionModes.map((a) => a.label) }),
+    });
+    linkExpander.add_row(linkActionRow);
+
+    const currentLinkAction = settings.get_string('clipboard-link-default-action') || 'paste';
+    const initialActionIndex = linkActionModes.findIndex((a) => a.id === currentLinkAction);
+    linkActionRow.set_selected(initialActionIndex > -1 ? initialActionIndex : 0);
+
+    linkActionRow.connect('notify::selected', () => {
+        const index = linkActionRow.get_selected();
+        if (index >= 0 && index < linkActionModes.length) {
+            const newAction = linkActionModes[index].id;
+            if (settings.get_string('clipboard-link-default-action') !== newAction) {
+                settings.set_string('clipboard-link-default-action', newAction);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-link-default-action', () => {
+        const newAction = settings.get_string('clipboard-link-default-action');
+        const newIndex = linkActionModes.findIndex((a) => a.id === newAction);
+        if (newIndex > -1 && linkActionRow.get_selected() !== newIndex) {
+            linkActionRow.set_selected(newIndex);
+        }
+    });
+
+    // Show Action Button
+    const showLinkActionButtonRow = new Adw.SwitchRow({
+        title: _('Show Action Button'),
+        subtitle: _('Show button to trigger alternative action on link items.'),
+    });
+    linkExpander.add_row(showLinkActionButtonRow);
+    settings.bind('clipboard-link-show-action-button', showLinkActionButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    const syncLinkSensitivity = () => {
+        const extractionEnabled = settings.get_boolean('clipboard-link-extract-from-text');
+        extractLimitRow.sensitive = extractionEnabled;
+    };
+    syncLinkSensitivity();
+    settings.connect('changed::clipboard-link-extract-from-text', syncLinkSensitivity);
+
     // Clipboard Layout Mode
     const layoutModes = [
         { id: 'list', label: _('List') },

@@ -145,11 +145,19 @@ export function createDynamicIconButton(states, buttonParams = {}) {
 
 /**
  * Apply icon configuration to an icon widget.
+ *
  * @param {St.Icon} iconWidget The icon widget to configure.
- * @param {Object} iconConfig Config with icon, iconSize, and optional iconOptions.
+ * @param {Object|string} iconConfig Config with icon, iconSize, and optional iconOptions, or raw icon name.
  * @private
  */
 function _applyIconConfig(iconWidget, iconConfig) {
+    if (!iconConfig) return;
+
+    if (typeof iconConfig === 'string') {
+        _setIcon(iconWidget, iconConfig, {});
+        return;
+    }
+
     const options = { ...iconConfig.iconOptions };
     if (iconConfig.iconSize) {
         options.iconSize = iconConfig.iconSize;
@@ -163,6 +171,7 @@ function _applyIconConfig(iconWidget, iconConfig) {
 /**
  * Set the icon of an existing St.Icon widget.
  * Handles switching between system icon names and custom SVG files.
+ *
  * @param {St.Icon} iconWidget The icon widget.
  * @param {string} iconName Icon name or filename with extension for SVGs.
  * @param {Object} [options={}] Options including iconSize, color, and opacity.
@@ -190,7 +199,7 @@ function _setIcon(iconWidget, iconName, options = {}) {
         iconWidget.set_opacity(255);
     }
 
-    if (iconName && iconName.includes('.')) {
+    if (iconName && typeof iconName === 'string' && iconName.includes('.')) {
         const base = options.basePath || ResourcePath.UI;
         const resourceUri = `${base}/${iconName}`;
         const file = Gio.File.new_for_uri(resourceUri);
@@ -199,7 +208,7 @@ function _setIcon(iconWidget, iconName, options = {}) {
         iconWidget.set_gicon(new Gio.FileIcon({ file: file }));
     } else {
         iconWidget.set_gicon(null);
-        iconWidget.set_icon_name(iconName);
+        iconWidget.set_icon_name(iconName || null);
     }
 }
 

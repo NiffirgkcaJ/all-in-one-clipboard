@@ -80,6 +80,7 @@ export const ClipboardManager = GObject.registerClass(
                 this._clipboardRegistry,
                 this._storage,
                 this._exclusionUtils,
+                this._settings,
             );
 
             this._setupSettingsMonitoring();

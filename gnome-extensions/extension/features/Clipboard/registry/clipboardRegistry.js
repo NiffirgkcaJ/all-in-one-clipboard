@@ -287,6 +287,32 @@ export class ClipboardRegistry {
     }
 
     /**
+     * Resolve actionable intent items from content across all registered definitions.
+     *
+     * @param {object} result Processor result to scan for intents.
+     * @param {object} context Intent resolution context.
+     * @returns {Promise<Array<object>>} List of resolved intent results.
+     */
+    async resolveIntents(result, context = {}) {
+        if (!result) return [];
+
+        await this.initialize();
+        const definitions = this._getHookDefinitions('extractIntents');
+        const intentPromises = definitions.map(async (definition) => {
+            try {
+                const results = await definition.extractIntents(result, { ...context, definition });
+                return Array.isArray(results) ? results : [];
+            } catch (e) {
+                Logger.warn(`Failed to resolve intents for definition ${definition.id}: ${e.message}`);
+                return [];
+            }
+        });
+
+        const nestedIntents = await Promise.all(intentPromises);
+        return nestedIntents.flat();
+    }
+
+    /**
      * Create a clipboard item from a processor result.
      *
      * @param {Object} result Processor result.

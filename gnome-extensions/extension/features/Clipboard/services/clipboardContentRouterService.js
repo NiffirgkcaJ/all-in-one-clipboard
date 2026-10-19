@@ -22,8 +22,9 @@ export class ClipboardContentRouterService {
      * @param {ClipboardRegistry} clipboardRegistry Clipboard registry.
      * @param {ClipboardStorage} storage The clipboard storage.
      * @param {ExclusionUtils} exclusionUtils Exclusion utilities.
+     * @param {Gio.Settings} settings Extension settings.
      */
-    constructor(itemStore, historyDeduper, historyService, itemUpdateService, clipboardRegistry, storage, exclusionUtils) {
+    constructor(itemStore, historyDeduper, historyService, itemUpdateService, clipboardRegistry, storage, exclusionUtils, settings = null) {
         this._itemStore = itemStore;
         this._historyDeduper = historyDeduper;
         this._historyService = historyService;
@@ -31,6 +32,7 @@ export class ClipboardContentRouterService {
         this._clipboardRegistry = clipboardRegistry;
         this._storage = storage;
         this._exclusionUtils = exclusionUtils;
+        this._settings = settings;
 
         this._httpSession = new Soup.Session();
     }
@@ -81,6 +83,60 @@ export class ClipboardContentRouterService {
             itemUpdateService: this._itemUpdateService,
             storage: this._storage,
         });
+
+        // Intent Resolution
+        await this._resolveAndProcessIntents(result);
+    }
+
+    /**
+     * Ingest a single resolved intent item.
+     *
+     * @param {object} intentResult Intent result to ingest.
+     * @private
+     */
+    async _processSingleIntent(intentResult) {
+        if (this._historyDeduper.handleDuplicateCheck(intentResult.hash)) return;
+
+        const item = await this._clipboardRegistry.createItemFromResult(intentResult, this._storage);
+        if (!item) return;
+
+        this._historyService.insertItemToHistory(item);
+        await this._clipboardRegistry.enrichItem(item, {
+            exclusionUtils: this._exclusionUtils,
+            itemUpdateService: this._itemUpdateService,
+            storage: this._storage,
+        });
+    }
+
+    /**
+     * Ingest a list of resolved intents sequentially.
+     *
+     * @param {Array<object>} intents List of intent results.
+     * @param {number} index Current index.
+     * @private
+     */
+    async _processIntentsAtIndex(intents, index) {
+        if (index >= intents.length) return;
+
+        await this._processSingleIntent(intents[index]);
+        await this._processIntentsAtIndex(intents, index + 1);
+    }
+
+    /**
+     * Resolve and ingest actionable intents embedded within content.
+     *
+     * @param {object} result Processor result to scan for intents.
+     * @private
+     */
+    async _resolveAndProcessIntents(result) {
+        const intents = await this._clipboardRegistry.resolveIntents(result, {
+            settings: this._settings,
+        });
+        if (intents.length === 0) return;
+
+        // Process in reverse order so the first extracted intent remains at the top.
+        const reversedIntents = [...intents].reverse();
+        await this._processIntentsAtIndex(reversedIntents, 0);
     }
 
     // ========================================================================
@@ -96,5 +152,6 @@ export class ClipboardContentRouterService {
         this._historyService = null;
         this._itemUpdateService = null;
         this._clipboardRegistry = null;
+        this._settings = null;
     }
 }

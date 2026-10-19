@@ -630,6 +630,8 @@ export const ClipboardBaseView = GObject.registerClass(
                 };
 
                 await processSubBatches(0);
+            } catch (error) {
+                Logger.error(`Failed to load history batch: ${error?.message || error}`, 'ClipboardBaseView');
             } finally {
                 this._isLoadingMore = false;
             }
@@ -653,6 +655,7 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _shouldDeferLoading() {
+            if (!this._historyContainer) return true;
             return this._historyContainer.shouldDeferLoading();
         }
 
@@ -804,7 +807,9 @@ export const ClipboardBaseView = GObject.registerClass(
         _consumeDownForHistoryPagination() {
             const hasMoreHistory = this._getHistoryItemCount() < (this._pendingHistoryItems?.length || 0);
             if (!hasMoreHistory && !this._isLoadingMore) return false;
-            this._loadNextHistoryBatch();
+            this._loadNextHistoryBatch().catch((error) => {
+                Logger.error(`Pagination down failed: ${error?.message || error}`, 'ClipboardBaseView');
+            });
             return true;
         }
 
@@ -834,7 +839,9 @@ export const ClipboardBaseView = GObject.registerClass(
 
                 this._scrollIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     this._scrollIdleId = 0;
-                    this._loadNextHistoryBatch();
+                    this._loadNextHistoryBatch().catch((error) => {
+                        Logger.error(`Scroll pagination failed: ${error?.message || error}`, 'ClipboardBaseView');
+                    });
                     return GLib.SOURCE_REMOVE;
                 });
             }

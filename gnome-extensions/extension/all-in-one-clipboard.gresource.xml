@@ -3,6 +3,7 @@
     <gresource prefix="/org/gnome/shell/extensions/all-in-one-clipboard">
         <!-- Clipboard Files -->
         <file compressed="true">assets/data/clipboard/countries.json</file>
+        <file compressed="true">assets/data/clipboard/tlds.json</file>
 
         <!-- Emoji Files -->
         <file compressed="true">assets/data/emoji/emojis.json</file>
@@ -24,10 +25,12 @@
         <file compressed="true">assets/icons/ui/clipboard-delete-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-eye-conceal-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-eye-reveal-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-launch-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-merge-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-html-image-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-html-plain-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-html-rich-symbolic.svg</file>
+        <file compressed="true">assets/icons/ui/clipboard-paste-link-url-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-resource-file-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-resource-files-symbolic.svg</file>
         <file compressed="true">assets/icons/ui/clipboard-paste-resource-folder-symbolic.svg</file>

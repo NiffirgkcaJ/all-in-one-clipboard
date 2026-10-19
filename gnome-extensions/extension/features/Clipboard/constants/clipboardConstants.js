@@ -36,6 +36,10 @@ export const ClipboardIcons = {
         iconSize: 16,
     },
 
+    ACTION_LAUNCH: {
+        icon: 'clipboard-launch-symbolic.svg',
+        iconSize: 16,
+    },
     ACTION_MERGE: {
         icon: 'clipboard-merge-symbolic.svg',
         iconSize: 16,
@@ -50,6 +54,10 @@ export const ClipboardIcons = {
     },
     ACTION_PASTE_HTML_RICH: {
         icon: 'clipboard-paste-html-rich-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_LINK: {
+        icon: 'clipboard-paste-link-url-symbolic.svg',
         iconSize: 16,
     },
     ACTION_PASTE_RESOURCE_FILE: {
