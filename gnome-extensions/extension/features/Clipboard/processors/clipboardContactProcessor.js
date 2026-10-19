@@ -35,9 +35,10 @@ export class ContactProcessor {
 
         this._initPromise = (async () => {
             try {
-                const countriesArray = await IOResource.readJson(ResourceItem.COUNTRIES);
+                const rawData = await IOResource.readJson(ResourceItem.COUNTRIES);
+                const countriesArray = rawData ? rawData.data : null;
 
-                if (countriesArray) {
+                if (Array.isArray(countriesArray)) {
                     this._countryByDialCode = new Map();
 
                     for (const country of countriesArray) {

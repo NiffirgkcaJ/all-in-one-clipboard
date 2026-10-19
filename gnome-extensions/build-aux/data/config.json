@@ -1,0 +1,44 @@
+{
+    "base_dir": "gnome-extensions/extension/assets/data",
+    "flags_dir": "gnome-extensions/extension/assets/icons/flags",
+    "gresource_xml": "gnome-extensions/extension/all-in-one-clipboard.gresource.xml",
+    "extension_metadata": "gnome-extensions/extension/metadata.json",
+    "datasets": {
+        "countries": {
+            "api_url": "https://raw.githubusercontent.com/mledoze/countries/master/countries.json",
+            "output_file": "gnome-extensions/extension/assets/data/clipboard/countries.json",
+            "provider": "ISO 3166-1 / Open Country Data",
+            "source_url": "https://github.com/mledoze/countries",
+            "notes": "Country calling codes, ISO 3166-1 codes, and SVG flag references."
+        },
+        "tlds": {
+            "api_url": "https://data.iana.org/TLD/tlds-alpha-by-domain.txt",
+            "output_file": "gnome-extensions/extension/assets/data/clipboard/tlds.json",
+            "provider": "IANA ICANN",
+            "source_url": "https://www.iana.org/domains/root/db",
+            "notes": "Authoritative list of top-level domains classified into ccTLDs, gTLDs, and IDNs."
+        },
+        "emojis": {
+            "groups_url": "https://raw.githubusercontent.com/muan/unicode-emoji-json/main/data-by-group.json",
+            "keywords_url": "https://raw.githubusercontent.com/muan/emojilib/main/dist/emoji-en-US.json",
+            "output_file": "gnome-extensions/extension/assets/data/emoji/emojis.json",
+            "provider": "Unicode Consortium & emojilib",
+            "source_url": "https://github.com/muan/unicode-emoji-json",
+            "notes": "Derived from Unicode emoji charts and enriched with colloquial keywords."
+        },
+        "kaomojis": {
+            "source_file": "gnome-extensions/build-aux/data/source/kaomojis/kaomojis_source.json",
+            "output_file": "gnome-extensions/extension/assets/data/kaomoji/kaomojis.json",
+            "provider": "Various (Google, Microsoft, etc.)",
+            "source_url": "https://github.com/NiffirgkcaJ/all-in-one-clipboard",
+            "notes": "Kaomojis are aggregated from various public sources."
+        },
+        "symbols": {
+            "source_file": "gnome-extensions/build-aux/data/source/symbols/symbols_source.json",
+            "output_file": "gnome-extensions/extension/assets/data/symbols/symbols.json",
+            "provider": "Various (Microsoft, Unicode, etc.)",
+            "source_url": "https://github.com/NiffirgkcaJ/all-in-one-clipboard",
+            "notes": "Symbols are aggregated from various public sources and Unicode standards."
+        }
+    }
+}

@@ -13,7 +13,16 @@ node_modules/
 .DS_Store
 
 # Ignore built and temporary files
+*.bak
 *.log
 *.po~
 *.swp
+*.tmp
 *.zip
+
+# Ignore Python bytecode and caches
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+__pycache__/

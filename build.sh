@@ -5,12 +5,23 @@ shopt -s globstar
 # --- Configuration & Argument Parsing ---
 TARGET=$1
 
+# Display help if requested
+if [[ "$TARGET" == "-h" || "$TARGET" == "--help" ]]; then
+    echo "Usage: $0 [package | review | update-data [dataset] | update-templates]"
+    echo "  package          - Build the installable package for GitHub Releases"
+    echo "  review           - Build the source zip for extensions.gnome.org review"
+    echo "  update-data      - Fetch, clean, validate, and update datasets, defaults to all"
+    echo "  update-templates - Only update translation template files"
+    exit 0
+fi
+
 # Check if a valid target was provided
-if [[ "$TARGET" != "review" && "$TARGET" != "package" && "$TARGET" != "update-templates" ]]; then
+if [[ "$TARGET" != "package" && "$TARGET" != "review" && "$TARGET" != "update-data" && "$TARGET" != "update-templates" ]]; then
     echo "Error: Invalid or missing target." >&2
-    echo "Usage: $0 [review | package | update-templates]" >&2
-    echo "  review           - Build the source zip for extensions.gnome.org review" >&2
+    echo "Usage: $0 [package | review | update-data [dataset] | update-templates]" >&2
     echo "  package          - Build the installable package for GitHub Releases" >&2
+    echo "  review           - Build the source zip for extensions.gnome.org review" >&2
+    echo "  update-data      - Fetch, clean, validate, and update datasets, defaults to all" >&2
     echo "  update-templates - Only update translation template files" >&2
     exit 1
 fi
@@ -20,6 +31,20 @@ if ! EXTENSION_UUID=$(jq -r '.uuid' gnome-extensions/extension/metadata.json); t
     echo "Error: Could not parse UUID from gnome-extensions/extension/metadata.json." >&2
     echo "Please ensure 'jq' is installed and the file is correct." >&2
     exit 1
+fi
+
+# --- Update Data Function ---
+update_extension_data() {
+    local dataset="${1:-all}"
+    echo "Updating extension datasets for target: $dataset..."
+    python3 gnome-extensions/build-aux/data/pipeline.py run "$dataset"
+    echo "Dataset update completed."
+}
+
+# --- Update Data Flag ---
+if [ "$TARGET" == "update-data" ]; then
+    update_extension_data "$2"
+    exit 0
 fi
 
 # --- Update Templates Function ---
@@ -60,12 +85,12 @@ fi
 BUILD_DIR="build_temp"
 
 # --- Set Zip Filename ---
-if [ "$TARGET" == "review" ]; then
-    ZIP_FILE="${EXTENSION_UUID}-review.zip"
-    echo "Building SOURCE zip for extensions.gnome.org review..."
-else # Target is "package"
+if [ "$TARGET" == "package" ]; then
     ZIP_FILE="${EXTENSION_UUID}.zip"
     echo "Building installable PACKAGE for distribution..."
+else # Target is "review"
+    ZIP_FILE="${EXTENSION_UUID}-review.zip"
+    echo "Building SOURCE zip for extensions.gnome.org review..."
 fi
 
 # --- Main Script ---
