@@ -10,9 +10,27 @@ import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardInte
 import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { HtmlProcessor } from '../processors/clipboardHtmlProcessor.js';
+import { ImageProcessor } from '../processors/clipboardImageProcessor.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
+
+/**
+ * Extract embedded images from a stored HTML item.
+ *
+ * @param {object} item Item with HTML content.
+ * @param {object} storage Storage instance for reading files.
+ * @param {number} [limit] Maximum number of images to fetch.
+ * @returns {Promise<Array<object>>} Array of extracted image objects.
+ */
+async function extractEmbeddedImages(item, storage, limit) {
+    const sources = await HtmlProcessor.extractImageSources(item, storage);
+    if (sources.length === 0) return [];
+
+    const candidates = typeof limit === 'number' && limit > 0 ? sources.slice(0, limit) : sources;
+    const imageResults = await Promise.all(candidates.map((src) => ImageProcessor.fetchImageFromSource(src)));
+    return imageResults.filter(Boolean);
+}
 
 /**
  * Create the HTML clipboard definition.
@@ -90,8 +108,8 @@ export function ClipboardDefinitionHtml() {
                 const { settings, onItemCopy, styleOptions } = context;
 
                 // Format Action
-                if (settings.get_boolean('clipboard-html-show-format-paste-button')) {
-                    const currentFormat = settings.get_string('clipboard-html-paste-format');
+                if (settings.get_boolean('clipboard-html-show-format-button')) {
+                    const currentFormat = settings.get_string('clipboard-html-default-format');
                     const targetFormat = currentFormat === 'rich' ? 'plain' : 'rich';
 
                     const HTML_FORMAT_ACTIONS = {
@@ -111,7 +129,7 @@ export function ClipboardDefinitionHtml() {
                         ClipboardBaseWidgetFactory.createActionButton({
                             icon: actionMeta.icon,
                             tooltip: actionMeta.tooltip,
-                            action: 'format-paste',
+                            action: 'paste-format',
                             styleOptions,
                             onClick: () => onItemCopy(item, { format: targetFormat }),
                         }),
@@ -119,12 +137,12 @@ export function ClipboardDefinitionHtml() {
                 }
 
                 // Image Action
-                if (item.has_images && settings.get_boolean('clipboard-html-show-image-paste-button')) {
+                if (item.has_images && settings.get_boolean('clipboard-html-show-image-button')) {
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
                             icon: ClipboardIcons.ACTION_PASTE_HTML_IMAGE,
                             tooltip: _('Paste Images'),
-                            action: 'image-paste',
+                            action: 'paste-image',
                             styleOptions,
                             onClick: () => onItemCopy(item, { format: 'image' }),
                         }),
@@ -136,15 +154,16 @@ export function ClipboardDefinitionHtml() {
         }),
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
-            pasteShortcut: (_item, options) => {
-                return options?.format === 'image' ? 'ctrl-v' : 'shift-insert';
+            pasteShortcut: (_item, options = {}) => {
+                const format = options.format || (options.settings ? options.settings.get_string('clipboard-html-default-format') : null);
+                return format === 'image' ? 'ctrl-v' : 'shift-insert';
             },
             mergeBehavior: 'text',
             copyItem: async (item, { manager, storage, format, settings }) => {
-                const targetFormat = format ?? settings.get_string('clipboard-html-paste-format');
+                const targetFormat = format || (settings ? settings.get_string('clipboard-html-default-format') : 'rich');
 
                 if (targetFormat === 'image' && item.has_images) {
-                    const images = await HtmlProcessor.extractEmbeddedImages(item, storage);
+                    const images = await extractEmbeddedImages(item, storage);
                     if (images.length > 0) {
                         const firstImage = images[0];
                         manager.captureGuard.registerHash(firstImage.hash);
@@ -173,7 +192,7 @@ export function ClipboardDefinitionHtml() {
             getCopyQueue: async (item, { manager, storage, format }) => {
                 if (format !== 'image' || !item.has_images) return null;
 
-                const images = await HtmlProcessor.extractEmbeddedImages(item, storage);
+                const images = await extractEmbeddedImages(item, storage);
                 if (images.length <= 1) return null;
 
                 return images.map((image) => ({

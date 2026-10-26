@@ -32,16 +32,16 @@ export function ClipboardDefinitionLink() {
         viewType: 'header',
         initialize: () => LinkProcessor.init(),
         processText: (text) => LinkProcessor.process(text),
+        intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
+        intentField: 'text',
         extractIntents: (result, context) => {
-            if (result?.type === ClipboardType.LINK || !result?.text) {
+            const { settings } = context;
+            if (!settings || !settings.get_boolean('clipboard-link-extract-from-text')) {
                 return [];
             }
 
-            const { settings } = context;
-            if (settings && !settings.get_boolean('clipboard-link-extract-from-text')) {
-                return [];
-            }
-            const limit = settings?.get_int('clipboard-link-extract-limit');
+            const limitEnabled = settings.get_boolean('clipboard-link-limit-extract');
+            const limit = limitEnabled ? settings.get_int('clipboard-link-extract-limit') : undefined;
             const urls = LinkProcessor.extractLinks(result.text, limit);
 
             return urls.map((url) => ({
@@ -149,14 +149,15 @@ export function ClipboardDefinitionLink() {
             pasteShortcut: 'shift-insert',
             mergeBehavior: 'text',
             copyItem: async (item, { manager, settings, forcePaste }) => {
-                const defaultAction = settings ? settings.get_string('clipboard-link-default-action') : 'paste';
-
-                if (defaultAction === 'launch' && !forcePaste) {
-                    try {
-                        Gio.AppInfo.launch_default_for_uri(item.url, null);
-                        return true;
-                    } catch {
-                        return false;
+                if (settings && !forcePaste) {
+                    const defaultAction = settings.get_string('clipboard-link-default-action');
+                    if (defaultAction === 'launch') {
+                        try {
+                            Gio.AppInfo.launch_default_for_uri(item.url, null);
+                            return true;
+                        } catch {
+                            return false;
+                        }
                     }
                 }
 

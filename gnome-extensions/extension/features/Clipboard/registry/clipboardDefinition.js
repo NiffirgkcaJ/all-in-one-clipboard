@@ -25,6 +25,8 @@ export class ClipboardDefinition {
     constructor(config = {}) {
         Object.assign(this, config);
         this.enrichItem = this._normalizeHooks(this.enrichItem);
+        this.intentSources = Array.isArray(this.intentSources) ? this.intentSources : null;
+        this.intentField = typeof this.intentField === 'string' ? this.intentField : null;
     }
 
     /**

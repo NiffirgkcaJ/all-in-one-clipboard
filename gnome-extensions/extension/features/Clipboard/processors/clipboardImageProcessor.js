@@ -13,6 +13,7 @@ import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 const PREVIEW_MAX_SIZE = 192;
 const MIN_HEADER_SIZE = 4;
+const MAX_IMAGE_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 // Magic Bytes
 const MAGIC_PNG = [0x89, 0x50, 0x4e, 0x47];
@@ -55,6 +56,35 @@ export class ImageProcessor {
         }
 
         return await this._extractStandaloneFromHtml();
+    }
+
+    /**
+     * Extract image objects from candidate file URIs.
+     *
+     * @param {Array<string>} fileUris Array of candidate file URIs.
+     * @param {number} limit Maximum number of images to extract.
+     * @returns {Promise<Array<object>>} List of extracted image result objects.
+     */
+    static async extractImagesFromUris(fileUris, limit) {
+        if (!fileUris || fileUris.length === 0) return [];
+
+        const candidates = typeof limit === 'number' ? fileUris.slice(0, limit) : fileUris;
+        const results = await Promise.all(
+            candidates.map(async (uri) => {
+                const imageResult = await this._fetchFileImage(uri);
+                if (!imageResult || !imageResult.data) return null;
+
+                return {
+                    type: ClipboardType.IMAGE,
+                    data: imageResult.data,
+                    hash: imageResult.hash,
+                    mimetype: imageResult.mimetype,
+                    file_uri: uri,
+                };
+            }),
+        );
+
+        return results.filter(Boolean);
     }
 
     /**
@@ -226,7 +256,7 @@ export class ImageProcessor {
 
         try {
             const result = await IOImage.download(httpSession, item.source_url);
-            if (!result?.bytes || result.bytes.length === 0) return false;
+            if (!result || !result.bytes || result.bytes.length === 0) return false;
 
             const destPath = GLib.build_filenamev([imagesDir, item.image_filename]);
             const success = await IOFile.write(destPath, IOImage.stringifyBytes(result.bytes));
@@ -310,7 +340,7 @@ export class ImageProcessor {
                 this._httpSession = new Soup.Session();
             }
             const result = await IOImage.download(this._httpSession, source);
-            if (!result?.bytes || result.bytes.length < MIN_HEADER_SIZE) return null;
+            if (!result || !result.bytes || result.bytes.length < MIN_HEADER_SIZE) return null;
 
             const mimetype = this._detectImageMimetype(result.bytes) || result.contentType || 'image/png';
             const hash = ProcessorUtils.computeHashForData(result.bytes);
@@ -324,7 +354,7 @@ export class ImageProcessor {
      * Read image data from a local file URI.
      *
      * @param {string} source File URI.
-     * @returns {Promise<Object|null>} Read image data or null.
+     * @returns {Promise<object|null>} Read image data or null.
      * @private
      */
     static async _fetchFileImage(source) {
@@ -332,10 +362,16 @@ export class ImageProcessor {
             const [filePath] = GLib.filename_from_uri(source);
             if (!filePath) return null;
 
+            const info = await IOFile.getInfo(filePath);
+            if (!info || !info.type.is('REGULAR')) return null;
+            if (info.size > MAX_IMAGE_FILE_SIZE_BYTES) return null;
+
             const bytes = await IOFile.read(filePath);
             if (!bytes || bytes.length < MIN_HEADER_SIZE) return null;
 
-            const mimetype = this._detectImageMimetype(bytes) || 'image/png';
+            const mimetype = this._detectImageMimetype(bytes);
+            if (!mimetype) return null;
+
             const hash = ProcessorUtils.computeHashForData(bytes);
             return { data: bytes, hash, mimetype };
         } catch {

@@ -13,13 +13,23 @@ const GRADIENT_WIDTH = 48;
 const GRADIENT_HEIGHT = 24;
 
 // Validation Patterns
-const HEX_REGEX = /^#(?:[0-9a-fA-F]{3,4}){1,2}$/;
+const HEX_REGEX = /^#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})$/;
 const RGB_REGEX = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i;
 const HSL_REGEX = /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i;
 const GRADIENT_REGEX = /^(linear-gradient|radial-gradient|conic-gradient|repeating-linear-gradient|repeating-radial-gradient|repeating-conic-gradient)\(/i;
 
 // Detection Patterns
 const COLOR_IN_TEXT_REGEX = /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|yellow|orange|purple|pink|cyan|magenta|white|black|gray|grey)\b/gi;
+const EMBEDDED_COLOR_REGEX = new RegExp(
+    '(?:' +
+        '(?<![\\w#])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\\b' +
+        '|' +
+        '\\brgba?\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*(?:,\\s*(?:0|1|0?\\.\\d+)\\s*)?\\)' +
+        '|' +
+        '\\bhsla?\\(\\s*\\d+\\s*,\\s*\\d+%\\s*,\\s*\\d+%\\s*(?:,\\s*(?:0|1|0?\\.\\d+)\\s*)?\\)' +
+        ')',
+    'gi',
+);
 
 // Named colors map
 const NAMED_COLORS = {
@@ -98,6 +108,52 @@ export class ColorProcessor {
         }
 
         return null;
+    }
+
+    /**
+     * Extract embedded color definitions from text content.
+     *
+     * @param {string} text Text to extract colors from.
+     * @param {number} [limit] Maximum number of colors to return.
+     * @returns {Array<object>} List of color processor results.
+     */
+    static extractColors(text, limit) {
+        if (!text || (typeof limit === 'number' && limit <= 0)) return [];
+
+        const matches = text.match(EMBEDDED_COLOR_REGEX);
+        if (!matches) return [];
+
+        const seen = new Set();
+        const results = [];
+
+        for (const match of matches) {
+            const normalized = match.toLowerCase();
+            if (seen.has(normalized)) continue;
+            seen.add(normalized);
+
+            let format = null;
+            if (HEX_REGEX.test(match)) {
+                format = 'HEX';
+            } else if (RGB_REGEX.test(match)) {
+                format = normalized.startsWith('rgba') ? 'RGBA' : 'RGB';
+            } else if (HSL_REGEX.test(match)) {
+                format = normalized.startsWith('hsla') ? 'HSLA' : 'HSL';
+            }
+
+            if (!format) continue;
+
+            results.push({
+                type: ClipboardType.COLOR,
+                subtype: 'single',
+                color_value: match,
+                format_type: format,
+                hash: ProcessorUtils.computeHashForString(match),
+            });
+
+            if (typeof limit === 'number' && results.length >= limit) break;
+        }
+
+        return results;
     }
 
     /**
@@ -224,6 +280,8 @@ export class ColorProcessor {
 
             if (hex.length === 3) {
                 hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            } else if (hex.length === 4) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
             }
 
             if (hex.length === 6) {
@@ -231,6 +289,14 @@ export class ColorProcessor {
                 const g = parseInt(hex.substring(2, 4), 16) / 255;
                 const b = parseInt(hex.substring(4, 6), 16) / 255;
                 return [r, g, b, 1.0];
+            }
+
+            if (hex.length === 8) {
+                const r = parseInt(hex.substring(0, 2), 16) / 255;
+                const g = parseInt(hex.substring(2, 4), 16) / 255;
+                const b = parseInt(hex.substring(4, 6), 16) / 255;
+                const a = parseInt(hex.substring(6, 8), 16) / 255;
+                return [r, g, b, a];
             }
         }
 

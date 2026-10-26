@@ -105,9 +105,9 @@ export function ClipboardDefinitionResource() {
                 const { settings, onItemCopy, styleOptions } = context;
 
                 // Format Action
-                if (settings.get_boolean('clipboard-resource-show-format-paste-button')) {
+                if (settings.get_boolean('clipboard-resource-show-format-button')) {
                     const isMultiple = Boolean(item.count && item.count > 1);
-                    const currentFormat = settings.get_string('clipboard-resource-paste-format');
+                    const currentFormat = settings.get_string('clipboard-resource-default-format');
                     const targetFormat = currentFormat === 'resource' ? 'uri' : 'resource';
 
                     const RESOURCE_SUBTYPE_ACTIONS = {
@@ -142,7 +142,7 @@ export function ClipboardDefinitionResource() {
                         ClipboardBaseWidgetFactory.createActionButton({
                             icon: actionMeta.icon,
                             tooltip: actionMeta.tooltip,
-                            action: 'format-paste',
+                            action: 'paste-format',
                             styleOptions,
                             onClick: () => onItemCopy(item, { format: targetFormat }),
                         }),
@@ -154,9 +154,9 @@ export function ClipboardDefinitionResource() {
         }),
         getSearchTerms: (item) => [item.preview, item.file_uri],
         copyOptions: {
-            pasteShortcut: (_item, options) => {
-                const isUri = options?.format === 'uri' || (!options?.format && options?.settings?.get_string('clipboard-resource-paste-format') === 'uri');
-                return isUri ? 'shift-insert' : 'ctrl-v';
+            pasteShortcut: (_item, options = {}) => {
+                const format = options.format || (options.settings ? options.settings.get_string('clipboard-resource-default-format') : null);
+                return format === 'uri' ? 'shift-insert' : 'ctrl-v';
             },
             mergeBehavior: 'file',
             copyItem: async (item, { manager, format, settings }) => {
@@ -165,7 +165,7 @@ export function ClipboardDefinitionResource() {
                     return false;
                 }
 
-                const targetFormat = format ?? settings?.get_string('clipboard-resource-paste-format') ?? 'resource';
+                const targetFormat = format || (settings ? settings.get_string('clipboard-resource-default-format') : 'resource');
 
                 if (targetFormat === 'uri') {
                     const textPayload = item.text || item.file_uri;

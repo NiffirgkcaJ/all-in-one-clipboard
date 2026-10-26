@@ -21,6 +21,18 @@ export function ClipboardDefinitionColor() {
         styling: ClipboardStyling[ClipboardType.COLOR],
         viewType: 'tile',
         processText: (text, { imagesDir }) => ColorProcessor.process(text, imagesDir),
+        intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
+        intentField: 'text',
+        extractIntents: (result, context) => {
+            const { settings } = context;
+            if (!settings || !settings.get_boolean('clipboard-color-extract-from-text')) {
+                return [];
+            }
+
+            const limitEnabled = settings.get_boolean('clipboard-color-limit-extract');
+            const limit = limitEnabled ? settings.get_int('clipboard-color-extract-limit') : undefined;
+            return ColorProcessor.extractColors(result.text, limit);
+        },
         createItem: ClipboardIntegrationInlineItem({
             fields: ['subtype', 'color_value', 'format_type', 'hash', 'gradient_filename'],
             defaults: {

@@ -95,35 +95,41 @@ export class ClipboardContentRouterService {
      * @private
      */
     async _processSingleIntent(intentResult) {
-        if (this._historyDeduper.handleDuplicateCheck(intentResult.hash)) return;
+        try {
+            if (this._historyDeduper.handleDuplicateCheck(intentResult.hash)) return;
 
-        const item = await this._clipboardRegistry.createItemFromResult(intentResult, this._storage);
-        if (!item) return;
+            const item = await this._clipboardRegistry.createItemFromResult(intentResult, this._storage);
+            if (!item) return;
 
-        this._historyService.insertItemToHistory(item);
-        await this._clipboardRegistry.enrichItem(item, {
-            exclusionUtils: this._exclusionUtils,
-            itemUpdateService: this._itemUpdateService,
-            storage: this._storage,
-        });
+            this._historyService.insertItemToHistory(item);
+            await this._clipboardRegistry.enrichItem(item, {
+                exclusionUtils: this._exclusionUtils,
+                itemUpdateService: this._itemUpdateService,
+                storage: this._storage,
+            });
+        } catch (e) {
+            Logger.warn(`Failed to ingest intent item of type ${intentResult.type}: ${e.message}`);
+        }
     }
 
     /**
      * Ingest a list of resolved intents sequentially.
      *
      * @param {Array<object>} intents List of intent results.
-     * @param {number} index Current index.
      * @private
      */
-    async _processIntentsAtIndex(intents, index) {
-        if (index >= intents.length) return;
-
-        await this._processSingleIntent(intents[index]);
-        await this._processIntentsAtIndex(intents, index + 1);
+    async _processIntents(intents) {
+        await intents.reduce(async (previousPromise, intentResult) => {
+            await previousPromise;
+            await this._processSingleIntent(intentResult);
+        }, Promise.resolve());
     }
 
     /**
      * Resolve and ingest actionable intents embedded within content.
+     *
+     * Intent items are resolved in provider priority order and ingested in reverse order.
+     * Because the history service prepends new items to index zero, reverse ingestion guarantees that higher priority providers and earlier extracted matches within each provider reside at the top of the history list.
      *
      * @param {object} result Processor result to scan for intents.
      * @private
@@ -134,9 +140,9 @@ export class ClipboardContentRouterService {
         });
         if (intents.length === 0) return;
 
-        // Process in reverse order so the first extracted intent remains at the top.
+        // Ingestion Order
         const reversedIntents = [...intents].reverse();
-        await this._processIntentsAtIndex(reversedIntents, 0);
+        await this._processIntents(reversedIntents);
     }
 
     // ========================================================================

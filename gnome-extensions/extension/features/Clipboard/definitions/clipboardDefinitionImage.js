@@ -24,6 +24,19 @@ export function ClipboardDefinitionImage() {
         styling: ClipboardStyling[ClipboardType.IMAGE],
         viewType: 'media',
         extract: () => ImageProcessor.extract(),
+        intentSources: [ClipboardType.RESOURCE],
+        intentField: 'file_uri',
+        extractIntents: (result, context) => {
+            const { settings } = context;
+            if (!settings || !settings.get_boolean('clipboard-image-extract-from-resource')) {
+                return [];
+            }
+
+            const limitEnabled = settings.get_boolean('clipboard-image-limit-extract');
+            const limit = limitEnabled ? settings.get_int('clipboard-image-extract-limit') : undefined;
+            const uris = result.file_uri.split(/[\r\n]+/).filter(Boolean);
+            return ImageProcessor.extractImagesFromUris(uris, limit);
+        },
         createItem: ClipboardIntegrationFileBackedItem({
             processor: ImageProcessor,
             storageDirKey: 'imagesDir',
@@ -49,7 +62,7 @@ export function ClipboardDefinitionImage() {
         ...ClipboardIntegrationPreviewWarmup({
             shouldWarmupItem: (item) => Boolean(item.image_filename),
             warmupItem: (item, { storage }) => ImageProcessor.ensurePreviewForItem(item, storage.imagesDir, storage.imagePreviewsDir),
-            warmupItemAsync: async (item, { storage }) => await ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
+            warmupItemAsync: (item, { storage }) => ImageProcessor.ensurePreviewForItemAsync(item, storage.imagesDir, storage.imagePreviewsDir),
         }),
         configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';

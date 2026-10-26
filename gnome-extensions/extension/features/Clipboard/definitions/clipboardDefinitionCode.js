@@ -6,7 +6,6 @@ import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegratio
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { CodeProcessor } from '../processors/clipboardCodeProcessor.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
-import { TextProcessor } from '../processors/clipboardTextProcessor.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
@@ -22,8 +21,20 @@ export function ClipboardDefinitionCode() {
         styling: ClipboardStyling[ClipboardType.CODE],
         viewType: 'gutter',
         processText: (text) => CodeProcessor.process(text),
+        intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
+        intentField: 'text',
+        extractIntents: (result, context) => {
+            const { settings } = context;
+            if (!settings || !settings.get_boolean('clipboard-code-extract-from-text')) {
+                return [];
+            }
+
+            const limitEnabled = settings.get_boolean('clipboard-code-limit-extract');
+            const limit = limitEnabled ? settings.get_int('clipboard-code-extract-limit') : undefined;
+            return CodeProcessor.extractCodeBlocks(result.text, limit);
+        },
         createItem: ClipboardIntegrationFileBackedItem({
-            processor: TextProcessor,
+            processor: CodeProcessor,
             storageDirKey: 'textsDir',
             forceFileSave: true,
         }),

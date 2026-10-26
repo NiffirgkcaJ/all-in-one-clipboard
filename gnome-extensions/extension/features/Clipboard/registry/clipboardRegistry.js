@@ -18,9 +18,11 @@ export class ClipboardRegistry {
      * Create a Clipboard registry.
      *
      * @param {Array<object>} definitionEntries Ordered definition entries.
+     * @param {Gio.Settings|null} settings Extension settings instance.
      */
-    constructor(definitionEntries = getClipboardOrder()) {
+    constructor(definitionEntries = getClipboardOrder(), settings = null) {
         this._definitionEntries = definitionEntries;
+        this._settings = settings;
         this._definitions = new Map();
         this._initializePromise = null;
     }
@@ -114,31 +116,39 @@ export class ClipboardRegistry {
     // ========================================================================
 
     /**
-     * Copy an item to the clipboard.
+     * Copy an item using its declared definition copy options.
      *
      * @param {Object} item Clipboard item.
-     * @param {Object} options Options containing storage and manager.
+     * @param {Object} [options] Options containing storage, manager, and settings.
      * @returns {Promise<boolean>} True if successful.
      */
-    async copyItem(item, options) {
+    async copyItem(item, options = {}) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.copyOptions && definition.copyOptions.copyItem) {
-            return await definition.copyOptions.copyItem(item, options);
+            const context = {
+                ...options,
+                settings: options.settings || this._settings,
+            };
+            return await definition.copyOptions.copyItem(item, context);
         }
         return false;
     }
 
     /**
-     * Get a multi-step copy/paste queue if supported by the item's definition.
+     * Get a multi-step copy queue if supported by the item definition.
      *
      * @param {Object} item Clipboard item.
-     * @param {Object} options Options containing storage and manager.
+     * @param {Object} [options] Options containing storage, manager, and settings.
      * @returns {Promise<Array<Object>|null>} Array of queue action items or null.
      */
-    async getCopyQueue(item, options) {
-        const definition = this.getDefinition(item?.type);
+    async getCopyQueue(item, options = {}) {
+        const definition = this.getDefinition(item.type);
         if (definition && definition.copyOptions && definition.copyOptions.getCopyQueue) {
-            return await definition.copyOptions.getCopyQueue(item, options);
+            const context = {
+                ...options,
+                settings: options.settings || this._settings,
+            };
+            return await definition.copyOptions.getCopyQueue(item, context);
         }
         return null;
     }
@@ -290,26 +300,70 @@ export class ClipboardRegistry {
      * Resolve actionable intent items from content across all registered definitions.
      *
      * @param {object} result Processor result to scan for intents.
-     * @param {object} context Intent resolution context.
+     * @param {object} context Intent resolution context containing settings.
      * @returns {Promise<Array<object>>} List of resolved intent results.
      */
     async resolveIntents(result, context = {}) {
         if (!result) return [];
 
+        const settings = context.settings ?? this._settings;
+        if (!settings) {
+            Logger.warn('Intent resolution skipped because settings are required.');
+            return [];
+        }
+
         await this.initialize();
-        const definitions = this._getHookDefinitions('extractIntents');
+
+        // Applicability
+        const definitions = this._getHookDefinitions('extractIntents').filter((definition) => {
+            if (definition.id === result.type) return false;
+            if (definition.intentSources && !definition.intentSources.includes(result.type)) return false;
+            if (definition.intentField && !result[definition.intentField]) return false;
+            return true;
+        });
+
+        // Intent Execution
         const intentPromises = definitions.map(async (definition) => {
             try {
-                const results = await definition.extractIntents(result, { ...context, definition });
-                return Array.isArray(results) ? results : [];
+                const results = await definition.extractIntents(result, { ...context, definition, settings });
+                const items = Array.isArray(results) ? results : [];
+                return { providerId: definition.id, items };
             } catch (e) {
                 Logger.warn(`Failed to resolve intents for definition ${definition.id}: ${e.message}`);
-                return [];
+                return { providerId: definition.id, items: [] };
             }
         });
 
-        const nestedIntents = await Promise.all(intentPromises);
-        return nestedIntents.flat();
+        const providerBatches = await Promise.all(intentPromises);
+
+        // Validation and Deduplication
+        const seenHashes = new Set();
+        if (result.hash) {
+            seenHashes.add(result.hash);
+        }
+
+        const validIntents = [];
+        for (const { providerId, items } of providerBatches) {
+            for (const intent of items) {
+                if (!intent || typeof intent.type !== 'string' || typeof intent.hash !== 'string') {
+                    Logger.warn(`Discarded intent from provider ${providerId}: missing required type or hash.`);
+                    continue;
+                }
+
+                if (seenHashes.has(intent.hash)) continue;
+
+                const targetDefinition = this.getDefinition(intent.type);
+                if (!targetDefinition || typeof targetDefinition.createItem !== 'function') {
+                    Logger.warn(`Discarded intent from provider ${providerId}: unhandled target definition ${intent.type}.`);
+                    continue;
+                }
+
+                seenHashes.add(intent.hash);
+                validIntents.push(intent);
+            }
+        }
+
+        return validIntents;
     }
 
     /**

@@ -235,7 +235,7 @@ export class ExclusionUtils {
     isPathExcluded(paths) {
         if (!paths || !this._settings) return false;
 
-        if (!this._settings.get_boolean('capture-resource-items')) {
+        if (!this._settings.get_boolean('clipboard-resource-capture')) {
             return true;
         }
 

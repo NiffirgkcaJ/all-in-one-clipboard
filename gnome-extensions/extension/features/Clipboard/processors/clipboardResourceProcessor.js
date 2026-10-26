@@ -5,13 +5,10 @@ import { IOFile } from '../../../shared/utilities/utilityIO.js';
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
-// Configuration
-const MAX_PREVIEW_SIZE_BYTES = 10 * 1024 * 1024;
-
 /**
  * ResourceProcessor
  *
- * Analyzes resource file and directory URIs from the clipboard, delegating image files to the ImageProcessor.
+ * Analyzes resource file and directory URIs from the clipboard.
  */
 export class ResourceProcessor {
     // ========================================================================
@@ -23,7 +20,7 @@ export class ResourceProcessor {
      *
      * @param {string} text Potential URI string.
      * @param {object} [context] Processing context.
-     * @returns {Promise<Object|null>} Processed resource or image object, or null if invalid.
+     * @returns {Promise<object|null>} Processed resource object or null if invalid.
      */
     static async process(text, context = {}) {
         if (!text) return null;
@@ -57,7 +54,7 @@ export class ResourceProcessor {
         }
 
         if (validItems.length === 1) {
-            return await ResourceProcessor._createSingleResult(validItems[0], cleanText);
+            return ResourceProcessor._createSingleResult(validItems[0], cleanText);
         }
 
         return ResourceProcessor._createMultipleResult(validItems, cleanText);
@@ -130,26 +127,10 @@ export class ResourceProcessor {
      *
      * @param {object} single Resolved item descriptor.
      * @param {string} cleanText Cleaned input text.
-     * @returns {Promise<object>} Clipboard result object.
+     * @returns {object} Clipboard result object.
      * @private
      */
-    static async _createSingleResult(single, cleanText) {
-        if (single.isRegular && single.mime && single.mime.startsWith('image/') && single.size <= MAX_PREVIEW_SIZE_BYTES) {
-            const bytes = await IOFile.read(single.path);
-
-            if (bytes && bytes.length > 0) {
-                const hash = ProcessorUtils.computeHashForData(bytes);
-
-                return {
-                    type: ClipboardType.IMAGE,
-                    data: bytes,
-                    hash,
-                    mimetype: single.mime,
-                    file_uri: single.uri,
-                };
-            }
-        }
-
+    static _createSingleResult(single, cleanText) {
         const subtype = single.isDirectory ? 'folder' : 'file';
         const uriHash = ProcessorUtils.computeHashForString(single.uri);
 

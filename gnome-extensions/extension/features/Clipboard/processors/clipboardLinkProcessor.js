@@ -136,14 +136,14 @@ export class LinkProcessor {
      * @param {number} limit Maximum number of links to extract.
      * @returns {Array<string>} Array of clean URL strings.
      */
-    static extractLinks(text, limit = Infinity) {
+    static extractLinks(text, limit) {
         if (!text) return [];
 
         const matches = text.matchAll(EMBEDDED_URL_REGEX);
         const extracted = new Set();
 
         for (const match of matches) {
-            if (extracted.size >= limit) break;
+            if (typeof limit === 'number' && extracted.size >= limit) break;
 
             const candidate = match[1];
             const sanitized = LinkProcessor.sanitizeUrl(candidate);
@@ -336,12 +336,63 @@ export class LinkProcessor {
         try {
             const uri = GLib.Uri.parse(clean, GLib.UriFlags.NONE);
             const scheme = uri.get_scheme();
+            if (scheme !== 'http' && scheme !== 'https') return null;
+
             const host = uri.get_host();
-            if ((scheme === 'http' || scheme === 'https') && LinkProcessor._isValidHost(host)) {
+            if (!host) return null;
+
+            if (LinkProcessor._isValidHost(host)) {
                 return clean;
+            }
+
+            // TLD Boundary Peeling
+            const repaired = LinkProcessor._repairHostTldBoundary(uri);
+            if (repaired) {
+                return repaired;
             }
         } catch {
             return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Repair candidate URL host by resolving the boundary of a glued top level domain.
+     *
+     * @param {GLib.Uri} uri Parsed URI instance.
+     * @returns {string|null} Reconstructed URL string with clean host or null.
+     * @private
+     */
+    static _repairHostTldBoundary(uri) {
+        const host = uri.get_host();
+        if (!host || !host.includes('.')) return null;
+
+        const labels = host.replace(/\.+$/, '').split('.');
+        const lastLabel = labels[labels.length - 1];
+
+        if (LinkProcessor.isValidTld(lastLabel)) {
+            return null;
+        }
+
+        if (!this._validTlds || this._validTlds.size === 0) return null;
+
+        const normalized = lastLabel.toLowerCase();
+        const maxLen = Math.min(normalized.length, 24);
+
+        for (let len = maxLen; len >= 2; len--) {
+            const prefix = normalized.substring(0, len);
+            if (this._validTlds.has(prefix)) {
+                labels[labels.length - 1] = prefix;
+                const cleanHost = labels.join('.');
+
+                try {
+                    const repairedUri = GLib.Uri.build(GLib.UriFlags.NONE, uri.get_scheme(), uri.get_userinfo(), cleanHost, uri.get_port(), uri.get_path(), uri.get_query(), uri.get_fragment());
+                    return repairedUri.to_string();
+                } catch {
+                    return null;
+                }
+            }
         }
 
         return null;

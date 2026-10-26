@@ -28,6 +28,18 @@ export function ClipboardDefinitionContact() {
         viewType: 'header',
         initialize: () => ContactProcessor.init(),
         processText: (text) => ContactProcessor.process(text),
+        intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
+        intentField: 'text',
+        extractIntents: (result, context) => {
+            const { settings } = context;
+            if (!settings || !settings.get_boolean('clipboard-contact-extract-from-text')) {
+                return [];
+            }
+
+            const limitEnabled = settings.get_boolean('clipboard-contact-limit-extract');
+            const limit = limitEnabled ? settings.get_int('clipboard-contact-extract-limit') : undefined;
+            return ContactProcessor.extractContacts(result.text, limit);
+        },
         createItem: ClipboardIntegrationInlineItem({
             fields: ['subtype', 'text', 'preview', 'hash', 'metadata'],
         }),

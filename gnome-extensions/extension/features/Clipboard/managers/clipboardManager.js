@@ -50,7 +50,7 @@ export const ClipboardManager = GObject.registerClass(
             this._uuid = uuid;
             this._settings = settings;
 
-            this._clipboardRegistry = new ClipboardRegistry();
+            this._clipboardRegistry = new ClipboardRegistry(undefined, settings);
             this._storage = new ClipboardStorage(settings, this._clipboardRegistry);
             this._exclusionUtils = new ExclusionUtils();
             this._exclusionUtils.initialize(settings);
@@ -225,16 +225,54 @@ export const ClipboardManager = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Get the paste shortcut for a specific item.
+         * Get the preferred paste shortcut for an item.
          *
-         * @param {Object} itemData Clipboard item.
+         * @param {Object} item Clipboard item.
          * @param {Object} [options] Copy options.
          * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
          */
-        getCopyPasteShortcut(itemData, options = {}) {
-            return this._clipboardRegistry.getCopyPasteShortcut(itemData, {
-                settings: this._settings,
+        getCopyPasteShortcut(item, options = {}) {
+            return this._clipboardRegistry.getCopyPasteShortcut(item, {
                 ...options,
+                settings: options.settings || this._settings,
+            });
+        }
+
+        /**
+         * Get the merge behavior for an item.
+         *
+         * @param {Object} item Clipboard item.
+         * @returns {string} Merge behavior string.
+         */
+        getCopyMergeBehavior(item) {
+            return this._clipboardRegistry.getCopyMergeBehavior(item);
+        }
+
+        /**
+         * Get the merge text for an item.
+         *
+         * @param {Object} item Clipboard item.
+         * @param {Object} [context] Context options.
+         * @returns {Promise<string>} Merge text string.
+         */
+        async getCopyMergeText(item, context = {}) {
+            return await this._clipboardRegistry.getCopyMergeText(item, {
+                ...context,
+                manager: this,
+            });
+        }
+
+        /**
+         * Get the merge URI for an item.
+         *
+         * @param {Object} item Clipboard item.
+         * @param {Object} [context] Context options.
+         * @returns {string|null} Merge URI string.
+         */
+        getCopyMergeUri(item, context = {}) {
+            return this._clipboardRegistry.getCopyMergeUri(item, {
+                ...context,
+                manager: this,
             });
         }
 
@@ -267,34 +305,34 @@ export const ClipboardManager = GObject.registerClass(
         }
 
         /**
-         * Get a multi-step copy/paste queue if supported by the item's definition.
+         * Get a multi-step copy queue if supported by the item definition.
          *
-         * @param {Object} itemData Clipboard item.
+         * @param {Object} item Clipboard item.
          * @param {Object} [options] Copy options.
          * @returns {Promise<Array<Object>|null>} Array of queue action items or null.
          */
-        async getCopyQueue(itemData, options = {}) {
-            return await this._clipboardRegistry.getCopyQueue(itemData, {
+        async getCopyQueue(item, options = {}) {
+            return await this._clipboardRegistry.getCopyQueue(item, {
+                ...options,
                 storage: this._storage,
                 manager: this,
-                settings: this._settings,
-                ...options,
+                settings: options.settings || this._settings,
             });
         }
 
         /**
-         * Copy an item's content to the system clipboard.
+         * Copy an item content to the system clipboard.
          *
-         * @param {Object} itemData Data of the item to copy.
+         * @param {Object} item Data of the item to copy.
          * @param {Object} [options] Copy options.
          * @returns {Promise<boolean>} True if successful.
          */
-        async copyToSystemClipboard(itemData, options = {}) {
-            return await this._clipboardRegistry.copyItem(itemData, {
+        async copyToSystemClipboard(item, options = {}) {
+            return await this._clipboardRegistry.copyItem(item, {
+                ...options,
                 storage: this._storage,
                 manager: this,
-                settings: this._settings,
-                ...options,
+                settings: options.settings || this._settings,
             });
         }
 

@@ -21,12 +21,12 @@ export class TextProcessor {
     // ========================================================================
 
     /**
-     * Extract text data from the clipboard.
+     * Process raw text into a standard text clipboard item payload.
      *
-     * @returns {Promise<Object|null>} An object containing text, preview, and hash, or null if no text found.
+     * @param {string} text Plain text content.
+     * @returns {object|null} Processed text item payload or null if empty.
      */
-    static async extract() {
-        const text = await clipboardGetText();
+    static process(text) {
         if (!text) return null;
 
         const hash = ProcessorUtils.computeHashForString(text);
@@ -40,12 +40,22 @@ export class TextProcessor {
     }
 
     /**
+     * Extract text data from the clipboard.
+     *
+     * @returns {Promise<object|null>} An object containing text, preview, and hash, or null if no text found.
+     */
+    static async extract() {
+        const text = await clipboardGetText();
+        return this.process(text);
+    }
+
+    /**
      * Save text items to storage.
      *
-     * @param {Object} item The item to save.
+     * @param {object} item The item to save.
      * @param {string} textsDir Directory for text files.
      * @param {boolean} forceFileSave If true, always save to file regardless of length.
-     * @returns {Promise<Object>} The saved clipboard item.
+     * @returns {Promise<object>} The saved clipboard item.
      */
     static async save(item, textsDir, forceFileSave = false) {
         const { text, hash, type } = item;

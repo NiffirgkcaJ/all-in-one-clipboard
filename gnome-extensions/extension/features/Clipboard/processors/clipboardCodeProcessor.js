@@ -1,9 +1,18 @@
+import GLib from 'gi://GLib';
+
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
+
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Configuration
 const PREVIEW_LINE_LIMIT = 10;
 const ANALYSIS_LIMIT = 5000;
+const MAX_PREVIEW_LENGTH = 500;
+
+// Detection Patterns
+const FENCED_CODE_REGEX = /^[ \t]*(`{3,}|~{3,})(?:[a-zA-Z0-9_+#.-]+)?\s*[\r\n]+([\s\S]*?)[\r\n]+[ \t]*\1$/gm;
 
 // Statistical Thresholds for Code Detection
 const STRUCTURAL_CHAR_THRESHOLD = 0.03; // 3% structural chars indicates code
@@ -117,6 +126,103 @@ export class CodeProcessor {
             return null;
         }
 
+        const hash = ProcessorUtils.computeHashForString(text);
+        return this._createResult(text, hash);
+    }
+
+    /**
+     * Extract markdown fenced code blocks from text content.
+     *
+     * @param {string} text Text to extract code blocks from.
+     * @param {number} [limit] Maximum number of code blocks to return.
+     * @returns {Array<object>} List of code processor results.
+     */
+    static extractCodeBlocks(text, limit) {
+        if (!text || (typeof limit === 'number' && limit <= 0)) return [];
+
+        const matches = text.matchAll(FENCED_CODE_REGEX);
+        const seen = new Set();
+        const results = [];
+
+        for (const match of matches) {
+            const rawCode = match[2];
+            const cleanCode = rawCode.replace(/^\r?\n+|\r?\n+$/g, '');
+            if (cleanCode.trim().length === 0) continue;
+
+            const hash = ProcessorUtils.computeHashForString(cleanCode);
+            if (seen.has(hash)) continue;
+            seen.add(hash);
+
+            results.push(this._createResult(cleanCode, hash));
+
+            if (typeof limit === 'number' && results.length >= limit) break;
+        }
+
+        return results;
+    }
+
+    /**
+     * Save code items to file-backed storage.
+     *
+     * @param {object} item The item to save.
+     * @param {string} textsDir Directory for text files.
+     * @param {boolean} [forceFileSave] If true, always save to file regardless of length.
+     * @returns {Promise<object>} The saved clipboard item.
+     */
+    static async save(item, textsDir, forceFileSave = true) {
+        const { text, hash, type } = item;
+        const id = ProcessorUtils.generateUUID();
+
+        let has_full_content = false;
+
+        // File Persistence
+        if (text && (forceFileSave || text.length > MAX_PREVIEW_LENGTH)) {
+            const filename = `${id}.txt`;
+            const destPath = GLib.build_filenamev([textsDir, filename]);
+            const success = await IOFile.write(destPath, IOText.stringifyBytes(text));
+
+            if (success) {
+                has_full_content = true;
+            } else {
+                Logger.error('Failed to save code text file', 'CodeProcessor');
+            }
+        }
+
+        const finalType = type || ClipboardType.CODE;
+
+        let preview = item.preview;
+        if (!preview && text) {
+            preview = text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' ');
+        }
+
+        const detectedLines = text ? text.replace(/\r?\n+$/, '').split('\n').length : 1;
+        const resultItem = {
+            id,
+            type: finalType,
+            timestamp: ProcessorUtils.getCurrentTimestamp(),
+            preview: preview || '',
+            hash,
+            has_full_content,
+            raw_lines: item.raw_lines || detectedLines,
+        };
+
+        // Inline Persistence
+        if (!has_full_content && text) {
+            resultItem.text = text;
+        }
+
+        return resultItem;
+    }
+
+    /**
+     * Create a structured result object for code text.
+     *
+     * @param {string} text Code text content.
+     * @param {string} hash Content hash.
+     * @returns {object} Processed code result.
+     * @private
+     */
+    static _createResult(text, hash) {
         let previewLines = [];
         let cursor = 0;
 
@@ -142,7 +248,6 @@ export class CodeProcessor {
             rawLines++;
         }
 
-        const hash = ProcessorUtils.computeHashForString(text);
         const highlightedPreview = this._highlight(rawPreviewText);
 
         return {
