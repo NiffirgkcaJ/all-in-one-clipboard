@@ -189,7 +189,7 @@ function createRecentlyUsedDefinitionClipboardPinnedInstance() {
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension._indicator.menu,
-            pasteShortcut: clipboardManager.getCopyPasteShortcut(itemData),
+            pasteShortcut: clipboardManager.getCopyPasteShortcut(itemData, { settings }),
         });
     };
 

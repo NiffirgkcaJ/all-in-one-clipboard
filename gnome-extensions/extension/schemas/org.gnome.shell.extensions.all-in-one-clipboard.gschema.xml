@@ -492,54 +492,59 @@
             <summary>Merge selection order</summary>
             <description>Order in which items are merged.</description>
         </key>
-        <key name="clipboard-html-paste-format" type="s">
+        <key name="clipboard-html-default-format" type="s">
             <default>'rich'</default>
             <choices>
                 <choice value='plain'/>
                 <choice value='rich'/>
             </choices>
-            <summary>HTML Paste Format</summary>
-            <description>Default paste format for HTML items.</description>
+            <summary>HTML Default Format</summary>
+            <description>Default format for HTML items.</description>
         </key>
-        <key name="clipboard-html-show-format-paste-button" type="b">
+        <key name="clipboard-html-show-format-button" type="b">
             <default>true</default>
-            <summary>Show HTML Format Paste Button</summary>
-            <description>Show button to paste alternative format on HTML items.</description>
+            <summary>Show HTML Format Button</summary>
+            <description>Show format button for HTML items.</description>
         </key>
-        <key name="clipboard-html-show-image-paste-button" type="b">
+        <key name="clipboard-html-show-image-button" type="b">
             <default>true</default>
-            <summary>Show HTML Image Paste Button</summary>
-            <description>Show button to paste embedded images on HTML items.</description>
+            <summary>Show HTML Image Button</summary>
+            <description>Show image button for HTML items.</description>
         </key>
-        <key name="capture-resource-items" type="b">
+        <key name="clipboard-resource-capture" type="b">
             <default>true</default>
-            <summary>Capture files and folders</summary>
-            <description>When enabled, files and folders copied in file managers will be recorded in the clipboard history.</description>
+            <summary>Capture Resource Items from Files</summary>
+            <description>Automatically capture resource items from files.</description>
         </key>
-        <key name="clipboard-resource-paste-format" type="s">
+        <key name="clipboard-resource-default-format" type="s">
             <default>'resource'</default>
             <choices>
                 <choice value='resource'/>
                 <choice value='uri'/>
             </choices>
-            <summary>Resource Paste Format</summary>
-            <description>Default paste format for file and folder items.</description>
+            <summary>Resource Default Format</summary>
+            <description>Default format for resource items.</description>
         </key>
-        <key name="clipboard-resource-show-format-paste-button" type="b">
+        <key name="clipboard-resource-show-format-button" type="b">
             <default>true</default>
-            <summary>Show Resource Format Paste Button</summary>
-            <description>Show button to paste alternative format on file and folder items.</description>
+            <summary>Show Resource Format Button</summary>
+            <description>Show format button for resource items.</description>
         </key>
         <key name="clipboard-link-extract-from-text" type="b">
             <default>true</default>
-            <summary>Extract Links from Copied Text</summary>
-            <description>Automatically extract web links found in copied text into individual link items.</description>
+            <summary>Extract Link Items from Text</summary>
+            <description>Automatically extract link items from text.</description>
+        </key>
+        <key name="clipboard-link-limit-extract" type="b">
+            <default>true</default>
+            <summary>Limit Link Items to Extract</summary>
+            <description>When enabled, limits the number of extracted link items.</description>
         </key>
         <key name="clipboard-link-extract-limit" type="i">
             <default>3</default>
             <range min="1" max="10"/>
-            <summary>Maximum Links to Extract</summary>
-            <description>Maximum number of web links to extract from a single copied text item.</description>
+            <summary>Maximum Link Items to Extract</summary>
+            <description>Maximum link items to extract.</description>
         </key>
         <key name="clipboard-link-default-action" type="s">
             <default>'paste'</default>
@@ -547,13 +552,77 @@
                 <choice value='paste'/>
                 <choice value='launch'/>
             </choices>
-            <summary>Link Primary Action</summary>
-            <description>Default action when clicking a link item: paste link or launch link in default application.</description>
+            <summary>Link Default Action</summary>
+            <description>Default action for link items.</description>
         </key>
         <key name="clipboard-link-show-action-button" type="b">
             <default>true</default>
             <summary>Show Link Action Button</summary>
-            <description>Show a button on link items to trigger the alternative action.</description>
+            <description>Show action button for link items.</description>
+        </key>
+        <key name="clipboard-code-extract-from-text" type="b">
+            <default>true</default>
+            <summary>Extract Code Items from Text</summary>
+            <description>Automatically extract code items from text.</description>
+        </key>
+        <key name="clipboard-code-limit-extract" type="b">
+            <default>true</default>
+            <summary>Limit Code Items to Extract</summary>
+            <description>When enabled, limits the number of extracted code items.</description>
+        </key>
+        <key name="clipboard-code-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Code Items to Extract</summary>
+            <description>Maximum code items to extract.</description>
+        </key>
+        <key name="clipboard-contact-extract-from-text" type="b">
+            <default>true</default>
+            <summary>Extract Contact Items from Text</summary>
+            <description>Automatically extract contact items from text.</description>
+        </key>
+        <key name="clipboard-contact-limit-extract" type="b">
+            <default>true</default>
+            <summary>Limit Contact Items to Extract</summary>
+            <description>When enabled, limits the number of extracted contact items.</description>
+        </key>
+        <key name="clipboard-contact-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Contact Items to Extract</summary>
+            <description>Maximum contact items to extract.</description>
+        </key>
+        <key name="clipboard-color-extract-from-text" type="b">
+            <default>true</default>
+            <summary>Extract Color Items from Text</summary>
+            <description>Automatically extract color items from text.</description>
+        </key>
+        <key name="clipboard-color-limit-extract" type="b">
+            <default>true</default>
+            <summary>Limit Color Items to Extract</summary>
+            <description>When enabled, limits the number of extracted color items.</description>
+        </key>
+        <key name="clipboard-color-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Color Items to Extract</summary>
+            <description>Maximum color items to extract.</description>
+        </key>
+        <key name="clipboard-image-extract-from-resource" type="b">
+            <default>true</default>
+            <summary>Extract Image Items from Files</summary>
+            <description>Automatically extract image items from files.</description>
+        </key>
+        <key name="clipboard-image-limit-extract" type="b">
+            <default>true</default>
+            <summary>Limit Image Items to Extract</summary>
+            <description>When enabled, limits the number of extracted image items.</description>
+        </key>
+        <key name="clipboard-image-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Image Items to Extract</summary>
+            <description>Maximum image items to extract.</description>
         </key>
         <key name="clipboard-layout-mode" type="s">
             <default>'list'</default>
