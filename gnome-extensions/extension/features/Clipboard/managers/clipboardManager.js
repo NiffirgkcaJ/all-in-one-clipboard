@@ -231,47 +231,47 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Object} [options] Copy options.
          * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
          */
-        getCopyPasteShortcut(item, options = {}) {
-            return this._clipboardRegistry.getCopyPasteShortcut(item, {
+        getPasteShortcut(item, options = {}) {
+            return this._clipboardRegistry.getPasteShortcut(item, {
                 ...options,
                 settings: options.settings || this._settings,
             });
         }
 
         /**
-         * Get the merge behavior for an item.
+         * Get the copy mode for an item.
          *
          * @param {Object} item Clipboard item.
-         * @returns {string} Merge behavior string.
+         * @returns {'string'|'blob'} Copy mode string.
          */
-        getCopyMergeBehavior(item) {
-            return this._clipboardRegistry.getCopyMergeBehavior(item);
+        getCopyMode(item) {
+            return this._clipboardRegistry.getCopyMode(item);
         }
 
         /**
-         * Get the merge text for an item.
+         * Serialize an item to its string representation.
          *
          * @param {Object} item Clipboard item.
-         * @param {Object} [context] Context options.
-         * @returns {Promise<string>} Merge text string.
+         * @param {Object} [options] Context options.
+         * @returns {Promise<string>} Serialized content string.
          */
-        async getCopyMergeText(item, context = {}) {
-            return await this._clipboardRegistry.getCopyMergeText(item, {
-                ...context,
+        async serializeItem(item, options = {}) {
+            return await this._clipboardRegistry.serializeItem(item, {
+                ...options,
                 manager: this,
             });
         }
 
         /**
-         * Get the merge URI for an item.
+         * Copy a batch of items using their declared definition copy options.
          *
-         * @param {Object} item Clipboard item.
-         * @param {Object} [context] Context options.
-         * @returns {string|null} Merge URI string.
+         * @param {Array<Object>} items Clipboard items.
+         * @param {Object} [options] Context options.
+         * @returns {Promise<boolean>} True if handled as a batch.
          */
-        getCopyMergeUri(item, context = {}) {
-            return this._clipboardRegistry.getCopyMergeUri(item, {
-                ...context,
+        async copyBatchToClipboard(items, options = {}) {
+            return await this._clipboardRegistry.copyBatchToClipboard(items, {
+                ...options,
                 manager: this,
             });
         }
@@ -327,8 +327,8 @@ export const ClipboardManager = GObject.registerClass(
          * @param {Object} [options] Copy options.
          * @returns {Promise<boolean>} True if successful.
          */
-        async copyToSystemClipboard(item, options = {}) {
-            return await this._clipboardRegistry.copyItem(item, {
+        async copyItemToClipboard(item, options = {}) {
+            return await this._clipboardRegistry.copyItemToClipboard(item, {
                 ...options,
                 storage: this._storage,
                 manager: this,

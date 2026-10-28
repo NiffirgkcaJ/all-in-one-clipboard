@@ -95,18 +95,22 @@ export class ClipboardRegistry {
      * Get the paste shortcut for an item type.
      *
      * @param {Object} item Clipboard item.
-     * @param {Object} options Copy options.
+     * @param {Object} [options] Copy options.
      * @returns {'ctrl-v'|'shift-insert'|null} The paste shortcut.
      */
-    getCopyPasteShortcut(item, options) {
+    getPasteShortcut(item, options = {}) {
         const definition = this.getDefinition(item?.type);
-        if (!definition || !definition.copyOptions || !definition.copyOptions.pasteShortcut) {
-            Logger.error(`ClipboardRegistry: Definition for type '${item?.type}' is missing copyOptions.pasteShortcut.`);
+        if (!definition || !definition.copyOptions || !definition.copyOptions.getPasteShortcut) {
+            Logger.error(`ClipboardRegistry: Definition for type '${item?.type}' is missing copyOptions.getPasteShortcut.`);
             return null;
         }
-        const shortcut = definition.copyOptions.pasteShortcut;
+        const shortcut = definition.copyOptions.getPasteShortcut;
         if (typeof shortcut === 'function') {
-            return shortcut(item, options);
+            const context = {
+                ...options,
+                settings: options.settings || this._settings,
+            };
+            return shortcut(item, context);
         }
         return shortcut;
     }
@@ -122,14 +126,14 @@ export class ClipboardRegistry {
      * @param {Object} [options] Options containing storage, manager, and settings.
      * @returns {Promise<boolean>} True if successful.
      */
-    async copyItem(item, options = {}) {
+    async copyItemToClipboard(item, options = {}) {
         const definition = this.getDefinition(item.type);
-        if (definition && definition.copyOptions && definition.copyOptions.copyItem) {
+        if (definition && definition.copyOptions && definition.copyOptions.copyItemToClipboard) {
             const context = {
                 ...options,
                 settings: options.settings || this._settings,
             };
-            return await definition.copyOptions.copyItem(item, context);
+            return await definition.copyOptions.copyItemToClipboard(item, context);
         }
         return false;
     }
@@ -154,44 +158,54 @@ export class ClipboardRegistry {
     }
 
     /**
-     * Get the merge behavior for an item type.
+     * Get the copy mode for an item type.
      *
      * @param {Object} item Clipboard item.
-     * @returns {string} 'text' or 'file'
+     * @returns {'string'|'blob'} Copy mode.
      */
-    getCopyMergeBehavior(item) {
+    getCopyMode(item) {
         const definition = this.getDefinition(item.type);
-        return definition && definition.copyOptions ? definition.copyOptions.mergeBehavior || 'text' : 'text';
+        return definition && definition.copyOptions ? definition.copyOptions.copyMode || 'string' : 'string';
     }
 
     /**
-     * Get the merge text for an item.
+     * Serialize an item to its string representation.
      *
      * @param {Object} item Clipboard item.
-     * @param {Object} options Options containing textContents and manager.
-     * @returns {Promise<string>} The resolved text content.
+     * @param {Object} [options] Options containing textContents, manager, and settings.
+     * @returns {Promise<string>} The serialized content string.
      */
-    async getCopyMergeText(item, options) {
+    async serializeItem(item, options = {}) {
         const definition = this.getDefinition(item.type);
-        if (definition && definition.copyOptions && definition.copyOptions.getMergeText) {
-            return await definition.copyOptions.getMergeText(item, options);
+        if (definition && definition.copyOptions && definition.copyOptions.serializeItem) {
+            const context = {
+                ...options,
+                settings: options.settings || this._settings,
+            };
+            return await definition.copyOptions.serializeItem(item, context);
         }
         return '';
     }
 
     /**
-     * Get the merge URI for an item.
+     * Copy a batch of items using their declared definition copy options.
      *
-     * @param {Object} item Clipboard item.
-     * @param {Object} options Options containing manager.
-     * @returns {string|null} The resolved URI.
+     * @param {Array<Object>} items Clipboard items.
+     * @param {Object} [options] Options containing storage, manager, and settings.
+     * @returns {Promise<boolean>} True if handled as a batch.
      */
-    getCopyMergeUri(item, options) {
-        const definition = this.getDefinition(item.type);
-        if (definition && definition.copyOptions && definition.copyOptions.getMergeUri) {
-            return definition.copyOptions.getMergeUri(item, options);
+    async copyBatchToClipboard(items, options = {}) {
+        if (!items || items.length === 0) return false;
+        const firstType = items[0]?.type;
+        const definition = this.getDefinition(firstType);
+        if (definition && definition.copyOptions && definition.copyOptions.copyBatchToClipboard) {
+            const context = {
+                ...options,
+                settings: options.settings || this._settings,
+            };
+            return await definition.copyOptions.copyBatchToClipboard(items, context);
         }
-        return null;
+        return false;
     }
 
     // ========================================================================

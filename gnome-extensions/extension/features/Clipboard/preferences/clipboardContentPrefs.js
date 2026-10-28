@@ -291,6 +291,7 @@ export function addClipboardContentPrefs({ group, settings, window }) {
 
     const resourceFormatModes = [
         { id: 'resource', label: _('Files & Folders') },
+        { id: 'path', label: _('File Paths') },
         { id: 'uri', label: _('URI Links') },
     ];
 
@@ -323,17 +324,147 @@ export function addClipboardContentPrefs({ group, settings, window }) {
         }
     });
 
-    const showResourceFormatButtonRow = new Adw.SwitchRow({
-        title: _('Show Format Button'),
-        subtitle: _('Show format button for resource items.'),
+    // Visible Format Buttons
+    const visibleFormatsExpander = new Adw.ExpanderRow({
+        title: _('Visible Format Buttons'),
+        subtitle: _('Show or hide format buttons on cards.'),
     });
-    resourceExpander.add_row(showResourceFormatButtonRow);
-    settings.bind('clipboard-resource-show-format-button', showResourceFormatButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    resourceExpander.add_row(visibleFormatsExpander);
+
+    const RESOURCE_FORMAT_BUTTONS = [
+        {
+            key: 'clipboard-resource-show-resource-button',
+            title: _('Files & Folders'),
+            subtitle: _('Show files and folders button.'),
+        },
+        {
+            key: 'clipboard-resource-show-path-button',
+            title: _('File Paths'),
+            subtitle: _('Show file paths button.'),
+        },
+        {
+            key: 'clipboard-resource-show-uri-button',
+            title: _('URI Links'),
+            subtitle: _('Show URI links button.'),
+        },
+    ];
+
+    RESOURCE_FORMAT_BUTTONS.forEach((item) => {
+        const row = new Adw.SwitchRow({
+            title: item.title,
+            subtitle: item.subtitle,
+        });
+        visibleFormatsExpander.add_row(row);
+        settings.bind(item.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+    });
+
+    // Format Button Order
+    const formatOrderExpander = new Adw.ExpanderRow({
+        title: _('Format Button Order'),
+        subtitle: _('Use buttons to reorder format buttons on cards.'),
+    });
+    resourceExpander.add_row(formatOrderExpander);
+
+    const RESOURCE_FORMAT_LABELS = {
+        resource: {
+            title: _('Files & Folders'),
+            key: 'clipboard-resource-show-resource-button',
+        },
+        path: {
+            title: _('File Paths'),
+            key: 'clipboard-resource-show-path-button',
+        },
+        uri: {
+            title: _('URI Links'),
+            key: 'clipboard-resource-show-uri-button',
+        },
+    };
+
+    let managedOrderRows = [];
+
+    const populateFormatOrderList = () => {
+        managedOrderRows.forEach((row) => formatOrderExpander.remove(row));
+        managedOrderRows = [];
+
+        const formatOrder = settings.get_strv('clipboard-resource-format-order');
+
+        formatOrder.forEach((formatId, index) => {
+            const config = RESOURCE_FORMAT_LABELS[formatId];
+            if (!config) return;
+
+            const isVisible = settings.get_boolean(config.key);
+            const row = new Adw.ActionRow({
+                title: isVisible ? config.title : `${config.title} (Hidden)`,
+            });
+
+            if (!isVisible) {
+                row.add_css_class('dim-label');
+            }
+
+            const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+            row.add_suffix(buttonBox);
+
+            const upButton = new Gtk.Button({
+                icon_name: 'go-up-symbolic',
+                sensitive: index > 0,
+            });
+            const downButton = new Gtk.Button({
+                icon_name: 'go-down-symbolic',
+                sensitive: index < formatOrder.length - 1,
+            });
+
+            const moveRow = (direction) => {
+                const currentOrder = settings.get_strv('clipboard-resource-format-order');
+                const oldIndex = currentOrder.indexOf(formatId);
+                const newIndex = oldIndex + direction;
+
+                if (newIndex >= 0 && newIndex < currentOrder.length) {
+                    [currentOrder[oldIndex], currentOrder[newIndex]] = [currentOrder[newIndex], currentOrder[oldIndex]];
+                    settings.set_strv('clipboard-resource-format-order', currentOrder);
+                }
+            };
+
+            upButton.connect('clicked', () => moveRow(-1));
+            downButton.connect('clicked', () => moveRow(1));
+
+            buttonBox.append(upButton);
+            buttonBox.append(downButton);
+
+            formatOrderExpander.add_row(row);
+            managedOrderRows.push(row);
+        });
+
+        const resetRow = new Adw.ActionRow({
+            title: _('Reset Order'),
+            subtitle: _('Restore original format button order.'),
+        });
+        formatOrderExpander.add_row(resetRow);
+        managedOrderRows.push(resetRow);
+
+        const resetButton = new Gtk.Button({
+            label: _('Reset'),
+            valign: Gtk.Align.CENTER,
+            css_classes: ['destructive-action'],
+        });
+
+        resetButton.connect('clicked', () => {
+            const defaultValueVariant = settings.get_default_value('clipboard-resource-format-order');
+            settings.set_strv('clipboard-resource-format-order', defaultValueVariant.get_strv());
+        });
+        resetRow.add_suffix(resetButton);
+    };
+
+    settings.connect('changed::clipboard-resource-format-order', populateFormatOrderList);
+    Object.values(RESOURCE_FORMAT_LABELS).forEach((config) => {
+        settings.connect(`changed::${config.key}`, populateFormatOrderList);
+    });
+    populateFormatOrderList();
 
     const syncResourceSensitivity = () => {
         const captureEnabled = settings.get_boolean('clipboard-resource-capture');
         resourceFormatRow.sensitive = captureEnabled;
-        showResourceFormatButtonRow.sensitive = captureEnabled;
+        visibleFormatsExpander.sensitive = captureEnabled;
+        formatOrderExpander.sensitive = captureEnabled;
     };
     syncResourceSensitivity();
     settings.connect('changed::clipboard-resource-capture', syncResourceSensitivity);

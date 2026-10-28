@@ -146,9 +146,10 @@ export function ClipboardDefinitionLink() {
             },
         }),
         copyOptions: {
-            pasteShortcut: 'shift-insert',
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager, settings, forcePaste }) => {
+            getPasteShortcut: 'shift-insert',
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const { manager, settings, forcePaste } = options;
                 if (settings && !forcePaste) {
                     const defaultAction = settings.get_string('clipboard-link-default-action');
                     if (defaultAction === 'launch') {
@@ -165,7 +166,7 @@ export function ClipboardDefinitionLink() {
                 clipboardSetText(item.url);
                 return true;
             },
-            getMergeText: (item) => item.url,
+            serializeItem: (item) => item.url,
         },
         destroy: () => linkProcessor.destroy(),
     };

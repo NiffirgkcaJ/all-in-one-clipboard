@@ -90,14 +90,15 @@ export function ClipboardDefinitionColor() {
         },
         getSearchTerms: (item) => [item.color_value],
         copyOptions: {
-            pasteShortcut: 'shift-insert',
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            getPasteShortcut: 'shift-insert',
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const manager = options.manager;
                 manager.captureGuard.registerText(item.color_value);
                 clipboardSetText(item.color_value);
                 return true;
             },
-            getMergeText: (item) => item.color_value,
+            serializeItem: (item) => item.color_value,
         },
     };
 }

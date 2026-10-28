@@ -184,12 +184,12 @@ function createRecentlyUsedDefinitionClipboardPinnedInstance() {
         if (!clipboardManager) return false;
 
         return await GlobalActionService.executeCopyAction({
-            onCopy: async () => await clipboardManager.copyToSystemClipboard(itemData),
+            onCopy: async () => await clipboardManager.copyItemToClipboard(itemData),
             onPostCopy: () => clipboardManager.promoteItemToTop(itemData.id),
             settings,
             autoPasteKey: definition.settings.autoPasteSettingKey,
             menu: extension._indicator.menu,
-            pasteShortcut: clipboardManager.getCopyPasteShortcut(itemData, { settings }),
+            pasteShortcut: clipboardManager.getPasteShortcut(itemData, { settings }),
         });
     };
 

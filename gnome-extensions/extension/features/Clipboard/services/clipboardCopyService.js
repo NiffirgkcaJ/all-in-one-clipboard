@@ -1,9 +1,8 @@
 import GLib from 'gi://GLib';
 
 import { GlobalActionService } from '../../../shared/services/serviceAction.js';
-import { IOText } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
-import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 
 // Configuration
 const SEQUENTIAL_PASTE_DELAY_MS = 100;
@@ -74,10 +73,10 @@ export class ClipboardCopyService {
             }
         }
 
-        const pasteShortcut = manager.getCopyPasteShortcut(item, options);
+        const pasteShortcut = manager.getPasteShortcut(item, options);
 
         return await GlobalActionService.executeCopyAction({
-            onCopy: async () => await manager.copyToSystemClipboard(item, options),
+            onCopy: async () => await manager.copyItemToClipboard(item, options),
             onPostCopy: () => manager.promoteItemToTop(item.id),
             settings: options.settings,
             autoPasteKey: 'auto-paste-clipboard',
@@ -101,13 +100,13 @@ export class ClipboardCopyService {
                 return false;
             }
 
-            const textItems = selectedItems.filter((item) => manager.getCopyMergeBehavior(item) === 'text');
+            const stringItems = selectedItems.filter((item) => manager.getCopyMode(item) === 'string');
             const autoPasteEnabled = ClipboardCopyService._isAutoPasteEnabled(options.settings);
             const delimiter = ClipboardCopyService._resolveDelimiter(options);
 
             const textContents = new Map();
             await Promise.all(
-                textItems.map(async (item) => {
+                stringItems.map(async (item) => {
                     if (!item.text && !item.preview) {
                         const content = await manager.getContent(item.id);
                         if (content) textContents.set(item.id, content);
@@ -117,14 +116,14 @@ export class ClipboardCopyService {
 
             if (autoPasteEnabled) {
                 const queue = [];
-                let currentTextGroup = [];
+                let currentStringGroup = [];
                 let pendingGroupNeedsTrailingDelimiter = false;
 
-                const flushTextGroup = () => {
-                    if (currentTextGroup.length === 0) return;
+                const flushStringGroup = () => {
+                    if (currentStringGroup.length === 0) return;
 
-                    const groupToFlush = [...currentTextGroup];
-                    currentTextGroup = [];
+                    const groupToFlush = [...currentStringGroup];
+                    currentStringGroup = [];
                     const needsTrailingDelimiter = pendingGroupNeedsTrailingDelimiter;
                     pendingGroupNeedsTrailingDelimiter = false;
 
@@ -144,24 +143,24 @@ export class ClipboardCopyService {
                 };
 
                 for (const item of selectedItems) {
-                    if (manager.getCopyMergeBehavior(item) === 'file') {
-                        if (currentTextGroup.length > 0) {
+                    if (manager.getCopyMode(item) === 'blob') {
+                        if (currentStringGroup.length > 0) {
                             pendingGroupNeedsTrailingDelimiter = true;
-                            flushTextGroup();
+                            flushStringGroup();
                         }
 
                         queue.push({
-                            pasteShortcut: manager.getCopyPasteShortcut(item, options),
+                            pasteShortcut: manager.getPasteShortcut(item, options),
                             execute: async () => {
-                                return await manager.copyToSystemClipboard(item, options);
+                                return await manager.copyItemToClipboard(item, options);
                             },
                         });
                     } else {
-                        currentTextGroup.push(item);
+                        currentStringGroup.push(item);
                     }
                 }
 
-                flushTextGroup();
+                flushStringGroup();
 
                 const queueCompleted = await this._runPasteQueue(queue, options);
                 if (!queueCompleted) {
@@ -169,7 +168,7 @@ export class ClipboardCopyService {
                 }
             } else {
                 let mergedShortcut = 'shift-insert';
-                if (selectedItems.every((item) => manager.getCopyPasteShortcut(item, options) === 'ctrl-v')) {
+                if (selectedItems.every((item) => manager.getPasteShortcut(item, options) === 'ctrl-v')) {
                     mergedShortcut = 'ctrl-v';
                 }
 
@@ -208,51 +207,23 @@ export class ClipboardCopyService {
      * @param {string} delimiter Delimiter string.
      * @param {ClipboardManager} manager Clipboard manager.
      * @param {Object} [options] Execution options.
-     * @param {Gio.Settings} [options.settings] Extension settings.
      * @private
      */
     static async _copyMultipleCopyOnly(selectedItems, textContents, delimiter, manager, options = {}) {
-        const allFiles = selectedItems.length > 0 && selectedItems.every((item) => manager.getCopyMergeBehavior(item) === 'file');
-        const targetFormat = options.settings ? options.settings.get_string('clipboard-resource-default-format') || 'resource' : 'resource';
-
-        // Native Resource Payload
-        if (allFiles && targetFormat !== 'uri') {
-            const allUriLines = [];
-            for (const item of selectedItems) {
-                if (item.is_corrupted) continue;
-                const rawUri = manager.getCopyMergeUri(item);
-                if (!rawUri) continue;
-                const lines = rawUri
-                    .split(/[\r\n]+/)
-                    .map((line) => line.trim())
-                    .filter((line) => line.length > 0);
-                allUriLines.push(...lines);
-            }
-
-            if (allUriLines.length > 0) {
-                const uriListPayload = `${allUriLines.join('\r\n')}\r\n`;
-                const payloadBytes = IOText.stringifyBytes(uriListPayload);
-                if (payloadBytes) {
-                    for (const item of selectedItems) {
-                        if (item.file_uri) manager.captureGuard.registerText(item.file_uri);
-                        if (item.hash) manager.captureGuard.registerHash(item.hash);
-                    }
-                    manager.captureGuard.registerText(allUriLines.join('\n'));
-                    manager.captureGuard.registerText(uriListPayload);
-
-                    clipboardSetContent('text/uri-list', new GLib.Bytes(payloadBytes));
+        if (selectedItems.length > 0) {
+            const firstType = selectedItems[0].type;
+            const allSameType = selectedItems.every((item) => item.type === firstType);
+            if (allSameType) {
+                const batchCopied = await manager.copyBatchToClipboard(selectedItems, options);
+                if (batchCopied) {
                     return;
                 }
             }
         }
 
-        // Text Content Fallback
         const resolvedTexts = await Promise.all(
             selectedItems.map(async (item) => {
-                if (manager.getCopyMergeBehavior(item) === 'file') {
-                    return manager.getCopyMergeUri(item);
-                }
-                return await manager.getCopyMergeText(item, { textContents });
+                return await manager.serializeItem(item, { ...options, textContents });
             }),
         );
 
@@ -373,18 +344,18 @@ export class ClipboardCopyService {
     }
 
     /**
-     * Resolve and concatenate text content for selected text items.
+     * Resolve and concatenate text content for selected string items.
      *
-     * @param {Array<Object>} textItems Text items.
+     * @param {Array<Object>} stringItems String items.
      * @param {Map<string, string>} textContents Map of text contents.
      * @param {string} delimiter Delimiter string.
      * @param {ClipboardManager} manager Clipboard manager.
      * @returns {Promise<string>} Concatenated string.
      * @private
      */
-    static async _compileTexts(textItems, textContents, delimiter, manager) {
-        if (textItems.length === 0) return '';
-        const resolvedTexts = await Promise.all(textItems.map((item) => manager.getCopyMergeText(item, { textContents })));
+    static async _compileTexts(stringItems, textContents, delimiter, manager) {
+        if (stringItems.length === 0) return '';
+        const resolvedTexts = await Promise.all(stringItems.map((item) => manager.serializeItem(item, { textContents })));
         return resolvedTexts.filter(Boolean).join(delimiter);
     }
 

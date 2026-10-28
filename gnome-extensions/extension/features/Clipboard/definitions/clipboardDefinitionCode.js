@@ -102,17 +102,18 @@ export function ClipboardDefinitionCode() {
         },
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
-            pasteShortcut: 'shift-insert',
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            getPasteShortcut: 'shift-insert',
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const manager = options.manager;
                 let content = item.text || (await manager.getContent(item.id));
                 if (!content) return false;
                 manager.captureGuard.registerText(content);
                 clipboardSetText(content);
                 return true;
             },
-            getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.text || item.preview || '';
+            serializeItem: async (item, options = {}) => {
+                return options.textContents?.get(item.id) || item.text || item.preview || '';
             },
         },
     };

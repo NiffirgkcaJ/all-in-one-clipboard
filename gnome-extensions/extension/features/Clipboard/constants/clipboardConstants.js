@@ -84,6 +84,14 @@ export const ClipboardIcons = {
         icon: 'clipboard-paste-resource-items-symbolic.svg',
         iconSize: 16,
     },
+    ACTION_PASTE_RESOURCE_PATH: {
+        icon: 'clipboard-paste-resource-path-symbolic.svg',
+        iconSize: 16,
+    },
+    ACTION_PASTE_RESOURCE_PATHS: {
+        icon: 'clipboard-paste-resource-paths-symbolic.svg',
+        iconSize: 16,
+    },
     ACTION_PASTE_RESOURCE_URI: {
         icon: 'clipboard-paste-resource-uri-symbolic.svg',
         iconSize: 16,

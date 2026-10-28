@@ -75,9 +75,10 @@ export function ClipboardDefinitionText() {
         },
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
-            pasteShortcut: 'shift-insert',
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            getPasteShortcut: 'shift-insert',
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const manager = options.manager;
                 let content = item.text || (await manager.getContent(item.id));
                 if (!content && item.preview) content = item.preview;
                 if (!content) return false;
@@ -85,8 +86,8 @@ export function ClipboardDefinitionText() {
                 clipboardSetText(content);
                 return true;
             },
-            getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.text || item.preview || '';
+            serializeItem: async (item, options = {}) => {
+                return options.textContents?.get(item.id) || item.text || item.preview || '';
             },
         },
     };

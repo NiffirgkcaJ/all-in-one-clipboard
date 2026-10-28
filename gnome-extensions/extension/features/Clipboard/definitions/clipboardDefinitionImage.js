@@ -96,9 +96,10 @@ export function ClipboardDefinitionImage() {
         },
         getSearchTerms: (item) => [item.image_filename],
         copyOptions: {
-            pasteShortcut: 'ctrl-v',
-            mergeBehavior: 'file',
-            copyItem: async (item, { storage, manager }) => {
+            getPasteShortcut: 'ctrl-v',
+            copyMode: 'blob',
+            copyItemToClipboard: async (item, options = {}) => {
+                const { storage, manager } = options;
                 if (item.file_uri) {
                     const uriText = item.file_uri + '\r\n';
                     const uriBytes = IOText.stringifyBytes(uriText);
@@ -116,21 +117,22 @@ export function ClipboardDefinitionImage() {
                 clipboardSetContent(IOImage.getMimeType(item.image_filename), bytes);
                 return true;
             },
-            getMergeUri: (item, { manager }) => {
+            serializeItem: (item, options = {}) => {
                 if (item.file_uri) {
                     return item.file_uri;
                 }
                 if (item.image_filename) {
                     try {
-                        const imagesDir = manager.imagesDir || manager.storage.imagesDir;
-                        if (!imagesDir) return null;
+                        const manager = options.manager;
+                        const imagesDir = manager?.imagesDir || manager?.storage?.imagesDir;
+                        if (!imagesDir) return '';
                         const imagePath = GLib.build_filenamev([imagesDir, item.image_filename]);
                         return Gio.File.new_for_path(imagePath).get_uri();
                     } catch {
-                        return null;
+                        return '';
                     }
                 }
-                return null;
+                return '';
             },
         },
     };

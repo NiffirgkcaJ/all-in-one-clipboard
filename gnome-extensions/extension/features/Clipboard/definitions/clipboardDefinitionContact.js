@@ -101,9 +101,10 @@ export function ClipboardDefinitionContact() {
         },
         getSearchTerms: (item) => [item.text, item.preview, item.metadata?.name, item.metadata?.email],
         copyOptions: {
-            pasteShortcut: 'shift-insert',
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager }) => {
+            getPasteShortcut: 'shift-insert',
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const manager = options.manager;
                 let content = item.text || (await manager.getContent(item.id));
                 if (!content && item.preview) content = item.preview;
                 if (!content) return false;
@@ -111,8 +112,8 @@ export function ClipboardDefinitionContact() {
                 clipboardSetText(content);
                 return true;
             },
-            getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.preview || item.text || '';
+            serializeItem: async (item, options = {}) => {
+                return options.textContents?.get(item.id) || item.preview || item.text || '';
             },
         },
         destroy: () => linkProcessor.destroy(),

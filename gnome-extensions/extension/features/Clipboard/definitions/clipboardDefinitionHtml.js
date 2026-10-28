@@ -154,12 +154,13 @@ export function ClipboardDefinitionHtml() {
         }),
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
-            pasteShortcut: (_item, options = {}) => {
+            getPasteShortcut: (_item, options = {}) => {
                 const format = options.format || (options.settings ? options.settings.get_string('clipboard-html-default-format') : null);
                 return format === 'image' ? 'ctrl-v' : 'shift-insert';
             },
-            mergeBehavior: 'text',
-            copyItem: async (item, { manager, storage, format, settings }) => {
+            copyMode: 'string',
+            copyItemToClipboard: async (item, options = {}) => {
+                const { manager, storage, format, settings } = options;
                 const targetFormat = format || (settings ? settings.get_string('clipboard-html-default-format') : 'rich');
 
                 if (targetFormat === 'image' && item.has_images) {
@@ -189,7 +190,8 @@ export function ClipboardDefinitionHtml() {
                 clipboardSetText(content);
                 return true;
             },
-            getCopyQueue: async (item, { manager, storage, format }) => {
+            getCopyQueue: async (item, options = {}) => {
+                const { manager, storage, format } = options;
                 if (format !== 'image' || !item.has_images) return null;
 
                 const images = await extractEmbeddedImages(item, storage);
@@ -204,8 +206,8 @@ export function ClipboardDefinitionHtml() {
                     },
                 }));
             },
-            getMergeText: async (item, { textContents }) => {
-                return textContents.get(item.id) || item.text || item.preview || '';
+            serializeItem: async (item, options = {}) => {
+                return options.textContents?.get(item.id) || item.text || item.preview || '';
             },
         },
     };

@@ -520,15 +520,31 @@
             <default>'resource'</default>
             <choices>
                 <choice value='resource'/>
+                <choice value='path'/>
                 <choice value='uri'/>
             </choices>
             <summary>Resource Default Format</summary>
             <description>Default format for resource items.</description>
         </key>
-        <key name="clipboard-resource-show-format-button" type="b">
+        <key name="clipboard-resource-show-resource-button" type="b">
             <default>true</default>
             <summary>Show Resource Format Button</summary>
-            <description>Show format button for resource items.</description>
+            <description>Show format button for resources.</description>
+        </key>
+        <key name="clipboard-resource-show-path-button" type="b">
+            <default>true</default>
+            <summary>Show Path Format Button</summary>
+            <description>Show format button for paths.</description>
+        </key>
+        <key name="clipboard-resource-show-uri-button" type="b">
+            <default>true</default>
+            <summary>Show URI Format Button</summary>
+            <description>Show format button for URIs.</description>
+        </key>
+        <key name="clipboard-resource-format-order" type="as">
+            <default>['resource', 'path', 'uri']</default>
+            <summary>Resource Format Order</summary>
+            <description>Order of resource format buttons.</description>
         </key>
         <key name="clipboard-link-extract-from-text" type="b">
             <default>true</default>
