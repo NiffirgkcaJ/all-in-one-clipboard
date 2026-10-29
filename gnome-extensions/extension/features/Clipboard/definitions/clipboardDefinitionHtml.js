@@ -107,44 +107,58 @@ export function ClipboardDefinitionHtml() {
                 const buttons = [];
                 const { settings, onItemCopy, styleOptions } = context;
 
-                // Format Action
-                if (settings.get_boolean('clipboard-html-show-format-button')) {
-                    const currentFormat = settings.get_string('clipboard-html-default-format');
-                    const targetFormat = currentFormat === 'rich' ? 'plain' : 'rich';
+                // Button Actions
+                const defaultFormat = settings.get_string('clipboard-html-default-format');
+                const target = defaultFormat === 'rich' ? 'plain' : 'rich';
 
-                    const HTML_FORMAT_ACTIONS = {
-                        plain: {
-                            icon: ClipboardIcons.ACTION_PASTE_HTML_PLAIN,
-                            tooltip: _('Paste as Plain Text'),
-                        },
-                        rich: {
-                            icon: ClipboardIcons.ACTION_PASTE_HTML_RICH,
-                            tooltip: _('Paste as Rich HTML'),
-                        },
-                    };
+                const HTML_TARGET_ACTIONS = {
+                    plain: {
+                        icon: ClipboardIcons.ACTION_PASTE_HTML_PLAIN,
+                        tooltip: _('Paste as Plain Text'),
+                    },
+                    rich: {
+                        icon: ClipboardIcons.ACTION_PASTE_HTML_RICH,
+                        tooltip: _('Paste as Rich HTML'),
+                    },
+                };
 
-                    const actionMeta = HTML_FORMAT_ACTIONS[targetFormat];
+                const HTML_BUTTON_ACTIONS = {
+                    format: {
+                        icon: HTML_TARGET_ACTIONS[target].icon,
+                        tooltip: HTML_TARGET_ACTIONS[target].tooltip,
+                        action: 'paste-format',
+                        target,
+                    },
+                    image: {
+                        icon: ClipboardIcons.ACTION_PASTE_HTML_IMAGE,
+                        tooltip: _('Paste Images'),
+                        action: 'paste-image',
+                        target: 'image',
+                    },
+                };
+
+                const HTML_BUTTON_PERMISSIONS = {
+                    format: () => settings.get_boolean('clipboard-html-show-format-button'),
+                    image: () => item.has_images && settings.get_boolean('clipboard-html-show-image-button'),
+                };
+
+                const buttonOrder = settings.get_strv('clipboard-html-button-order');
+                const activeButtons = buttonOrder.filter((buttonId) => {
+                    const isAllowed = HTML_BUTTON_PERMISSIONS[buttonId];
+                    return isAllowed ? isAllowed() : false;
+                });
+
+                for (const buttonId of activeButtons) {
+                    const actionMeta = HTML_BUTTON_ACTIONS[buttonId];
+                    if (!actionMeta) continue;
 
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
                             icon: actionMeta.icon,
                             tooltip: actionMeta.tooltip,
-                            action: 'paste-format',
+                            action: actionMeta.action,
                             styleOptions,
-                            onClick: () => onItemCopy(item, { format: targetFormat }),
-                        }),
-                    );
-                }
-
-                // Image Action
-                if (item.has_images && settings.get_boolean('clipboard-html-show-image-button')) {
-                    buttons.push(
-                        ClipboardBaseWidgetFactory.createActionButton({
-                            icon: ClipboardIcons.ACTION_PASTE_HTML_IMAGE,
-                            tooltip: _('Paste Images'),
-                            action: 'paste-image',
-                            styleOptions,
-                            onClick: () => onItemCopy(item, { format: 'image' }),
+                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
                         }),
                     );
                 }
@@ -155,15 +169,15 @@ export function ClipboardDefinitionHtml() {
         getSearchTerms: (item) => [item.text, item.preview],
         copyOptions: {
             getPasteShortcut: (_item, options = {}) => {
-                const format = options.format || (options.settings ? options.settings.get_string('clipboard-html-default-format') : null);
-                return format === 'image' ? 'ctrl-v' : 'shift-insert';
+                const target = options.target ?? options.settings.get_string('clipboard-html-default-format');
+                return target === 'image' ? 'ctrl-v' : 'shift-insert';
             },
             copyMode: 'string',
             copyItemToClipboard: async (item, options = {}) => {
-                const { manager, storage, format, settings } = options;
-                const targetFormat = format || (settings ? settings.get_string('clipboard-html-default-format') : 'rich');
+                const { manager, storage, settings } = options;
+                const target = options.target ?? settings.get_string('clipboard-html-default-format');
 
-                if (targetFormat === 'image' && item.has_images) {
+                if (target === 'image' && item.has_images) {
                     const images = await extractEmbeddedImages(item, storage);
                     if (images.length > 0) {
                         const firstImage = images[0];
@@ -173,7 +187,7 @@ export function ClipboardDefinitionHtml() {
                     }
                 }
 
-                if (targetFormat === 'rich') {
+                if (target === 'rich') {
                     const htmlPath = GLib.build_filenamev([storage.textsDir, `${item.id}.html`]);
                     const rawBytes = await storage.readRaw(htmlPath);
                     if (rawBytes) {
@@ -191,8 +205,8 @@ export function ClipboardDefinitionHtml() {
                 return true;
             },
             getCopyQueue: async (item, options = {}) => {
-                const { manager, storage, format } = options;
-                if (format !== 'image' || !item.has_images) return null;
+                const { manager, storage } = options;
+                if (options.target !== 'image' || !item.has_images) return null;
 
                 const images = await extractEmbeddedImages(item, storage);
                 if (images.length <= 1) return null;

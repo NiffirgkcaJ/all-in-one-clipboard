@@ -130,10 +130,9 @@ export function ClipboardDefinitionResource() {
                 const buttons = [];
                 const { settings, onItemCopy, styleOptions } = context;
 
-                // Format Action
+                // Button Actions
                 const isMultiple = Boolean(item.count && item.count > 1);
-                const defaultFormat = settings ? settings.get_string('clipboard-resource-default-format') : 'resource';
-                const formatOrder = settings ? settings.get_strv('clipboard-resource-format-order') : ['resource', 'path', 'uri'];
+                const defaultFormat = settings.get_string('clipboard-resource-default-format');
 
                 const RESOURCE_SUBTYPE_ACTIONS = {
                     [isMultiple ? 'files' : 'file']: {
@@ -150,44 +149,50 @@ export function ClipboardDefinitionResource() {
                     },
                 };
 
-                const RESOURCE_FORMAT_ACTIONS = {
+                const RESOURCE_BUTTON_ACTIONS = {
                     path: {
                         icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_PATHS : ClipboardIcons.ACTION_PASTE_RESOURCE_PATH,
                         tooltip: isMultiple ? _('Paste as Paths') : _('Paste as Path'),
+                        action: 'paste-path',
+                        target: 'path',
                     },
                     uri: {
                         icon: isMultiple ? ClipboardIcons.ACTION_PASTE_RESOURCE_URIS : ClipboardIcons.ACTION_PASTE_RESOURCE_URI,
                         tooltip: isMultiple ? _('Paste as URIs') : _('Paste as URI'),
+                        action: 'paste-uri',
+                        target: 'uri',
                     },
                     resource: {
                         icon: RESOURCE_SUBTYPE_ACTIONS[item.subtype].icon,
                         tooltip: RESOURCE_SUBTYPE_ACTIONS[item.subtype].tooltip,
+                        action: 'paste-resource',
+                        target: 'resource',
                     },
                 };
 
-                const FORMAT_PERMISSION_KEYS = {
-                    resource: 'clipboard-resource-show-resource-button',
-                    path: 'clipboard-resource-show-path-button',
-                    uri: 'clipboard-resource-show-uri-button',
+                const RESOURCE_BUTTON_PERMISSIONS = {
+                    resource: () => defaultFormat !== 'resource' && settings.get_boolean('clipboard-resource-show-resource-button'),
+                    path: () => defaultFormat !== 'path' && settings.get_boolean('clipboard-resource-show-path-button'),
+                    uri: () => defaultFormat !== 'uri' && settings.get_boolean('clipboard-resource-show-uri-button'),
                 };
 
-                const activeFormats = formatOrder.filter((format) => {
-                    if (format === defaultFormat) return false;
-                    const key = FORMAT_PERMISSION_KEYS[format];
-                    return key && settings ? settings.get_boolean(key) : false;
+                const buttonOrder = settings.get_strv('clipboard-resource-button-order');
+                const activeButtons = buttonOrder.filter((buttonId) => {
+                    const isAllowed = RESOURCE_BUTTON_PERMISSIONS[buttonId];
+                    return isAllowed ? isAllowed() : false;
                 });
 
-                for (const format of activeFormats) {
-                    const actionMeta = RESOURCE_FORMAT_ACTIONS[format];
+                for (const buttonId of activeButtons) {
+                    const actionMeta = RESOURCE_BUTTON_ACTIONS[buttonId];
                     if (!actionMeta) continue;
 
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
                             icon: actionMeta.icon,
                             tooltip: actionMeta.tooltip,
-                            action: `paste-format-${format}`,
+                            action: actionMeta.action,
                             styleOptions,
-                            onClick: () => onItemCopy(item, { format }),
+                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
                         }),
                     );
                 }
@@ -198,23 +203,20 @@ export function ClipboardDefinitionResource() {
         getSearchTerms: (item) => [item.preview, item.file_uri],
         copyOptions: {
             getPasteShortcut: (_item, options = {}) => {
-                const settings = options.settings;
-                const defaultFormat = settings ? settings.get_string('clipboard-resource-default-format') : 'resource';
-                const format = options.format || defaultFormat;
-                return format === 'resource' ? 'ctrl-v' : 'shift-insert';
+                const target = options.target ?? options.settings.get_string('clipboard-resource-default-format');
+                return target === 'resource' ? 'ctrl-v' : 'shift-insert';
             },
             copyMode: 'blob',
             copyItemToClipboard: async (item, options = {}) => {
-                const { manager, format, settings } = options;
+                const { manager, settings } = options;
                 if (item.is_corrupted || !verifyResourceUrisExist(item.file_uri)) {
                     item.is_corrupted = true;
                     return false;
                 }
 
-                const defaultFormat = settings ? settings.get_string('clipboard-resource-default-format') : 'resource';
-                const targetFormat = format || defaultFormat;
+                const target = options.target ?? settings.get_string('clipboard-resource-default-format');
 
-                if (targetFormat === 'path') {
+                if (target === 'path') {
                     const textPayload = extractResourcePaths(item.file_uri);
                     if (!textPayload) return false;
 
@@ -227,7 +229,7 @@ export function ClipboardDefinitionResource() {
                     return true;
                 }
 
-                if (targetFormat === 'uri') {
+                if (target === 'uri') {
                     const textPayload = item.file_uri;
                     if (!textPayload) return false;
 
@@ -260,10 +262,9 @@ export function ClipboardDefinitionResource() {
                 return true;
             },
             copyBatchToClipboard: async (items, options = {}) => {
-                const { manager, format, settings } = options;
-                const defaultFormat = settings ? settings.get_string('clipboard-resource-default-format') : 'resource';
-                const targetFormat = format || defaultFormat;
-                if (targetFormat !== 'resource') {
+                const { manager, settings } = options;
+                const target = options.target ?? settings.get_string('clipboard-resource-default-format');
+                if (target !== 'resource') {
                     return false;
                 }
 
@@ -295,10 +296,9 @@ export function ClipboardDefinitionResource() {
                 return true;
             },
             serializeItem: async (item, options = {}) => {
-                const settings = options.settings;
-                const defaultFormat = settings ? settings.get_string('clipboard-resource-default-format') : 'resource';
-                const targetFormat = options.format || (defaultFormat === 'uri' ? 'uri' : 'path');
-                if (targetFormat === 'uri') {
+                const defaultTarget = options.settings.get_string('clipboard-resource-default-format') === 'uri' ? 'uri' : 'path';
+                const target = options.target ?? defaultTarget;
+                if (target === 'uri') {
                     return item.file_uri;
                 }
                 return extractResourcePaths(item.file_uri) || item.text || item.preview || '';

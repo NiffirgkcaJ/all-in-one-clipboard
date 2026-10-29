@@ -117,6 +117,41 @@ export function ClipboardDefinitionImage() {
                 clipboardSetContent(IOImage.getMimeType(item.image_filename), bytes);
                 return true;
             },
+            copyBatchToClipboard: async (items, options = {}) => {
+                const { manager, storage } = options;
+                const imagesDir = storage?.imagesDir || manager?.imagesDir || manager?.storage?.imagesDir;
+                const allUriLines = [];
+
+                for (const item of items) {
+                    if (item.is_corrupted) continue;
+                    if (item.file_uri) {
+                        const lines = item.file_uri
+                            .split(/[\r\n]+/)
+                            .map((line) => line.trim())
+                            .filter((line) => line.length > 0);
+                        allUriLines.push(...lines);
+                    } else if (item.image_filename && imagesDir) {
+                        const imagePath = GLib.build_filenamev([imagesDir, item.image_filename]);
+                        allUriLines.push(Gio.File.new_for_path(imagePath).get_uri());
+                    }
+                }
+
+                if (allUriLines.length === 0) return false;
+
+                const uriListPayload = `${allUriLines.join('\r\n')}\r\n`;
+                const payloadBytes = IOText.stringifyBytes(uriListPayload);
+                if (!payloadBytes) return false;
+
+                for (const item of items) {
+                    if (item.file_uri) manager.captureGuard.registerText(item.file_uri);
+                    if (item.hash) manager.captureGuard.registerHash(item.hash);
+                }
+                manager.captureGuard.registerText(allUriLines.join('\n'));
+                manager.captureGuard.registerText(uriListPayload);
+
+                clipboardSetContent('text/uri-list', new GLib.Bytes(payloadBytes));
+                return true;
+            },
             serializeItem: (item, options = {}) => {
                 if (item.file_uri) {
                     return item.file_uri;

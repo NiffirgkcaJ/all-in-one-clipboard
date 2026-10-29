@@ -39,7 +39,7 @@ export class GlobalActionService {
             onPostCopy();
         }
 
-        if (settings && autoPasteKey && AutoPaster.shouldAutoPaste(settings, autoPasteKey)) {
+        if (settings && autoPasteKey && pasteShortcut && AutoPaster.shouldAutoPaste(settings, autoPasteKey)) {
             await getAutoPaster().trigger(pasteShortcut);
         }
 

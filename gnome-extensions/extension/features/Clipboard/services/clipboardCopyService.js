@@ -79,7 +79,7 @@ export class ClipboardCopyService {
             onCopy: async () => await manager.copyItemToClipboard(item, options),
             onPostCopy: () => manager.promoteItemToTop(item.id),
             settings: options.settings,
-            autoPasteKey: 'auto-paste-clipboard',
+            autoPasteKey: pasteShortcut ? 'auto-paste-clipboard' : null,
             menu: options.menu,
             pasteShortcut,
         });

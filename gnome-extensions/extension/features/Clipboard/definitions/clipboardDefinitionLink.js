@@ -100,36 +100,41 @@ export function ClipboardDefinitionLink() {
         getSearchTerms: (item) => [item.title, item.url],
         ...ClipboardIntegrationItemActions({
             customActions: (item, context) => {
+                if (item.is_corrupted) return [];
+
                 const buttons = [];
                 const { settings, onItemCopy, styleOptions } = context;
 
-                // Link Actions
-                if (settings && settings.get_boolean('clipboard-link-show-action-button')) {
+                // Button Actions
+                if (settings.get_boolean('clipboard-link-show-action-button')) {
                     const defaultAction = settings.get_string('clipboard-link-default-action');
-                    const targetAction = defaultAction === 'launch' ? 'paste' : 'launch';
+                    const target = defaultAction === 'launch' ? 'paste' : 'launch';
 
-                    const LINK_ACTIONS = {
+                    const LINK_TARGET_ACTIONS = {
                         launch: {
                             icon: ClipboardIcons.ACTION_LAUNCH,
                             tooltip: _('Launch Link'),
                             action: 'launch-link',
-                            onClick: () => {
-                                try {
-                                    Gio.AppInfo.launch_default_for_uri(item.url, null);
-                                } catch {
-                                    // Launch request failed.
-                                }
-                            },
+                            target: 'launch',
                         },
                         paste: {
                             icon: ClipboardIcons.ACTION_PASTE_LINK,
                             tooltip: _('Paste Link'),
                             action: 'paste-link',
-                            onClick: () => onItemCopy(item, { forcePaste: true }),
+                            target: 'paste',
                         },
                     };
 
-                    const actionMeta = LINK_ACTIONS[targetAction];
+                    const LINK_BUTTON_ACTIONS = {
+                        action: {
+                            icon: LINK_TARGET_ACTIONS[target].icon,
+                            tooltip: LINK_TARGET_ACTIONS[target].tooltip,
+                            action: LINK_TARGET_ACTIONS[target].action,
+                            target,
+                        },
+                    };
+
+                    const actionMeta = LINK_BUTTON_ACTIONS.action;
 
                     buttons.push(
                         ClipboardBaseWidgetFactory.createActionButton({
@@ -137,7 +142,7 @@ export function ClipboardDefinitionLink() {
                             tooltip: actionMeta.tooltip,
                             action: actionMeta.action,
                             styleOptions,
-                            onClick: actionMeta.onClick,
+                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
                         }),
                     );
                 }
@@ -146,19 +151,21 @@ export function ClipboardDefinitionLink() {
             },
         }),
         copyOptions: {
-            getPasteShortcut: 'shift-insert',
+            getPasteShortcut: (_item, options = {}) => {
+                const target = options.target ?? options.settings.get_string('clipboard-link-default-action');
+                return target === 'launch' ? null : 'shift-insert';
+            },
             copyMode: 'string',
             copyItemToClipboard: async (item, options = {}) => {
-                const { manager, settings, forcePaste } = options;
-                if (settings && !forcePaste) {
-                    const defaultAction = settings.get_string('clipboard-link-default-action');
-                    if (defaultAction === 'launch') {
-                        try {
-                            Gio.AppInfo.launch_default_for_uri(item.url, null);
-                            return true;
-                        } catch {
-                            return false;
-                        }
+                const { manager, settings } = options;
+                const target = options.target ?? settings.get_string('clipboard-link-default-action');
+
+                if (target === 'launch') {
+                    try {
+                        Gio.AppInfo.launch_default_for_uri(item.url, null);
+                        return true;
+                    } catch {
+                        return false;
                     }
                 }
 
