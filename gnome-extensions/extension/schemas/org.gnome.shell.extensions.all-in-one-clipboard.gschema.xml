@@ -492,24 +492,21 @@
             <summary>Merge selection order</summary>
             <description>Order in which items are merged.</description>
         </key>
-        <key name="clipboard-html-default-format" type="s">
-            <default>'rich'</default>
-            <choices>
-                <choice value='plain'/>
-                <choice value='rich'/>
-            </choices>
-            <summary>HTML Default Format</summary>
-            <description>Default format for HTML items.</description>
-        </key>
-        <key name="clipboard-html-show-format-button" type="b">
+        <key name="clipboard-image-extract-from-resource" type="b">
             <default>true</default>
-            <summary>Show HTML Format Button</summary>
-            <description>Show format button for HTML items.</description>
+            <summary>Extract Image Items from Files</summary>
+            <description>Automatically extract image items from files.</description>
         </key>
-        <key name="clipboard-html-show-image-button" type="b">
+        <key name="clipboard-image-limit-extract" type="b">
             <default>true</default>
-            <summary>Show HTML Image Button</summary>
-            <description>Show image button for HTML items.</description>
+            <summary>Limit Image Items to Extract</summary>
+            <description>When enabled, limits the number of extracted image items.</description>
+        </key>
+        <key name="clipboard-image-extract-limit" type="i">
+            <default>3</default>
+            <range min="1" max="10"/>
+            <summary>Maximum Image Items to Extract</summary>
+            <description>Maximum image items to extract.</description>
         </key>
         <key name="clipboard-resource-capture" type="b">
             <default>true</default>
@@ -541,10 +538,10 @@
             <summary>Show URI Format Button</summary>
             <description>Show format button for URIs.</description>
         </key>
-        <key name="clipboard-resource-format-order" type="as">
+        <key name="clipboard-resource-button-order" type="as">
             <default>['resource', 'path', 'uri']</default>
-            <summary>Resource Format Order</summary>
-            <description>Order of resource format buttons.</description>
+            <summary>Resource Button Order</summary>
+            <description>Order of resource action buttons on cards.</description>
         </key>
         <key name="clipboard-link-extract-from-text" type="b">
             <default>true</default>
@@ -575,22 +572,6 @@
             <default>true</default>
             <summary>Show Link Action Button</summary>
             <description>Show action button for link items.</description>
-        </key>
-        <key name="clipboard-code-extract-from-text" type="b">
-            <default>true</default>
-            <summary>Extract Code Items from Text</summary>
-            <description>Automatically extract code items from text.</description>
-        </key>
-        <key name="clipboard-code-limit-extract" type="b">
-            <default>true</default>
-            <summary>Limit Code Items to Extract</summary>
-            <description>When enabled, limits the number of extracted code items.</description>
-        </key>
-        <key name="clipboard-code-extract-limit" type="i">
-            <default>3</default>
-            <range min="1" max="10"/>
-            <summary>Maximum Code Items to Extract</summary>
-            <description>Maximum code items to extract.</description>
         </key>
         <key name="clipboard-contact-extract-from-text" type="b">
             <default>true</default>
@@ -624,37 +605,61 @@
             <summary>Maximum Color Items to Extract</summary>
             <description>Maximum color items to extract.</description>
         </key>
-        <key name="clipboard-image-extract-from-resource" type="b">
+        <key name="clipboard-code-extract-from-text" type="b">
             <default>true</default>
-            <summary>Extract Image Items from Files</summary>
-            <description>Automatically extract image items from files.</description>
+            <summary>Extract Code Items from Text</summary>
+            <description>Automatically extract code items from text.</description>
         </key>
-        <key name="clipboard-image-limit-extract" type="b">
+        <key name="clipboard-code-limit-extract" type="b">
             <default>true</default>
-            <summary>Limit Image Items to Extract</summary>
-            <description>When enabled, limits the number of extracted image items.</description>
+            <summary>Limit Code Items to Extract</summary>
+            <description>When enabled, limits the number of extracted code items.</description>
         </key>
-        <key name="clipboard-image-extract-limit" type="i">
+        <key name="clipboard-code-extract-limit" type="i">
             <default>3</default>
             <range min="1" max="10"/>
-            <summary>Maximum Image Items to Extract</summary>
-            <description>Maximum image items to extract.</description>
+            <summary>Maximum Code Items to Extract</summary>
+            <description>Maximum code items to extract.</description>
+        </key>
+        <key name="clipboard-html-default-format" type="s">
+            <default>'rich'</default>
+            <choices>
+                <choice value='plain'/>
+                <choice value='rich'/>
+            </choices>
+            <summary>HTML Default Format</summary>
+            <description>Default format for HTML items.</description>
+        </key>
+        <key name="clipboard-html-show-format-button" type="b">
+            <default>true</default>
+            <summary>Show HTML Format Button</summary>
+            <description>Show format button for HTML items.</description>
+        </key>
+        <key name="clipboard-html-show-image-button" type="b">
+            <default>true</default>
+            <summary>Show HTML Image Button</summary>
+            <description>Show image button for HTML items.</description>
+        </key>
+        <key name="clipboard-html-button-order" type="as">
+            <default>['format', 'image']</default>
+            <summary>HTML Button Order</summary>
+            <description>Order of HTML action buttons on cards.</description>
         </key>
         <key name="clipboard-layout-mode" type="s">
             <default>'list'</default>
             <summary>Clipboard Layout Mode</summary>
             <description>Display mode for clipboard history items. Can be 'list' (compact rows) or 'grid' (masonry cards).</description>
         </key>
-        <key name="clipboard-text-preview-lines" type="i">
-            <default>1</default>
-            <range min="1" max="10"/>
-            <summary>Text Preview Lines</summary>
-            <description>Number of lines displayed for text previews in clipboard list rows.</description>
+        <key name="clipboard-image-preview-size" type="i">
+            <default>48</default>
+            <range min="20" max="300"/>
+            <summary>Image Preview Size</summary>
+            <description>Number of pixels displayed for image previews in clipboard list rows.</description>
         </key>
-        <key name="clipboard-text-enforce-default-height" type="b">
+        <key name="clipboard-image-enforce-default-height" type="b">
             <default>true</default>
-            <summary>Text Default Height</summary>
-            <description>When enabled, preserves the standard baseline height floor for text items.</description>
+            <summary>Image Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for image items.</description>
         </key>
         <key name="clipboard-code-preview-lines" type="i">
             <default>3</default>
@@ -678,16 +683,16 @@
             <summary>HTML Default Height</summary>
             <description>When enabled, preserves the standard baseline height floor for HTML items.</description>
         </key>
-        <key name="clipboard-image-preview-size" type="i">
-            <default>48</default>
-            <range min="20" max="300"/>
-            <summary>Image Preview Size</summary>
-            <description>Number of pixels displayed for image previews in clipboard list rows.</description>
+        <key name="clipboard-text-preview-lines" type="i">
+            <default>1</default>
+            <range min="1" max="10"/>
+            <summary>Text Preview Lines</summary>
+            <description>Number of lines displayed for text previews in clipboard list rows.</description>
         </key>
-        <key name="clipboard-image-enforce-default-height" type="b">
+        <key name="clipboard-text-enforce-default-height" type="b">
             <default>true</default>
-            <summary>Image Default Height</summary>
-            <description>When enabled, preserves the standard baseline height floor for image items.</description>
+            <summary>Text Default Height</summary>
+            <description>When enabled, preserves the standard baseline height floor for text items.</description>
         </key>
         <key name="clipboard-metadata-enforce-default-height" type="b">
             <default>true</default>

@@ -48,35 +48,35 @@ export function addClipboardListViewSizingPrefs({ group, settings, window }) {
     });
     sizingNav.content.add(sizingGroup);
 
-    // Text
-    const textExpander = new Adw.ExpanderRow({
-        title: _('Text'),
-        subtitle: _('Preview lines and baseline height for text.'),
+    // Image
+    const imageExpander = new Adw.ExpanderRow({
+        title: _('Image'),
+        subtitle: _('Preview size and baseline height for images.'),
     });
-    sizingGroup.add(textExpander);
+    sizingGroup.add(imageExpander);
 
-    const textLinesKey = 'clipboard-text-preview-lines';
-    const textLinesDefault = settings.get_default_value(textLinesKey).get_int32();
-    const textLinesRange = getRangeFromSchema(settings, textLinesKey);
+    const previewKey = 'clipboard-image-preview-size';
+    const previewDefault = settings.get_default_value(previewKey).get_int32();
+    const previewRange = getRangeFromSchema(settings, previewKey);
 
-    const textLinesRow = new Adw.SpinRow({
-        title: _('Text Preview Lines'),
-        subtitle: _('Lines to display for text previews (%d-%d). Default: %d.').format(textLinesRange.min, textLinesRange.max, textLinesDefault),
+    const previewRow = new Adw.SpinRow({
+        title: _('Image Preview Size'),
+        subtitle: _('Pixels to display for image previews (%d-%d). Default: %d.').format(previewRange.min, previewRange.max, previewDefault),
         adjustment: new Gtk.Adjustment({
-            lower: textLinesRange.min,
-            upper: textLinesRange.max,
-            step_increment: 1,
+            lower: previewRange.min,
+            upper: previewRange.max,
+            step_increment: 4,
         }),
     });
-    textExpander.add_row(textLinesRow);
-    settings.bind(textLinesKey, textLinesRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+    imageExpander.add_row(previewRow);
+    settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-    const textHeightRow = new Adw.SwitchRow({
-        title: _('Text Default Height'),
-        subtitle: _('Preserve standard height for text items.'),
+    const imageHeightRow = new Adw.SwitchRow({
+        title: _('Image Default Height'),
+        subtitle: _('Preserve standard height for image items.'),
     });
-    textExpander.add_row(textHeightRow);
-    settings.bind('clipboard-text-enforce-default-height', textHeightRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    imageExpander.add_row(imageHeightRow);
+    settings.bind('clipboard-image-enforce-default-height', imageHeightRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
     // Code
     const codeExpander = new Adw.ExpanderRow({
@@ -138,35 +138,35 @@ export function addClipboardListViewSizingPrefs({ group, settings, window }) {
     htmlExpander.add_row(htmlHeightRow);
     settings.bind('clipboard-html-enforce-default-height', htmlHeightRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    // Image
-    const imageExpander = new Adw.ExpanderRow({
-        title: _('Image'),
-        subtitle: _('Preview size and baseline height for images.'),
+    // Text
+    const textExpander = new Adw.ExpanderRow({
+        title: _('Text'),
+        subtitle: _('Preview lines and baseline height for text.'),
     });
-    sizingGroup.add(imageExpander);
+    sizingGroup.add(textExpander);
 
-    const previewKey = 'clipboard-image-preview-size';
-    const previewDefault = settings.get_default_value(previewKey).get_int32();
-    const previewRange = getRangeFromSchema(settings, previewKey);
+    const textLinesKey = 'clipboard-text-preview-lines';
+    const textLinesDefault = settings.get_default_value(textLinesKey).get_int32();
+    const textLinesRange = getRangeFromSchema(settings, textLinesKey);
 
-    const previewRow = new Adw.SpinRow({
-        title: _('Image Preview Size'),
-        subtitle: _('Pixels to display for image previews (%d-%d). Default: %d.').format(previewRange.min, previewRange.max, previewDefault),
+    const textLinesRow = new Adw.SpinRow({
+        title: _('Text Preview Lines'),
+        subtitle: _('Lines to display for text previews (%d-%d). Default: %d.').format(textLinesRange.min, textLinesRange.max, textLinesDefault),
         adjustment: new Gtk.Adjustment({
-            lower: previewRange.min,
-            upper: previewRange.max,
-            step_increment: 4,
+            lower: textLinesRange.min,
+            upper: textLinesRange.max,
+            step_increment: 1,
         }),
     });
-    imageExpander.add_row(previewRow);
-    settings.bind(previewKey, previewRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+    textExpander.add_row(textLinesRow);
+    settings.bind(textLinesKey, textLinesRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-    const imageHeightRow = new Adw.SwitchRow({
-        title: _('Image Default Height'),
-        subtitle: _('Preserve standard height for image items.'),
+    const textHeightRow = new Adw.SwitchRow({
+        title: _('Text Default Height'),
+        subtitle: _('Preserve standard height for text items.'),
     });
-    imageExpander.add_row(imageHeightRow);
-    settings.bind('clipboard-image-enforce-default-height', imageHeightRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    textExpander.add_row(textHeightRow);
+    settings.bind('clipboard-text-enforce-default-height', textHeightRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
     // Metadata
     const metadataExpander = new Adw.ExpanderRow({

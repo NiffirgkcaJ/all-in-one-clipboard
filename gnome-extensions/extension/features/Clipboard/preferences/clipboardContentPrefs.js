@@ -20,7 +20,7 @@ import { createNavigationPage, getRangeFromSchema, presentSubpage } from '../../
 export function addClipboardContentPrefs({ group, settings, window }) {
     const EXTRACT_LIMIT_INCREMENT = 1;
 
-    // Content Settings Navigation
+    // Content Settings
     const contentRow = new Adw.ActionRow({
         title: _('Content Settings'),
         subtitle: _('Configure capture, extraction, and formatting for different content types.'),
@@ -43,58 +43,266 @@ export function addClipboardContentPrefs({ group, settings, window }) {
         presentSubpage(contentRow, contentNav.page, window);
     });
 
-    // Content Group
+    // Content Settings
     const contentGroup = new Adw.PreferencesGroup({
         title: _('Content Settings'),
         description: _('Manage extraction limits, paste formats, and action options for clipboard content types.'),
     });
     contentNav.content.add(contentGroup);
 
-    // Code Content Settings
-    const codeExpander = new Adw.ExpanderRow({
-        title: _('Code Content Settings'),
-        subtitle: _('Options for code items.'),
+    // Image Content Settings
+    const imageExpander = new Adw.ExpanderRow({
+        title: _('Image Content Settings'),
+        subtitle: _('Options for image items.'),
     });
-    contentGroup.add(codeExpander);
+    contentGroup.add(imageExpander);
 
-    const extractCodeRow = new Adw.SwitchRow({
-        title: _('Extract Code Items from Text'),
-        subtitle: _('Automatically extract code items from text.'),
+    const extractImageRow = new Adw.SwitchRow({
+        title: _('Extract Image Items from Files'),
+        subtitle: _('Automatically extract image items from files.'),
     });
-    codeExpander.add_row(extractCodeRow);
-    settings.bind('clipboard-code-extract-from-text', extractCodeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    imageExpander.add_row(extractImageRow);
+    settings.bind('clipboard-image-extract-from-resource', extractImageRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    const limitCodeRow = new Adw.SwitchRow({
-        title: _('Limit Code Items to Extract'),
-        subtitle: _('Limit the number of extracted code items.'),
+    const limitImageRow = new Adw.SwitchRow({
+        title: _('Limit Image Items to Extract'),
+        subtitle: _('Limit the number of extracted image items.'),
     });
-    codeExpander.add_row(limitCodeRow);
-    settings.bind('clipboard-code-limit-extract', limitCodeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    imageExpander.add_row(limitImageRow);
+    settings.bind('clipboard-image-limit-extract', limitImageRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    const codeLimitKey = 'clipboard-code-extract-limit';
-    const codeLimitDefault = settings.get_default_value(codeLimitKey).get_int32();
-    const codeLimitRange = getRangeFromSchema(settings, codeLimitKey);
+    const imageLimitKey = 'clipboard-image-extract-limit';
+    const imageLimitDefault = settings.get_default_value(imageLimitKey).get_int32();
+    const imageLimitRange = getRangeFromSchema(settings, imageLimitKey);
 
-    const codeLimitRow = new Adw.SpinRow({
-        title: _('Maximum Code Items to Extract'),
-        subtitle: _('Maximum code items to extract between %d and %d. Default: %d.').format(codeLimitRange.min, codeLimitRange.max, codeLimitDefault),
+    const imageLimitRow = new Adw.SpinRow({
+        title: _('Maximum Image Items to Extract'),
+        subtitle: _('Maximum image items to extract between %d and %d. Default: %d.').format(imageLimitRange.min, imageLimitRange.max, imageLimitDefault),
         adjustment: new Gtk.Adjustment({
-            lower: codeLimitRange.min,
-            upper: codeLimitRange.max,
+            lower: imageLimitRange.min,
+            upper: imageLimitRange.max,
             step_increment: EXTRACT_LIMIT_INCREMENT,
         }),
     });
-    codeExpander.add_row(codeLimitRow);
-    settings.bind(codeLimitKey, codeLimitRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+    imageExpander.add_row(imageLimitRow);
+    settings.bind(imageLimitKey, imageLimitRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-    const syncCodeSensitivity = () => {
-        const extractEnabled = settings.get_boolean('clipboard-code-extract-from-text');
-        limitCodeRow.sensitive = extractEnabled;
-        codeLimitRow.sensitive = extractEnabled && settings.get_boolean('clipboard-code-limit-extract');
+    const syncImageSensitivity = () => {
+        const extractEnabled = settings.get_boolean('clipboard-image-extract-from-resource');
+        limitImageRow.sensitive = extractEnabled;
+        imageLimitRow.sensitive = extractEnabled && settings.get_boolean('clipboard-image-limit-extract');
     };
-    syncCodeSensitivity();
-    settings.connect('changed::clipboard-code-extract-from-text', syncCodeSensitivity);
-    settings.connect('changed::clipboard-code-limit-extract', syncCodeSensitivity);
+    syncImageSensitivity();
+    settings.connect('changed::clipboard-image-extract-from-resource', syncImageSensitivity);
+    settings.connect('changed::clipboard-image-limit-extract', syncImageSensitivity);
+
+    // Resource Content Settings
+    const resourceExpander = new Adw.ExpanderRow({
+        title: _('Resource Content Settings'),
+        subtitle: _('Options for resource items.'),
+    });
+    contentGroup.add(resourceExpander);
+
+    const captureResourceRow = new Adw.SwitchRow({
+        title: _('Capture Resource Items from Files'),
+        subtitle: _('Automatically capture resource items from files.'),
+    });
+    resourceExpander.add_row(captureResourceRow);
+    settings.bind('clipboard-resource-capture', captureResourceRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    const resourceFormatModes = [
+        { id: 'resource', label: _('Files and Folders') },
+        { id: 'path', label: _('File Paths') },
+        { id: 'uri', label: _('URI Links') },
+    ];
+
+    const resourceFormatRow = new Adw.ComboRow({
+        title: _('Default Format'),
+        subtitle: _('Default format for resource items.'),
+        model: new Gtk.StringList({ strings: resourceFormatModes.map((f) => f.label) }),
+    });
+    resourceExpander.add_row(resourceFormatRow);
+
+    const currentResourceFormat = settings.get_string('clipboard-resource-default-format') || 'resource';
+    const initialResourceFormatIndex = resourceFormatModes.findIndex((f) => f.id === currentResourceFormat);
+    resourceFormatRow.set_selected(initialResourceFormatIndex > -1 ? initialResourceFormatIndex : 0);
+
+    resourceFormatRow.connect('notify::selected', () => {
+        const index = resourceFormatRow.get_selected();
+        if (index >= 0 && index < resourceFormatModes.length) {
+            const newFormat = resourceFormatModes[index].id;
+            if (settings.get_string('clipboard-resource-default-format') !== newFormat) {
+                settings.set_string('clipboard-resource-default-format', newFormat);
+            }
+        }
+    });
+
+    settings.connect('changed::clipboard-resource-default-format', () => {
+        const newFormat = settings.get_string('clipboard-resource-default-format');
+        const newIndex = resourceFormatModes.findIndex((f) => f.id === newFormat);
+        if (newIndex > -1 && resourceFormatRow.get_selected() !== newIndex) {
+            resourceFormatRow.set_selected(newIndex);
+        }
+    });
+
+    // Button Settings
+    const resourceButtonsRow = new Adw.ActionRow({
+        title: _('Button Settings'),
+        subtitle: _('Configure button visibility and display order on cards.'),
+        activatable: true,
+    });
+    resourceButtonsRow.add_suffix(
+        new Gtk.Image({
+            icon_name: 'go-next-symbolic',
+            valign: Gtk.Align.CENTER,
+        }),
+    );
+    resourceExpander.add_row(resourceButtonsRow);
+
+    const resourceButtonsNav = createNavigationPage({
+        title: _('Resource Button Settings'),
+        tag: 'clipboard-resource-button-settings',
+    });
+
+    resourceButtonsRow.connect('activated', () => {
+        presentSubpage(resourceButtonsRow, resourceButtonsNav.page, window);
+    });
+
+    // Button Settings
+    const resourceButtonsGroup = new Adw.PreferencesGroup({
+        title: _('Button Settings'),
+        description: _('Manage visibility and order of action buttons for resource items.'),
+    });
+    resourceButtonsNav.content.add(resourceButtonsGroup);
+
+    // Visible Buttons
+    const visibleResourceButtonsExpander = new Adw.ExpanderRow({
+        title: _('Visible Buttons'),
+        subtitle: _('Show or hide action buttons on cards.'),
+    });
+    resourceButtonsGroup.add(visibleResourceButtonsExpander);
+
+    const RESOURCE_BUTTON_CONFIGS = {
+        resource: {
+            title: _('Files and Folders'),
+            subtitle: _('Show files and folders button.'),
+            key: 'clipboard-resource-show-resource-button',
+        },
+        path: {
+            title: _('File Paths'),
+            subtitle: _('Show file paths button.'),
+            key: 'clipboard-resource-show-path-button',
+        },
+        uri: {
+            title: _('URI Links'),
+            subtitle: _('Show URI links button.'),
+            key: 'clipboard-resource-show-uri-button',
+        },
+    };
+
+    Object.values(RESOURCE_BUTTON_CONFIGS).forEach((config) => {
+        const row = new Adw.SwitchRow({
+            title: config.title,
+            subtitle: config.subtitle,
+        });
+        visibleResourceButtonsExpander.add_row(row);
+        settings.bind(config.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+    });
+
+    // Button Order
+    const resourceOrderExpander = new Adw.ExpanderRow({
+        title: _('Button Order'),
+        subtitle: _('Use buttons to reorder action buttons on cards.'),
+    });
+    resourceButtonsGroup.add(resourceOrderExpander);
+
+    let managedResourceOrderRows = [];
+
+    const populateResourceOrderList = () => {
+        managedResourceOrderRows.forEach((row) => resourceOrderExpander.remove(row));
+        managedResourceOrderRows = [];
+
+        const buttonOrder = settings.get_strv('clipboard-resource-button-order');
+
+        buttonOrder.forEach((buttonId, index) => {
+            const config = RESOURCE_BUTTON_CONFIGS[buttonId];
+            if (!config) return;
+
+            const isVisible = settings.get_boolean(config.key);
+            const row = new Adw.ActionRow({
+                title: isVisible ? config.title : `${config.title} (Hidden)`,
+            });
+
+            if (!isVisible) {
+                row.add_css_class('dim-label');
+            }
+
+            const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+            row.add_suffix(buttonBox);
+
+            const upButton = new Gtk.Button({
+                icon_name: 'go-up-symbolic',
+                sensitive: index > 0,
+            });
+            const downButton = new Gtk.Button({
+                icon_name: 'go-down-symbolic',
+                sensitive: index < buttonOrder.length - 1,
+            });
+
+            const moveRow = (direction) => {
+                const currentOrder = settings.get_strv('clipboard-resource-button-order');
+                const oldIndex = currentOrder.indexOf(buttonId);
+                const newIndex = oldIndex + direction;
+
+                if (newIndex >= 0 && newIndex < currentOrder.length) {
+                    [currentOrder[oldIndex], currentOrder[newIndex]] = [currentOrder[newIndex], currentOrder[oldIndex]];
+                    settings.set_strv('clipboard-resource-button-order', currentOrder);
+                }
+            };
+
+            upButton.connect('clicked', () => moveRow(-1));
+            downButton.connect('clicked', () => moveRow(1));
+
+            buttonBox.append(upButton);
+            buttonBox.append(downButton);
+
+            resourceOrderExpander.add_row(row);
+            managedResourceOrderRows.push(row);
+        });
+
+        const resetRow = new Adw.ActionRow({
+            title: _('Reset Order'),
+            subtitle: _('Restore original action button order.'),
+        });
+        resourceOrderExpander.add_row(resetRow);
+        managedResourceOrderRows.push(resetRow);
+
+        const resetButton = new Gtk.Button({
+            label: _('Reset'),
+            valign: Gtk.Align.CENTER,
+            css_classes: ['destructive-action'],
+        });
+
+        resetButton.connect('clicked', () => {
+            const defaultValueVariant = settings.get_default_value('clipboard-resource-button-order');
+            settings.set_strv('clipboard-resource-button-order', defaultValueVariant.get_strv());
+        });
+        resetRow.add_suffix(resetButton);
+    };
+
+    settings.connect('changed::clipboard-resource-button-order', populateResourceOrderList);
+    Object.values(RESOURCE_BUTTON_CONFIGS).forEach((config) => {
+        settings.connect(`changed::${config.key}`, populateResourceOrderList);
+    });
+    populateResourceOrderList();
+
+    const syncResourceSensitivity = () => {
+        const captureEnabled = settings.get_boolean('clipboard-resource-capture');
+        resourceFormatRow.sensitive = captureEnabled;
+        resourceButtonsRow.sensitive = captureEnabled;
+    };
+    syncResourceSensitivity();
+    settings.connect('changed::clipboard-resource-capture', syncResourceSensitivity);
 
     // Link Content Settings
     const linkExpander = new Adw.ExpanderRow({
@@ -167,12 +375,12 @@ export function addClipboardContentPrefs({ group, settings, window }) {
         }
     });
 
-    const showLinkActionButtonRow = new Adw.SwitchRow({
-        title: _('Show Action Button'),
+    const linkActionButtonRow = new Adw.SwitchRow({
+        title: _('Action Button'),
         subtitle: _('Show action button for link items.'),
     });
-    linkExpander.add_row(showLinkActionButtonRow);
-    settings.bind('clipboard-link-show-action-button', showLinkActionButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    linkExpander.add_row(linkActionButtonRow);
+    settings.bind('clipboard-link-show-action-button', linkActionButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
     const syncLinkSensitivity = () => {
         const extractEnabled = settings.get_boolean('clipboard-link-extract-from-text');
@@ -275,245 +483,51 @@ export function addClipboardContentPrefs({ group, settings, window }) {
     settings.connect('changed::clipboard-color-extract-from-text', syncColorSensitivity);
     settings.connect('changed::clipboard-color-limit-extract', syncColorSensitivity);
 
-    // Resource Content Settings
-    const resourceExpander = new Adw.ExpanderRow({
-        title: _('Resource Content Settings'),
-        subtitle: _('Options for resource items.'),
+    // Code Content Settings
+    const codeExpander = new Adw.ExpanderRow({
+        title: _('Code Content Settings'),
+        subtitle: _('Options for code items.'),
     });
-    contentGroup.add(resourceExpander);
+    contentGroup.add(codeExpander);
 
-    const captureResourceRow = new Adw.SwitchRow({
-        title: _('Capture Resource Items from Files'),
-        subtitle: _('Automatically capture resource items from files.'),
+    const extractCodeRow = new Adw.SwitchRow({
+        title: _('Extract Code Items from Text'),
+        subtitle: _('Automatically extract code items from text.'),
     });
-    resourceExpander.add_row(captureResourceRow);
-    settings.bind('clipboard-resource-capture', captureResourceRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    codeExpander.add_row(extractCodeRow);
+    settings.bind('clipboard-code-extract-from-text', extractCodeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    const resourceFormatModes = [
-        { id: 'resource', label: _('Files & Folders') },
-        { id: 'path', label: _('File Paths') },
-        { id: 'uri', label: _('URI Links') },
-    ];
-
-    const resourceFormatRow = new Adw.ComboRow({
-        title: _('Default Format'),
-        subtitle: _('Default format for resource items.'),
-        model: new Gtk.StringList({ strings: resourceFormatModes.map((f) => f.label) }),
+    const limitCodeRow = new Adw.SwitchRow({
+        title: _('Limit Code Items to Extract'),
+        subtitle: _('Limit the number of extracted code items.'),
     });
-    resourceExpander.add_row(resourceFormatRow);
+    codeExpander.add_row(limitCodeRow);
+    settings.bind('clipboard-code-limit-extract', limitCodeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-    const currentResourceFormat = settings.get_string('clipboard-resource-default-format') || 'resource';
-    const initialResourceFormatIndex = resourceFormatModes.findIndex((f) => f.id === currentResourceFormat);
-    resourceFormatRow.set_selected(initialResourceFormatIndex > -1 ? initialResourceFormatIndex : 0);
+    const codeLimitKey = 'clipboard-code-extract-limit';
+    const codeLimitDefault = settings.get_default_value(codeLimitKey).get_int32();
+    const codeLimitRange = getRangeFromSchema(settings, codeLimitKey);
 
-    resourceFormatRow.connect('notify::selected', () => {
-        const index = resourceFormatRow.get_selected();
-        if (index >= 0 && index < resourceFormatModes.length) {
-            const newFormat = resourceFormatModes[index].id;
-            if (settings.get_string('clipboard-resource-default-format') !== newFormat) {
-                settings.set_string('clipboard-resource-default-format', newFormat);
-            }
-        }
-    });
-
-    settings.connect('changed::clipboard-resource-default-format', () => {
-        const newFormat = settings.get_string('clipboard-resource-default-format');
-        const newIndex = resourceFormatModes.findIndex((f) => f.id === newFormat);
-        if (newIndex > -1 && resourceFormatRow.get_selected() !== newIndex) {
-            resourceFormatRow.set_selected(newIndex);
-        }
-    });
-
-    // Visible Format Buttons
-    const visibleFormatsExpander = new Adw.ExpanderRow({
-        title: _('Visible Format Buttons'),
-        subtitle: _('Show or hide format buttons on cards.'),
-    });
-    resourceExpander.add_row(visibleFormatsExpander);
-
-    const RESOURCE_FORMAT_BUTTONS = [
-        {
-            key: 'clipboard-resource-show-resource-button',
-            title: _('Files & Folders'),
-            subtitle: _('Show files and folders button.'),
-        },
-        {
-            key: 'clipboard-resource-show-path-button',
-            title: _('File Paths'),
-            subtitle: _('Show file paths button.'),
-        },
-        {
-            key: 'clipboard-resource-show-uri-button',
-            title: _('URI Links'),
-            subtitle: _('Show URI links button.'),
-        },
-    ];
-
-    RESOURCE_FORMAT_BUTTONS.forEach((item) => {
-        const row = new Adw.SwitchRow({
-            title: item.title,
-            subtitle: item.subtitle,
-        });
-        visibleFormatsExpander.add_row(row);
-        settings.bind(item.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
-    });
-
-    // Format Button Order
-    const formatOrderExpander = new Adw.ExpanderRow({
-        title: _('Format Button Order'),
-        subtitle: _('Use buttons to reorder format buttons on cards.'),
-    });
-    resourceExpander.add_row(formatOrderExpander);
-
-    const RESOURCE_FORMAT_LABELS = {
-        resource: {
-            title: _('Files & Folders'),
-            key: 'clipboard-resource-show-resource-button',
-        },
-        path: {
-            title: _('File Paths'),
-            key: 'clipboard-resource-show-path-button',
-        },
-        uri: {
-            title: _('URI Links'),
-            key: 'clipboard-resource-show-uri-button',
-        },
-    };
-
-    let managedOrderRows = [];
-
-    const populateFormatOrderList = () => {
-        managedOrderRows.forEach((row) => formatOrderExpander.remove(row));
-        managedOrderRows = [];
-
-        const formatOrder = settings.get_strv('clipboard-resource-format-order');
-
-        formatOrder.forEach((formatId, index) => {
-            const config = RESOURCE_FORMAT_LABELS[formatId];
-            if (!config) return;
-
-            const isVisible = settings.get_boolean(config.key);
-            const row = new Adw.ActionRow({
-                title: isVisible ? config.title : `${config.title} (Hidden)`,
-            });
-
-            if (!isVisible) {
-                row.add_css_class('dim-label');
-            }
-
-            const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
-            row.add_suffix(buttonBox);
-
-            const upButton = new Gtk.Button({
-                icon_name: 'go-up-symbolic',
-                sensitive: index > 0,
-            });
-            const downButton = new Gtk.Button({
-                icon_name: 'go-down-symbolic',
-                sensitive: index < formatOrder.length - 1,
-            });
-
-            const moveRow = (direction) => {
-                const currentOrder = settings.get_strv('clipboard-resource-format-order');
-                const oldIndex = currentOrder.indexOf(formatId);
-                const newIndex = oldIndex + direction;
-
-                if (newIndex >= 0 && newIndex < currentOrder.length) {
-                    [currentOrder[oldIndex], currentOrder[newIndex]] = [currentOrder[newIndex], currentOrder[oldIndex]];
-                    settings.set_strv('clipboard-resource-format-order', currentOrder);
-                }
-            };
-
-            upButton.connect('clicked', () => moveRow(-1));
-            downButton.connect('clicked', () => moveRow(1));
-
-            buttonBox.append(upButton);
-            buttonBox.append(downButton);
-
-            formatOrderExpander.add_row(row);
-            managedOrderRows.push(row);
-        });
-
-        const resetRow = new Adw.ActionRow({
-            title: _('Reset Order'),
-            subtitle: _('Restore original format button order.'),
-        });
-        formatOrderExpander.add_row(resetRow);
-        managedOrderRows.push(resetRow);
-
-        const resetButton = new Gtk.Button({
-            label: _('Reset'),
-            valign: Gtk.Align.CENTER,
-            css_classes: ['destructive-action'],
-        });
-
-        resetButton.connect('clicked', () => {
-            const defaultValueVariant = settings.get_default_value('clipboard-resource-format-order');
-            settings.set_strv('clipboard-resource-format-order', defaultValueVariant.get_strv());
-        });
-        resetRow.add_suffix(resetButton);
-    };
-
-    settings.connect('changed::clipboard-resource-format-order', populateFormatOrderList);
-    Object.values(RESOURCE_FORMAT_LABELS).forEach((config) => {
-        settings.connect(`changed::${config.key}`, populateFormatOrderList);
-    });
-    populateFormatOrderList();
-
-    const syncResourceSensitivity = () => {
-        const captureEnabled = settings.get_boolean('clipboard-resource-capture');
-        resourceFormatRow.sensitive = captureEnabled;
-        visibleFormatsExpander.sensitive = captureEnabled;
-        formatOrderExpander.sensitive = captureEnabled;
-    };
-    syncResourceSensitivity();
-    settings.connect('changed::clipboard-resource-capture', syncResourceSensitivity);
-
-    // Image Content Settings
-    const imageExpander = new Adw.ExpanderRow({
-        title: _('Image Content Settings'),
-        subtitle: _('Options for image items.'),
-    });
-    contentGroup.add(imageExpander);
-
-    const extractImageRow = new Adw.SwitchRow({
-        title: _('Extract Image Items from Files'),
-        subtitle: _('Automatically extract image items from files.'),
-    });
-    imageExpander.add_row(extractImageRow);
-    settings.bind('clipboard-image-extract-from-resource', extractImageRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-    const limitImageRow = new Adw.SwitchRow({
-        title: _('Limit Image Items to Extract'),
-        subtitle: _('Limit the number of extracted image items.'),
-    });
-    imageExpander.add_row(limitImageRow);
-    settings.bind('clipboard-image-limit-extract', limitImageRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-    const imageLimitKey = 'clipboard-image-extract-limit';
-    const imageLimitDefault = settings.get_default_value(imageLimitKey).get_int32();
-    const imageLimitRange = getRangeFromSchema(settings, imageLimitKey);
-
-    const imageLimitRow = new Adw.SpinRow({
-        title: _('Maximum Image Items to Extract'),
-        subtitle: _('Maximum image items to extract between %d and %d. Default: %d.').format(imageLimitRange.min, imageLimitRange.max, imageLimitDefault),
+    const codeLimitRow = new Adw.SpinRow({
+        title: _('Maximum Code Items to Extract'),
+        subtitle: _('Maximum code items to extract between %d and %d. Default: %d.').format(codeLimitRange.min, codeLimitRange.max, codeLimitDefault),
         adjustment: new Gtk.Adjustment({
-            lower: imageLimitRange.min,
-            upper: imageLimitRange.max,
+            lower: codeLimitRange.min,
+            upper: codeLimitRange.max,
             step_increment: EXTRACT_LIMIT_INCREMENT,
         }),
     });
-    imageExpander.add_row(imageLimitRow);
-    settings.bind(imageLimitKey, imageLimitRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
+    codeExpander.add_row(codeLimitRow);
+    settings.bind(codeLimitKey, codeLimitRow.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-    const syncImageSensitivity = () => {
-        const extractEnabled = settings.get_boolean('clipboard-image-extract-from-resource');
-        limitImageRow.sensitive = extractEnabled;
-        imageLimitRow.sensitive = extractEnabled && settings.get_boolean('clipboard-image-limit-extract');
+    const syncCodeSensitivity = () => {
+        const extractEnabled = settings.get_boolean('clipboard-code-extract-from-text');
+        limitCodeRow.sensitive = extractEnabled;
+        codeLimitRow.sensitive = extractEnabled && settings.get_boolean('clipboard-code-limit-extract');
     };
-    syncImageSensitivity();
-    settings.connect('changed::clipboard-image-extract-from-resource', syncImageSensitivity);
-    settings.connect('changed::clipboard-image-limit-extract', syncImageSensitivity);
+    syncCodeSensitivity();
+    settings.connect('changed::clipboard-code-extract-from-text', syncCodeSensitivity);
+    settings.connect('changed::clipboard-code-limit-extract', syncCodeSensitivity);
 
     // HTML Content Settings
     const htmlExpander = new Adw.ExpanderRow({
@@ -556,17 +570,149 @@ export function addClipboardContentPrefs({ group, settings, window }) {
         }
     });
 
-    const showHtmlFormatButtonRow = new Adw.SwitchRow({
-        title: _('Show Format Button'),
-        subtitle: _('Show format button for HTML items.'),
+    // Button Settings
+    const htmlButtonsRow = new Adw.ActionRow({
+        title: _('Button Settings'),
+        subtitle: _('Configure button visibility and display order on cards.'),
+        activatable: true,
     });
-    htmlExpander.add_row(showHtmlFormatButtonRow);
-    settings.bind('clipboard-html-show-format-button', showHtmlFormatButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+    htmlButtonsRow.add_suffix(
+        new Gtk.Image({
+            icon_name: 'go-next-symbolic',
+            valign: Gtk.Align.CENTER,
+        }),
+    );
+    htmlExpander.add_row(htmlButtonsRow);
 
-    const showHtmlImageButtonRow = new Adw.SwitchRow({
-        title: _('Show Image Button'),
-        subtitle: _('Show image button for HTML items.'),
+    const htmlButtonsNav = createNavigationPage({
+        title: _('HTML Button Settings'),
+        tag: 'clipboard-html-button-settings',
     });
-    htmlExpander.add_row(showHtmlImageButtonRow);
-    settings.bind('clipboard-html-show-image-button', showHtmlImageButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+    htmlButtonsRow.connect('activated', () => {
+        presentSubpage(htmlButtonsRow, htmlButtonsNav.page, window);
+    });
+
+    // Button Settings
+    const htmlButtonsGroup = new Adw.PreferencesGroup({
+        title: _('Button Settings'),
+        description: _('Manage visibility and order of action buttons for HTML items.'),
+    });
+    htmlButtonsNav.content.add(htmlButtonsGroup);
+
+    // Visible Buttons
+    const visibleHtmlButtonsExpander = new Adw.ExpanderRow({
+        title: _('Visible Buttons'),
+        subtitle: _('Show or hide action buttons on cards.'),
+    });
+    htmlButtonsGroup.add(visibleHtmlButtonsExpander);
+
+    const HTML_BUTTON_CONFIGS = {
+        format: {
+            title: _('Format Button'),
+            subtitle: _('Show format button for HTML items.'),
+            key: 'clipboard-html-show-format-button',
+        },
+        image: {
+            title: _('Image Button'),
+            subtitle: _('Show image button for HTML items.'),
+            key: 'clipboard-html-show-image-button',
+        },
+    };
+
+    Object.values(HTML_BUTTON_CONFIGS).forEach((config) => {
+        const row = new Adw.SwitchRow({
+            title: config.title,
+            subtitle: config.subtitle,
+        });
+        visibleHtmlButtonsExpander.add_row(row);
+        settings.bind(config.key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+    });
+
+    // Button Order
+    const htmlOrderExpander = new Adw.ExpanderRow({
+        title: _('Button Order'),
+        subtitle: _('Use buttons to reorder action buttons on cards.'),
+    });
+    htmlButtonsGroup.add(htmlOrderExpander);
+
+    let managedHtmlOrderRows = [];
+
+    const populateHtmlOrderList = () => {
+        managedHtmlOrderRows.forEach((row) => htmlOrderExpander.remove(row));
+        managedHtmlOrderRows = [];
+
+        const buttonOrder = settings.get_strv('clipboard-html-button-order');
+
+        buttonOrder.forEach((buttonId, index) => {
+            const config = HTML_BUTTON_CONFIGS[buttonId];
+            if (!config) return;
+
+            const isVisible = settings.get_boolean(config.key);
+            const row = new Adw.ActionRow({
+                title: isVisible ? config.title : `${config.title} (Hidden)`,
+            });
+
+            if (!isVisible) {
+                row.add_css_class('dim-label');
+            }
+
+            const buttonBox = new Gtk.Box({ spacing: 6, valign: Gtk.Align.CENTER });
+            row.add_suffix(buttonBox);
+
+            const upButton = new Gtk.Button({
+                icon_name: 'go-up-symbolic',
+                sensitive: index > 0,
+            });
+            const downButton = new Gtk.Button({
+                icon_name: 'go-down-symbolic',
+                sensitive: index < buttonOrder.length - 1,
+            });
+
+            const moveRow = (direction) => {
+                const currentOrder = settings.get_strv('clipboard-html-button-order');
+                const oldIndex = currentOrder.indexOf(buttonId);
+                const newIndex = oldIndex + direction;
+
+                if (newIndex >= 0 && newIndex < currentOrder.length) {
+                    [currentOrder[oldIndex], currentOrder[newIndex]] = [currentOrder[newIndex], currentOrder[oldIndex]];
+                    settings.set_strv('clipboard-html-button-order', currentOrder);
+                }
+            };
+
+            upButton.connect('clicked', () => moveRow(-1));
+            downButton.connect('clicked', () => moveRow(1));
+
+            buttonBox.append(upButton);
+            buttonBox.append(downButton);
+
+            htmlOrderExpander.add_row(row);
+            managedHtmlOrderRows.push(row);
+        });
+
+        const resetRow = new Adw.ActionRow({
+            title: _('Reset Order'),
+            subtitle: _('Restore original action button order.'),
+        });
+        htmlOrderExpander.add_row(resetRow);
+        managedHtmlOrderRows.push(resetRow);
+
+        const resetButton = new Gtk.Button({
+            label: _('Reset'),
+            valign: Gtk.Align.CENTER,
+            css_classes: ['destructive-action'],
+        });
+
+        resetButton.connect('clicked', () => {
+            const defaultValueVariant = settings.get_default_value('clipboard-html-button-order');
+            settings.set_strv('clipboard-html-button-order', defaultValueVariant.get_strv());
+        });
+        resetRow.add_suffix(resetButton);
+    };
+
+    settings.connect('changed::clipboard-html-button-order', populateHtmlOrderList);
+    Object.values(HTML_BUTTON_CONFIGS).forEach((config) => {
+        settings.connect(`changed::${config.key}`, populateHtmlOrderList);
+    });
+    populateHtmlOrderList();
 }
