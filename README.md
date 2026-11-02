@@ -92,7 +92,7 @@ The easiest way to install is from the official GNOME Extensions website.
 
 ## Usage
 
-*   **Open the Menu:** Click the clipboard icon in the top panel or use the keyboard shortcut you configured (default is `<Super>v` for the clipboard tab).
+*   **Open the Menu:** Click the clipboard icon in the top panel or use the keyboard shortcut you configured.
 *   **Navigate:** Use the icons at the top to switch between the "Recents", "Emoji", "GIF", "Kaomoji", "Symbols", and "Clipboard" tabs.
 *   **Search:** Use the search bar within each tab to filter results.
 *   **Select:** Click on any item to copy it to your clipboard. If auto-paste is enabled, it will also be pasted into your active window.
