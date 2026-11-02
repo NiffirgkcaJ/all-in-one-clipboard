@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 04:02+0000\n"
+"POT-Creation-Date: 2026-11-02 11:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,66 +65,66 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:117
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:121
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
 msgid "Paste as Rich HTML"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:134
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
 msgid "Paste Images"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:116
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:346
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:122
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:345
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
 msgid "Paste Link"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:140
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
 msgid "Paste as Files"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:140
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
 msgid "Paste as File"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:144
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
 msgid "Paste as Folders"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:144
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
 msgid "Paste as Folder"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:148
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
 msgid "Paste as Items"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:148
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
 msgid "Paste as Item"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:155
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
 msgid "Paste as Paths"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:155
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
 msgid "Paste as Path"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:161
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
 msgid "Paste as URIs"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:161
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
 msgid "Paste as URI"
 msgstr ""
 
@@ -207,7 +207,7 @@ msgid "URI Links"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:120
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:545
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:553
 msgid "Default Format"
 msgstr ""
 
@@ -217,13 +217,13 @@ msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:150
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:173
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:575
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:598
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:583
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:606
 msgid "Button Settings"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:151
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:576
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:584
 msgid "Configure button visibility and display order on cards."
 msgstr ""
 
@@ -236,12 +236,12 @@ msgid "Manage visibility and order of action buttons for resource items."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:180
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:605
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:613
 msgid "Visible Buttons"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:181
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:606
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:614
 msgid "Show or hide action buttons on cards."
 msgstr ""
 
@@ -258,28 +258,28 @@ msgid "Show URI links button."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:214
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:634
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:642
 msgid "Button Order"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:215
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:635
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:643
 msgid "Use buttons to reorder action buttons on cards."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:274
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:694
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:702
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:231
 msgid "Reset Order"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:275
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:695
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:703
 msgid "Restore original action button order."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:281
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:701
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:709
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:58
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:201
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:238
@@ -303,178 +303,186 @@ msgid "Automatically extract link items from text."
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:322
-msgid "Limit Link Items to Extract"
+msgid "Extract Link Items from Contacts"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:323
+msgid "Automatically extract link items from contacts."
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:329
+msgid "Limit Link Items to Extract"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:330
 msgid "Limit the number of extracted link items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:333
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:340
 msgid "Maximum Link Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:334
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:341
 #, javascript-format
 msgid "Maximum link items to extract between %d and %d. Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:350
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:357
 msgid "Default Action"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:351
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:358
 msgid "Default action for link items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:379
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:386
 msgid "Action Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:380
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:387
 msgid "Show action button for link items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:396
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:404
 msgid "Contact Content Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:397
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:405
 msgid "Options for contact items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:402
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:410
 msgid "Extract Contact Items from Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:403
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:411
 msgid "Automatically extract contact items from text."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:409
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:417
 msgid "Limit Contact Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:410
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:418
 msgid "Limit the number of extracted contact items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:420
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:428
 msgid "Maximum Contact Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:421
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:429
 #, javascript-format
 msgid "Maximum contact items to extract between %d and %d. Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:442
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:450
 msgid "Color Content Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:443
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:451
 msgid "Options for color items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:448
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:456
 msgid "Extract Color Items from Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:449
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:457
 msgid "Automatically extract color items from text."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:455
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:463
 msgid "Limit Color Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:456
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:464
 msgid "Limit the number of extracted color items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:466
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:474
 msgid "Maximum Color Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:467
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:475
 #, javascript-format
 msgid "Maximum color items to extract between %d and %d. Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:488
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:496
 msgid "Code Content Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:489
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:497
 msgid "Options for code items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:494
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:502
 msgid "Extract Code Items from Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:495
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:503
 msgid "Automatically extract code items from text."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:501
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:509
 msgid "Limit Code Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:502
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:510
 msgid "Limit the number of extracted code items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:512
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:520
 msgid "Maximum Code Items to Extract"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:513
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:521
 #, javascript-format
 msgid "Maximum code items to extract between %d and %d. Default: %d."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:534
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:542
 msgid "HTML Content Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:535
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:543
 msgid "Options for HTML items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:540
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:548
 msgid "Rich HTML"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:541
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:549
 msgid "Plain Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:546
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:554
 msgid "Default format for HTML items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:588
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:596
 msgid "HTML Button Settings"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:599
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:607
 msgid "Manage visibility and order of action buttons for HTML items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:612
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:620
 msgid "Format Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:613
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:621
 msgid "Show format button for HTML items."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:617
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:625
 msgid "Image Button"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:618
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:626
 msgid "Show image button for HTML items."
 msgstr ""
 
