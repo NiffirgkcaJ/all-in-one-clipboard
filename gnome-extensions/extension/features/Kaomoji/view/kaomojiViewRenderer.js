@@ -7,13 +7,13 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 // ========================================================================
 
 /**
- * Strip whitespace and invisible Unicode joiners for resilient character matching.
+ * Strip whitespace, variation selectors, and invisible Unicode joiners for resilient character matching.
  *
  * @param {string} text Text to normalize.
  * @returns {string} Clean normalized string.
  */
 function normalizeCharacterSearch(text) {
-    return text.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, '');
+    return text.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]|[\uFE00-\uFE0F]/gu, '');
 }
 
 /**
@@ -36,14 +36,12 @@ export class KaomojiViewRenderer {
     searchFilter(item, searchText) {
         const lowerSearchText = searchText.toLowerCase();
 
-        if (item.keywords && Array.isArray(item.keywords)) {
-            if (item.keywords.some((k) => k.toLowerCase().includes(lowerSearchText))) return true;
-        }
+        if (item.keywords?.some((keyword) => keyword.toLowerCase().includes(lowerSearchText))) return true;
 
         const query = normalizeCharacterSearch(searchText);
-        const kaomojiString = item.kaomoji || item.char || item.value;
-        if (query && typeof kaomojiString === 'string') {
-            return normalizeCharacterSearch(kaomojiString).includes(query);
+        const character = item.kaomoji || item.char || item.value;
+        if (query && typeof character === 'string') {
+            return normalizeCharacterSearch(character).includes(query);
         }
 
         return false;

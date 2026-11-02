@@ -7,6 +7,20 @@ import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { EmojiModifier } from '../logic/emojiModifier.js';
 import { EmojiCategoryIcons, EmojiUI } from '../constants/emojiConstants.js';
 
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
+/**
+ * Strip whitespace, variation selectors, and invisible Unicode joiners for resilient character matching.
+ *
+ * @param {string} text Text to normalize.
+ * @returns {string} Clean normalized string.
+ */
+function normalizeCharacterSearch(text) {
+    return text.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]|[\uFE00-\uFE0F]/gu, '');
+}
+
 /**
  * EmojiViewRenderer
  *
@@ -40,12 +54,13 @@ export class EmojiViewRenderer {
     searchFilter(item, searchText) {
         const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
 
-        if (item.name.toLowerCase().includes(cleanSearchText)) {
-            return true;
-        }
+        if (item.name?.toLowerCase().includes(cleanSearchText)) return true;
+        if (item.keywords?.some((keyword) => keyword.toLowerCase().includes(cleanSearchText))) return true;
 
-        if (item.keywords && item.keywords.some((k) => k.toLowerCase().includes(cleanSearchText))) {
-            return true;
+        const query = normalizeCharacterSearch(searchText);
+        const character = item.char || item.value;
+        if (query && typeof character === 'string') {
+            return normalizeCharacterSearch(character).includes(query);
         }
 
         return false;

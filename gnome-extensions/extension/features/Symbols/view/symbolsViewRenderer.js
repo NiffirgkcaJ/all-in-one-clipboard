@@ -2,6 +2,20 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
+/**
+ * Strip whitespace, variation selectors, and invisible Unicode joiners for resilient character matching.
+ *
+ * @param {string} text Text to normalize.
+ * @returns {string} Clean normalized string.
+ */
+function normalizeCharacterSearch(text) {
+    return text.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]|[\uFE00-\uFE0F]/gu, '');
+}
+
 /**
  * SymbolsViewRenderer
  *
@@ -22,8 +36,13 @@ export class SymbolsViewRenderer {
     searchFilter(item, searchText) {
         const cleanSearchText = searchText.toLowerCase().replace(/^(u\+|0x)/i, '');
 
-        if (item.keywords && Array.isArray(item.keywords)) {
-            return item.keywords.some((k) => k.toLowerCase().includes(cleanSearchText));
+        if (item.name?.toLowerCase().includes(cleanSearchText)) return true;
+        if (item.keywords?.some((keyword) => keyword.toLowerCase().includes(cleanSearchText))) return true;
+
+        const query = normalizeCharacterSearch(searchText);
+        const character = item.symbol || item.char || item.value;
+        if (query && typeof character === 'string') {
+            return normalizeCharacterSearch(character).includes(query);
         }
 
         return false;
