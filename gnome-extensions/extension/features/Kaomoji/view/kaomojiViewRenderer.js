@@ -2,6 +2,20 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
+/**
+ * Strip whitespace and invisible Unicode joiners for resilient character matching.
+ *
+ * @param {string} text Text to normalize.
+ * @returns {string} Clean normalized string.
+ */
+function normalizeCharacterSearch(text) {
+    return text.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, '');
+}
+
 /**
  * KaomojiViewRenderer
  *
@@ -23,7 +37,13 @@ export class KaomojiViewRenderer {
         const lowerSearchText = searchText.toLowerCase();
 
         if (item.keywords && Array.isArray(item.keywords)) {
-            return item.keywords.some((k) => k.toLowerCase().includes(lowerSearchText));
+            if (item.keywords.some((k) => k.toLowerCase().includes(lowerSearchText))) return true;
+        }
+
+        const query = normalizeCharacterSearch(searchText);
+        const kaomojiString = item.kaomoji || item.char || item.value;
+        if (query && typeof kaomojiString === 'string') {
+            return normalizeCharacterSearch(kaomojiString).includes(query);
         }
 
         return false;
