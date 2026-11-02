@@ -452,7 +452,7 @@ export class ClipboardRegistry {
         const isPromotableCarrier = Boolean(carrierField && carrierField === definition.intentField && typeof sourceContent === 'string');
         const { fullSpanCandidates, embeddedCandidates } = this._partitionIntentCandidates(candidates, sourceContent, isPromotableCarrier);
 
-        const policy = definition.intentSettings?.[source.type];
+        const policy = definition.intentSettings[source.type];
         let enabledCandidates = embeddedCandidates;
         if (policy?.enabledSetting && (!settings || !settings.get_boolean(policy.enabledSetting))) {
             enabledCandidates = [];
@@ -477,7 +477,7 @@ export class ClipboardRegistry {
      * @private
      */
     _shouldResolveIntentProvider(definition, source, settings) {
-        const policy = definition.intentSettings?.[source.type];
+        const policy = definition.intentSettings[source.type];
         if (!policy?.enabledSetting || settings?.get_boolean(policy.enabledSetting)) return true;
 
         const carrierField = this.getDefinition(source.type)?.fullSpanIntentField;

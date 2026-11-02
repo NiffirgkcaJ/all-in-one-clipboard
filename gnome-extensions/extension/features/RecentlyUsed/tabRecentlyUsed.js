@@ -126,14 +126,8 @@ export const RecentlyUsedTabContent = GObject.registerClass(
          */
         _closeMenuSafely() {
             const menu = this._extension && this._extension._indicator ? this._extension._indicator.menu : null;
-            if (!menu || typeof menu.close !== 'function') {
-                return;
-            }
-
-            try {
+            if (menu) {
                 menu.close();
-            } catch {
-                // Ignore menu lifecycle races during shell teardown.
             }
         }
 

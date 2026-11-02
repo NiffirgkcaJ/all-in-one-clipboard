@@ -573,9 +573,7 @@ export const ClipboardTabContent = GObject.registerClass(
          * @private
          */
         _focusLastContentItem() {
-            const result = this._currentView?.focusLastContentItem ? this._currentView.focusLastContentItem() : false;
-            console.log(`[TabClipboard:_focusLastContentItem] result=${result}`);
-            return result;
+            return this._currentView?.focusLastContentItem ? this._currentView.focusLastContentItem() : false;
         }
 
         // ========================================================================
@@ -597,7 +595,6 @@ export const ClipboardTabContent = GObject.registerClass(
          * @returns {boolean} True if focus was successfully moved.
          */
         focusBottomContent() {
-            console.log('[TabClipboard:focusBottomContent] called');
             return FocusUtils.tryFocusChain([() => this._focusLastContentItem(), () => this._actionBar?.visible && this._actionBar.focusLast(), () => this._searchComponent.grabFocus()]);
         }
 

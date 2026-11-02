@@ -38,7 +38,7 @@ const DEFAULT_RESOLVED_POLICY = {
  * Internal helper functions handle specific aspects of policy resolution, such as reading settings with fallbacks and normalizing values.
  */
 function getSettingsInt(settings, key, fallbackValue) {
-    if (!settings || !settings.get_int) {
+    if (!settings) {
         return fallbackValue;
     }
 
@@ -58,7 +58,7 @@ function getSettingsInt(settings, key, fallbackValue) {
  * @returns {string} The retrieved string value or the fallback.
  */
 function getSettingsString(settings, key, fallbackValue) {
-    if (!settings || !settings.get_string) {
+    if (!settings) {
         return fallbackValue;
     }
 
@@ -78,7 +78,7 @@ function getSettingsString(settings, key, fallbackValue) {
  * @returns {boolean} The retrieved boolean value or the fallback.
  */
 function getSettingsBoolean(settings, key, fallbackValue) {
-    if (!settings || !settings.get_boolean) {
+    if (!settings) {
         return fallbackValue;
     }
 
@@ -122,14 +122,14 @@ function getSettingsJsonObject(settings, key) {
  * @param {object} value JSON-serializable object.
  */
 function setSettingsJsonObject(settings, key, value) {
-    if (!settings || !settings.set_string) {
+    if (!settings) {
         return;
     }
 
     try {
         settings.set_string(key, IOJson.stringifyText(value));
     } catch {
-        // Keep runtime resilient on write failures.
+        // Keep runtime resilient against schema write errors.
     }
 }
 

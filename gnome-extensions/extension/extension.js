@@ -206,6 +206,9 @@ export default class AllInOneClipboardExtension extends Extension {
         }
 
         const isLoadSuccessful = await this._clipboardManager.loadAndPrepare();
+        if (!this._settings) {
+            return;
+        }
 
         if (this._settings.get_boolean('clear-data-at-login')) {
             if (this._settings.get_boolean('clear-clipboard-history-at-login')) {
@@ -231,6 +234,10 @@ export default class AllInOneClipboardExtension extends Extension {
         }
 
         await initializeMenuRegistry();
+        if (!this._settings) {
+            return;
+        }
+
         this._indicator = new MenuIndicator(this._settings, this, this._clipboardManager);
         Main.panel.addToStatusArea(this.uuid, this._indicator, 1);
 

@@ -9,7 +9,8 @@ import { mapLayout } from '../utilities/utilityLayout.js';
 import { getMenuOrderedSections } from './menuRegistry.js';
 
 /**
- * MenuTabBar is a dynamic tab bar component for the clipboard manager menu, allowing users to switch between different sections of the menu. It reacts to extension settings to show/hide tabs and manages keyboard navigation for accessibility.
+ * MenuTabBar is a dynamic tab bar component for the clipboard manager menu, allowing users to switch between different sections of the menu.
+ * It reacts to extension settings to show or hide tabs and manages keyboard navigation for accessibility.
  * The component emits 'tab-selected' when a tab is clicked or selected via keyboard, and 'navigate-down' when the user presses the down arrow key while focused on the tab bar.
  * It listens to changes in the extension settings to update the visibility of tabs and the tab bar itself, ensuring that the UI always reflects the current configuration and active tab state.
  *

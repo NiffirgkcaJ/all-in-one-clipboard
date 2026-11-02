@@ -97,29 +97,25 @@ export class RecentlyUsedSignalManager {
             });
         }
 
-        if (this._settings?.connect) {
+        if (this._settings) {
             RecentlyUsedPolicySettingKeys.forEach((settingKey) => {
-                try {
-                    const signalId = this._settings.connect(`changed::${settingKey}`, () => {
-                        if (this._onRender) {
-                            this._onRender();
-                        }
-                    });
-                    const normalized = this._normalizeSignalDescriptor(
-                        {
-                            obj: this._settings,
-                            id: signalId,
-                        },
-                        {
-                            warn: true,
-                            context: `settings changed::${settingKey}`,
-                        },
-                    );
-                    if (normalized) {
-                        this._signalIds.push(normalized);
+                const signalId = this._settings.connect(`changed::${settingKey}`, () => {
+                    if (this._onRender) {
+                        this._onRender();
                     }
-                } catch {
-                    // Ignore missing schema keys to keep runtime resilient.
+                });
+                const normalized = this._normalizeSignalDescriptor(
+                    {
+                        obj: this._settings,
+                        id: signalId,
+                    },
+                    {
+                        warn: true,
+                        context: `settings changed::${settingKey}`,
+                    },
+                );
+                if (normalized) {
+                    this._signalIds.push(normalized);
                 }
             });
         }

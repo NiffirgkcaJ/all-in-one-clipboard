@@ -175,5 +175,6 @@ export function ClipboardDefinitionImage() {
                 return '';
             },
         },
+        destroy: () => ImageProcessor.destroy(),
     };
 }

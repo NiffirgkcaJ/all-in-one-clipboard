@@ -87,8 +87,9 @@ export class RecentlyUsedRuntimeService {
         for (const section of sectionDefinitions) {
             try {
                 section.destroy();
-            } catch {
-                // ignore error during destroy
+            } catch (e) {
+                const message = e?.message ?? String(e);
+                Logger.warn(`Recently Used section '${section.id}' failed to destroy: ${message}`);
             }
         }
 

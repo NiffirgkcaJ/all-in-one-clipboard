@@ -805,7 +805,7 @@ export const RecentlyUsedBaseView = GObject.registerClass(
                 return false;
             }
 
-            const isSettingsButtonFocus = widget === this._settingsBtn && this._settingsBtn?.can_focus === false;
+            const isSettingsButtonFocus = widget === this._settingsBtn && this._settingsBtn.can_focus === false;
             if (isSettingsButtonFocus) {
                 this._settingsBtn.can_focus = true;
             }

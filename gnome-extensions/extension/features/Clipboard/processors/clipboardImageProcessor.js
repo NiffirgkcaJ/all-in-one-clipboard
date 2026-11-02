@@ -513,4 +513,18 @@ export class ImageProcessor {
         const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
         await IOImage.ensurePreviewAsync(sourcePath, previewPath, PREVIEW_MAX_SIZE);
     }
+
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
+    /**
+     * Clean up resources and abort pending network sessions.
+     */
+    static destroy() {
+        if (this._httpSession) {
+            this._httpSession.abort();
+            this._httpSession = null;
+        }
+    }
 }
