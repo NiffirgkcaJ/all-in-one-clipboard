@@ -71,6 +71,7 @@ export class ClipboardGridItemFactory {
         const itemWidget = new St.Button({
             style_class: ClipboardStyles.GRID_CARD,
             can_focus: true,
+            clip_to_allocation: true,
         });
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
 

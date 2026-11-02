@@ -399,7 +399,7 @@ export class RecentlyUsedRuntimeService {
     // ========================================================================
 
     /**
-     * Resolves a section title for browse mode (no active search query).
+     * Resolves a section title for browse mode.
      *
      * @param {object} sectionConfig Section configuration.
      * @returns {string} Section browse title.

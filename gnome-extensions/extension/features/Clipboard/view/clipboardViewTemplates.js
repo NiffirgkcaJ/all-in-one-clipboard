@@ -94,6 +94,7 @@ function createListTitleSubtitleColumn({ title, subtitle, styleClass = null }) {
         style_class: ClipboardStyles.LIST_TITLE,
         x_expand: true,
     });
+    titleLabel.get_clutter_text().set_single_line_mode(true);
     titleLabel.get_clutter_text().set_line_wrap(false);
     titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
     textCol.add_child(titleLabel);
@@ -103,6 +104,7 @@ function createListTitleSubtitleColumn({ title, subtitle, styleClass = null }) {
         style_class: ClipboardStyles.LIST_SUBTITLE,
         x_expand: true,
     });
+    subLabel.get_clutter_text().set_single_line_mode(true);
     subLabel.get_clutter_text().set_line_wrap(false);
     subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
     textCol.add_child(subLabel);
@@ -132,6 +134,7 @@ function createGridTitleSubtitleColumn({ title, subtitle }) {
         style_class: ClipboardStyles.GRID_TITLE,
         x_expand: true,
     });
+    titleLabel.get_clutter_text().set_single_line_mode(true);
     titleLabel.get_clutter_text().set_line_wrap(false);
     titleLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.END);
     labelsContainer.add_child(titleLabel);
@@ -141,6 +144,7 @@ function createGridTitleSubtitleColumn({ title, subtitle }) {
         style_class: ClipboardStyles.GRID_SUBTITLE,
         x_expand: true,
     });
+    subLabel.get_clutter_text().set_single_line_mode(true);
     subLabel.get_clutter_text().set_line_wrap(false);
     subLabel.get_clutter_text().set_ellipsize(Pango.EllipsizeMode.MIDDLE);
     labelsContainer.add_child(subLabel);

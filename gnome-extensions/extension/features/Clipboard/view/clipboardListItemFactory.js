@@ -72,6 +72,7 @@ export class ClipboardListItemFactory {
         const itemWidget = new St.Button({
             style_class: ClipboardStyles.LIST_ITEM,
             can_focus: true,
+            clip_to_allocation: true,
         });
         itemWidget.connect('clicked', () => options.onItemCopy(itemData));
 
