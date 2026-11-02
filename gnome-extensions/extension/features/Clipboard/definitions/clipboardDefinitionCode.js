@@ -20,19 +20,21 @@ export function ClipboardDefinitionCode() {
         priority: ClipboardPriority[ClipboardType.CODE],
         styling: ClipboardStyling[ClipboardType.CODE],
         viewType: 'gutter',
-        processText: (text) => CodeProcessor.process(text),
         intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
         intentField: 'text',
-        extractIntents: (result, context) => {
-            const { settings } = context;
-            if (!settings || !settings.get_boolean('clipboard-code-extract-from-text')) {
-                return [];
-            }
-
-            const limitEnabled = settings.get_boolean('clipboard-code-limit-extract');
-            const limit = limitEnabled ? settings.get_int('clipboard-code-extract-limit') : undefined;
-            return CodeProcessor.extractCodeBlocks(result.text, limit);
+        intentSettings: {
+            [ClipboardType.TEXT]: {
+                enabledSetting: 'clipboard-code-extract-from-text',
+                limitEnabledSetting: 'clipboard-code-limit-extract',
+                limitSetting: 'clipboard-code-extract-limit',
+            },
+            [ClipboardType.HTML]: {
+                enabledSetting: 'clipboard-code-extract-from-text',
+                limitEnabledSetting: 'clipboard-code-limit-extract',
+                limitSetting: 'clipboard-code-extract-limit',
+            },
         },
+        extractIntents: (result, context) => CodeProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: CodeProcessor,
             storageDirKey: 'textsDir',

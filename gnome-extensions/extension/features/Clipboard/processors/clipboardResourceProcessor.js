@@ -16,48 +16,56 @@ export class ResourceProcessor {
     // ========================================================================
 
     /**
-     * Analyze a text string to determine if it represents valid file or directory URIs.
+     * Extract a full-text file or directory resource intent when the source contains valid paths.
      *
-     * @param {string} text Potential URI string.
-     * @param {object} [context] Processing context.
-     * @returns {Promise<object|null>} Processed resource object or null if invalid.
+     * @param {string} source Potential URI list or path list.
+     * @param {object} [context] Extraction context.
+     * @returns {Promise<Array<object>>} Resource intent candidates.
      */
-    static async process(text, context = {}) {
-        if (!text) return null;
+    static async extractIntents(source, context = {}) {
+        if (!source) return [];
 
-        const cleanText = text.trim();
+        const cleanText = source.trim();
         const lines = cleanText
             .split(/[\r\n]+/)
             .map((line) => line.trim())
             .filter((line) => line.length > 0);
 
-        if (lines.length === 0) return null;
+        if (lines.length === 0) return [];
 
         const isFilePattern = lines.every((line) => line.startsWith('file://') || line.startsWith('/'));
-        if (!isFilePattern) return null;
+        if (!isFilePattern) return [];
 
         const candidates = ResourceProcessor._parseCandidates(lines);
-        if (candidates.length === 0) return null;
+        if (candidates.length === 0) return [];
 
         const validItems = await ResourceProcessor._resolveValidItems(candidates);
-        if (!validItems) return null;
+        if (!validItems) return [];
+
+        const startIndex = source.indexOf(cleanText);
+        const endIndex = startIndex + cleanText.length;
 
         // Exclusion Check
         if (context.exclusionUtils) {
             const uris = validItems.map((item) => item.uri);
             if (context.exclusionUtils.isPathExcluded(uris)) {
-                return {
-                    type: ClipboardType.RESOURCE,
-                    suppressed: true,
-                };
+                return [
+                    {
+                        type: ClipboardType.RESOURCE,
+                        hash: ProcessorUtils.computeHashForString(cleanText),
+                        startIndex,
+                        endIndex,
+                        suppressed: true,
+                    },
+                ];
             }
         }
 
-        if (validItems.length === 1) {
-            return ResourceProcessor._createSingleResult(validItems[0], cleanText);
-        }
+        const result = validItems.length === 1 ? ResourceProcessor._createSingleResult(validItems[0], cleanText) : ResourceProcessor._createMultipleResult(validItems, cleanText);
+        result.startIndex = startIndex;
+        result.endIndex = endIndex;
 
-        return ResourceProcessor._createMultipleResult(validItems, cleanText);
+        return [result];
     }
 
     // ========================================================================

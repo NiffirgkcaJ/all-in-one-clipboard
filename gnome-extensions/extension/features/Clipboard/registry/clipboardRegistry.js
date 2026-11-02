@@ -1,7 +1,6 @@
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 
 import { getClipboardOrder } from '../definitions/clipboardOrder.js';
-
 import { defaultItemActions, ensureClipboardDefinition } from './clipboardDefinition.js';
 
 /**
@@ -131,6 +130,7 @@ export class ClipboardRegistry {
         if (definition && definition.copyOptions && definition.copyOptions.copyItemToClipboard) {
             const context = {
                 ...options,
+                registry: this,
                 settings: options.settings || this._settings,
             };
             return await definition.copyOptions.copyItemToClipboard(item, context);
@@ -150,6 +150,7 @@ export class ClipboardRegistry {
         if (definition && definition.copyOptions && definition.copyOptions.getCopyQueue) {
             const context = {
                 ...options,
+                registry: this,
                 settings: options.settings || this._settings,
             };
             return await definition.copyOptions.getCopyQueue(item, context);
@@ -180,6 +181,7 @@ export class ClipboardRegistry {
         if (definition && definition.copyOptions && definition.copyOptions.serializeItem) {
             const context = {
                 ...options,
+                registry: this,
                 settings: options.settings || this._settings,
             };
             return await definition.copyOptions.serializeItem(item, context);
@@ -201,6 +203,7 @@ export class ClipboardRegistry {
         if (definition && definition.copyOptions && definition.copyOptions.copyBatchToClipboard) {
             const context = {
                 ...options,
+                registry: this,
                 settings: options.settings || this._settings,
             };
             return await definition.copyOptions.copyBatchToClipboard(items, context);
@@ -303,11 +306,35 @@ export class ClipboardRegistry {
     async extractClipboardContent(context = {}) {
         await this.initialize();
 
-        const extracted = await this._runExtractionAtIndex(this._getHookDefinitions('extract'), 0, context);
-        if (!extracted?.text) return extracted || null;
+        const extracted = await this._runExtractionAtIndex(this._getPriorityHookDefinitions('extract'), 0, context);
+        if (!extracted) return null;
 
-        const processedTextResult = await this._runTextHookAtIndex(this._getHookDefinitions('processText'), 0, extracted.text, context);
-        return processedTextResult || extracted;
+        const rootIntents = await this._resolveIntentCandidates(extracted, context);
+        if (rootIntents.some((intent) => intent.suppressed)) {
+            return { ...extracted, suppressed: true };
+        }
+
+        const allIntents = await this._resolveIntentDescendants(rootIntents, context);
+        const sourceDefinition = this.getDefinition(extracted.type);
+        const promotionField = sourceDefinition?.fullSpanIntentField;
+        if (promotionField && typeof extracted[promotionField] === 'string') {
+            const carrierContent = extracted[promotionField];
+            const fullSpanIntents = rootIntents.filter((intent) => {
+                const providerDef = this.getDefinition(intent.type);
+                return providerDef?.intentField === promotionField && this._coversFullSource(intent, carrierContent);
+            });
+            if (fullSpanIntents.length === 1) {
+                const [promotedIntent] = this._cleanIntentSpans(fullSpanIntents);
+                const remainingIntents = allIntents.filter((intent) => intent.hash !== promotedIntent.hash);
+                return {
+                    ...promotedIntent,
+                    intents: this._cleanIntentSpans(remainingIntents),
+                };
+            }
+        }
+
+        extracted.intents = this._cleanIntentSpans(allIntents);
+        return extracted;
     }
 
     /**
@@ -318,21 +345,31 @@ export class ClipboardRegistry {
      * @returns {Promise<Array<object>>} List of resolved intent results.
      */
     async resolveIntents(result, context = {}) {
+        const candidates = await this._resolveIntentCandidates(result, context);
+        return this._cleanIntentSpans(candidates);
+    }
+
+    /**
+     * Resolve intent candidates while retaining spans for ordering and promotion.
+     *
+     * @param {object} result Source carrier or intent result to scan.
+     * @param {object} context Intent resolution context.
+     * @returns {Promise<Array<object>>} Intent candidates with source spans.
+     * @private
+     */
+    async _resolveIntentCandidates(result, context = {}) {
         if (!result) return [];
 
         const settings = context.settings ?? this._settings;
-        if (!settings) {
-            Logger.warn('Intent resolution skipped because settings are required.');
-            return [];
-        }
 
         await this.initialize();
 
         // Applicability
-        const definitions = this._getHookDefinitions('extractIntents').filter((definition) => {
+        const definitions = this._getPeerHookDefinitions('extractIntents').filter((definition) => {
             if (definition.id === result.type) return false;
             if (definition.intentSources && !definition.intentSources.includes(result.type)) return false;
             if (definition.intentField && !result[definition.intentField]) return false;
+            if (!this._shouldResolveIntentProvider(definition, result, settings)) return false;
             return true;
         });
 
@@ -340,7 +377,8 @@ export class ClipboardRegistry {
         const intentPromises = definitions.map(async (definition) => {
             try {
                 const results = await definition.extractIntents(result, { ...context, definition, settings });
-                const items = Array.isArray(results) ? results : [];
+                const candidates = Array.isArray(results) ? results : [];
+                const items = this._applyIntentSettings(definition, result, candidates, settings);
                 return { providerId: definition.id, items };
             } catch (e) {
                 Logger.warn(`Failed to resolve intents for definition ${definition.id}: ${e.message}`);
@@ -350,12 +388,7 @@ export class ClipboardRegistry {
 
         const providerBatches = await Promise.all(intentPromises);
 
-        // Validation and Deduplication
-        const seenHashes = new Set();
-        if (result.hash) {
-            seenHashes.add(result.hash);
-        }
-
+        // Validation
         const validIntents = [];
         for (const { providerId, items } of providerBatches) {
             for (const intent of items) {
@@ -364,20 +397,203 @@ export class ClipboardRegistry {
                     continue;
                 }
 
-                if (seenHashes.has(intent.hash)) continue;
-
                 const targetDefinition = this.getDefinition(intent.type);
                 if (!targetDefinition || typeof targetDefinition.createItem !== 'function') {
                     Logger.warn(`Discarded intent from provider ${providerId}: unhandled target definition ${intent.type}.`);
                     continue;
                 }
 
-                seenHashes.add(intent.hash);
                 validIntents.push(intent);
             }
         }
 
-        return validIntents;
+        // Natural Appearance Ordering
+        validIntents.sort((a, b) => {
+            const startA = a.startIndex ?? Number.MAX_SAFE_INTEGER;
+            const startB = b.startIndex ?? Number.MAX_SAFE_INTEGER;
+            if (startA !== startB) {
+                return startA - startB;
+            }
+
+            const lenA = (a.endIndex ?? startA) - startA;
+            const lenB = (b.endIndex ?? startB) - startB;
+            if (lenA !== lenB) {
+                return lenB - lenA;
+            }
+
+            return a.type.localeCompare(b.type);
+        });
+
+        // Content Deduplication
+        const seenHashes = new Set();
+        const finalIntents = [];
+        for (const intent of validIntents) {
+            if (seenHashes.has(intent.hash)) continue;
+            seenHashes.add(intent.hash);
+            finalIntents.push(intent);
+        }
+
+        return finalIntents;
+    }
+
+    /**
+     * Apply per-source extraction settings while preserving full-span classification candidates.
+     *
+     * @param {ClipboardDefinition} definition Intent provider definition.
+     * @param {object} source Source carrier being scanned.
+     * @param {Array<object>} candidates Extracted intent candidates.
+     * @param {Gio.Settings|null} settings Extension settings.
+     * @returns {Array<object>} Candidates enabled for this source.
+     * @private
+     */
+    _applyIntentSettings(definition, source, candidates, settings) {
+        const sourceContent = definition.intentField ? source[definition.intentField] : null;
+        const carrierField = this.getDefinition(source.type)?.fullSpanIntentField;
+        const isPromotableCarrier = Boolean(carrierField && carrierField === definition.intentField && typeof sourceContent === 'string');
+        const { fullSpanCandidates, embeddedCandidates } = this._partitionIntentCandidates(candidates, sourceContent, isPromotableCarrier);
+
+        const policy = definition.intentSettings?.[source.type];
+        let enabledCandidates = embeddedCandidates;
+        if (policy?.enabledSetting && (!settings || !settings.get_boolean(policy.enabledSetting))) {
+            enabledCandidates = [];
+        }
+
+        enabledCandidates.sort((a, b) => a.startIndex - b.startIndex || b.endIndex - a.endIndex);
+        if (policy?.limitEnabledSetting && policy?.limitSetting && settings?.get_boolean(policy.limitEnabledSetting)) {
+            const limit = settings.get_int(policy.limitSetting);
+            enabledCandidates = enabledCandidates.slice(0, Math.max(0, limit));
+        }
+
+        return [...fullSpanCandidates, ...enabledCandidates];
+    }
+
+    /**
+     * Skip disabled embedded extractors unless the source can still be classified as a primary item.
+     *
+     * @param {ClipboardDefinition} definition Intent provider definition.
+     * @param {object} source Source carrier being scanned.
+     * @param {Gio.Settings|null} settings Extension settings.
+     * @returns {boolean} Whether extraction should run.
+     * @private
+     */
+    _shouldResolveIntentProvider(definition, source, settings) {
+        const policy = definition.intentSettings?.[source.type];
+        if (!policy?.enabledSetting || settings?.get_boolean(policy.enabledSetting)) return true;
+
+        const carrierField = this.getDefinition(source.type)?.fullSpanIntentField;
+        return Boolean(carrierField && carrierField === definition.intentField);
+    }
+
+    /**
+     * Partition candidates into full-source and embedded matches.
+     *
+     * @param {Array<object>} candidates Extracted intent candidates.
+     * @param {string|null} sourceContent Source field value.
+     * @param {boolean} isPromotableCarrier Whether full-source matches can become primary.
+     * @returns {{fullSpanCandidates: Array<object>, embeddedCandidates: Array<object>}} Candidate groups.
+     * @private
+     */
+    _partitionIntentCandidates(candidates, sourceContent, isPromotableCarrier) {
+        const fullSpanCandidates = [];
+        const embeddedCandidates = [];
+
+        for (const candidate of candidates) {
+            if (!candidate || typeof candidate.hash !== 'string' || !this._hasValidIntentSpan(candidate, sourceContent)) continue;
+
+            if (isPromotableCarrier && this._coversFullSource(candidate, sourceContent)) {
+                fullSpanCandidates.push(candidate);
+            } else {
+                embeddedCandidates.push(candidate);
+            }
+        }
+
+        return { fullSpanCandidates, embeddedCandidates };
+    }
+
+    /**
+     * Validate that a candidate span is inside its source field.
+     *
+     * @param {object} candidate Intent candidate.
+     * @param {string|null} sourceContent Source field value.
+     * @returns {boolean} True when the span is valid.
+     * @private
+     */
+    _hasValidIntentSpan(candidate, sourceContent) {
+        return (
+            typeof sourceContent === 'string' &&
+            typeof candidate.startIndex === 'number' &&
+            typeof candidate.endIndex === 'number' &&
+            candidate.startIndex >= 0 &&
+            candidate.endIndex >= candidate.startIndex &&
+            candidate.endIndex <= sourceContent.length
+        );
+    }
+
+    /**
+     * Check whether a candidate covers the complete non-whitespace source content.
+     *
+     * @param {object} candidate Intent candidate with source offsets.
+     * @param {string} sourceContent Source content.
+     * @returns {boolean} True when the candidate spans all non-whitespace source content.
+     * @private
+     */
+    _coversFullSource(candidate, sourceContent) {
+        if (!candidate || typeof sourceContent !== 'string') return false;
+        const trimmedSource = sourceContent.trim();
+        if (!trimmedSource) return false;
+
+        const sourceStart = sourceContent.indexOf(trimmedSource);
+        const sourceEnd = sourceStart + trimmedSource.length;
+        return candidate.startIndex <= sourceStart && candidate.endIndex >= sourceEnd;
+    }
+
+    /**
+     * Resolve intent descendants through the same provider pipeline.
+     *
+     * @param {Array<object>} roots Initial intent candidates.
+     * @param {object} context Resolution context.
+     * @returns {Promise<Array<object>>} Root and descendant intents.
+     * @private
+     */
+    async _resolveIntentDescendants(roots, context) {
+        const results = [...roots];
+        const seenHashes = new Set(roots.map((intent) => intent.hash));
+        const visitedSources = new Set();
+        const expand = async (sources) => {
+            const candidates = sources.filter((source) => {
+                if (source.suppressed) return false;
+                const sourceKey = `${source.type}:${source.hash}`;
+                if (visitedSources.has(sourceKey)) return false;
+                visitedSources.add(sourceKey);
+                return true;
+            });
+            if (candidates.length === 0) return;
+
+            const batches = await Promise.all(candidates.map((source) => this._resolveIntentCandidates(source, context)));
+            const descendants = batches.flat().filter((intent) => {
+                if (seenHashes.has(intent.hash)) return false;
+                seenHashes.add(intent.hash);
+                results.push(intent);
+                return true;
+            });
+
+            await expand(descendants);
+        };
+
+        await expand(roots);
+
+        return results;
+    }
+
+    /**
+     * Remove resolver-only source offsets before item routing.
+     *
+     * @param {Array<object>} intents Intent candidates.
+     * @returns {Array<object>} Clean intent results.
+     * @private
+     */
+    _cleanIntentSpans(intents) {
+        return intents.map(({ startIndex: _startIndex, endIndex: _endIndex, ...intent }) => intent);
     }
 
     /**
@@ -609,33 +825,24 @@ export class ClipboardRegistry {
     }
 
     /**
-     * Run text processing hooks in priority order.
+     * Get definitions that implement an ingress hook ordered by priority.
      *
-     * @param {Array<ClipboardDefinition>} definitions Definitions with processText hooks.
-     * @param {number} index Current index.
-     * @param {string} text Clipboard text.
-     * @param {object} context Processing context.
-     * @returns {Promise<Object|null>} Processed result or null.
+     * @param {string} hookName Hook name.
+     * @returns {Array<ClipboardDefinition>} Priority sorted definitions.
      * @private
      */
-    async _runTextHookAtIndex(definitions, index, text, context) {
-        if (index >= definitions.length) return null;
-
-        const definition = definitions[index];
-        const result = await definition.processText(text, { ...context, definition });
-        if (result) return result;
-
-        return await this._runTextHookAtIndex(definitions, index + 1, text, context);
+    _getPriorityHookDefinitions(hookName) {
+        return [...this._definitions.values()].filter((definition) => definition[hookName]).sort((a, b) => (a.priority || 0) - (b.priority || 0));
     }
 
     /**
-     * Get definitions that implement a hook.
+     * Get definitions that implement a peer hook without priority ordering.
      *
      * @param {string} hookName Hook name.
-     * @returns {Array<ClipboardDefinition>} Ordered definitions.
+     * @returns {Array<ClipboardDefinition>} Registered peer definitions.
      * @private
      */
-    _getHookDefinitions(hookName) {
-        return [...this._definitions.values()].filter((definition) => definition[hookName]).sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    _getPeerHookDefinitions(hookName) {
+        return [...this._definitions.values()].filter((definition) => definition[hookName]);
     }
 }

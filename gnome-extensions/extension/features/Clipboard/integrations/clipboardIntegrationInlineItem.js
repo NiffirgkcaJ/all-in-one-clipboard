@@ -11,10 +11,12 @@ import GLib from 'gi://GLib';
  * @param {Array<string>} config.fields Result fields to copy.
  * @param {object} config.defaults Default item fields.
  * @param {string|null} config.previewField Result field to mirror into preview.
+ * @param {Function|null} config.finalizeItem Optional callback to finalize the created item.
  * @returns {Function} Item creation integration.
  */
-export function ClipboardIntegrationInlineItem({ fields = [], defaults = {}, previewField = null } = {}) {
-    return (result, { definition } = {}) => {
+export function ClipboardIntegrationInlineItem({ fields = [], defaults = {}, previewField = null, finalizeItem = null } = {}) {
+    return (result, context = {}) => {
+        const { definition } = context;
         const item = {
             id: GLib.uuid_string_random(),
             type: definition.id,
@@ -30,6 +32,10 @@ export function ClipboardIntegrationInlineItem({ fields = [], defaults = {}, pre
 
         if (previewField && item.preview === undefined) {
             item.preview = result[previewField];
+        }
+
+        if (finalizeItem) {
+            finalizeItem(item, result, context);
         }
 
         return item;

@@ -60,69 +60,14 @@ export class ContactProcessor {
     }
 
     /**
-     * Process clipboard text to detect email addresses or phone numbers.
-     *
-     * @param {string} text The clipboard text content.
-     * @returns {Promise<Object|null>} Processed contact object or null if no contact was detected.
-     */
-    static async process(text) {
-        if (!text || text.length > MAX_CONTACT_LENGTH) return null;
-        const cleanText = text.trim();
-
-        // Email
-        if (EMAIL_REGEX.test(cleanText)) {
-            const hash = ProcessorUtils.computeHashForString(cleanText);
-
-            return {
-                type: ClipboardType.CONTACT,
-                subtype: 'email',
-                text: cleanText,
-                preview: cleanText,
-                hash: hash,
-                metadata: null,
-            };
-        }
-
-        // Phone
-        const phoneMatch = cleanText.match(PHONE_REGEX);
-
-        if (phoneMatch) {
-            if (this._initPromise) {
-                await this._initPromise;
-            } else {
-                Logger.warn('process() called before init()! Cannot load country data.', 'ContactProcessor');
-            }
-
-            const countryInfo = ContactProcessor._resolveCountryForPhone(cleanText);
-            const hash = ProcessorUtils.computeHashForString(cleanText);
-
-            return {
-                type: ClipboardType.CONTACT,
-                subtype: 'phone',
-                text: cleanText,
-                preview: cleanText,
-                hash: hash,
-                metadata: countryInfo
-                    ? {
-                          code: countryInfo.code,
-                          name: countryInfo.name,
-                      }
-                    : null,
-            };
-        }
-
-        return null;
-    }
-
-    /**
      * Extract contact items embedded within text content.
      *
-     * @param {string} text Text content to scan for contacts.
-     * @param {number} limit Maximum number of contacts to extract.
+     * @param {string} source Text content to scan for contacts.
+     * @param {object} [_context] Extraction context.
      * @returns {Promise<Array<object>>} List of extracted contact intent objects.
      */
-    static async extractContacts(text, limit) {
-        if (!text) return [];
+    static async extractIntents(source, _context = {}) {
+        if (!source) return [];
 
         if (this._initPromise) {
             await this._initPromise;
@@ -132,54 +77,72 @@ export class ContactProcessor {
         const seen = new Set();
 
         // Emails
-        const emailMatches = text.matchAll(EMBEDDED_EMAIL_REGEX);
+        const emailMatches = source.matchAll(EMBEDDED_EMAIL_REGEX);
         for (const match of emailMatches) {
-            if (typeof limit === 'number' && contacts.length >= limit) break;
-
             const email = match[0].trim();
-            if (EMAIL_REGEX.test(email) && !seen.has(email)) {
-                seen.add(email);
-                contacts.push({
-                    type: ClipboardType.CONTACT,
-                    subtype: 'email',
-                    text: email,
-                    preview: email,
-                    hash: ProcessorUtils.computeHashForString(email),
-                    metadata: null,
-                });
-            }
+            if (!EMAIL_REGEX.test(email) || seen.has(email)) continue;
+
+            seen.add(email);
+            contacts.push({
+                type: ClipboardType.CONTACT,
+                subtype: 'email',
+                text: email,
+                preview: email,
+                hash: ProcessorUtils.computeHashForString(email),
+                metadata: null,
+                startIndex: this._getFullTextMatchRange(source, match.index, match[0].length).startIndex,
+                endIndex: this._getFullTextMatchRange(source, match.index, match[0].length).endIndex,
+            });
         }
 
         // Phones
-        const phoneMatches = text.matchAll(EMBEDDED_PHONE_REGEX);
+        const phoneMatches = source.matchAll(EMBEDDED_PHONE_REGEX);
         for (const match of phoneMatches) {
-            if (typeof limit === 'number' && contacts.length >= limit) break;
-
             let phone = match[0].trim();
             while (/[.,;!?:>]$/.test(phone) || (phone.endsWith(')') && (phone.match(/\)/g) || []).length > (phone.match(/\(/g) || []).length)) {
                 phone = phone.slice(0, -1).trim();
             }
 
-            if (PHONE_REGEX.test(phone) && !seen.has(phone)) {
-                seen.add(phone);
-                const countryInfo = ContactProcessor._resolveCountryForPhone(phone);
-                contacts.push({
-                    type: ClipboardType.CONTACT,
-                    subtype: 'phone',
-                    text: phone,
-                    preview: phone,
-                    hash: ProcessorUtils.computeHashForString(phone),
-                    metadata: countryInfo
-                        ? {
-                              code: countryInfo.code,
-                              name: countryInfo.name,
-                          }
-                        : null,
-                });
-            }
+            if (!PHONE_REGEX.test(phone) || seen.has(phone)) continue;
+
+            seen.add(phone);
+            const countryInfo = ContactProcessor._resolveCountryForPhone(phone);
+            contacts.push({
+                type: ClipboardType.CONTACT,
+                subtype: 'phone',
+                text: phone,
+                preview: phone,
+                hash: ProcessorUtils.computeHashForString(phone),
+                metadata: countryInfo
+                    ? {
+                          code: countryInfo.code,
+                          name: countryInfo.name,
+                      }
+                    : null,
+                startIndex: this._getFullTextMatchRange(source, match.index, phone.length).startIndex,
+                endIndex: this._getFullTextMatchRange(source, match.index, phone.length).endIndex,
+            });
         }
 
         return contacts;
+    }
+
+    /**
+     * Expand a match spanning the trimmed source to cover the complete source.
+     *
+     * @param {string} source Original text source.
+     * @param {number} startIndex Match start.
+     * @param {number} matchLength Match length.
+     * @returns {{startIndex: number, endIndex: number}} Source-relative span.
+     * @private
+     */
+    static _getFullTextMatchRange(source, startIndex, matchLength) {
+        const trimmed = source.trim();
+        if (source.length <= MAX_CONTACT_LENGTH && trimmed && source.slice(startIndex, startIndex + matchLength).trim() === trimmed) {
+            return { startIndex: 0, endIndex: source.length };
+        }
+
+        return { startIndex, endIndex: startIndex + matchLength };
     }
 
     // ========================================================================

@@ -13,7 +13,7 @@ const MAX_PREVIEW_LENGTH = 500;
 /**
  * HtmlProcessor
  *
- * Reads rich HTML content from the clipboard, persists HTML files, and extracts image sources.
+ * Reads rich HTML content from the clipboard, persists HTML files, and parses image sources.
  */
 export class HtmlProcessor {
     // ========================================================================
@@ -23,17 +23,18 @@ export class HtmlProcessor {
     /**
      * Process HTML content and fallback text into a standard HTML clipboard item payload.
      *
-     * @param {Uint8Array|string} htmlContent Raw HTML bytes or HTML string.
-     * @param {string} [textFallback] Optional plain text fallback content.
+     * @param {Uint8Array|string} source Raw HTML bytes or HTML string.
+     * @param {object} [options] Processing options containing optional textFallback.
      * @returns {object|null} Processed HTML item payload or null if empty.
      */
-    static process(htmlContent, textFallback = '') {
-        if (!htmlContent) return null;
+    static process(source, options = {}) {
+        if (!source) return null;
 
-        const htmlData = typeof htmlContent === 'string' ? IOText.stringifyBytes(htmlContent) : htmlContent;
+        const textFallback = options.textFallback || '';
+        const htmlData = typeof source === 'string' ? IOText.stringifyBytes(source) : source;
         if (!htmlData || htmlData.length === 0) return null;
 
-        const htmlString = typeof htmlContent === 'string' ? htmlContent : IOText.parseBytes(htmlData);
+        const htmlString = typeof source === 'string' ? source : IOText.parseBytes(htmlData);
         if (!htmlString) return null;
 
         const hasImages = Boolean(/<img\b/i.test(htmlString));
@@ -72,7 +73,7 @@ export class HtmlProcessor {
         if (!htmlResult || !htmlResult.data || htmlResult.size === 0) return null;
 
         const text = await clipboardGetText();
-        return this.process(htmlResult.data, text || '');
+        return this.process(htmlResult.data, { textFallback: text || '' });
     }
 
     /**
@@ -139,26 +140,12 @@ export class HtmlProcessor {
     }
 
     /**
-     * Extract image sources from an HTML string or stored HTML item.
+     * Parse image source URLs from an HTML string.
      *
-     * @param {object|string} itemData Item with HTML content or raw HTML string.
-     * @param {object} [storage] Storage instance for reading files.
-     * @returns {Promise<Array<string>>} Array of extracted image source strings.
+     * @param {string} htmlString Raw HTML markup string.
+     * @returns {Array<string>} Array of image source URL strings.
      */
-    static async extractImageSources(itemData, storage) {
-        let htmlString = '';
-        if (typeof itemData === 'string') {
-            htmlString = itemData;
-        } else {
-            if (!itemData || !itemData.has_images || !storage) return [];
-
-            const htmlPath = GLib.build_filenamev([storage.textsDir, `${itemData.id}.html`]);
-            const rawBytes = await storage.readRaw(htmlPath);
-            if (!rawBytes) return [];
-
-            htmlString = IOText.parseBytes(rawBytes);
-        }
-
+    static parseImageSources(htmlString) {
         if (!htmlString) return [];
 
         const imgMatches = [...htmlString.matchAll(/<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^"'\s>]+))/gi)];

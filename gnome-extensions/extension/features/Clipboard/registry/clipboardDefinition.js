@@ -27,6 +27,8 @@ export class ClipboardDefinition {
         this.enrichItem = this._normalizeHooks(this.enrichItem);
         this.intentSources = Array.isArray(this.intentSources) ? this.intentSources : null;
         this.intentField = typeof this.intentField === 'string' ? this.intentField : null;
+        this.intentSettings = this.intentSettings && typeof this.intentSettings === 'object' ? this.intentSettings : {};
+        this.fullSpanIntentField = typeof this.fullSpanIntentField === 'string' ? this.fullSpanIntentField : null;
     }
 
     /**

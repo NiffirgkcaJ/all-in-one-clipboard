@@ -118,7 +118,7 @@ export class ClipboardContentRouterService {
      * @param {Array<object>} intents List of intent results.
      * @private
      */
-    async _processIntents(intents) {
+    async _processMultipleIntents(intents) {
         await intents.reduce(async (previousPromise, intentResult) => {
             await previousPromise;
             await this._processSingleIntent(intentResult);
@@ -128,21 +128,23 @@ export class ClipboardContentRouterService {
     /**
      * Resolve and ingest actionable intents embedded within content.
      *
-     * Intent items are resolved in provider priority order and ingested in reverse order.
-     * Because the history service prepends new items to index zero, reverse ingestion guarantees that higher priority providers and earlier extracted matches within each provider reside at the top of the history list.
+     * Intent items are resolved in natural appearance order and ingested in reverse order.
+     * Because the history service prepends new items to index zero, reverse ingestion guarantees that the earliest extracted match resides at the top of the history list.
      *
      * @param {object} result Processor result to scan for intents.
      * @private
      */
     async _resolveAndProcessIntents(result) {
-        const intents = await this._clipboardRegistry.resolveIntents(result, {
-            settings: this._settings,
-        });
+        const intents = Array.isArray(result.intents)
+            ? result.intents
+            : await this._clipboardRegistry.resolveIntents(result, {
+                  settings: this._settings,
+              });
         if (intents.length === 0) return;
 
         // Ingestion Order
         const reversedIntents = [...intents].reverse();
-        await this._processIntents(reversedIntents);
+        await this._processMultipleIntents(reversedIntents);
     }
 
     // ========================================================================

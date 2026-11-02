@@ -146,7 +146,6 @@ export class ClipboardMonitor {
      */
     async _extractClipboardContent() {
         return await this._clipboardRegistry.extractClipboardContent({
-            imagesDir: this._imagesDir,
             exclusionUtils: this._exclusionUtils,
         });
     }

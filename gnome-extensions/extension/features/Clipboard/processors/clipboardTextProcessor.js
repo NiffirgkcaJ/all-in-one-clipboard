@@ -23,18 +23,19 @@ export class TextProcessor {
     /**
      * Process raw text into a standard text clipboard item payload.
      *
-     * @param {string} text Plain text content.
+     * @param {string} source Plain text content.
+     * @param {object} [_options] Processing options.
      * @returns {object|null} Processed text item payload or null if empty.
      */
-    static process(text) {
-        if (!text) return null;
+    static process(source, _options = {}) {
+        if (!source) return null;
 
-        const hash = ProcessorUtils.computeHashForString(text);
+        const hash = ProcessorUtils.computeHashForString(source);
 
         return {
             type: ClipboardType.TEXT,
-            text,
-            preview: text.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
+            text: source,
+            preview: source.substring(0, MAX_PREVIEW_LENGTH).replace(/\s+/g, ' '),
             hash,
         };
     }

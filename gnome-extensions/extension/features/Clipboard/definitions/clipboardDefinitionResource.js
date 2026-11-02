@@ -18,7 +18,7 @@ import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants
  * @param {string} fileUri Single URI or newline separated URI list.
  * @returns {boolean} True if all resources exist on disk.
  */
-function verifyResourceUrisExist(fileUri) {
+function _verifyResourceUrisExist(fileUri) {
     if (!fileUri) return false;
 
     const lines = fileUri
@@ -50,7 +50,7 @@ function verifyResourceUrisExist(fileUri) {
  * @param {string} fileUri Single URI or newline separated URI list.
  * @returns {string} Newline separated filesystem paths.
  */
-function extractResourcePaths(fileUri) {
+function _extractResourcePaths(fileUri) {
     if (!fileUri) return '';
 
     const lines = fileUri
@@ -81,7 +81,9 @@ export function ClipboardDefinitionResource() {
         priority: ClipboardPriority[ClipboardType.RESOURCE],
         styling: ClipboardStyling[ClipboardType.RESOURCE],
         viewType: 'header',
-        processText: (text, context) => ResourceProcessor.process(text, context),
+        intentSources: [ClipboardType.TEXT],
+        intentField: 'text',
+        extractIntents: (result, context) => ResourceProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['preview', 'file_uri', 'text', 'hash', 'subtype', 'count'],
             defaults: {
@@ -90,19 +92,19 @@ export function ClipboardDefinitionResource() {
             },
         }),
         healItem: (item) => {
-            const exists = verifyResourceUrisExist(item.file_uri);
+            const exists = _verifyResourceUrisExist(item.file_uri);
             return { healed: false, isCorrupted: !exists };
         },
         configureView: (config, item, options) => {
-            config.title = item.preview;
+            config.title = (item.preview || item.text || 'Resource').replace(/[\r\n]+/g, ' ').trim();
 
             if (item.count && item.count > 1) {
                 config.subtitle = `${item.count} ${item.subtype}`;
             } else {
-                config.subtitle = item.file_uri;
+                config.subtitle = (item.file_uri || '').replace(/[\r\n]+/g, ' ').trim();
             }
 
-            if (!verifyResourceUrisExist(item.file_uri)) {
+            if (!_verifyResourceUrisExist(item.file_uri)) {
                 item.is_corrupted = true;
             }
 
@@ -209,7 +211,7 @@ export function ClipboardDefinitionResource() {
             copyMode: 'blob',
             copyItemToClipboard: async (item, options = {}) => {
                 const { manager, settings } = options;
-                if (item.is_corrupted || !verifyResourceUrisExist(item.file_uri)) {
+                if (item.is_corrupted || !_verifyResourceUrisExist(item.file_uri)) {
                     item.is_corrupted = true;
                     return false;
                 }
@@ -217,7 +219,7 @@ export function ClipboardDefinitionResource() {
                 const target = options.target ?? settings.get_string('clipboard-resource-default-format');
 
                 if (target === 'path') {
-                    const textPayload = extractResourcePaths(item.file_uri);
+                    const textPayload = _extractResourcePaths(item.file_uri);
                     if (!textPayload) return false;
 
                     manager.captureGuard.registerText(textPayload);
@@ -301,7 +303,7 @@ export function ClipboardDefinitionResource() {
                 if (target === 'uri') {
                     return item.file_uri;
                 }
-                return extractResourcePaths(item.file_uri) || item.text || item.preview || '';
+                return _extractResourcePaths(item.file_uri) || item.text || item.preview || '';
             },
         },
     };

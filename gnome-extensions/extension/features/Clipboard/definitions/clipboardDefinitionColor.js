@@ -20,25 +20,32 @@ export function ClipboardDefinitionColor() {
         priority: ClipboardPriority[ClipboardType.COLOR],
         styling: ClipboardStyling[ClipboardType.COLOR],
         viewType: 'tile',
-        processText: (text, { imagesDir }) => ColorProcessor.process(text, imagesDir),
         intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
         intentField: 'text',
-        extractIntents: (result, context) => {
-            const { settings } = context;
-            if (!settings || !settings.get_boolean('clipboard-color-extract-from-text')) {
-                return [];
-            }
-
-            const limitEnabled = settings.get_boolean('clipboard-color-limit-extract');
-            const limit = limitEnabled ? settings.get_int('clipboard-color-extract-limit') : undefined;
-            return ColorProcessor.extractColors(result.text, limit);
+        intentSettings: {
+            [ClipboardType.TEXT]: {
+                enabledSetting: 'clipboard-color-extract-from-text',
+                limitEnabledSetting: 'clipboard-color-limit-extract',
+                limitSetting: 'clipboard-color-extract-limit',
+            },
+            [ClipboardType.HTML]: {
+                enabledSetting: 'clipboard-color-extract-from-text',
+                limitEnabledSetting: 'clipboard-color-limit-extract',
+                limitSetting: 'clipboard-color-extract-limit',
+            },
         },
+        extractIntents: (result, context) => ColorProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationInlineItem({
-            fields: ['subtype', 'color_value', 'format_type', 'hash', 'gradient_filename'],
+            fields: ['subtype', 'color_value', 'format_type', 'hash', 'colors'],
             defaults: {
                 subtype: 'single',
             },
             previewField: 'color_value',
+            finalizeItem: (item, _result, context) => {
+                if ((item.subtype === 'gradient' || item.subtype === 'palette') && context.storage?.imagesDir) {
+                    item.gradient_filename = ColorProcessor.ensureGradientImage(item, context.storage.imagesDir);
+                }
+            },
         }),
         healItem: ClipboardIntegrationGeneratedFileHealing({
             fileField: 'gradient_filename',

@@ -27,19 +27,21 @@ export function ClipboardDefinitionContact() {
         styling: ClipboardStyling[ClipboardType.CONTACT],
         viewType: 'header',
         initialize: () => ContactProcessor.init(),
-        processText: (text) => ContactProcessor.process(text),
         intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
         intentField: 'text',
-        extractIntents: (result, context) => {
-            const { settings } = context;
-            if (!settings || !settings.get_boolean('clipboard-contact-extract-from-text')) {
-                return [];
-            }
-
-            const limitEnabled = settings.get_boolean('clipboard-contact-limit-extract');
-            const limit = limitEnabled ? settings.get_int('clipboard-contact-extract-limit') : undefined;
-            return ContactProcessor.extractContacts(result.text, limit);
+        intentSettings: {
+            [ClipboardType.TEXT]: {
+                enabledSetting: 'clipboard-contact-extract-from-text',
+                limitEnabledSetting: 'clipboard-contact-limit-extract',
+                limitSetting: 'clipboard-contact-extract-limit',
+            },
+            [ClipboardType.HTML]: {
+                enabledSetting: 'clipboard-contact-extract-from-text',
+                limitEnabledSetting: 'clipboard-contact-limit-extract',
+                limitSetting: 'clipboard-contact-extract-limit',
+            },
         },
+        extractIntents: (result, context) => ContactProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['subtype', 'text', 'preview', 'hash', 'metadata'],
         }),
@@ -67,7 +69,7 @@ export function ClipboardDefinitionContact() {
             ],
         }),
         configureView: (config, item, options) => {
-            config.title = item.preview || item.text || 'Unknown Contact';
+            config.title = (item.preview || item.text || 'Unknown Contact').replace(/[\r\n]+/g, ' ').trim();
             config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
 
             if (options.style?.subtypes && options.style.subtypes[item.subtype]) {

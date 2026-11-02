@@ -8,6 +8,7 @@ import { IOFile, IOImage, IOText } from '../../../shared/utilities/utilityIO.js'
 
 import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
+import { HtmlProcessor } from './clipboardHtmlProcessor.js';
 
 // Configuration
 const IMAGE_MIMETYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
@@ -59,32 +60,43 @@ export class ImageProcessor {
     }
 
     /**
-     * Extract image objects from candidate file URIs.
+     * Extract image intents from candidate image sources.
      *
-     * @param {Array<string>} fileUris Array of candidate file URIs.
-     * @param {number} limit Maximum number of images to extract.
+     * @param {string} source Newline-separated candidate URIs, URLs, or data URIs.
+     * @param {object} [_context] Extraction context.
      * @returns {Promise<Array<object>>} List of extracted image result objects.
      */
-    static async extractImagesFromUris(fileUris, limit) {
-        if (!fileUris || fileUris.length === 0) return [];
+    static async extractIntents(source, _context = {}) {
+        if (!source) return [];
 
-        const candidates = typeof limit === 'number' ? fileUris.slice(0, limit) : fileUris;
-        const results = await Promise.all(
-            candidates.map(async (uri) => {
-                const imageResult = await this._fetchFileImage(uri);
-                if (!imageResult || !imageResult.data) return null;
+        const seen = new Set();
+        const uniqueSources = [];
 
-                return {
-                    type: ClipboardType.IMAGE,
-                    data: imageResult.data,
-                    hash: imageResult.hash,
-                    mimetype: imageResult.mimetype,
-                    file_uri: uri,
-                };
-            }),
-        );
+        for (const candidateSource of source.split(/[\r\n]+/)) {
+            if (!candidateSource || seen.has(candidateSource)) continue;
+            seen.add(candidateSource);
+            uniqueSources.push(candidateSource);
+        }
 
-        return results.filter(Boolean);
+        const imagePromises = uniqueSources.map(async (candidateSource) => {
+            const imageResult = await this.fetchImageFromSource(candidateSource);
+            if (!imageResult || !imageResult.data) return null;
+
+            const fileUri = candidateSource.startsWith('file://') ? candidateSource : undefined;
+            const startIndex = source.indexOf(candidateSource);
+            return {
+                type: ClipboardType.IMAGE,
+                data: imageResult.data,
+                hash: imageResult.hash,
+                mimetype: imageResult.mimetype,
+                file_uri: fileUri,
+                startIndex,
+                endIndex: startIndex + candidateSource.length,
+            };
+        });
+
+        const resolved = (await Promise.all(imagePromises)).filter(Boolean);
+        return resolved;
     }
 
     /**
@@ -282,9 +294,10 @@ export class ImageProcessor {
      * Fetch and decode image data from a data URI, web URL, or local file URI.
      *
      * @param {string} source Source URI or data string.
+     * @param {object} [_options] Fetch options.
      * @returns {Promise<Object|null>} Object containing data, hash, and mimetype, or null.
      */
-    static async fetchImageFromSource(source) {
+    static async fetchImageFromSource(source, _options = {}) {
         if (!source) return null;
 
         if (source.startsWith('data:image/')) {
@@ -406,15 +419,10 @@ export class ImageProcessor {
             return null;
         }
 
-        const imgMatches = [...cleanHtml.matchAll(/<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^"'\s>]+))/gi)];
-        if (imgMatches.length !== 1) {
-            return null;
-        }
+        const imageSources = HtmlProcessor.parseImageSources(cleanHtml);
+        if (imageSources.length !== 1) return null;
 
-        const src = imgMatches[0][1] || imgMatches[0][2];
-        if (!src) return null;
-
-        const imageData = await this.fetchImageFromSource(src);
+        const imageData = await this.fetchImageFromSource(imageSources[0]);
         if (!imageData) return null;
 
         return {

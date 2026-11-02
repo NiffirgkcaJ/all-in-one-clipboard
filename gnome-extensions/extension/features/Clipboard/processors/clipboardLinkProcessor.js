@@ -9,7 +9,7 @@ import { ClipboardType } from '../constants/clipboardPluginConstants.js';
 import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 
 // Validation Patterns
-const EMBEDDED_URL_REGEX = /(https?:\/\/[^\s<>"'\]}]+|\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}(?::\d+)?(?:\/[^\s<>"'\]}]*)?)/gi;
+const EMBEDDED_LINK_REGEX = /(https?:\/\/[^\s<>"'\]}]+|\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}(?::\d+)?(?:\/[^\s<>"'\]}]*)?)/gi;
 const BARE_CODE_EXTENSIONS = new Set(['py', 'sh', 'pl']);
 
 // Configuration
@@ -94,6 +94,8 @@ export class LinkProcessor {
         if (!candidate || candidate.length > MAX_URL_LENGTH) return null;
 
         let clean = candidate.trim();
+        if (/[\r\n]/.test(clean)) return null;
+
         clean = LinkProcessor._stripWrappersAndDelimiters(clean);
         clean = LinkProcessor._normalizeCandidate(clean);
         if (!clean) return null;
@@ -102,57 +104,48 @@ export class LinkProcessor {
     }
 
     /**
-     * Extract link data from the clipboard text.
-     *
-     * @param {string} text The text to process.
-     * @returns {Object|null} An object containing URL data or null if not a URL.
-     */
-    static process(text) {
-        if (!text) return null;
-
-        if (text.length > MAX_URL_LENGTH) return null;
-
-        const cleanText = text.trim();
-        const sanitizedUrl = LinkProcessor.sanitizeUrl(cleanText);
-
-        if (sanitizedUrl) {
-            const hash = ProcessorUtils.computeHashForString(sanitizedUrl);
-
-            return {
-                type: ClipboardType.LINK,
-                url: sanitizedUrl,
-                title: sanitizedUrl,
-                hash: hash,
-            };
-        }
-
-        return null;
-    }
-
-    /**
      * Extract unique web links embedded within text.
      *
-     * @param {string} text The text to scan for web links.
-     * @param {number} limit Maximum number of links to extract.
-     * @returns {Array<string>} Array of clean URL strings.
+     * @param {string} source The text to scan for web links.
+     * @param {object} [context] Extraction context.
+     * @returns {Array<object>} Array of link intent match objects.
      */
-    static extractLinks(text, limit) {
-        if (!text) return [];
+    static extractIntents(source, context = {}) {
+        if (!source) return [];
 
-        const matches = text.matchAll(EMBEDDED_URL_REGEX);
+        const matches = source.matchAll(EMBEDDED_LINK_REGEX);
         const extracted = new Set();
+        const results = [];
 
         for (const match of matches) {
-            if (typeof limit === 'number' && extracted.size >= limit) break;
+            const startIndex = match.index;
+            const endIndex = startIndex + match[0].length;
+            if (endIndex < source.length && source[endIndex] === '@') {
+                continue;
+            }
+
+            if (context.extractFromContact === false && startIndex > 0 && source[startIndex - 1] === '@') {
+                continue;
+            }
 
             const candidate = match[1];
             const sanitized = LinkProcessor.sanitizeUrl(candidate);
-            if (sanitized) {
-                extracted.add(sanitized);
-            }
+            if (!sanitized) continue;
+
+            if (extracted.has(sanitized)) continue;
+            extracted.add(sanitized);
+
+            results.push({
+                type: ClipboardType.LINK,
+                url: sanitized,
+                title: sanitized,
+                hash: ProcessorUtils.computeHashForString(sanitized),
+                startIndex,
+                endIndex,
+            });
         }
 
-        return Array.from(extracted);
+        return results;
     }
 
     /**
@@ -301,17 +294,11 @@ export class LinkProcessor {
      * @private
      */
     static _normalizeCandidate(clean) {
-        if (clean.startsWith('xhttp://')) {
-            return `http://${clean.slice(8)}`;
-        }
-
-        if (clean.startsWith('xhttps://')) {
-            return `https://${clean.slice(9)}`;
-        }
-
         if (clean.startsWith('http://') || clean.startsWith('https://')) {
             return clean;
         }
+
+        if (/[\s@]/.test(clean)) return null;
 
         const host = clean.split('/')[0].split(':')[0];
         if (LinkProcessor._isBareCodeFile(clean, host)) return null;
@@ -332,6 +319,7 @@ export class LinkProcessor {
      */
     static _validateUri(clean) {
         if (!clean.startsWith('http://') && !clean.startsWith('https://')) return null;
+        if (/[\r\n]/.test(clean)) return null;
 
         try {
             const uri = GLib.Uri.parse(clean, GLib.UriFlags.NONE);
@@ -413,14 +401,29 @@ export class LinkProcessor {
 
         if (lowerHost === 'localhost') return true;
 
-        if (lowerHost.includes(':')) return true;
+        if (/[\s@|]/.test(lowerHost)) return false;
 
-        if (/^(\d{1,3}\.){3}\d{1,3}$/.test(lowerHost)) return true;
+        if (/^[0-9a-f:]+$/.test(lowerHost) && lowerHost.includes(':')) return true;
+
+        if (/^(\d{1,3}\.){3}\d{1,3}$/.test(lowerHost)) {
+            const octets = lowerHost.split('.').map(Number);
+            return octets.every((octet) => octet >= 0 && octet <= 255);
+        }
 
         if (!lowerHost.includes('.')) return false;
 
         const labels = lowerHost.replace(/\.+$/, '').split('.');
+        if (labels.length < 2) return false;
+
+        for (let i = 0; i < labels.length - 1; i++) {
+            const label = labels[i];
+            if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)) {
+                return false;
+            }
+        }
+
         const tld = labels[labels.length - 1];
+        if (!/^[a-z]{2,63}$/.test(tld)) return false;
 
         return LinkProcessor.isValidTld(tld);
     }

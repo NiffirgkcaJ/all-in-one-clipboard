@@ -19,6 +19,7 @@ export function ClipboardDefinitionText() {
         priority: ClipboardPriority[ClipboardType.TEXT],
         styling: ClipboardStyling[ClipboardType.TEXT],
         viewType: 'label',
+        fullSpanIntentField: 'text',
         extract: () => TextProcessor.extract(),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: TextProcessor,

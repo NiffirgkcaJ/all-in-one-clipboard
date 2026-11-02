@@ -12,7 +12,7 @@ const ANALYSIS_LIMIT = 5000;
 const MAX_PREVIEW_LENGTH = 500;
 
 // Detection Patterns
-const FENCED_CODE_REGEX = /^[ \t]*(`{3,}|~{3,})(?:[a-zA-Z0-9_+#.-]+)?\s*[\r\n]+([\s\S]*?)[\r\n]+[ \t]*\1$/gm;
+const EMBEDDED_CODE_REGEX = /^[ \t]*(`{3,}|~{3,})(?:[a-zA-Z0-9_+#.-]+)?\s*[\r\n]+([\s\S]*?)[\r\n]+[ \t]*\1$/gm;
 
 // Statistical Thresholds for Code Detection
 const STRUCTURAL_CHAR_THRESHOLD = 0.03; // 3% structural chars indicates code
@@ -112,39 +112,19 @@ export class CodeProcessor {
     // ========================================================================
 
     /**
-     * Process clipboard text to determine if it is code and generate a highlighted preview.
+     * Extract standalone code and code blocks embedded within text content.
      *
-     * @param {string} text Clipboard text content.
-     * @returns {Object|null} Processed code object or null if not code.
-     */
-    static process(text) {
-        if (!text) return null;
-
-        const textSample = text.length > ANALYSIS_LIMIT ? text.substring(0, ANALYSIS_LIMIT) : text;
-
-        if (!this._isLikelyCode(textSample)) {
-            return null;
-        }
-
-        const hash = ProcessorUtils.computeHashForString(text);
-        return this._createResult(text, hash);
-    }
-
-    /**
-     * Extract markdown fenced code blocks from text content.
-     *
-     * @param {string} text Text to extract code blocks from.
-     * @param {number} [limit] Maximum number of code blocks to return.
+     * @param {string} source Text to scan for code.
+     * @param {object} [_context] Extraction context.
      * @returns {Array<object>} List of code processor results.
      */
-    static extractCodeBlocks(text, limit) {
-        if (!text || (typeof limit === 'number' && limit <= 0)) return [];
+    static extractIntents(source, _context = {}) {
+        if (!source) return [];
 
-        const matches = text.matchAll(FENCED_CODE_REGEX);
         const seen = new Set();
         const results = [];
 
-        for (const match of matches) {
+        for (const match of source.matchAll(EMBEDDED_CODE_REGEX)) {
             const rawCode = match[2];
             const cleanCode = rawCode.replace(/^\r?\n+|\r?\n+$/g, '');
             if (cleanCode.trim().length === 0) continue;
@@ -152,10 +132,20 @@ export class CodeProcessor {
             const hash = ProcessorUtils.computeHashForString(cleanCode);
             if (seen.has(hash)) continue;
             seen.add(hash);
+            const item = this._createResult(cleanCode, hash);
+            item.startIndex = match.index;
+            item.endIndex = match.index + match[0].length;
+            results.push(item);
+        }
 
-            results.push(this._createResult(cleanCode, hash));
-
-            if (typeof limit === 'number' && results.length >= limit) break;
+        const fullMatch = results.find((item) => item.startIndex === 0 && item.endIndex === source.length);
+        const textSample = source.length > ANALYSIS_LIMIT ? source.substring(0, ANALYSIS_LIMIT) : source;
+        if (!fullMatch && this._isLikelyCode(textSample)) {
+            const hash = ProcessorUtils.computeHashForString(source);
+            const item = this._createResult(source, hash);
+            item.startIndex = 0;
+            item.endIndex = source.length;
+            results.unshift(item);
         }
 
         return results;

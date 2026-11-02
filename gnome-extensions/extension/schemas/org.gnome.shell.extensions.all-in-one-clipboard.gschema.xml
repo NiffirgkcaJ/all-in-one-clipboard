@@ -548,6 +548,11 @@
             <summary>Extract Link Items from Text</summary>
             <description>Automatically extract link items from text.</description>
         </key>
+        <key name="clipboard-link-extract-from-contact" type="b">
+            <default>true</default>
+            <summary>Extract Link Items from Contacts</summary>
+            <description>Automatically extract link items from contacts.</description>
+        </key>
         <key name="clipboard-link-limit-extract" type="b">
             <default>true</default>
             <summary>Limit Link Items to Extract</summary>

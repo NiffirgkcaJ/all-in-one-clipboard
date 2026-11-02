@@ -1,7 +1,8 @@
 import GLib from 'gi://GLib';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
+import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
@@ -16,20 +17,20 @@ import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
- * Extract embedded images from a stored HTML item.
+ * Read stored HTML markup string from disk.
  *
  * @param {object} item Item with HTML content.
  * @param {object} storage Storage instance for reading files.
- * @param {number} [limit] Maximum number of images to fetch.
- * @returns {Promise<Array<object>>} Array of extracted image objects.
+ * @returns {Promise<string|null>} Stored HTML string or null.
  */
-async function extractEmbeddedImages(item, storage, limit) {
-    const sources = await HtmlProcessor.extractImageSources(item, storage);
-    if (sources.length === 0) return [];
+async function _readStoredHtml(item, storage) {
+    if (!item?.has_images || !storage) return null;
 
-    const candidates = typeof limit === 'number' && limit > 0 ? sources.slice(0, limit) : sources;
-    const imageResults = await Promise.all(candidates.map((src) => ImageProcessor.fetchImageFromSource(src)));
-    return imageResults.filter(Boolean);
+    const htmlPath = GLib.build_filenamev([storage.textsDir, `${item.id}.html`]);
+    const rawBytes = await storage.readRaw(htmlPath);
+    if (!rawBytes) return null;
+
+    return IOText.parseBytes(rawBytes);
 }
 
 /**
@@ -174,17 +175,17 @@ export function ClipboardDefinitionHtml() {
             },
             copyMode: 'string',
             copyItemToClipboard: async (item, options = {}) => {
-                const { manager, storage, settings } = options;
+                const { manager, storage, settings, registry } = options;
                 const target = options.target ?? settings.get_string('clipboard-html-default-format');
 
                 if (target === 'image' && item.has_images) {
-                    const images = await extractEmbeddedImages(item, storage);
+                    const htmlString = await _readStoredHtml(item, storage);
+                    const sources = HtmlProcessor.parseImageSources(htmlString);
+                    const images = (await ImageProcessor.extractIntents(sources.join('\n'))).slice(0, 1);
                     if (images.length > 0) {
-                        const firstImage = images[0];
-                        manager.captureGuard.registerHash(firstImage.hash);
-                        clipboardSetContent(firstImage.mimetype, firstImage.data);
-                        return true;
+                        return registry ? await registry.copyItemToClipboard(images[0], { ...options, target: 'image' }) : false;
                     }
+                    return false;
                 }
 
                 if (target === 'rich') {
@@ -200,23 +201,22 @@ export function ClipboardDefinitionHtml() {
                 let content = item.text || (await manager.getContent(item.id));
                 if (!content && item.preview) content = item.preview;
                 if (!content) return false;
-                manager.captureGuard.registerText(content);
-                clipboardSetText(content);
-                return true;
+
+                return registry ? await registry.copyItemToClipboard({ ...item, type: ClipboardType.TEXT, text: content }, options) : false;
             },
             getCopyQueue: async (item, options = {}) => {
-                const { manager, storage } = options;
-                if (options.target !== 'image' || !item.has_images) return null;
+                const { storage, registry } = options;
+                if (options.target !== 'image' || !item.has_images || !registry) return null;
 
-                const images = await extractEmbeddedImages(item, storage);
+                const htmlString = await _readStoredHtml(item, storage);
+                const sources = HtmlProcessor.parseImageSources(htmlString);
+                const images = await ImageProcessor.extractIntents(sources.join('\n'));
                 if (images.length <= 1) return null;
 
                 return images.map((image) => ({
                     pasteShortcut: 'ctrl-v',
                     execute: async () => {
-                        manager.captureGuard.registerHash(image.hash);
-                        clipboardSetContent(image.mimetype, image.data);
-                        return true;
+                        return await registry.copyItemToClipboard(image, { ...options, target: 'image' });
                     },
                 }));
             },

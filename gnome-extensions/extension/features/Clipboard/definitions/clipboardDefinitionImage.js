@@ -26,17 +26,14 @@ export function ClipboardDefinitionImage() {
         extract: () => ImageProcessor.extract(),
         intentSources: [ClipboardType.RESOURCE],
         intentField: 'file_uri',
-        extractIntents: (result, context) => {
-            const { settings } = context;
-            if (!settings || !settings.get_boolean('clipboard-image-extract-from-resource')) {
-                return [];
-            }
-
-            const limitEnabled = settings.get_boolean('clipboard-image-limit-extract');
-            const limit = limitEnabled ? settings.get_int('clipboard-image-extract-limit') : undefined;
-            const uris = result.file_uri.split(/[\r\n]+/).filter(Boolean);
-            return ImageProcessor.extractImagesFromUris(uris, limit);
+        intentSettings: {
+            [ClipboardType.RESOURCE]: {
+                enabledSetting: 'clipboard-image-extract-from-resource',
+                limitEnabledSetting: 'clipboard-image-limit-extract',
+                limitSetting: 'clipboard-image-extract-limit',
+            },
         },
+        extractIntents: (result, context) => ImageProcessor.extractIntents(result.file_uri, context),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: ImageProcessor,
             storageDirKey: 'imagesDir',
@@ -100,7 +97,7 @@ export function ClipboardDefinitionImage() {
             copyMode: 'blob',
             copyItemToClipboard: async (item, options = {}) => {
                 const { storage, manager } = options;
-                if (item.file_uri) {
+                if (item.file_uri && options.target !== 'image') {
                     const uriText = item.file_uri + '\r\n';
                     const uriBytes = IOText.stringifyBytes(uriText);
                     if (!uriBytes) return false;
@@ -109,12 +106,20 @@ export function ClipboardDefinitionImage() {
                     return true;
                 }
 
-                const imagePath = GLib.build_filenamev([storage.imagesDir, item.image_filename]);
-                const bytes = IOImage.parseBytes(await storage.readRaw(imagePath));
+                let bytes = null;
+                let mimetype = null;
+                if (item.data) {
+                    bytes = item.data;
+                    mimetype = item.mimetype;
+                } else if (item.image_filename) {
+                    const imagePath = GLib.build_filenamev([storage.imagesDir, item.image_filename]);
+                    bytes = IOImage.parseBytes(await storage.readRaw(imagePath));
+                    mimetype = IOImage.getMimeType(item.image_filename);
+                }
 
                 if (!bytes) return false;
                 manager.captureGuard.registerHash(item.hash);
-                clipboardSetContent(IOImage.getMimeType(item.image_filename), bytes);
+                clipboardSetContent(mimetype, bytes);
                 return true;
             },
             copyBatchToClipboard: async (items, options = {}) => {

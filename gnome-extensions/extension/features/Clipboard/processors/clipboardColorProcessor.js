@@ -59,128 +59,135 @@ export class ColorProcessor {
     // ========================================================================
 
     /**
-     * Extract color data from the clipboard text and handle gradients or palettes.
+     * Extract standalone and embedded color definitions from text content.
      *
-     * @param {string} text The text to process.
-     * @param {string} imagesDir Directory to save generated gradient images.
-     * @returns {Object|null} An object containing color data or null if no color was detected.
-     */
-    static process(text, imagesDir) {
-        if (!text) return null;
-        const cleanText = text.trim();
-
-        if (cleanText.includes('\n')) return null;
-
-        if (cleanText.length > MAX_COLOR_STRING_LENGTH) return null;
-
-        // Gradient
-        if (GRADIENT_REGEX.test(cleanText)) {
-            return this._processGradient(cleanText, imagesDir);
-        }
-
-        // Palette
-        const paletteResult = this._processPalette(cleanText, imagesDir);
-        if (paletteResult) {
-            return paletteResult;
-        }
-
-        let format = null;
-
-        // Formats
-        if (HEX_REGEX.test(cleanText)) {
-            format = 'HEX';
-        } else if (RGB_REGEX.test(cleanText)) {
-            format = cleanText.toLowerCase().startsWith('rgba') ? 'RGBA' : 'RGB';
-        } else if (HSL_REGEX.test(cleanText)) {
-            format = cleanText.toLowerCase().startsWith('hsla') ? 'HSLA' : 'HSL';
-        }
-
-        if (format) {
-            const hash = ProcessorUtils.computeHashForString(cleanText);
-
-            return {
-                type: ClipboardType.COLOR,
-                subtype: 'single',
-                color_value: cleanText,
-                format_type: format,
-                hash: hash,
-            };
-        }
-
-        return null;
-    }
-
-    /**
-     * Extract embedded color definitions from text content.
-     *
-     * @param {string} text Text to extract colors from.
-     * @param {number} [limit] Maximum number of colors to return.
+     * @param {string} source Text to scan for colors.
+     * @param {object} [_context] Extraction context.
      * @returns {Array<object>} List of color processor results.
      */
-    static extractColors(text, limit) {
-        if (!text || (typeof limit === 'number' && limit <= 0)) return [];
+    static extractIntents(source, _context = {}) {
+        if (!source) return [];
 
-        const matches = text.match(EMBEDDED_COLOR_REGEX);
-        if (!matches) return [];
-
-        const seen = new Set();
         const results = [];
+        const seenValues = new Set();
+        const seenHashes = new Set();
+        const cleanText = source.trim();
+        const standalone = cleanText ? this._parseStandaloneColor(cleanText) : null;
+        if (standalone) {
+            standalone.startIndex = source.indexOf(cleanText);
+            standalone.endIndex = standalone.startIndex + cleanText.length;
+            results.push(standalone);
+            seenHashes.add(standalone.hash);
+        }
+
+        const matches = source.matchAll(EMBEDDED_COLOR_REGEX);
 
         for (const match of matches) {
-            const normalized = match.toLowerCase();
-            if (seen.has(normalized)) continue;
-            seen.add(normalized);
+            const colorText = match[0];
+            const normalized = colorText.toLowerCase();
+            if (seenValues.has(normalized)) continue;
+            seenValues.add(normalized);
 
             let format = null;
-            if (HEX_REGEX.test(match)) {
+            if (HEX_REGEX.test(colorText)) {
                 format = 'HEX';
-            } else if (RGB_REGEX.test(match)) {
+            } else if (RGB_REGEX.test(colorText)) {
                 format = normalized.startsWith('rgba') ? 'RGBA' : 'RGB';
-            } else if (HSL_REGEX.test(match)) {
+            } else if (HSL_REGEX.test(colorText)) {
                 format = normalized.startsWith('hsla') ? 'HSLA' : 'HSL';
             }
 
             if (!format) continue;
 
+            const hash = ProcessorUtils.computeHashForString(colorText);
+            if (seenHashes.has(hash)) continue;
+            seenHashes.add(hash);
+
             results.push({
                 type: ClipboardType.COLOR,
                 subtype: 'single',
-                color_value: match,
+                color_value: colorText,
                 format_type: format,
-                hash: ProcessorUtils.computeHashForString(match),
+                hash,
+                startIndex: match.index,
+                endIndex: match.index + colorText.length,
             });
-
-            if (typeof limit === 'number' && results.length >= limit) break;
         }
 
         return results;
     }
 
     /**
-     * Regenerate the gradient image for a color item during data healing.
+     * Parse a complete clipboard string as a gradient, palette, or single color.
      *
-     * @param {Object} item The clipboard item to heal.
-     * @param {string} imagesDir The directory to save the image to.
-     * @returns {boolean} True if regeneration succeeded.
+     * @param {string} text Trimmed clipboard text.
+     * @returns {object|null} Full-content color result or null.
+     * @private
      */
-    static regenerateGradient(item, imagesDir) {
-        if (!item.gradient_filename || !imagesDir) return false;
+    static _parseStandaloneColor(text) {
+        if (text.length > MAX_COLOR_STRING_LENGTH || text.includes('\n')) return null;
+
+        if (GRADIENT_REGEX.test(text)) {
+            return this._processGradient(text);
+        }
+
+        const palette = this._processPalette(text);
+        if (palette) return palette;
+
+        let format = null;
+        if (HEX_REGEX.test(text)) {
+            format = 'HEX';
+        } else if (RGB_REGEX.test(text)) {
+            format = text.toLowerCase().startsWith('rgba') ? 'RGBA' : 'RGB';
+        } else if (HSL_REGEX.test(text)) {
+            format = text.toLowerCase().startsWith('hsla') ? 'HSLA' : 'HSL';
+        }
+
+        if (!format) return null;
+
+        return {
+            type: ClipboardType.COLOR,
+            subtype: 'single',
+            color_value: text,
+            format_type: format,
+            hash: ProcessorUtils.computeHashForString(text),
+        };
+    }
+
+    /**
+     * Ensure a gradient thumbnail image exists on disk for a color item.
+     *
+     * @param {object} item Color item with gradient subtype.
+     * @param {string} imagesDir Directory to save the image.
+     * @returns {string|null} Generated filename or null.
+     */
+    static ensureGradientImage(item, imagesDir) {
+        if (!imagesDir || !item) return null;
 
         if (item.colors && item.colors.length >= 2) {
-            const filename = this._generateGradientImage(item.colors, item.hash, imagesDir);
-            return filename !== null;
+            return this._generateGradientImage(item.colors, item.hash, imagesDir);
         }
 
         if (item.color_value) {
             const colors = this._extractColors(item.color_value);
-
             if (colors.length >= 2) {
-                const filename = this._generateGradientImage(colors, item.hash, imagesDir);
-                return filename !== null;
+                return this._generateGradientImage(colors, item.hash, imagesDir);
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * Regenerate the gradient image for a color item during data healing.
+     *
+     * @param {object} item The clipboard item to heal.
+     * @param {string} imagesDir The directory to save the image to.
+     * @returns {boolean} True if regeneration succeeded.
+     */
+    static regenerateGradient(item, imagesDir) {
+        if (!item?.gradient_filename || !imagesDir) return false;
+        return this.ensureGradientImage(item, imagesDir) !== null;
     }
 
     // ========================================================================
@@ -188,26 +195,23 @@ export class ColorProcessor {
     // ========================================================================
 
     /**
-     * Process a CSS gradient string and generate a preview image.
+     * Process a CSS gradient string into a color item payload.
      *
      * @param {string} text The gradient string.
-     * @param {string} imagesDir Directory to save the preview.
-     * @returns {Object|null} Color data object or null.
+     * @returns {object|null} Color data object or null.
      * @private
      */
-    static _processGradient(text, imagesDir) {
+    static _processGradient(text) {
         const colors = this._extractColors(text);
         if (colors.length < 2) return null;
 
         const hash = ProcessorUtils.computeHashForString(text);
-        const filename = this._generateGradientImage(colors, hash, imagesDir);
 
         return {
             type: ClipboardType.COLOR,
             subtype: 'gradient',
             color_value: text,
             colors: colors,
-            gradient_filename: filename,
             format_type: 'Gradient',
             hash: hash,
         };
@@ -217,11 +221,10 @@ export class ColorProcessor {
      * Process a potential color palette from text.
      *
      * @param {string} text Input text.
-     * @param {string} imagesDir Directory to save the preview.
-     * @returns {Object|null} Color data object or null.
+     * @returns {object|null} Color data object or null.
      * @private
      */
-    static _processPalette(text, imagesDir) {
+    static _processPalette(text) {
         let colors = [];
 
         // Array
@@ -243,14 +246,12 @@ export class ColorProcessor {
 
         if (colors.length >= 2) {
             const hash = ProcessorUtils.computeHashForString(text);
-            const filename = this._generateGradientImage(colors, hash, imagesDir);
 
             return {
                 type: ClipboardType.COLOR,
                 subtype: 'palette',
                 color_value: text,
                 colors: colors,
-                gradient_filename: filename,
                 format_type: `Palette (${colors.length})`,
                 hash: hash,
             };

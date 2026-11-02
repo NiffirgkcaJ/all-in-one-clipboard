@@ -318,6 +318,13 @@ export function addClipboardContentPrefs({ group, settings, window }) {
     linkExpander.add_row(extractLinkRow);
     settings.bind('clipboard-link-extract-from-text', extractLinkRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+    const extractLinkFromContactRow = new Adw.SwitchRow({
+        title: _('Extract Link Items from Contacts'),
+        subtitle: _('Automatically extract link items from contacts.'),
+    });
+    linkExpander.add_row(extractLinkFromContactRow);
+    settings.bind('clipboard-link-extract-from-contact', extractLinkFromContactRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
     const limitLinkRow = new Adw.SwitchRow({
         title: _('Limit Link Items to Extract'),
         subtitle: _('Limit the number of extracted link items.'),
@@ -383,12 +390,13 @@ export function addClipboardContentPrefs({ group, settings, window }) {
     settings.bind('clipboard-link-show-action-button', linkActionButtonRow, 'active', Gio.SettingsBindFlags.DEFAULT);
 
     const syncLinkSensitivity = () => {
-        const extractEnabled = settings.get_boolean('clipboard-link-extract-from-text');
+        const extractEnabled = settings.get_boolean('clipboard-link-extract-from-text') || settings.get_boolean('clipboard-link-extract-from-contact');
         limitLinkRow.sensitive = extractEnabled;
         linkLimitRow.sensitive = extractEnabled && settings.get_boolean('clipboard-link-limit-extract');
     };
     syncLinkSensitivity();
     settings.connect('changed::clipboard-link-extract-from-text', syncLinkSensitivity);
+    settings.connect('changed::clipboard-link-extract-from-contact', syncLinkSensitivity);
     settings.connect('changed::clipboard-link-limit-extract', syncLinkSensitivity);
 
     // Contact Content Settings

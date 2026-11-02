@@ -13,7 +13,6 @@ import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegr
 import { ClipboardIntegrationStorage } from '../integrations/clipboardIntegrationStorage.js';
 import { ClipboardIntegrationWebMetadataEnrichment } from '../integrations/clipboardIntegrationWebMetadata.js';
 import { LinkProcessor } from '../processors/clipboardLinkProcessor.js';
-import { ProcessorUtils } from '../utilities/clipboardProcessorUtils.js';
 import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.js';
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
@@ -31,25 +30,31 @@ export function ClipboardDefinitionLink() {
         styling: ClipboardStyling[ClipboardType.LINK],
         viewType: 'header',
         initialize: () => LinkProcessor.init(),
-        processText: (text) => LinkProcessor.process(text),
-        intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
+        intentSources: [ClipboardType.TEXT, ClipboardType.HTML, ClipboardType.CONTACT],
         intentField: 'text',
+        intentSettings: {
+            [ClipboardType.TEXT]: {
+                enabledSetting: 'clipboard-link-extract-from-text',
+                limitEnabledSetting: 'clipboard-link-limit-extract',
+                limitSetting: 'clipboard-link-extract-limit',
+            },
+            [ClipboardType.HTML]: {
+                enabledSetting: 'clipboard-link-extract-from-text',
+                limitEnabledSetting: 'clipboard-link-limit-extract',
+                limitSetting: 'clipboard-link-extract-limit',
+            },
+            [ClipboardType.CONTACT]: {
+                enabledSetting: 'clipboard-link-extract-from-contact',
+                limitEnabledSetting: 'clipboard-link-limit-extract',
+                limitSetting: 'clipboard-link-extract-limit',
+            },
+        },
         extractIntents: (result, context) => {
-            const { settings } = context;
-            if (!settings || !settings.get_boolean('clipboard-link-extract-from-text')) {
-                return [];
-            }
+            if (result.type === ClipboardType.CONTACT && result.subtype !== 'email') return [];
 
-            const limitEnabled = settings.get_boolean('clipboard-link-limit-extract');
-            const limit = limitEnabled ? settings.get_int('clipboard-link-extract-limit') : undefined;
-            const urls = LinkProcessor.extractLinks(result.text, limit);
-
-            return urls.map((url) => ({
-                type: ClipboardType.LINK,
-                url,
-                title: url,
-                hash: ProcessorUtils.computeHashForString(url),
-            }));
+            return LinkProcessor.extractIntents(result.text, {
+                extractFromContact: Boolean(context.settings?.get_boolean('clipboard-link-extract-from-contact')),
+            });
         },
         createItem: ClipboardIntegrationInlineItem({
             fields: ['url', 'title', 'hash'],
@@ -74,8 +79,8 @@ export function ClipboardDefinitionLink() {
             ],
         }),
         configureView: (config, item, options) => {
-            config.title = item.title || item.url;
-            config.subtitle = item.url;
+            config.title = (item.title || item.url || '').replace(/[\r\n]+/g, ' ').trim();
+            config.subtitle = (item.url || '').replace(/[\r\n]+/g, ' ').trim();
 
             const linkPreviewsDir = options.storage?.linkPreviewsDir;
             if (item.icon_filename && linkPreviewsDir) {
