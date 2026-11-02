@@ -26,8 +26,6 @@ export class KaomojiViewRenderer {
             if (item.keywords.some((k) => k.toLowerCase().includes(lowerSearchText))) return true;
         }
 
-        // Also match the kaomoji itself, so a pasted one can be found.
-        // Ignore whitespace (incl. U+00A0) and invisible joiners (e.g. U+2060 from Gboard/Windows).
         const normalise = (s) => s.toLowerCase().replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, '');
         const query = normalise(searchText);
         if (query && typeof item.kaomoji === 'string') {
