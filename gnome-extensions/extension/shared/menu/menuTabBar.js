@@ -1,12 +1,11 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { createStaticIcon } from '../utilities/utilityIcon.js';
 import { FocusUtils } from '../utilities/utilityFocus.js';
+import { createStaticIcon } from '../utilities/utilityIcon.js';
 import { mapLayout } from '../utilities/utilityLayout.js';
-import { getMenuOrderedSections } from './menuRegistry.js';
+import { getMenuOrderedSections, resolveMenuSection } from './menuRegistry.js';
 
 /**
  * MenuTabBar is a dynamic tab bar component for the clipboard manager menu, allowing users to switch between different sections of the menu.
@@ -48,8 +47,9 @@ export const MenuTabBar = GObject.registerClass(
             this._activeTabName = null;
 
             const sections = getMenuOrderedSections();
-            this.TAB_NAMES = sections.map((s) => s.name());
-            this._fullViewTabs = sections.filter((s) => s.isFullView).map((s) => s.name());
+            this.TAB_IDS = sections.map((s) => s.id);
+            this.TAB_NAMES = this.TAB_IDS;
+            this._fullViewTabs = sections.filter((s) => s.isFullView).map((s) => s.id);
 
             this._alwaysShowTabBar = this._settings.get_boolean('always-show-main-tab');
             this._forceHideMainTabBar = false;
@@ -100,17 +100,17 @@ export const MenuTabBar = GObject.registerClass(
             this._tabButtons = {};
 
             const tabOrder = this._settings.get_strv('tab-order');
-            const sections = getMenuOrderedSections();
 
-            tabOrder.forEach((name) => {
-                const translatedName = _(name);
-
-                const sectionConfig = sections.find((s) => s.name() === translatedName);
+            tabOrder.forEach((tabIdentifier) => {
+                const sectionConfig = resolveMenuSection(tabIdentifier);
                 if (!sectionConfig) return;
+
+                const canonicalId = sectionConfig.id;
+                if (this._tabButtons[canonicalId]) return;
 
                 const iconFile = sectionConfig.icon;
                 const iconSize = sectionConfig.iconSize;
-                const iconWidget = createStaticIcon({ icon: iconFile, iconSize: iconSize });
+                const iconWidget = createStaticIcon({ icon: iconFile, iconSize });
 
                 const button = new St.Button({
                     style_class: 'aio-clipboard-tab-button button',
@@ -119,10 +119,10 @@ export const MenuTabBar = GObject.registerClass(
                     x_expand: true,
                 });
 
-                button.tooltip_text = translatedName;
+                button.tooltip_text = typeof sectionConfig.name === 'function' ? sectionConfig.name() : canonicalId;
 
-                button.connect('clicked', () => this.emit('tab-selected', translatedName));
-                this._tabButtons[translatedName] = button;
+                button.connect('clicked', () => this.emit('tab-selected', canonicalId));
+                this._tabButtons[canonicalId] = button;
                 this.add_child(button);
             });
 
@@ -138,12 +138,13 @@ export const MenuTabBar = GObject.registerClass(
         // ========================================================================
 
         /**
-         * Selects a tab button by its localized name and applies visual changes.
+         * Selects a tab button by its canonical ID or localized name and applies visual changes.
          *
-         * @param {string} tabName Localized target tab name.
+         * @param {string} tabIdentifier Canonical ID or localized target tab name.
          */
-        setActiveTabName(tabName) {
-            this._activeTabName = tabName;
+        setActiveTabName(tabIdentifier) {
+            const section = resolveMenuSection(tabIdentifier);
+            this._activeTabName = section ? section.id : tabIdentifier;
             this._updateTabButtonSelection();
             this._updateTabBarMargin();
             this._updateTabBarVisibilityForActiveTab();
@@ -169,7 +170,9 @@ export const MenuTabBar = GObject.registerClass(
          * @private
          */
         _updateTabBarMargin() {
-            const isActiveTabFullView = this._fullViewTabs.includes(this._activeTabName);
+            const section = resolveMenuSection(this._activeTabName);
+            const canonicalId = section ? section.id : this._activeTabName;
+            const isActiveTabFullView = this._fullViewTabs.includes(canonicalId);
             const shouldHaveMargin = this._alwaysShowTabBar && isActiveTabFullView;
             if (shouldHaveMargin) {
                 this.remove_style_class_name('no-margin');
@@ -181,15 +184,17 @@ export const MenuTabBar = GObject.registerClass(
         /**
          * Checks whether a specific tab should cause the tab bar to appear.
          *
-         * @param {string} tabName Localized tab name to inspect.
+         * @param {string} tabIdentifier Canonical ID or localized tab name to inspect.
          * @returns {boolean} True when the tab mandates visibility.
          * @private
          */
-        _shouldShowTabBarForTab(tabName) {
-            if (this._alwaysShowTabBar || !tabName) {
+        _shouldShowTabBarForTab(tabIdentifier) {
+            if (this._alwaysShowTabBar || !tabIdentifier) {
                 return true;
             }
-            return !this._fullViewTabs.includes(tabName);
+            const section = resolveMenuSection(tabIdentifier);
+            const canonicalId = section ? section.id : tabIdentifier;
+            return !this._fullViewTabs.includes(canonicalId);
         }
 
         /**
@@ -209,8 +214,8 @@ export const MenuTabBar = GObject.registerClass(
         _updateTabButtonSelection() {
             if (!this._tabButtons) return;
 
-            for (const [name, button] of Object.entries(this._tabButtons)) {
-                if (name === this._activeTabName) {
+            for (const [id, button] of Object.entries(this._tabButtons)) {
+                if (id === this._activeTabName) {
                     button.add_style_pseudo_class('checked');
                 } else {
                     button.remove_style_pseudo_class('checked');
@@ -225,13 +230,12 @@ export const MenuTabBar = GObject.registerClass(
          */
         _updateTabsVisibility() {
             const visibleTabs = new Set();
-            const sections = getMenuOrderedSections();
 
             this.get_children().forEach((button) => {
-                const name = Object.keys(this._tabButtons).find((key) => this._tabButtons[key] === button);
-                if (!name) return;
+                const id = Object.keys(this._tabButtons).find((key) => this._tabButtons[key] === button);
+                if (!id) return;
 
-                const config = sections.find((s) => s.name() === name);
+                const config = resolveMenuSection(id);
                 if (!config) return;
 
                 const isVisible = config.settingKey ? this._settings.get_boolean(config.settingKey) : true;
@@ -241,7 +245,7 @@ export const MenuTabBar = GObject.registerClass(
                 button.can_focus = isVisible;
 
                 if (isVisible) {
-                    visibleTabs.add(name);
+                    visibleTabs.add(id);
                 }
             });
 
@@ -261,17 +265,18 @@ export const MenuTabBar = GObject.registerClass(
         }
 
         /**
-         * Returns the internal localized name of the first accessible tab widget.
+         * Returns the canonical ID of the first accessible tab widget.
          *
-         * @returns {string|null} Localized target name or null fallback.
+         * @returns {string|null} Canonical target ID or null fallback.
          */
         getFirstVisibleTabName() {
             const tabOrder = this._settings.get_strv('tab-order');
 
-            for (const name of tabOrder) {
-                const translated = _(name);
-                if (this._tabButtons[translated]?.visible) {
-                    return translated;
+            for (const tabIdentifier of tabOrder) {
+                const section = resolveMenuSection(tabIdentifier);
+                const canonicalId = section ? section.id : tabIdentifier;
+                if (this._tabButtons[canonicalId]?.visible) {
+                    return canonicalId;
                 }
             }
             return null;
@@ -280,27 +285,32 @@ export const MenuTabBar = GObject.registerClass(
         /**
          * Returns whether a tab is currently available and visible.
          *
-         * @param {string} tabName Localized tab name.
+         * @param {string} tabIdentifier Canonical ID or localized tab name.
          * @returns {boolean} True when the tab is visible.
          */
-        isTabAvailable(tabName) {
-            const button = this._tabButtons[tabName];
-            return button && button.visible;
+        isTabAvailable(tabIdentifier) {
+            const section = resolveMenuSection(tabIdentifier);
+            const canonicalId = section ? section.id : tabIdentifier;
+            const button = this._tabButtons[canonicalId];
+            return Boolean(button && button.visible);
         }
 
         /**
          * Cycles to the next or previous visible tab.
          *
-         * @param {number} direction Direction offset. Use `1` for next, `-1` for previous.
+         * @param {number} direction Direction offset. Use 1 for next, -1 for previous.
          */
         cycleTab(direction) {
             const tabOrder = this._settings.get_strv('tab-order');
             const visibleTabs = [];
 
-            tabOrder.forEach((name) => {
-                const translatedName = _(name);
-                if (this._tabButtons[translatedName] && this._tabButtons[translatedName].visible) {
-                    visibleTabs.push(translatedName);
+            tabOrder.forEach((tabIdentifier) => {
+                const section = resolveMenuSection(tabIdentifier);
+                const canonicalId = section ? section.id : tabIdentifier;
+                if (this._tabButtons[canonicalId] && this._tabButtons[canonicalId].visible) {
+                    if (!visibleTabs.includes(canonicalId)) {
+                        visibleTabs.push(canonicalId);
+                    }
                 }
             });
 

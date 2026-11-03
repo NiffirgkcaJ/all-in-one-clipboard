@@ -2,7 +2,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 // Recently used tab definition
 export const MenuDefinitionRecentlyUsed = {
-    id: 'RecentlyUsed',
+    id: 'Recently Used',
     name: () => _('Recently Used'),
     icon: 'utility-recents-symbolic.svg',
     iconSize: 16,

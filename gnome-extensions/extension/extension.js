@@ -3,7 +3,7 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import * as Gettext from 'gettext';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { destroyAllRecentItemsManagers } from './shared/utilities/utilityRecents.js';
 import { initializeMenuRegistry } from './shared/menu/menuRegistry.js';
@@ -117,12 +117,12 @@ export default class AllInOneClipboardExtension extends Extension {
         });
 
         const tabMap = {
-            'shortcut-open-recently-used': _('Recently Used'),
-            'shortcut-open-emoji': _('Emoji'),
-            'shortcut-open-gif': _('GIF'),
-            'shortcut-open-kaomoji': _('Kaomoji'),
-            'shortcut-open-symbols': _('Symbols'),
-            'shortcut-open-clipboard': _('Clipboard'),
+            'shortcut-open-recently-used': 'Recently Used',
+            'shortcut-open-emoji': 'Emoji',
+            'shortcut-open-gif': 'GIF',
+            'shortcut-open-kaomoji': 'Kaomoji',
+            'shortcut-open-symbols': 'Symbols',
+            'shortcut-open-clipboard': 'Clipboard',
         };
 
         Object.entries(tabMap).forEach(([shortcutKey, tabName]) => {

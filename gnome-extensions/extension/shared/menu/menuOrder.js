@@ -6,7 +6,7 @@
 export function getMenuOrder() {
     return [
         {
-            id: 'RecentlyUsed',
+            id: 'Recently Used',
             modulePath: '../../features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js',
             exportName: 'MenuDefinitionRecentlyUsed',
         },

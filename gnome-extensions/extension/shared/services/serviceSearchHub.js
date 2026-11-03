@@ -1,5 +1,7 @@
 import { Logger } from '../utilities/utilityLogger.js';
 
+import { resolveMenuSection } from '../menu/menuRegistry.js';
+
 const SEARCH_HANDOFF_TTL_MS = 10000;
 
 let _providersById = null;
@@ -15,6 +17,21 @@ let _pendingHandoff = null;
  */
 function normalizeLookupKey(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+/**
+ * Resolves a canonical tab lookup key from a tab identifier or localized name.
+ *
+ * @param {string} tabName Raw tab name or identifier.
+ * @returns {string} Normalized canonical lookup key.
+ */
+function resolveCanonicalTabKey(tabName) {
+    if (typeof tabName !== 'string') {
+        return '';
+    }
+    const section = resolveMenuSection(tabName);
+    const canonicalName = section ? section.id : tabName;
+    return normalizeLookupKey(canonicalName);
 }
 
 /**
@@ -132,7 +149,7 @@ function getValidHandoff() {
  * @returns {string|null} Provider ID or null if not found.
  */
 function resolveProviderIdByTab(tabName) {
-    const tabKey = normalizeLookupKey(tabName);
+    const tabKey = resolveCanonicalTabKey(tabName);
     return tabKey ? getProviderIdByTab().get(tabKey) || null : null;
 }
 
@@ -197,7 +214,7 @@ export function registerSearchProvider(provider) {
     });
 
     targetTabs.forEach((tabName) => {
-        const tabKey = normalizeLookupKey(tabName);
+        const tabKey = resolveCanonicalTabKey(tabName);
         if (tabKey) {
             getProviderIdByTab().set(tabKey, providerId);
         }
@@ -284,7 +301,7 @@ export function queueSearchHandoff({ targetTab, query, sourceTab = '', sourceSec
 
     _pendingHandoff = {
         targetTab: normalizedTargetTab,
-        targetTabKey: normalizeLookupKey(normalizedTargetTab),
+        targetTabKey: resolveCanonicalTabKey(normalizedTargetTab),
         query: normalizedQuery,
         sourceTab: normalizeQuery(sourceTab),
         sourceSection: normalizeQuery(sourceSection),
@@ -313,7 +330,7 @@ export async function applySearchHandoffToTab({ targetTab, tabActor } = {}) {
         return false;
     }
 
-    const targetTabKey = normalizeLookupKey(targetTab);
+    const targetTabKey = resolveCanonicalTabKey(targetTab);
     if (!targetTabKey || targetTabKey !== handoff.targetTabKey) {
         return false;
     }

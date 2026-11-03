@@ -12,6 +12,7 @@ import { positionMenu } from '../utilities/utilityMenuPositioner.js';
 import { MenuContentArea } from './menuContentArea.js';
 import { MenuTabBar } from './menuTabBar.js';
 import { MenuTuning } from './menuConstants.js';
+import { resolveMenuSection } from './menuRegistry.js';
 
 /**
  * The main indicator button for the extension.
@@ -93,15 +94,18 @@ export const MenuIndicator = GObject.registerClass(
             this._tabBar = new MenuTabBar(this._settings);
             MenuNavigationService.registerController({
                 tabBar: this._tabBar,
-                onSelectTab: (tabName) => {
-                    if (this._tabBar.TAB_NAMES.includes(tabName)) {
-                        this._executeTabSelection(tabName);
+                onSelectTab: (tabIdentifier) => {
+                    const section = resolveMenuSection(tabIdentifier);
+                    const canonicalId = section ? section.id : tabIdentifier;
+                    if (this._tabBar.isTabAvailable(canonicalId)) {
+                        this._executeTabSelection(canonicalId);
                     }
                 },
                 onSelectDefaultTab: () => {
                     const userDefault = this._settings.get_string('default-tab');
-                    const translatedDefault = _(userDefault);
-                    const targetTab = this._tabBar.isTabAvailable(translatedDefault) ? translatedDefault : this._tabBar.getFirstVisibleTabName();
+                    const section = resolveMenuSection(userDefault);
+                    const canonicalDefault = section ? section.id : userDefault;
+                    const targetTab = this._tabBar.isTabAvailable(canonicalDefault) ? canonicalDefault : this._tabBar.getFirstVisibleTabName();
                     if (targetTab) {
                         this._executeTabSelection(targetTab);
                     }
@@ -159,9 +163,10 @@ export const MenuIndicator = GObject.registerClass(
 
                     if (!targetTab) {
                         const userDefault = this._settings.get_string('default-tab');
-                        const translatedDefault = _(userDefault);
-                        if (this._tabBar.isTabAvailable(translatedDefault)) {
-                            targetTab = translatedDefault;
+                        const section = resolveMenuSection(userDefault);
+                        const canonicalDefault = section ? section.id : userDefault;
+                        if (this._tabBar.isTabAvailable(canonicalDefault)) {
+                            targetTab = canonicalDefault;
                         }
                     }
 
@@ -225,11 +230,13 @@ export const MenuIndicator = GObject.registerClass(
         /**
          * Selects the target tab.
          *
-         * @param {string} tabName Target localized identifier string.
+         * @param {string} tabIdentifier Canonical ID or localized identifier string.
          * @returns {Promise<void>} Resolves when asynchronous tab logic completes.
          */
-        async selectTab(tabName) {
-            await this._executeTabSelection(tabName);
+        async selectTab(tabIdentifier) {
+            const section = resolveMenuSection(tabIdentifier);
+            const canonicalId = section ? section.id : tabIdentifier;
+            await this._executeTabSelection(canonicalId);
         }
 
         /**
@@ -270,11 +277,13 @@ export const MenuIndicator = GObject.registerClass(
         /**
          * Opens the menu and selects the target tab.
          *
-         * @param {string} tabName Localized identifier string.
+         * @param {string} tabIdentifier Canonical ID or localized identifier string.
          * @returns {Promise<void>} Resolves when instantiated.
          */
-        async openMenuAndSelectTab(tabName) {
-            await this._executeTabSelection(tabName);
+        async openMenuAndSelectTab(tabIdentifier) {
+            const section = resolveMenuSection(tabIdentifier);
+            const canonicalId = section ? section.id : tabIdentifier;
+            await this._executeTabSelection(canonicalId);
             this._isOpeningViaShortcut = true;
             this.openMenu();
 
@@ -284,7 +293,7 @@ export const MenuIndicator = GObject.registerClass(
 
             this._menuOpenIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
                 if (this.menu.isOpen) {
-                    this._executeTabSelection(tabName);
+                    this._executeTabSelection(canonicalId);
                 }
                 this._menuOpenIdleId = 0;
                 return GLib.SOURCE_REMOVE;

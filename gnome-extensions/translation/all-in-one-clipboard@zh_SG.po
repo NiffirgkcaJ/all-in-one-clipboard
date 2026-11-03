@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-02 22:39+0800\n"
+"POT-Creation-Date: 2026-11-03 11:15+0000\n"
 "PO-Revision-Date: 2026-06-26 15:50+0800\n"
 "Last-Translator: adinlead <adinlead@sina.cn>\n"
 "Language-Team: none\n"
@@ -15,41 +15,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: gnome-extensions/extension/extension.js:120
-#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
-msgid "Recently Used"
-msgstr "最近使用"
-
-#: gnome-extensions/extension/extension.js:121
-#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
-msgid "Emoji"
-msgstr "表情符号"
-
-#: gnome-extensions/extension/extension.js:122
-#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
-msgid "GIF"
-msgstr "GIF"
-
-#: gnome-extensions/extension/extension.js:123
-#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
-msgid "Kaomoji"
-msgstr "颜文字"
-
-#: gnome-extensions/extension/extension.js:124
-#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
-msgid "Symbols"
-msgstr "符号"
-
-#: gnome-extensions/extension/extension.js:125
-#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
-msgid "Clipboard"
-msgstr "剪贴板"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
@@ -113,6 +78,11 @@ msgstr "粘贴为 URI"
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
 msgid "Paste as URI"
 msgstr "粘贴为 URI"
+
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
+msgid "Clipboard"
+msgstr "剪贴板"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:25
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:38
@@ -792,6 +762,11 @@ msgstr "已固定"
 msgid "History"
 msgstr "历史"
 
+#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
+msgid "Emoji"
+msgstr "表情符号"
+
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
 msgid "Emoji Settings"
 msgstr "表情符号设置"
@@ -843,6 +818,11 @@ msgstr "次色调"
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:79
 msgid "For the second person in pairs."
 msgstr "用于成对表情中的第二个人。"
+
+#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
+msgid "GIF"
+msgstr "GIF"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
 msgid "GIF Settings"
@@ -970,6 +950,11 @@ msgstr "热门"
 msgid "Trending GIFs"
 msgstr "热门 GIF"
 
+#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
+msgid "Kaomoji"
+msgstr "颜文字"
+
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:995
 msgid "No recent items yet."
@@ -1036,6 +1021,10 @@ msgstr "最近剪贴板历史"
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:77
 msgid "Clipboard Matches"
 msgstr "剪贴板匹配项"
+
+#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
+msgid "Recently Used"
+msgstr "最近使用"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:62
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:168
@@ -1336,6 +1325,11 @@ msgstr "自定义视图可见项目数禁用时的列表和网格全局上限。
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "自定义视图窗口限制禁用时的列表和网格全局行数上限。"
 
+#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+msgid "Symbols"
+msgstr "符号"
+
 #: gnome-extensions/extension/prefs.js:73
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
 msgid "General"
@@ -1349,7 +1343,7 @@ msgstr "功能"
 msgid "Advanced"
 msgstr "高级"
 
-#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:30
 msgid "All-in-One Clipboard"
 msgstr "全能剪贴板"
 

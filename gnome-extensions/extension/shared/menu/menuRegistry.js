@@ -151,7 +151,23 @@ export async function initializeMenuRegistry() {
  * @returns {object|null} Section definition or null.
  */
 export function getMenuSectionById(sectionId) {
-    return menuRegistry ? menuRegistry.get(sectionId) || null : null;
+    if (!menuRegistry || !sectionId) {
+        return null;
+    }
+
+    const directMatch = menuRegistry.get(sectionId);
+    if (directMatch) {
+        return directMatch;
+    }
+
+    const cleanKey = String(sectionId).replace(/\s+/g, '').toLowerCase();
+    for (const [key, section] of menuRegistry.entries()) {
+        if (key.replace(/\s+/g, '').toLowerCase() === cleanKey) {
+            return section;
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -164,12 +180,39 @@ export function getMenuOrderedSections() {
 }
 
 /**
+ * Resolves a section definition by canonical ID or localized title.
+ *
+ * @param {string} identifier Canonical ID or localized title.
+ * @returns {object|null} Section definition or null.
+ */
+export function resolveMenuSection(identifier) {
+    if (!identifier || typeof identifier !== 'string') {
+        return null;
+    }
+
+    const sections = getMenuOrderedSections();
+    const cleanKey = identifier.replace(/\s+/g, '').toLowerCase();
+
+    const byId = sections.find((section) => section.id && section.id.replace(/\s+/g, '').toLowerCase() === cleanKey);
+    if (byId) {
+        return byId;
+    }
+
+    const lowerIdentifier = identifier.toLowerCase();
+    const byName = sections.find((section) => typeof section.name === 'function' && section.name().toLowerCase() === lowerIdentifier);
+    if (byName) {
+        return byName;
+    }
+
+    return null;
+}
+
+/**
  * Returns a section definition by resolving its localized title.
  *
  * @param {string} translatedName Localized name.
  * @returns {object|null} Section definition or null.
  */
 export function getMenuSectionByLocalizedName(translatedName) {
-    const sections = getMenuOrderedSections();
-    return sections.find((s) => s.name() === translatedName) || null;
+    return resolveMenuSection(translatedName);
 }

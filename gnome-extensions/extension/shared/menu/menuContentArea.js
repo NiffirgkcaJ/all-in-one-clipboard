@@ -2,13 +2,12 @@ import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { applySearchHandoffToTab } from '../services/serviceSearchHub.js';
 import { FilePath } from '../constants/storagePaths.js';
 import { IOFile } from '../utilities/utilityIO.js';
 import { Logger } from '../utilities/utilityLogger.js';
-import { getMenuOrderedSections, getMenuSectionByLocalizedName } from './menuRegistry.js';
+import { resolveMenuSection } from './menuRegistry.js';
 
 /**
  * The content area of the menu, which displays the active tab.
@@ -110,41 +109,43 @@ export const MenuContentArea = GObject.registerClass(
         /**
          * Selects a tab and swaps in its content actor.
          *
-         * @param {string} tabName Localized tab name.
+         * @param {string} tabIdentifier Canonical ID or localized tab name.
          * @returns {Promise<void>} Resolves once selection work completes.
          */
-        async selectTab(tabName) {
+        async selectTab(tabIdentifier) {
             if (!IOFile.mkdir(FilePath.DATA)) {
                 return;
             }
 
+            const sectionDef = resolveMenuSection(tabIdentifier);
+            const canonicalId = sectionDef ? sectionDef.id : tabIdentifier;
             const oldActor = this._currentTabActor;
 
             try {
-                if (this._activeTabName === tabName && oldActor) {
+                if (this._activeTabName === canonicalId && oldActor) {
                     oldActor.onTabSelected();
                     return;
                 }
 
-                this._activeTabName = tabName;
+                this._activeTabName = canonicalId;
 
-                const cachedActor = this._tabActors.get(tabName);
+                const cachedActor = this._tabActors.get(canonicalId);
                 if (cachedActor) {
                     this._swapToTab(cachedActor, oldActor);
-                    this._deferSearchHandoff(tabName, cachedActor);
+                    this._deferSearchHandoff(canonicalId, cachedActor);
                     return;
                 }
 
-                const newContentActor = await this._resolveAndCacheTab(tabName);
+                const newContentActor = await this._resolveAndCacheTab(canonicalId);
 
-                if (!newContentActor || this._activeTabName !== tabName) {
+                if (!newContentActor || this._activeTabName !== canonicalId) {
                     return;
                 }
 
                 this._swapToTab(newContentActor, oldActor);
-                this._deferSearchHandoff(tabName, newContentActor);
+                this._deferSearchHandoff(canonicalId, newContentActor);
             } catch (e) {
-                Logger.error(`Failed to load tab '${tabName}': ${e.message}\n${e.stack}`);
+                Logger.error(`Failed to load tab '${canonicalId}': ${e.message}\n${e.stack}`);
 
                 this.emit('set-main-tab-bar-visibility', true);
 
@@ -152,7 +153,7 @@ export const MenuContentArea = GObject.registerClass(
                     this._releaseInactiveActor(oldActor);
                 }
 
-                if (this._activeTabName === tabName) {
+                if (this._activeTabName === canonicalId) {
                     const errorLabel = new St.Label({
                         text: `Error loading tab: ${e.message}`,
                         style_class: 'aio-clipboard-error-label',
@@ -191,16 +192,16 @@ export const MenuContentArea = GObject.registerClass(
         /**
          * Applies search handoff asynchronously so tab swapping stays instant.
          *
-         * @param {string} tabName Target tab name.
+         * @param {string} canonicalId Target canonical tab ID.
          * @param {Clutter.Actor} tabActor Target tab actor.
          * @private
          */
-        _deferSearchHandoff(tabName, tabActor) {
+        _deferSearchHandoff(canonicalId, tabActor) {
             applySearchHandoffToTab({
-                targetTab: tabName,
+                targetTab: canonicalId,
                 tabActor,
             }).catch((e) => {
-                Logger.error(`Search handoff failed for '${tabName}': ${e?.message || e}`);
+                Logger.error(`Search handoff failed for '${canonicalId}': ${e?.message || e}`);
             });
         }
 
@@ -214,20 +215,19 @@ export const MenuContentArea = GObject.registerClass(
          * @private
          */
         async _preloadAllTabs() {
-            const sections = getMenuOrderedSections();
-            const sectionsByName = new Map(sections.map((section) => [section.name(), section]));
-            const orderedTabNames = this._settings.get_strv('tab-order').map((name) => _(name));
+            const orderedTabIds = this._settings.get_strv('tab-order');
             const loadPromises = [];
 
-            for (const tabName of orderedTabNames) {
-                const section = sectionsByName.get(tabName);
+            for (const tabIdentifier of orderedTabIds) {
+                const section = resolveMenuSection(tabIdentifier);
                 if (!section) {
                     continue;
                 }
+                const canonicalId = section.id;
                 const isEnabled = section.settingKey ? this._settings.get_boolean(section.settingKey) : true;
 
-                if (isEnabled && !this._tabActors.has(tabName)) {
-                    loadPromises.push(this._resolveAndCacheTab(tabName));
+                if (isEnabled && !this._tabActors.has(canonicalId)) {
+                    loadPromises.push(this._resolveAndCacheTab(canonicalId));
                 }
             }
 
@@ -237,22 +237,22 @@ export const MenuContentArea = GObject.registerClass(
         /**
          * Resolves and caches a tab actor.
          *
-         * @param {string} tabName Localized tab name.
+         * @param {string} canonicalId Canonical tab ID.
          * @returns {Promise<Clutter.Actor|null>} Cached tab actor.
          * @private
          */
-        async _resolveAndCacheTab(tabName) {
-            if (this._tabActors.has(tabName)) {
-                return this._tabActors.get(tabName);
+        async _resolveAndCacheTab(canonicalId) {
+            if (this._tabActors.has(canonicalId)) {
+                return this._tabActors.get(canonicalId);
             }
 
-            if (this._tabLoadPromises.has(tabName)) {
-                return await this._tabLoadPromises.get(tabName);
+            if (this._tabLoadPromises.has(canonicalId)) {
+                return await this._tabLoadPromises.get(canonicalId);
             }
 
-            const loadPromise = this._loadTabModule(tabName)
+            const loadPromise = this._loadTabModule(canonicalId)
                 .then((actor) => {
-                    this._tabLoadPromises.delete(tabName);
+                    this._tabLoadPromises.delete(canonicalId);
 
                     if (!this._tabWrapper || !actor) {
                         if (actor) {
@@ -266,16 +266,16 @@ export const MenuContentArea = GObject.registerClass(
                     actor.y_expand = true;
                     actor.hide();
                     this._tabWrapper.add_child(actor);
-                    this._tabActors.set(tabName, actor);
+                    this._tabActors.set(canonicalId, actor);
                     return actor;
                 })
                 .catch((e) => {
-                    this._tabLoadPromises.delete(tabName);
-                    Logger.error(`Failed to cache tab '${tabName}'`, e);
+                    this._tabLoadPromises.delete(canonicalId);
+                    Logger.error(`Failed to cache tab '${canonicalId}'`, e);
                     throw e;
                 });
 
-            this._tabLoadPromises.set(tabName, loadPromise);
+            this._tabLoadPromises.set(canonicalId, loadPromise);
             return await loadPromise;
         }
 
@@ -318,14 +318,14 @@ export const MenuContentArea = GObject.registerClass(
         /**
          * Loads and instantiates the actor for a tab definition.
          *
-         * @param {string} tabName Localized tab name.
+         * @param {string} canonicalId Canonical tab ID or localized tab name.
          * @returns {Promise<Clutter.Actor>} Instantiated tab actor.
          * @throws {Error} Thrown when tab definition resolution fails.
          * @private
          */
-        async _loadTabModule(tabName) {
-            const sectionDef = getMenuSectionByLocalizedName(tabName);
-            Logger.assert(sectionDef, `No layout definition found for tab: ${tabName}`, 'MenuContentArea');
+        async _loadTabModule(canonicalId) {
+            const sectionDef = resolveMenuSection(canonicalId);
+            Logger.assert(sectionDef, `No layout definition found for tab: ${canonicalId}`, 'MenuContentArea');
             Logger.assert(sectionDef.createContentActor, `Tab definition ${sectionDef.id} missing 'createContentActor' factory.`, 'MenuContentArea');
 
             return await sectionDef.createContentActor(this._extension, this._settings, this._clipboardManager);

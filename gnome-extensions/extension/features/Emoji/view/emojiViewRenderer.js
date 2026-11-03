@@ -1,6 +1,5 @@
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 
@@ -121,7 +120,7 @@ export class EmojiViewRenderer {
             x_align: Clutter.ActorAlign.CENTER,
         });
 
-        button.tooltip_text = _(categoryId);
+        button.tooltip_text = categoryId;
         return button;
     }
 }

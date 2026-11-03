@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-03 09:23+0000\n"
+"POT-Creation-Date: 2026-11-03 11:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -15,41 +15,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: gnome-extensions/extension/extension.js:120
-#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
-msgid "Recently Used"
-msgstr ""
-
-#: gnome-extensions/extension/extension.js:121
-#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
-msgid "Emoji"
-msgstr ""
-
-#: gnome-extensions/extension/extension.js:122
-#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
-msgid "GIF"
-msgstr ""
-
-#: gnome-extensions/extension/extension.js:123
-#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
-msgid "Kaomoji"
-msgstr ""
-
-#: gnome-extensions/extension/extension.js:124
-#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
-msgid "Symbols"
-msgstr ""
-
-#: gnome-extensions/extension/extension.js:125
-#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
-msgid "Clipboard"
-msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
@@ -112,6 +77,11 @@ msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
 msgid "Paste as URI"
+msgstr ""
+
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
+msgid "Clipboard"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:25
@@ -792,6 +762,11 @@ msgstr ""
 msgid "History"
 msgstr ""
 
+#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
+msgid "Emoji"
+msgstr ""
+
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
 msgid "Emoji Settings"
 msgstr ""
@@ -842,6 +817,11 @@ msgstr ""
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:79
 msgid "For the second person in pairs."
+msgstr ""
+
+#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
+msgid "GIF"
 msgstr ""
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
@@ -968,6 +948,11 @@ msgstr ""
 msgid "Trending GIFs"
 msgstr ""
 
+#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
+msgid "Kaomoji"
+msgstr ""
+
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:995
 msgid "No recent items yet."
@@ -1033,6 +1018,10 @@ msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:77
 msgid "Clipboard Matches"
+msgstr ""
+
+#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
+msgid "Recently Used"
 msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:62
@@ -1334,6 +1323,11 @@ msgstr ""
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr ""
 
+#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+msgid "Symbols"
+msgstr ""
+
 #: gnome-extensions/extension/prefs.js:73
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
 msgid "General"
@@ -1347,7 +1341,7 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:30
 msgid "All-in-One Clipboard"
 msgstr ""
 
