@@ -65,13 +65,67 @@ def load_iso_languages() -> dict[str, str]:
     except Exception:
         return {}
 
-def extract_language_name(po_path: Path, iso_map: dict[str, str]) -> Optional[str]:
+def load_iso_territories() -> dict[str, str]:
+    """
+    Loads ISO 3166-1 territory mappings from the system database when available.
+
+    Returns:
+        Mapping from ISO territory codes to English territory names.
+    """
+    iso_path = Path("/usr/share/iso-codes/json/iso_3166-1.json")
+    if not iso_path.is_file():
+        return {}
+
+    try:
+        data = json.loads(iso_path.read_text(encoding="utf-8"))
+        entries = data.get("3166-1", [])
+        territory_map: dict[str, str] = {}
+        for item in entries:
+            name = item.get("common_name", item.get("name", "")).strip()
+            if not name:
+                continue
+            if "alpha_2" in item:
+                territory_map[item["alpha_2"].upper()] = name
+            if "alpha_3" in item:
+                territory_map[item["alpha_3"].upper()] = name
+        return territory_map
+    except Exception:
+        return {}
+
+def has_translated_messages(po_path: Path) -> bool:
+    """
+    Checks whether the catalog contains at least one translated string.
+
+    Args:
+        po_path: Path to the target PO file.
+
+    Returns:
+        True when at least one non-header string is translated, False otherwise.
+    """
+    content = po_path.read_text(encoding="utf-8")
+    blocks = re.split(r"\n(?=msgid )", content)
+    for block in blocks:
+        id_match = re.search(r'msgid\s+(".*?"(?:\s+".*?")*)', block, re.DOTALL)
+        str_match = re.search(r'msgstr\s+(".*?"(?:\s+".*?")*)', block, re.DOTALL)
+        if id_match and str_match:
+            clean_id = id_match.group(1).replace('"\n"', "").replace('"', "").replace("\n", "")
+            clean_str = str_match.group(1).replace('"\n"', "").replace('"', "").replace("\n", "")
+            if clean_id and clean_str:
+                return True
+    return False
+
+def extract_language_name(
+    po_path: Path,
+    iso_languages: dict[str, str],
+    iso_territories: dict[str, str],
+) -> Optional[str]:
     """
     Extracts the display language name from a PO file header or fallback lookup.
 
     Args:
         po_path: Path to the target PO file.
-        iso_map: Mapping of ISO codes to English language names.
+        iso_languages: Mapping of ISO codes to English language names.
+        iso_territories: Mapping of ISO codes to English territory names.
 
     Returns:
         Resolved language name, or None when resolution fails.
@@ -82,7 +136,7 @@ def extract_language_name(po_path: Path, iso_map: dict[str, str]) -> Optional[st
     team_match = re.search(r'^"Language-Team:\s*([^<"\n\r]+?)(?:\s*<|\s*\\n|")', content, re.MULTILINE)
     if team_match:
         team_name = team_match.group(1).strip()
-        if team_name and team_name.lower() != "none":
+        if team_name and team_name.lower() not in {"none", "language"}:
             return to_title_case(team_name)
 
     # Inspect Language header.
@@ -95,15 +149,24 @@ def extract_language_name(po_path: Path, iso_map: dict[str, str]) -> Optional[st
         if "@" in file_stem:
             lang_code = file_stem.split("@")[-1]
 
-    # Resolve through ISO mapping.
-    base_code = lang_code.split("_")[0].lower()
-    if base_code in iso_map:
-        return iso_map[base_code]
+    if not lang_code:
+        return None
 
-    if lang_code:
-        return to_title_case(lang_code.replace("_", " "))
+    # Parse locale tag into base language and optional territory.
+    parts = lang_code.replace("-", "_").split("_")
+    base_code = parts[0].lower()
+    territory_code = parts[1].upper() if len(parts) > 1 else ""
 
-    return None
+    lang_name = iso_languages.get(base_code, to_title_case(base_code))
+
+    # Resolve territory when present.
+    if territory_code and territory_code in iso_territories:
+        return f"{lang_name} ({iso_territories[territory_code]})"
+
+    if territory_code:
+        return f"{lang_name} ({territory_code})"
+
+    return lang_name
 
 # --- Core Processing ---
 
@@ -117,11 +180,14 @@ def collect_supported_languages(translation_dir: Path) -> list[str]:
     Returns:
         Sorted list of unique supported language names.
     """
-    iso_map = load_iso_languages()
+    iso_languages = load_iso_languages()
+    iso_territories = load_iso_territories()
     languages = {DEFAULT_SOURCE_LANGUAGE}
 
     for po_file in translation_dir.glob("all-in-one-clipboard@*.po"):
-        lang_name = extract_language_name(po_file, iso_map)
+        if not has_translated_messages(po_file):
+            continue
+        lang_name = extract_language_name(po_file, iso_languages, iso_territories)
         if lang_name:
             languages.add(lang_name)
 
