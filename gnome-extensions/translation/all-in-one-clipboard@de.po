@@ -1,13 +1,13 @@
-# German translations for PACKAGE package.
-# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# German translations for the All-in-One Clipboard package.
+# Copyright (C) 2026 NiffirgkcaJ
+# This file is distributed under the same license as the All-in-One Clipboard package.
 # Lenny Angst <lenny@familie-angst.ch>, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 11:17+0000\n"
+"Project-Id-Version: all-in-one-clipboard\n"
+"Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
+"POT-Creation-Date: 2026-11-02 22:39+0800\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: <translation-team-de@lists.sourceforge.net>\n"
@@ -51,19 +51,6 @@ msgstr "Symbole"
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
 msgid "Clipboard"
 msgstr "Zwischenablage"
-
-#: gnome-extensions/extension/prefs.js:73
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
-msgid "General"
-msgstr "Allgemein"
-
-#: gnome-extensions/extension/prefs.js:85
-msgid "Features"
-msgstr "Funktionen"
-
-#: gnome-extensions/extension/prefs.js:99
-msgid "Advanced"
-msgstr "Erweitert"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
@@ -1349,6 +1336,19 @@ msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sich
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:293
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
+
+#: gnome-extensions/extension/prefs.js:73
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
+msgid "General"
+msgstr "Allgemein"
+
+#: gnome-extensions/extension/prefs.js:85
+msgid "Features"
+msgstr "Funktionen"
+
+#: gnome-extensions/extension/prefs.js:99
+msgid "Advanced"
+msgstr "Erweitert"
 
 #: gnome-extensions/extension/shared/menu/menuIndicator.js:29
 msgid "All-in-One Clipboard"

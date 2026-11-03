@@ -1,20 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Translation template for All-in-One Clipboard UI strings.
+# Copyright (C) 2026 NiffirgkcaJ
+# This file is distributed under the same license as the All-in-One Clipboard package.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 11:42+0000\n"
+"Project-Id-Version: all-in-one-clipboard\n"
+"Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
+"POT-Creation-Date: 2026-11-03 09:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: gnome-extensions/extension/extension.js:120
@@ -50,19 +49,6 @@ msgstr ""
 #: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
 msgid "Clipboard"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:73
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
-msgid "General"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:85
-msgid "Features"
-msgstr ""
-
-#: gnome-extensions/extension/prefs.js:99
-msgid "Advanced"
 msgstr ""
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
@@ -1346,6 +1332,19 @@ msgstr ""
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:293
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:73
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
+msgid "General"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:85
+msgid "Features"
+msgstr ""
+
+#: gnome-extensions/extension/prefs.js:99
+msgid "Advanced"
 msgstr ""
 
 #: gnome-extensions/extension/shared/menu/menuIndicator.js:29

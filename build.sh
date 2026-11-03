@@ -52,11 +52,11 @@ update_translation_templates() {
     # This part runs every time, so your templates are always up-to-date.
     echo "Updating translation templates..."
 
-    # Update the UI strings template from .js files
-    xgettext --no-wrap --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
+    # Update the UI strings template from .js files using our Python script
+    python3 ./gnome-extensions/build-aux/tools/language/extract-strings.py ui gnome-extensions/translation/all-in-one-clipboard.pot gnome-extensions/extension
 
     # Update the DATA strings template from .json files using our Python script
-    python3 ./gnome-extensions/build-aux/tools/language/extract-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data
+    python3 ./gnome-extensions/build-aux/tools/language/extract-strings.py data gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data
 
     # Safely merge any new strings into the language files
     echo "Merging new strings into language files..."

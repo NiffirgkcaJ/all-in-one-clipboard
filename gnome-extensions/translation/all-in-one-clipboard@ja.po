@@ -1,13 +1,13 @@
-# Japanese translations for PACKAGE package.
-# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# Japanese translations for the All-in-One Clipboard package.
+# Copyright (C) 2026 NiffirgkcaJ
+# This file is distributed under the same license as the All-in-One Clipboard package.
 # Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 11:42+0000\n"
+"Project-Id-Version: all-in-one-clipboard\n"
+"Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
+"POT-Creation-Date: 2026-11-02 22:39+0800\n"
 "PO-Revision-Date: 2026-11-02 11:42+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -51,19 +51,6 @@ msgstr "記号"
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
 msgid "Clipboard"
 msgstr "クリップボード"
-
-#: gnome-extensions/extension/prefs.js:73
-#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
-msgid "General"
-msgstr "一般"
-
-#: gnome-extensions/extension/prefs.js:85
-msgid "Features"
-msgstr "機能"
-
-#: gnome-extensions/extension/prefs.js:99
-msgid "Advanced"
-msgstr "高度"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
@@ -1349,6 +1336,19 @@ msgstr "ビューごとのカスタム表示項目が無効な場合のリスト
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:293
 msgid "Global row limit for list and grid when custom window limits by view is disabled."
 msgstr "ビューごとのカスタムウィンドウ制限が無効な場合のリストとグリッドの全体の行制限。"
+
+#: gnome-extensions/extension/prefs.js:73
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
+msgid "General"
+msgstr "一般"
+
+#: gnome-extensions/extension/prefs.js:85
+msgid "Features"
+msgstr "機能"
+
+#: gnome-extensions/extension/prefs.js:99
+msgid "Advanced"
+msgstr "高度"
 
 #: gnome-extensions/extension/shared/menu/menuIndicator.js:29
 msgid "All-in-One Clipboard"
