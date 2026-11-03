@@ -65,7 +65,7 @@ def remove_fuzzy_flag(comments: str) -> str:
 
 def translate_gtx(text: str, target_lang: str) -> str:
     """
-    Translates text to the target language via Google Translate GTX over HTTP/2.
+    Translates text to the target language via Google Translate endpoints.
 
     Args:
         text: Source text to translate.
@@ -74,34 +74,37 @@ def translate_gtx(text: str, target_lang: str) -> str:
     Returns:
         Translated string or empty string on failure.
     """
-    url = (
-        "https://translate.googleapis.com/translate_a/single?"
-        + urllib.parse.urlencode({
-            "client": "gtx",
-            "sl": "en",
-            "tl": target_lang,
-            "dt": "t",
-            "q": text,
-        })
-    )
-
-    try:
-        res = subprocess.run(
-            ["curl", "--http2", "-s", url],
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=10,
+    for client in ["dict-chrome-ex", "gtx"]:
+        url = (
+            "https://translate.googleapis.com/translate_a/single?"
+            + urllib.parse.urlencode({
+                "client": client,
+                "sl": "en",
+                "tl": target_lang,
+                "dt": "t",
+                "q": text,
+            })
         )
-        data = json.loads(res.stdout)
-        translated = "".join(part[0] for part in data[0] if part[0])
 
-        # Normalize spaced format specifiers like % d to %d.
-        translated = re.sub(r'%\s*([dsf])', r'%\1', translated)
-        return translated
-    except Exception as e:
-        print(f"  [ERROR] Translating '{text[:40]}...': {e}", file=sys.stderr, flush=True)
-        return ""
+        try:
+            res = subprocess.run(
+                ["curl", "--http2", "-s", url],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+            data = json.loads(res.stdout)
+            translated = "".join(part[0] for part in data[0] if part[0])
+
+            # Normalize spaced format specifiers like % d to %d.
+            translated = re.sub(r'%\s*([dsf])', r'%\1', translated)
+            return translated
+        except Exception:
+            continue
+
+    print(f"  [ERROR] Translating '{text[:40]}...': Translation service unavailable", file=sys.stderr, flush=True)
+    return ""
 
 # --- Core Processing ---
 
@@ -118,8 +121,8 @@ def process_po_file(po_path: Path, target_lang: str) -> None:
 
     pattern = re.compile(
         r'((?:^[ \t]*#.*$\n)*)'
-        r'(^[ \t]*msgid\s+(?:\"(?:[^\"\\\\]|\\\\.)*\"\s*\n)+)'
-        r'(^[ \t]*msgstr\s+(?:\"(?:[^\"\\\\]|\\\\.)*\"\s*\n)+)',
+        r'(^[ \t]*msgid\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)'
+        r'(^[ \t]*msgstr\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)',
         re.MULTILINE
     )
 

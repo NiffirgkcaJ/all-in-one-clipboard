@@ -113,9 +113,11 @@ The easiest way to install is from the official GNOME Extensions website.
 All-in-One Clipboard is available in multiple languages thanks to the efforts of contributors from around the world.
 
 **Supported Languages:**
+<!-- supported-languages:start -->
 *   Chinese (Simplified)
 *   English
 *   German
+<!-- supported-languages:end -->
 
 ### Want to Help Translate?
 

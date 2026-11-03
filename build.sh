@@ -91,6 +91,9 @@ update_translation_templates() {
         done
     fi
 
+    # Update supported languages documentation in README.md
+    python3 ./gnome-extensions/build-aux/tools/language/document-strings.py README.md gnome-extensions/translation
+
     echo "Translation templates are up-to-date."
 }
 
