@@ -116,6 +116,7 @@ All-in-One Clipboard is available in multiple languages thanks to the efforts of
 <!-- supported-languages:start -->
 *   Chinese (China)
 *   English
+*   French
 *   German
 <!-- supported-languages:end -->
 
