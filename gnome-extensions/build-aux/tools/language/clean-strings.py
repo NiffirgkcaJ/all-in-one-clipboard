@@ -2,7 +2,7 @@
 """
 Sanitize and clean gettext .po files for all-in-one-clipboard.
 
-Purges obsolete messages prefixed with #~, normalizes charset to UTF-8, then reformats the file with msgcat.
+Purges obsolete messages, normalizes charset to UTF-8, cleans team headers, and reformats with msgcat.
 
 Usage:
     python3 clean-strings.py <path_to_po_file> [more_po_files...]
@@ -47,6 +47,25 @@ def normalize_charset(content: str) -> str:
         flags=re.IGNORECASE,
     )
 
+def normalize_language_team(content: str) -> str:
+    """
+    Normalizes the Language-Team header by retaining email or defaulting to none.
+
+    Args:
+        content: Raw gettext PO file content.
+
+    Returns:
+        Content with normalized Language-Team header.
+    """
+    def replacer(match: re.Match) -> str:
+        raw_val = match.group(1)
+        email_match = re.search(r"<[^>]+>", raw_val)
+        if email_match:
+            return f'"Language-Team: {email_match.group(0)}\\n"'
+        return '"Language-Team: none\\n"'
+
+    return re.sub(r'^"Language-Team:\s*([^\n"]*)\\n"', replacer, content, flags=re.MULTILINE)
+
 # --- Core Processing ---
 
 def clean_po_file(po_path: Path) -> None:
@@ -60,6 +79,7 @@ def clean_po_file(po_path: Path) -> None:
     content = po_path.read_text(encoding="utf-8")
     cleaned_content = strip_obsolete_entries(content)
     cleaned_content = normalize_charset(cleaned_content)
+    cleaned_content = normalize_language_team(cleaned_content)
 
     po_path.write_text(cleaned_content, encoding="utf-8")
 
