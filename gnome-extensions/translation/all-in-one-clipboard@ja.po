@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-03 11:15+0000\n"
+"POT-Creation-Date: 2026-11-03 13:12+0000\n"
 "PO-Revision-Date: 2026-11-02 11:42+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1328,6 +1328,7 @@ msgstr "ビューごとのカスタムウィンドウ制限が無効な場合の
 
 #: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
 msgid "Symbols"
 msgstr "記号"
 
@@ -1958,3 +1959,87 @@ msgstr "利用可能な項目はありません。"
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:994
 msgid "No items match your search."
 msgstr "検索に一致する項目はありません。"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Smileys & Emotion"
+msgstr "スマイリーと感情"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "People & Body"
+msgstr "人と身体"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Animals & Nature"
+msgstr "動物と自然"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Food & Drink"
+msgstr "食べ物と飲み物"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Travel & Places"
+msgstr "旅行と場所"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Activities"
+msgstr "活動内容"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Objects"
+msgstr "オブジェクト"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Flags"
+msgstr "フラグ"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Positive"
+msgstr "ポジティブ"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Negative"
+msgstr "ネガティブ"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Neutral"
+msgstr "中性"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Various"
+msgstr "様々な"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Animals"
+msgstr "動物"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Other"
+msgstr "他の"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "General Punctuation"
+msgstr "一般的な句読点"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Currency Symbols"
+msgstr "通貨記号"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Latin Symbols"
+msgstr "ラテン語の記号"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Geometric Symbols"
+msgstr "幾何学的なシンボル"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Math Symbols"
+msgstr "数学記号"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Supplemental Symbols"
+msgstr "補足記号"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Language Symbols"
+msgstr "言語記号"

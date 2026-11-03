@@ -1,5 +1,6 @@
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 // ========================================================================
 // Internal Helpers
@@ -78,11 +79,11 @@ export class SymbolsViewRenderer {
         const button = new St.Button({
             style_class: 'symbol-category-tab-button button',
             can_focus: true,
-            label: categoryId,
+            label: _(categoryId),
             x_expand: false,
             x_align: Clutter.ActorAlign.START,
         });
-        button.tooltip_text = categoryId;
+        button.tooltip_text = _(categoryId);
         return button;
     }
 }

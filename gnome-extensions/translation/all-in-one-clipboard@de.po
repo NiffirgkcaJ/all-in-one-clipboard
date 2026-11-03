@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-03 11:15+0000\n"
+"POT-Creation-Date: 2026-11-03 13:12+0000\n"
 "PO-Revision-Date: 2026-01-18 13:06+0100\n"
 "Last-Translator: Lenny Angst <lenny@familie-angst.ch>\n"
 "Language-Team: <translation-team-de@lists.sourceforge.net>\n"
@@ -1328,6 +1328,7 @@ msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fenst
 
 #: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
 msgid "Symbols"
 msgstr "Symbole"
 
@@ -1958,3 +1959,87 @@ msgstr "Keine Elemente verfügbar."
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:994
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Smileys & Emotion"
+msgstr "Smileys & Emotionen"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "People & Body"
+msgstr "Menschen & Körper"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Animals & Nature"
+msgstr "Tiere & Natur"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Food & Drink"
+msgstr "Essen & Trinken"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Travel & Places"
+msgstr "Reisen & Orte"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Activities"
+msgstr "Aktivitäten"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Objects"
+msgstr "Objekte"
+
+#: gnome-extensions/extension/assets/data/emoji/emojis.json
+msgid "Flags"
+msgstr "Flaggen"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Positive"
+msgstr "Positiv"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Negative"
+msgstr "Negativ"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Neutral"
+msgstr "Neutral"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Various"
+msgstr "Verschieden"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Animals"
+msgstr "Tiere"
+
+#: gnome-extensions/extension/assets/data/kaomoji/kaomojis.json
+msgid "Other"
+msgstr "Andere"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "General Punctuation"
+msgstr "Allgemeine Interpunktion"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Currency Symbols"
+msgstr "Währungssymbole"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Latin Symbols"
+msgstr "Lateinische Symbole"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Geometric Symbols"
+msgstr "Geometrische Symbole"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Math Symbols"
+msgstr "Mathematische Symbole"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Supplemental Symbols"
+msgstr "Ergänzende Symbole"
+
+#: gnome-extensions/extension/assets/data/symbols/symbols.json
+msgid "Language Symbols"
+msgstr "Sprachsymbole"
