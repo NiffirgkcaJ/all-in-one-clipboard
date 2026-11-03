@@ -1,0 +1,1965 @@
+# Chinese translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# adinlead <adinlead@sina.cn>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-02 11:17+0000\n"
+"PO-Revision-Date: 2026-06-26 15:50+0800\n"
+"Last-Translator: adinlead <adinlead@sina.cn>\n"
+"Language-Team: none\n"
+"Language: zh_SG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gnome-extensions/extension/extension.js:120
+#: gnome-extensions/extension/features/RecentlyUsed/integrations/recentlyUsedMenuDefinition.js:6
+msgid "Recently Used"
+msgstr "最近使用"
+
+#: gnome-extensions/extension/extension.js:121
+#: gnome-extensions/extension/features/Emoji/integrations/emojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:23
+msgid "Emoji"
+msgstr "表情符号"
+
+#: gnome-extensions/extension/extension.js:122
+#: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
+msgid "GIF"
+msgstr "GIF"
+
+#: gnome-extensions/extension/extension.js:123
+#: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:25
+msgid "Kaomoji"
+msgstr "颜文字"
+
+#: gnome-extensions/extension/extension.js:124
+#: gnome-extensions/extension/features/Symbols/integrations/symbolsMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:26
+msgid "Symbols"
+msgstr "符号"
+
+#: gnome-extensions/extension/extension.js:125
+#: gnome-extensions/extension/features/Clipboard/integrations/clipboardMenuDefinition.js:10
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:27
+msgid "Clipboard"
+msgstr "剪贴板"
+
+#: gnome-extensions/extension/prefs.js:73
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
+msgid "General"
+msgstr "常规"
+
+#: gnome-extensions/extension/prefs.js:85
+msgid "Features"
+msgstr "功能"
+
+#: gnome-extensions/extension/prefs.js:99
+msgid "Advanced"
+msgstr "高级"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
+msgid "Paste as Plain Text"
+msgstr "粘贴为纯文本"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
+msgid "Paste as Rich HTML"
+msgstr "粘贴为富 HTML"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
+msgid "Paste Images"
+msgstr "粘贴图像"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
+msgid "Launch Link"
+msgstr "打开链接"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
+msgid "Paste Link"
+msgstr "粘贴链接"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
+msgid "Paste as Files"
+msgstr "粘贴为文件"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
+msgid "Paste as File"
+msgstr "粘贴为文件"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
+msgid "Paste as Folders"
+msgstr "粘贴为文件夹"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
+msgid "Paste as Folder"
+msgstr "粘贴为文件夹"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
+msgid "Paste as Items"
+msgstr "粘贴为项目"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
+msgid "Paste as Item"
+msgstr "粘贴为项目"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
+msgid "Paste as Paths"
+msgstr "粘贴为路径"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
+msgid "Paste as Path"
+msgstr "粘贴为路径"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
+msgid "Paste as URIs"
+msgstr "粘贴为 URI"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
+msgid "Paste as URI"
+msgstr "粘贴为 URI"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:25
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:38
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:48
+msgid "Content Settings"
+msgstr "内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:26
+msgid "Configure capture, extraction, and formatting for different content types."
+msgstr "为不同的内容类型配置捕获、提取和格式设置。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:49
+msgid "Manage extraction limits, paste formats, and action options for clipboard content types."
+msgstr "管理剪贴板内容类型的提取限制、粘贴格式和操作选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:55
+msgid "Image Content Settings"
+msgstr "图像内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:56
+msgid "Options for image items."
+msgstr "图像项目的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:61
+msgid "Extract Image Items from Files"
+msgstr "从文件中提取图像项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:62
+msgid "Automatically extract image items from files."
+msgstr "自动从文件中提取图像项目。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:68
+msgid "Limit Image Items to Extract"
+msgstr "限制提取的图像项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:69
+msgid "Limit the number of extracted image items."
+msgstr "限制提取的图像项目的数量。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:79
+msgid "Maximum Image Items to Extract"
+msgstr "要提取的最大图像项目数"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:80
+#, javascript-format
+msgid "Maximum image items to extract between %d and %d. Default: %d."
+msgstr "要提取的最大图像项数在 %d 到 %d 之间。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:101
+msgid "Resource Content Settings"
+msgstr "资源内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:102
+msgid "Options for resource items."
+msgstr "资源项的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:107
+msgid "Capture Resource Items from Files"
+msgstr "从文件中捕获资源项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:108
+msgid "Automatically capture resource items from files."
+msgstr "自动从文件中捕获资源项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:114
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:187
+msgid "Files and Folders"
+msgstr "文件和文件夹"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:115
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:192
+msgid "File Paths"
+msgstr "文件路径"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:116
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:197
+msgid "URI Links"
+msgstr "URI 链接"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:120
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:553
+msgid "Default Format"
+msgstr "默认格式"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:121
+msgid "Default format for resource items."
+msgstr "资源项的默认格式。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:150
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:173
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:583
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:606
+msgid "Button Settings"
+msgstr "按钮设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:151
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:584
+msgid "Configure button visibility and display order on cards."
+msgstr "配置按钮可见性和卡片上的显示顺序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:163
+msgid "Resource Button Settings"
+msgstr "资源按钮设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:174
+msgid "Manage visibility and order of action buttons for resource items."
+msgstr "管理资源项的可见性和操作按钮顺序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:180
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:613
+msgid "Visible Buttons"
+msgstr "可见按钮"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:181
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:614
+msgid "Show or hide action buttons on cards."
+msgstr "显示或隐藏卡片上的操作按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:188
+msgid "Show files and folders button."
+msgstr "显示文件和文件夹按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:193
+msgid "Show file paths button."
+msgstr "显示文件路径按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:198
+msgid "Show URI links button."
+msgstr "显示 URI 链接按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:214
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:642
+msgid "Button Order"
+msgstr "按钮顺序"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:215
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:643
+msgid "Use buttons to reorder action buttons on cards."
+msgstr "使用按钮对卡片上的操作按钮重新排序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:274
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:702
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:231
+msgid "Reset Order"
+msgstr "重置顺序"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:275
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:703
+msgid "Restore original action button order."
+msgstr "恢复原始操作按钮顺序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:281
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:709
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:58
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:201
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:238
+msgid "Reset"
+msgstr "重置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:309
+msgid "Link Content Settings"
+msgstr "链接内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:310
+msgid "Options for link items."
+msgstr "链接项目的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:315
+msgid "Extract Link Items from Text"
+msgstr "从文本中提取链接项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:316
+msgid "Automatically extract link items from text."
+msgstr "自动从文本中提取链接项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:322
+msgid "Extract Link Items from Contacts"
+msgstr "从联系人中提取链接项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:323
+msgid "Automatically extract link items from contacts."
+msgstr "自动从联系人中提取链接项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:329
+msgid "Limit Link Items to Extract"
+msgstr "限制要提取的链接项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:330
+msgid "Limit the number of extracted link items."
+msgstr "限制提取的链接项的数量。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:340
+msgid "Maximum Link Items to Extract"
+msgstr "要提取的最大链接项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:341
+#, javascript-format
+msgid "Maximum link items to extract between %d and %d. Default: %d."
+msgstr "要提取的最大链接项数介于 %d 和 %d 之间。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:357
+msgid "Default Action"
+msgstr "默认操作"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:358
+msgid "Default action for link items."
+msgstr "链接项目的默认操作。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:386
+msgid "Action Button"
+msgstr "操作按钮"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:387
+msgid "Show action button for link items."
+msgstr "显示链接项目的操作按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:404
+msgid "Contact Content Settings"
+msgstr "联系内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:405
+msgid "Options for contact items."
+msgstr "联系人项目的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:410
+msgid "Extract Contact Items from Text"
+msgstr "从文本中提取联系人项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:411
+msgid "Automatically extract contact items from text."
+msgstr "自动从文本中提取联系人项目。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:417
+msgid "Limit Contact Items to Extract"
+msgstr "限制提取的联系人项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:418
+msgid "Limit the number of extracted contact items."
+msgstr "限制提取的联系人项目的数量。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:428
+msgid "Maximum Contact Items to Extract"
+msgstr "要提取的最大联系人项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:429
+#, javascript-format
+msgid "Maximum contact items to extract between %d and %d. Default: %d."
+msgstr "要提取的最大联系人项目数介于 %d 和 %d 之间。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:450
+msgid "Color Content Settings"
+msgstr "颜色内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:451
+msgid "Options for color items."
+msgstr "颜色项目的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:456
+msgid "Extract Color Items from Text"
+msgstr "从文本中提取颜色项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:457
+msgid "Automatically extract color items from text."
+msgstr "自动从文本中提取颜色项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:463
+msgid "Limit Color Items to Extract"
+msgstr "限制提取的颜色项目"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:464
+msgid "Limit the number of extracted color items."
+msgstr "限制提取的颜色项的数量。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:474
+msgid "Maximum Color Items to Extract"
+msgstr "要提取的最大颜色项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:475
+#, javascript-format
+msgid "Maximum color items to extract between %d and %d. Default: %d."
+msgstr "要提取的最大颜色项数介于 %d 和 %d 之间。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:496
+msgid "Code Content Settings"
+msgstr "代码内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:497
+msgid "Options for code items."
+msgstr "代码项的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:502
+msgid "Extract Code Items from Text"
+msgstr "从文本中提取代码项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:503
+msgid "Automatically extract code items from text."
+msgstr "自动从文本中提取代码项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:509
+msgid "Limit Code Items to Extract"
+msgstr "限制提取的代码项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:510
+msgid "Limit the number of extracted code items."
+msgstr "限制提取的代码项的数量。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:520
+msgid "Maximum Code Items to Extract"
+msgstr "要提取的最大代码项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:521
+#, javascript-format
+msgid "Maximum code items to extract between %d and %d. Default: %d."
+msgstr "要提取的最大代码项介于 %d 和 %d 之间。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:542
+msgid "HTML Content Settings"
+msgstr "HTML 内容设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:543
+msgid "Options for HTML items."
+msgstr "HTML 项目的选项。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:548
+msgid "Rich HTML"
+msgstr "富 HTML"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:549
+msgid "Plain Text"
+msgstr "纯文本"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:554
+msgid "Default format for HTML items."
+msgstr "HTML 项目的默认格式。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:596
+msgid "HTML Button Settings"
+msgstr "HTML 按钮设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:607
+msgid "Manage visibility and order of action buttons for HTML items."
+msgstr "管理 HTML 项目的可见性和操作按钮顺序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:620
+msgid "Format Button"
+msgstr "格式按钮"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:621
+msgid "Show format button for HTML items."
+msgstr "显示 HTML 项目的格式按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:625
+msgid "Image Button"
+msgstr "图片按钮"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:626
+msgid "Show image button for HTML items."
+msgstr "显示 HTML 项目的图像按钮。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:23
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:36
+msgid "List View Sizing"
+msgstr "列表视图大小调整"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:24
+msgid "Customize preview line counts and baseline row heights."
+msgstr "自定义预览行数和基线行高。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:46
+msgid "Content Sizing"
+msgstr "内容调整"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:47
+msgid "Configure preview lines, thumbnail sizes, and baseline height enforcement."
+msgstr "配置预览线、缩略图大小和基线高度强制。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:53
+msgid "Image"
+msgstr "图像"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:54
+msgid "Preview size and baseline height for images."
+msgstr "预览图像的尺寸和基线高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:63
+msgid "Image Preview Size"
+msgstr "图片预览尺寸"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:64
+#, javascript-format
+msgid "Pixels to display for image previews (%d-%d). Default: %d."
+msgstr "图像预览显示的像素 (%d-%d)。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:75
+msgid "Image Default Height"
+msgstr "图像默认高度"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:76
+msgid "Preserve standard height for image items."
+msgstr "保留图像项目的标准高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:83
+msgid "Code"
+msgstr "代码"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:84
+msgid "Preview lines and baseline height for code."
+msgstr "预览代码的行和基线高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:93
+msgid "Code Preview Lines"
+msgstr "代码预览行"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:94
+#, javascript-format
+msgid "Lines to display for code previews (%d-%d). Default: %d."
+msgstr "用于代码预览的显示行 (%d-%d)。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:105
+msgid "Code Default Height"
+msgstr "代码默认高度"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:106
+msgid "Preserve standard height for code items."
+msgstr "保留代码项目的标准高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:113
+msgid "HTML"
+msgstr "HTML"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:114
+msgid "Preview lines and baseline height for HTML."
+msgstr "HTML 的预览行和基线高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:123
+msgid "HTML Preview Lines"
+msgstr "HTML 预览行"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:124
+#, javascript-format
+msgid "Lines to display for HTML previews (%d-%d). Default: %d."
+msgstr "HTML 预览时显示的行 (%d-%d)。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:135
+msgid "HTML Default Height"
+msgstr "HTML 默认高度"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:136
+msgid "Preserve standard height for HTML items."
+msgstr "保留 HTML 项目的标准高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:143
+msgid "Text"
+msgstr "文本"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:144
+msgid "Preview lines and baseline height for text."
+msgstr "预览文本的线条和基线高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:153
+msgid "Text Preview Lines"
+msgstr "文本预览行"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:154
+#, javascript-format
+msgid "Lines to display for text previews (%d-%d). Default: %d."
+msgstr "文本预览时显示的行 (%d-%d)。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:165
+msgid "Text Default Height"
+msgstr "文本默认高度"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:166
+msgid "Preserve standard height for text items."
+msgstr "保留文本项目的标准高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:173
+msgid "Metadata"
+msgstr "元数据"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:174
+msgid "Baseline height for metadata items."
+msgstr "元数据项的基线高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:179
+msgid "Metadata Default Height"
+msgstr "元数据默认高度"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:180
+msgid "Preserve standard height for metadata items."
+msgstr "保留元数据项的标准高度。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:21
+msgid "Clipboard Settings"
+msgstr "剪贴板设置"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:22
+msgid "Settings for the clipboard feature."
+msgstr "剪贴板功能的设置。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:33
+msgid "Maximum Clipboard History"
+msgstr "最大剪贴板历史"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:34
+#, javascript-format
+msgid "Number of items to keep in history (%d-%d). Default: %d."
+msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:46
+msgid "Move Item to Top on Copy"
+msgstr "复制时置顶"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:47
+msgid "When copying an item from history, make it the most recent."
+msgstr "从历史中复制项目时，将其设为最新。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:54
+msgid "Unpin Item on Paste"
+msgstr "粘贴时取消固定"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:55
+msgid "Automatically unpin an item when it is pasted."
+msgstr "粘贴项目时自动取消固定。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:62
+msgid "Show Clipboard Action Bar"
+msgstr "显示操作栏"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:63
+msgid "Show the toolbar above the clipboard list."
+msgstr "在剪贴板列表上方显示工具栏。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:70
+msgid "Merge Selected Items"
+msgstr "合并选中项"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:71
+msgid "Allow selecting and merging multiple items using checkboxes."
+msgstr "允许通过复选框选择并合并多个项目。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:96
+msgid "Newline"
+msgstr "换行符"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:97
+msgid "Double Newline"
+msgstr "双换行符"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:98
+msgid "Space"
+msgstr "空格"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:99
+msgid "Comma"
+msgstr "逗号"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:100
+msgid "Tab"
+msgstr "制表符"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:101
+msgid "Custom"
+msgstr "自定义"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:105
+msgid "Delimiter"
+msgstr "分隔符"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:106
+msgid "Delimiter used to separate text items when merging."
+msgstr "合并时用于分隔文本项目的分隔符。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:127
+msgid "Custom Delimiter"
+msgstr "自定义分隔符"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:150
+msgid "Selection Order"
+msgstr "选择顺序"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:151
+msgid "Chronological Order"
+msgstr "时间顺序"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:155
+msgid "Insertion Order"
+msgstr "插入顺序"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:156
+msgid "Order of items when merging selection."
+msgstr "合并选择时的项目顺序。"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:188
+msgid "List"
+msgstr "列表"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:189
+msgid "Grid"
+msgstr "网格"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:193
+msgid "Clipboard Layout"
+msgstr "剪贴板布局"
+
+#: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:194
+msgid "Display clipboard history as a list or a grid."
+msgstr "以列表或网格形式显示剪贴板历史。"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:102
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:286
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:292
+msgid "Select All"
+msgstr "全选"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:129
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:305
+msgid "Switch to Grid View"
+msgstr "切换到网格视图"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:129
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:305
+msgid "Switch to List View"
+msgstr "切换到列表视图"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:144
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:348
+msgid "Start Private Mode (Pause Recording)"
+msgstr "开始隐私模式（暂停记录）"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:163
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:223
+msgid "Pin/Unpin Selected"
+msgstr "固定/取消固定选中项"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:171
+msgid "Delete Selected"
+msgstr "删除选中项"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:229
+msgid "Pin Selected"
+msgstr "固定选中项"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:229
+msgid "Unpin Selected"
+msgstr "取消固定选中项"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:239
+msgid "Merge and Paste"
+msgstr "合并并粘贴"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:239
+msgid "Merge and Copy"
+msgstr "合并并复制"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:289
+msgid "Deselect All"
+msgstr "取消全选"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:348
+msgid "Stop Private Mode (Resume Recording)"
+msgstr "停止隐私模式（恢复记录）"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+msgid "No results found."
+msgstr "未找到结果。"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+msgid "Clipboard history is empty."
+msgstr "剪贴板历史为空。"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:333
+msgid "Pinned"
+msgstr "已固定"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:350
+msgid "History"
+msgstr "历史"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
+msgid "Emoji Settings"
+msgstr "表情符号设置"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:47
+msgid "Configure emoji appearance and behavior."
+msgstr "配置表情符号的外观和行为。"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:53
+msgid "Enable Custom Skin Tones"
+msgstr "启用自定义肤色"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:54
+msgid "If off, skinnable emojis are neutral. If on, use the settings below."
+msgstr "关闭时，可换肤表情使用中性肤色；开启时，使用下方设置。"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:61
+msgid "Light"
+msgstr "浅色"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:62
+msgid "Medium-Light"
+msgstr "中浅色"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:63
+msgid "Medium"
+msgstr "中等"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:64
+msgid "Medium-Dark"
+msgstr "中深色"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:65
+msgid "Dark"
+msgstr "深色"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:71
+msgid "Primary Tone / Single Emoji"
+msgstr "主色调/单个表情"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:72
+msgid "For single emojis and the first person in pairs."
+msgstr "用于单个表情符号和成对表情中的第一个人。"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:78
+msgid "Secondary Tone"
+msgstr "次色调"
+
+#: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:79
+msgid "For the second person in pairs."
+msgstr "用于成对表情中的第二个人。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
+msgid "GIF Settings"
+msgstr "GIF 设置"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:24
+msgid "To search for GIFs, you must select a provider and provide your own API key."
+msgstr "搜索动图必须选择提供商并提供自己的 API 密钥。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:36
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:37
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:39
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:40
+msgid "Disabled"
+msgstr "已禁用"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:43
+msgid "GIF Provider"
+msgstr "GIF 提供商"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:44
+msgid "Select the service to use for fetching GIFs."
+msgstr "选择用于获取动图的服务。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:68
+msgid "API Key"
+msgstr "API 密钥"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:83
+msgid "API Key (Optional)"
+msgstr "API 密钥（可选）"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:84
+msgid "Leave blank to use the built-in default key."
+msgstr "留空则使用内置默认密钥。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:86
+msgid "API Key (Required)"
+msgstr "API 密钥（必填）"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:87
+msgid "You must provide an API key to use this provider."
+msgstr "使用此提供商必须提供 API 密钥。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:118
+msgid "Paste Behavior"
+msgstr "粘贴行为"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:119
+msgid "Choose how GIFs are pasted."
+msgstr "选择动图的粘贴方式。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
+msgid "Paste Image"
+msgstr "粘贴图片"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:128
+msgid "Limit GIF Preview Cache Size"
+msgstr "限制动图预览缓存大小"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:129
+msgid "Turn off for an unlimited cache size."
+msgstr "关闭则不限制缓存大小。"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:141
+msgid "Cache Size Limit (MB)"
+msgstr "缓存大小限制（MB）"
+
+#: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:142
+#, javascript-format
+msgid "Range: %d-%d MB. Default: %d MB."
+msgstr "范围：%d-%d MB。默认值：%d MB。"
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:139
+msgid "Search"
+msgstr "搜索"
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
+#, javascript-format
+msgid "Search %s..."
+msgstr "搜索 %s..."
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:145
+#: gnome-extensions/extension/shared/utilities/utilitySearch.js:57
+msgid "Search..."
+msgstr "搜索..."
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:245
+msgid "No recent GIFs."
+msgstr "无最近动图。"
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:279
+msgid "No categories available."
+msgstr "无可用分类。"
+
+#: gnome-extensions/extension/features/GIF/services/gifRuntimeService.js:299
+msgid "No trending GIFs found."
+msgstr "未找到热门动图。"
+
+#: gnome-extensions/extension/features/GIF/tabGIF.js:184
+msgid "Online search is disabled."
+msgstr "在线搜索已禁用。"
+
+#: gnome-extensions/extension/features/GIF/view/gifContentView.js:253
+#, javascript-format
+msgid ""
+"Error: %s\n"
+"Please check your API key and network connection."
+msgstr ""
+"错误：%s\n"
+"请检查您的 API 密钥和网络连接。"
+
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:188
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:197
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:788
+msgid "Recents"
+msgstr "最近"
+
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:207
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:213
+msgid "Trending"
+msgstr "热门"
+
+#: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:214
+msgid "Trending GIFs"
+msgstr "热门 GIF"
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:995
+msgid "No recent items yet."
+msgstr "暂无最近项目。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:41
+msgid "Show All"
+msgstr "显示全部"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:14
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:16
+msgid "Pinned Clipboard"
+msgstr "固定剪贴板"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:17
+msgid "Pinned Matches"
+msgstr "固定匹配项"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:26
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:28
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:83
+msgid "Recent Emojis"
+msgstr "最近表情"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:29
+msgid "Emoji Results"
+msgstr "表情结果"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:38
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:40
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:88
+msgid "Recent GIFs"
+msgstr "最近 GIF"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:41
+msgid "GIF Results"
+msgstr "GIF 结果"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:50
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:52
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:93
+msgid "Recent Kaomojis"
+msgstr "最近颜文字"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:53
+msgid "Kaomoji Results"
+msgstr "颜文字结果"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:62
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:64
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:98
+msgid "Recent Symbols"
+msgstr "最近符号"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:65
+msgid "Symbol Results"
+msgstr "符号结果"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:74
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:76
+msgid "Recent Clipboard History"
+msgstr "最近剪贴板历史"
+
+#: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:77
+msgid "Clipboard Matches"
+msgstr "剪贴板匹配项"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:62
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:168
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:189
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:200
+msgid "Limited"
+msgstr "限制"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:63
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:169
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:190
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:201
+msgid "Unlimited"
+msgstr "无限"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:66
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:213
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:236
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:248
+msgid "Fixed Window"
+msgstr "固定窗口"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:67
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:214
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:237
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:249
+msgid "Scroll Window"
+msgstr "滚动窗口"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:83
+msgid "Grid layout"
+msgstr "网格布局"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:83
+msgid "List layout"
+msgstr "列表布局"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
+#, javascript-format
+msgid "%s - %s"
+msgstr "%s - %s"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
+msgid "Custom overrides enabled"
+msgstr "已启用自定义覆盖"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
+msgid "Using global defaults"
+msgstr "使用全局默认值"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:351
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:99
+#, javascript-format
+msgid "%s Range: %d-%d. Default: %d."
+msgstr "%s 范围：%d-%d。默认值：%d。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:394
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:407
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:425
+msgid "Advanced Section Overrides"
+msgstr "高级分区覆盖"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:395
+msgid "Open section-level overrides."
+msgstr "打开分区级覆盖设置。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:413
+msgid "Definitions"
+msgstr "定义"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:414
+msgid "Choose a section to edit its override definition."
+msgstr "选择一个分区以编辑其覆盖定义。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:426
+msgid "Unavailable until the extension schema is updated."
+msgstr "扩展架构更新后可用。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:454
+msgid "Customize this definition without changing global defaults."
+msgstr "自定义此定义，不改变全局默认值。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:460
+msgid "Enable Custom Overrides"
+msgstr "启用自定义覆盖"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:461
+msgid "When disabled, this definition uses global policy."
+msgstr "禁用时，此定义使用全局策略。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:503
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:165
+msgid "Global Limit Policy"
+msgstr "全局限制策略"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:504
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:166
+msgid "Used when custom limit policy by context is disabled."
+msgstr "自定义上下文限制策略禁用时使用。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:512
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:176
+msgid "Customize Limit Policy by Context"
+msgstr "按上下文自定义限制策略"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:513
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:177
+msgid "Configure browse and search limit policy independently."
+msgstr "分别配置浏览和搜索限制策略。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:529
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:186
+msgid "Browse Policy"
+msgstr "浏览策略"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:530
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:187
+msgid "Policy applied while browsing (non-search)."
+msgstr "浏览时（非搜索）应用的策略。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:539
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:197
+msgid "Search Policy"
+msgstr "搜索策略"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:540
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:198
+msgid "Policy applied only when search is enabled."
+msgstr "仅在搜索启用时应用的策略。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:549
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:210
+msgid "Global Display Mode"
+msgstr "全局显示模式"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:550
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:211
+msgid "Used when custom display mode by view is disabled."
+msgstr "自定义视图显示模式禁用时使用。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:558
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:221
+msgid "Customize Display Mode by View"
+msgstr "按视图自定义显示模式"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:559
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:222
+msgid "Configure list and grid display mode independently."
+msgstr "分别配置列表和网格显示模式。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:575
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:233
+msgid "List Display Mode"
+msgstr "列表显示模式"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:576
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:234
+msgid "Display mode for list view."
+msgstr "列表视图的显示模式。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:585
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:245
+msgid "Grid Display Mode"
+msgstr "网格显示模式"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:586
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:246
+msgid "Display mode for grid view."
+msgstr "网格视图的显示模式。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:596
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:257
+msgid "Global Visible Items"
+msgstr "全局可见项目数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:597
+msgid "Global item cap for grid when custom visible-items by view is disabled."
+msgstr "自定义视图可见项目数禁用时的网格全局上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:597
+msgid "Global item cap for list when custom visible-items by view is disabled."
+msgstr "自定义视图可见项目数禁用时的列表全局上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:604
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:264
+msgid "Customize Visible Items by View"
+msgstr "按视图自定义可见项目数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:605
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:265
+msgid "Configure list and grid item caps independently."
+msgstr "分别配置列表和网格的项目上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:622
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:276
+msgid "List Visible Items"
+msgstr "列表可见项目数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:623
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:277
+msgid "Item cap for list view."
+msgstr "列表视图的项目上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:632
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:284
+msgid "Grid Visible Items"
+msgstr "网格可见项目数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:633
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:285
+msgid "Item cap for grid view."
+msgstr "网格视图的项目上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:642
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:292
+msgid "Global Window Rows"
+msgstr "全局窗口行数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
+msgid "Global row limit for grid when custom window limits by view is disabled."
+msgstr "自定义视图窗口限制禁用时的网格全局行数上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
+msgid "Global row limit for list when custom window limits by view is disabled."
+msgstr "自定义视图窗口限制禁用时的列表全局行数上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:650
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:299
+msgid "Customize Window Limits by View"
+msgstr "按视图自定义窗口限制"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:651
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:300
+msgid "Configure list and grid window rows and grid columns independently."
+msgstr "分别配置列表和网格的窗口行数及网格列数。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:668
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:311
+msgid "List Window Rows"
+msgstr "列表窗口行数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:669
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:312
+msgid "Row limit for list view window."
+msgstr "列表视图窗口的行数上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:678
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:319
+msgid "Grid Window Rows"
+msgstr "网格窗口行数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:679
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:320
+msgid "Row limit for grid view window."
+msgstr "网格视图窗口的行数上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:688
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:327
+msgid "Grid Window Columns"
+msgstr "网格窗口列数"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:689
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:328
+msgid "Column value for grid view window."
+msgstr "网格视图窗口的列数值。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:698
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:336
+msgid "Unlimited Safety Cap"
+msgstr "无限模式安全上限"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:699
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:337
+msgid "Hard cap for unlimited mode to protect shell responsiveness."
+msgstr "无限模式的硬性上限，用于保护 Shell 响应性。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:24
+msgid "Recently Used Settings"
+msgstr "最近使用设置"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:25
+msgid "Behavior settings for the Recently Used tab."
+msgstr "最近使用标签页的行为设置。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:156
+msgid "Enable Search in Recently Used"
+msgstr "在最近使用中启用搜索"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:157
+msgid "Show a global search bar to filter items across Recently Used sections."
+msgstr "显示全局搜索栏以在最近使用分区中过滤项目。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:258
+msgid "Global item cap for list and grid when custom visible-items by view is disabled."
+msgstr "自定义视图可见项目数禁用时的列表和网格全局上限。"
+
+#: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:293
+msgid "Global row limit for list and grid when custom window limits by view is disabled."
+msgstr "自定义视图窗口限制禁用时的列表和网格全局行数上限。"
+
+#: gnome-extensions/extension/shared/menu/menuIndicator.js:29
+msgid "All-in-One Clipboard"
+msgstr "全能剪贴板"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:14
+msgid "Auto-Paste Settings"
+msgstr "自动粘贴设置"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:15
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:22
+msgid "Automatically paste selected items instead of just copying to clipboard."
+msgstr "自动粘贴选中项目，而不仅是复制到剪贴板。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:21
+msgid "Enable Auto-Paste"
+msgstr "启用自动粘贴"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:30
+msgid "Auto-Paste Emojis"
+msgstr "自动粘贴表情"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:31
+msgid "Auto-Paste GIFs"
+msgstr "自动粘贴 GIF"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:32
+msgid "Auto-Paste Kaomojis"
+msgstr "自动粘贴颜文字"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:33
+msgid "Auto-Paste Symbols"
+msgstr "自动粘贴符号"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:34
+msgid "Auto-Paste from Clipboard History"
+msgstr "从剪贴板历史自动粘贴"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:16
+msgid "Data Management"
+msgstr "数据管理"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:17
+msgid "Manage stored data and configure automatic cleanup. Manual actions cannot be undone."
+msgstr "管理存储数据并配置自动清理。手动操作无法撤销。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:23
+msgid "Clear Data at Login"
+msgstr "登录时清除数据"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:24
+msgid "Automatically clear selected data at every login."
+msgstr "每次登录时自动清除选中的数据。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:32
+msgid "Clear Clipboard History"
+msgstr "清除剪贴板历史"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:33
+msgid "Clear Recent Emojis"
+msgstr "清除最近表情"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:34
+msgid "Clear Recent GIFs"
+msgstr "清除最近动图"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:35
+msgid "Clear Recent Kaomojis"
+msgstr "清除最近颜文字"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:36
+msgid "Clear Recent Symbols"
+msgstr "清除最近符号"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:47
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:59
+msgid "Clear"
+msgstr "清除"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:53
+msgid "Are you sure?"
+msgstr "确定吗？"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:54
+msgid "The selected data will be permanently deleted."
+msgstr "选中的数据将被永久删除。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:58
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:200
+msgid "Cancel"
+msgstr "取消"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:75
+msgid "Recent Item History"
+msgstr "最近项目历史"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:76
+msgid "Clear lists of recently used items."
+msgstr "清除最近使用项目列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:84
+msgid "Permanently clears the list of recent emojis."
+msgstr "永久清除最近表情列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:89
+msgid "Permanently clears the list of recent GIFs."
+msgstr "永久清除最近动图列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:94
+msgid "Permanently clears the list of recent kaomojis."
+msgstr "永久清除最近颜文字列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:99
+msgid "Permanently clears the list of recent symbols."
+msgstr "永久清除最近符号列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:108
+msgid "All Recent Items"
+msgstr "所有最近项目"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:109
+msgid "Permanently clears all of the above lists at once."
+msgstr "一次性永久清除以上所有列表。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:116
+msgid "Clipboard Data"
+msgstr "剪贴板数据"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:117
+msgid "Permanently delete your saved clipboard history and pinned items."
+msgstr "永久删除保存的剪贴板历史和固定项目。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:122
+msgid "Clipboard History"
+msgstr "剪贴板历史"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:123
+msgid "Permanently clears all saved unpinned clipboard items."
+msgstr "永久清除所有保存的非固定剪贴板项目。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:129
+msgid "Pinned Items"
+msgstr "固定项目"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:130
+msgid "Permanently clears all saved pinned clipboard items."
+msgstr "永久清除所有保存的固定剪贴板项目。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:137
+msgid "Performance Caches"
+msgstr "性能缓存"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:138
+msgid "Clear temporary data used to improve loading speed."
+msgstr "清除用于提升加载速度的临时数据。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:143
+msgid "GIF Preview Cache"
+msgstr "动图预览缓存"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:144
+msgid "Permanently clears all downloaded GIF preview images."
+msgstr "永久清除所有下载的动图预览图片。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
+msgid "Exclusions Management"
+msgstr "排除项管理"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16
+msgid "Manage content that should be ignored by the clipboard manager."
+msgstr "管理剪贴板管理器应忽略的内容。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:22
+msgid "Enhanced Exclusion Detection"
+msgstr "增强排除检测"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:23
+msgid "Detects excluded applications inside browser windows and enables the system accessibility service if needed."
+msgstr "检测浏览器窗口内的排除应用，并在需要时启用系统辅助功能服务。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:35
+msgid "Applications"
+msgstr "应用程序"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:36
+msgid "Prevent specific applications from being captured."
+msgstr "阻止捕获特定应用程序。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:39
+msgid "Application Name or ID"
+msgstr "应用名称或 ID"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:43
+msgid "Addresses"
+msgstr "地址"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:44
+msgid "Prevent specific links or emails from being crawled."
+msgstr "阻止爬取特定链接或邮箱。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:47
+msgid "Link or Email Address"
+msgstr "链接或邮箱地址"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:51
+msgid "Paths"
+msgstr "路径"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:52
+msgid "Prevent specific files, directories, or URI patterns from being captured."
+msgstr "防止捕获特定文件、目录或 URI 模式。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:55
+msgid "/path/to/folder or file://..."
+msgstr "/路径/到/文件夹或文件://..."
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:105
+msgid "Add New Exclusion"
+msgstr "添加新排除项"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:19
+msgid "General settings for the extension."
+msgstr "通用设置。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:25
+msgid "Extension Dimensions"
+msgstr "面板尺寸"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:26
+msgid "Set custom width and height for the extension menu."
+msgstr "设置插件面板宽度和高度。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:36
+msgid "Width"
+msgstr "宽度"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:37
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:54
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:44
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:36
+#, javascript-format
+msgid "Range: %d-%d. Default: %d."
+msgstr "范围：%d-%d。默认值：%d。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:53
+msgid "Height"
+msgstr "高度"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:66
+msgid "Hide Panel Icon"
+msgstr "隐藏插件图标"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:67
+msgid "The menu can still be opened with shortcuts."
+msgstr "菜单仍可通过快捷键打开。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:75
+msgid "Remember Last Opened Tab"
+msgstr "记住最后打开的标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:76
+msgid "Re-open the menu to the last used tab."
+msgstr "重新打开菜单时恢复到最后使用的标签页。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:86
+msgid "Mouse Cursor"
+msgstr "鼠标指针处"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:87
+msgid "Screen Center"
+msgstr "屏幕中心"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:88
+msgid "Active Window"
+msgstr "活动窗口"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:94
+msgid "Menu Position"
+msgstr "面板位置"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:17
+msgid "Grid Columns"
+msgstr "网格列数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:18
+msgid "Control column counts for grid and masonry views. Turn off for automatic sizing."
+msgstr "控制网格和瀑布流视图的列数。关闭则自动调整。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:32
+#, javascript-format
+msgid "%s Columns"
+msgstr "%s 列数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:33
+msgid "Automatic when off."
+msgstr "关闭时自动。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:43
+msgid "Maximum Columns"
+msgstr "最大列数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:47
+msgid "Set Shortcut"
+msgstr "设置快捷键"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:54
+msgid ""
+"Press a key combination\n"
+"Backspace to Clear, Escape to Cancel"
+msgstr ""
+"按下组合键\n"
+"退格键清除，ESC 键取消"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:128
+msgid "Keyboard Shortcuts"
+msgstr "键盘快捷键"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:129
+msgid "Click on a shortcut to change it. Press Backspace to clear."
+msgstr "点击快捷键进行修改。按退格键清除。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:135
+msgid "Global Shortcuts"
+msgstr "全局快捷键"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:136
+msgid "These work even when the menu is closed."
+msgstr "这些快捷键在菜单关闭时仍有效。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:141
+msgid "Toggle Main Menu"
+msgstr "切换主菜单"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:142
+msgid "Open Recently Used Tab"
+msgstr "打开最近使用标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:143
+msgid "Open Emoji Tab"
+msgstr "打开表情标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:144
+msgid "Open GIF Tab"
+msgstr "打开动图标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:145
+msgid "Open Kaomoji Tab"
+msgstr "打开颜文字标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:146
+msgid "Open Symbols Tab"
+msgstr "打开符号标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:147
+msgid "Open Clipboard Tab"
+msgstr "打开剪贴板标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:157
+msgid "Main Tab Navigation"
+msgstr "主标签页导航"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:158
+msgid "Switch between the main tabs within the menu."
+msgstr "在菜单内的主标签页之间切换。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:163
+msgid "Next Tab"
+msgstr "下一个标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:164
+msgid "Previous Tab"
+msgstr "上一个标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:174
+msgid "Category Navigation"
+msgstr "分类导航"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:175
+msgid "Switch between the categories within the tabs."
+msgstr "在标签页内的分类之间切换。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:180
+msgid "Next Category"
+msgstr "下一个分类"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:181
+msgid "Previous Category"
+msgstr "上一个分类"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:191
+msgid "Clipboard Item Actions"
+msgstr "剪贴板项目操作"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:192
+msgid "Shortcuts for items in the grid/list view."
+msgstr "网格/列表视图中项目的快捷键。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:197
+msgid "Select Item"
+msgstr "选择项目"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:198
+msgid "Pin Item"
+msgstr "固定项目"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:199
+msgid "Delete Item"
+msgstr "删除项目"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:17
+msgid "Recent Items Limits"
+msgstr "最近项目限制"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:18
+msgid "Maximum number of items to keep in \"Recents\" for each feature."
+msgstr "每个功能在「最近」中保留的最大项目数。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:23
+msgid "Maximum Recent Emojis"
+msgstr "最大表情记录数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:24
+msgid "Maximum Recent GIFs"
+msgstr "最大最近 GIF 数量"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:25
+msgid "Maximum Recent Kaomojis"
+msgstr "最大颜文字记录数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:26
+msgid "Maximum Recent Symbols"
+msgstr "最大符号记录数"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:21
+msgid "Settings Management"
+msgstr "设置管理"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:22
+msgid "Manage your extension preferences."
+msgstr "管理扩展偏好设置。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:28
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:75
+msgid "Export Settings"
+msgstr "导出设置"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:29
+msgid "Export your preferences to a JSON file."
+msgstr "将偏好设置导出到 JSON 文件。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:32
+msgid "Export"
+msgstr "导出"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:41
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:142
+msgid "Import Settings"
+msgstr "导入设置"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:42
+msgid "Import your preferences from a JSON file."
+msgstr "从 JSON 文件导入偏好设置。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:45
+msgid "Import"
+msgstr "导入"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:54
+msgid "Reset Settings"
+msgstr "重置设置"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:55
+msgid "Restore all extension settings back to their default values."
+msgstr "将所有扩展设置恢复为默认值。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:82
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:148
+msgid "JSON Files"
+msgstr "JSON 文件"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:120
+msgid "Settings successfully exported."
+msgstr "设置导出成功。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:123
+msgid "Failed to export settings."
+msgstr "设置导出失败。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:172
+msgid "Settings successfully imported."
+msgstr "设置导入成功。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:175
+msgid "Failed to import settings. Invalid file."
+msgstr "设置导入失败。文件无效。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:194
+msgid "Reset All Settings?"
+msgstr "重置所有设置？"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:195
+msgid "Are you sure you want to restore all extension settings to their defaults? This action cannot be undone."
+msgstr "确定要将所有扩展设置恢复为默认值吗？此操作无法撤销。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:211
+msgid "Settings successfully reset to defaults."
+msgstr "设置已成功重置为默认值。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:214
+msgid "Failed to reset settings."
+msgstr "设置重置失败。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:15
+msgid "Tab Management"
+msgstr "标签页管理"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:16
+msgid "Customize the visibility, order, and default tab."
+msgstr "自定义标签页的可见性、顺序和默认标签页。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:31
+msgid "Recently Used Tab"
+msgstr "最近使用标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:32
+msgid "Required when Always Show Main Tabs is off."
+msgstr "始终显示主标签页关闭时必填。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:34
+msgid "Emoji Tab"
+msgstr "表情标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:35
+msgid "GIF Tab"
+msgstr "GIF 标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:36
+msgid "Kaomoji Tab"
+msgstr "颜文字标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:37
+msgid "Symbols Tab"
+msgstr "符号标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:38
+msgid "Clipboard Tab"
+msgstr "剪贴板标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:43
+msgid "Visible Tabs"
+msgstr "可见标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:44
+msgid "Show or hide individual tabs from the main bar."
+msgstr "在主栏中显示或隐藏各个标签页。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:62
+msgid "Tab Bar Behavior"
+msgstr "标签栏行为"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:63
+msgid "Configure when the top tab bar is visible."
+msgstr "配置顶部标签栏的显示时机。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:69
+msgid "Always Show Main Tabs"
+msgstr "始终显示主标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:70
+msgid "Keep the main tab buttons visible in every tab."
+msgstr "在每个标签页中保持主标签按钮可见。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:77
+msgid "Hide Last Main Tab"
+msgstr "隐藏最后一个主标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:78
+msgid "Automatically hide the last main tab visible."
+msgstr "自动隐藏最后一个可见的主标签页。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:85
+msgid "Default Tab"
+msgstr "默认标签页"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:86
+msgid "The tab that opens when you first open the menu."
+msgstr "首次打开菜单时显示的标签页。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:172
+msgid "Tab Order"
+msgstr "标签页顺序"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:173
+msgid "Use the buttons to reorder tabs in the main bar."
+msgstr "使用按钮重新排列主栏中的标签页顺序。"
+
+#: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:232
+msgid "Restore the original tab order."
+msgstr "恢复原始标签页顺序。"
+
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:89
+msgid "Component configuration is invalid. Check logs."
+msgstr "组件配置无效。请检查日志。"
+
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:713
+msgid "Error loading data. Check logs."
+msgstr "数据加载错误。请检查日志。"
+
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:993
+msgid "No items available."
+msgstr "无可用项目。"
+
+#: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:994
+msgid "No items match your search."
+msgstr "没有项目匹配您的搜索。"

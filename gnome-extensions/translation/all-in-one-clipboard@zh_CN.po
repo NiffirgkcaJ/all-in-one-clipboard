@@ -79,7 +79,7 @@ msgstr "粘贴图像"
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
-msgstr "启动链接"
+msgstr "打开链接"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
