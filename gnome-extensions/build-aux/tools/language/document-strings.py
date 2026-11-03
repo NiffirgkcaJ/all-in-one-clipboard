@@ -2,8 +2,7 @@
 """
 Document supported languages in README.md from gettext PO catalogs.
 
-Scans the translation directory, extracts language names dynamically from PO
-headers with system ISO database fallback, and updates the README.md section.
+Scans the translation directory, extracts language names dynamically from PO headers with system ISO database fallback, and updates the README.md section.
 
 Usage:
     python3 document-strings.py [readme_path] [translation_dir]
@@ -16,9 +15,9 @@ import json
 from pathlib import Path
 import re
 import sys
-from typing import Dict, List, Optional
+from typing import Optional
 
-# --- Section Markers ---
+# --- Configuration ---
 
 START_MARKER = "<!-- supported-languages:start -->"
 END_MARKER = "<!-- supported-languages:end -->"
@@ -38,7 +37,7 @@ def to_title_case(name: str) -> str:
     """
     return re.sub(r"\b[a-z]", lambda match: match.group(0).upper(), name.strip())
 
-def load_iso_languages() -> Dict[str, str]:
+def load_iso_languages() -> dict[str, str]:
     """
     Loads ISO 639-2 language mappings from the system database when available.
 
@@ -52,7 +51,7 @@ def load_iso_languages() -> Dict[str, str]:
     try:
         data = json.loads(iso_path.read_text(encoding="utf-8"))
         entries = data.get("639-2", [])
-        code_map: Dict[str, str] = {}
+        code_map: dict[str, str] = {}
         for item in entries:
             name = item.get("name", "")
             if not name:
@@ -66,7 +65,7 @@ def load_iso_languages() -> Dict[str, str]:
     except Exception:
         return {}
 
-def extract_language_name(po_path: Path, iso_map: Dict[str, str]) -> Optional[str]:
+def extract_language_name(po_path: Path, iso_map: dict[str, str]) -> Optional[str]:
     """
     Extracts the display language name from a PO file header or fallback lookup.
 
@@ -106,7 +105,9 @@ def extract_language_name(po_path: Path, iso_map: Dict[str, str]) -> Optional[st
 
     return None
 
-def collect_supported_languages(translation_dir: Path) -> List[str]:
+# --- Core Processing ---
+
+def collect_supported_languages(translation_dir: Path) -> list[str]:
     """
     Collects and sorts all supported language names from PO files.
 
@@ -126,7 +127,7 @@ def collect_supported_languages(translation_dir: Path) -> List[str]:
 
     return sorted(languages)
 
-def update_readme_supported_languages(readme_path: Path, languages: List[str]) -> bool:
+def update_readme_supported_languages(readme_path: Path, languages: list[str]) -> bool:
     """
     Updates the Supported Languages section in the target README file.
 

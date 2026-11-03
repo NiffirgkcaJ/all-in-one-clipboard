@@ -2,7 +2,7 @@
 """
 Sanitize and clean gettext .po files for all-in-one-clipboard.
 
-Purges obsolete messages prefixed with #~, then reformats the file with msgcat.
+Purges obsolete messages prefixed with #~, normalizes charset to UTF-8, then reformats the file with msgcat.
 
 Usage:
     python3 clean-strings.py <path_to_po_file> [more_po_files...]
@@ -30,6 +30,23 @@ def strip_obsolete_entries(content: str) -> str:
     """
     return re.sub(r'(?:^[ \t]*#.*$\n)*^[ \t]*#~.*$\n?', '', content, flags=re.MULTILINE)
 
+def normalize_charset(content: str) -> str:
+    """
+    Normalizes ASCII or unspecified gettext charset headers to UTF-8.
+
+    Args:
+        content: Raw gettext PO file content.
+
+    Returns:
+        Content with charset normalized to UTF-8.
+    """
+    return re.sub(
+        r'("Content-Type:\s*text/plain;\s*charset=)[^\\"]+',
+        r"\g<1>UTF-8",
+        content,
+        flags=re.IGNORECASE,
+    )
+
 # --- Core Processing ---
 
 def clean_po_file(po_path: Path) -> None:
@@ -42,6 +59,7 @@ def clean_po_file(po_path: Path) -> None:
     print(f"Cleaning '{po_path}'...", flush=True)
     content = po_path.read_text(encoding="utf-8")
     cleaned_content = strip_obsolete_entries(content)
+    cleaned_content = normalize_charset(cleaned_content)
 
     po_path.write_text(cleaned_content, encoding="utf-8")
 

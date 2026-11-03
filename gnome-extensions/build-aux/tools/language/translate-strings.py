@@ -2,7 +2,7 @@
 """
 Automated PO translation utility for all-in-one-clipboard UI strings.
 
-Scans gettext .po files for untranslated or fuzzy messages, translates them via Google Translate GTX over HTTP/2, and validates the compiled output.
+Scans gettext .po files for untranslated or fuzzy messages, translates them via Google Translate endpoints, and validates the compiled output.
 
 Usage:
     python3 translate-strings.py <path_to_po> <target_language_code>
@@ -198,7 +198,7 @@ def process_po_file(po_path: Path, target_lang: str) -> None:
 
     # Validate using msgfmt.
     res = subprocess.run(["msgfmt", "-c", "-v", str(po_path), "-o", "/dev/null"], capture_output=True, text=True)
-    print(f"Validation: {res.stderr.strip()}", flush=True)
+    print(f"  Validation: {res.stderr.strip()}", flush=True)
 
 # --- Main Entry Point ---
 
