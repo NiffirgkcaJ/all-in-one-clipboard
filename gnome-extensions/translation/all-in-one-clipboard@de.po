@@ -59,29 +59,28 @@ msgstr "Allgemein"
 
 #: gnome-extensions/extension/prefs.js:85
 msgid "Features"
-msgstr ""
+msgstr "Funktionen"
 
 #: gnome-extensions/extension/prefs.js:99
 msgid "Advanced"
-msgstr ""
+msgstr "Erweitert"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
-msgstr ""
+msgstr "Als reinen Text einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
 msgid "Paste as Rich HTML"
-msgstr ""
+msgstr "Als Rich HTML einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
-#, fuzzy
 msgid "Paste Images"
-msgstr "Bild einfügen"
+msgstr "Bilder einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
-msgstr ""
+msgstr "Link öffnen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
@@ -90,205 +89,183 @@ msgid "Paste Link"
 msgstr "Link einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
-#, fuzzy
 msgid "Paste as Files"
-msgstr "Bild einfügen"
+msgstr "Als Dateien einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
-#, fuzzy
 msgid "Paste as File"
-msgstr "Bild einfügen"
+msgstr "Als Datei einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
-#, fuzzy
 msgid "Paste as Folders"
-msgstr "Bild einfügen"
+msgstr "Als Ordner einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
-#, fuzzy
 msgid "Paste as Folder"
-msgstr "Bild einfügen"
+msgstr "Als Ordner einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
-#, fuzzy
 msgid "Paste as Items"
-msgstr "Bild einfügen"
+msgstr "Als Elemente einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
-#, fuzzy
 msgid "Paste as Item"
-msgstr "Bild einfügen"
+msgstr "Als Element einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
-#, fuzzy
 msgid "Paste as Paths"
-msgstr "Bild einfügen"
+msgstr "Als Pfade einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
-#, fuzzy
 msgid "Paste as Path"
-msgstr "Bild einfügen"
+msgstr "Als Pfad einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
-#, fuzzy
 msgid "Paste as URIs"
-msgstr "Bild einfügen"
+msgstr "Als URIs einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
-#, fuzzy
 msgid "Paste as URI"
-msgstr "Bild einfügen"
+msgstr "Als URI einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:25
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:38
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:48
-#, fuzzy
 msgid "Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Inhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:26
 msgid "Configure capture, extraction, and formatting for different content types."
-msgstr ""
+msgstr "Konfigurieren Sie Erfassung, Extraktion und Formatierung für verschiedene Inhaltstypen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:49
 msgid "Manage extraction limits, paste formats, and action options for clipboard content types."
-msgstr ""
+msgstr "Verwalten Sie Extraktionsgrenzen, Einfügeformate und Aktionsoptionen für Inhaltstypen der Zwischenablage."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:55
-#, fuzzy
 msgid "Image Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Bildinhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:56
 msgid "Options for image items."
-msgstr ""
+msgstr "Optionen für Bildelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:61
 msgid "Extract Image Items from Files"
-msgstr ""
+msgstr "Extrahieren Sie Bildelemente aus Dateien"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:62
-#, fuzzy
 msgid "Automatically extract image items from files."
-msgstr "Den letzten sichtbaren Hauptreiter automatisch verstecken."
+msgstr "Extrahieren Sie Bildelemente automatisch aus Dateien."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:68
 msgid "Limit Image Items to Extract"
-msgstr ""
+msgstr "Beschränken Sie die zu extrahierenden Bildelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:69
 msgid "Limit the number of extracted image items."
-msgstr ""
+msgstr "Begrenzen Sie die Anzahl der extrahierten Bildelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:79
 msgid "Maximum Image Items to Extract"
-msgstr ""
+msgstr "Maximal zu extrahierende Bildelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:80
 #, javascript-format
 msgid "Maximum image items to extract between %d and %d. Default: %d."
-msgstr ""
+msgstr "Maximale zu extrahierende Bildelemente zwischen %d und %d. Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:101
-#, fuzzy
 msgid "Resource Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Ressourceninhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:102
 msgid "Options for resource items."
-msgstr ""
+msgstr "Optionen für Ressourcenelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:107
 msgid "Capture Resource Items from Files"
-msgstr ""
+msgstr "Erfassen Sie Ressourcenelemente aus Dateien"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:108
 msgid "Automatically capture resource items from files."
-msgstr ""
+msgstr "Erfassen Sie Ressourcenelemente automatisch aus Dateien."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:114
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:187
-#, fuzzy
 msgid "Files and Folders"
-msgstr "Bild einfügen"
+msgstr "Dateien und Ordner"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:115
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:192
 msgid "File Paths"
-msgstr ""
+msgstr "Dateipfade"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:116
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:197
 msgid "URI Links"
-msgstr ""
+msgstr "URI-Links"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:120
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:553
-#, fuzzy
 msgid "Default Format"
-msgstr "Standardreiter"
+msgstr "Standardformat"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:121
 msgid "Default format for resource items."
-msgstr ""
+msgstr "Standardformat für Ressourcenelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:150
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:173
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:583
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:606
-#, fuzzy
 msgid "Button Settings"
-msgstr "Einstellungen zum automatischen Einfügen"
+msgstr "Schaltflächeneinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:151
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:584
-#, fuzzy
 msgid "Configure button visibility and display order on cards."
-msgstr "Unabhängiges Konfigurieren von Listen- und Rasteranzeigemodi."
+msgstr "Konfigurieren Sie die Sichtbarkeit der Schaltflächen und die Anzeigereihenfolge auf Karten."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:163
-#, fuzzy
 msgid "Resource Button Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Einstellungen der Ressourcenschaltfläche"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:174
 msgid "Manage visibility and order of action buttons for resource items."
-msgstr ""
+msgstr "Verwalten Sie die Sichtbarkeit und Reihenfolge der Aktionsschaltflächen für Ressourcenelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:180
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:613
-#, fuzzy
 msgid "Visible Buttons"
-msgstr "Sichtbare Reiter"
+msgstr "Sichtbare Schaltflächen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:181
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:614
 msgid "Show or hide action buttons on cards."
-msgstr ""
+msgstr "Aktionsschaltflächen auf Karten ein- oder ausblenden."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:188
 msgid "Show files and folders button."
-msgstr ""
+msgstr "Schaltfläche „Dateien und Ordner anzeigen“."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:193
 msgid "Show file paths button."
-msgstr ""
+msgstr "Schaltfläche „Dateipfade anzeigen“."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:198
 msgid "Show URI links button."
-msgstr ""
+msgstr "Schaltfläche „URI-Links anzeigen“."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:214
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:642
-#, fuzzy
 msgid "Button Order"
-msgstr "Reihenfolge zurücksetzen"
+msgstr "Schaltflächenreihenfolge"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:215
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:643
-#, fuzzy
 msgid "Use buttons to reorder action buttons on cards."
-msgstr "Die Knöpfe nutzen, um Reiter in der Hauptleiste neu zu ordnen."
+msgstr "Verwenden Sie Schaltflächen, um Aktionsschaltflächen auf Karten neu anzuordnen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:274
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:702
@@ -298,9 +275,8 @@ msgstr "Reihenfolge zurücksetzen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:275
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:703
-#, fuzzy
 msgid "Restore original action button order."
-msgstr "Ursprüngliche Reiter-Reihenfolge wiederherstellen."
+msgstr "Stellen Sie die ursprüngliche Reihenfolge der Aktionsschaltflächen wieder her."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:281
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:709
@@ -311,351 +287,337 @@ msgid "Reset"
 msgstr "Zurücksetzen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:309
-#, fuzzy
 msgid "Link Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Linkinhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:310
 msgid "Options for link items."
-msgstr ""
+msgstr "Optionen für Linkelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:315
 msgid "Extract Link Items from Text"
-msgstr ""
+msgstr "Linkelemente aus Text extrahieren"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:316
 msgid "Automatically extract link items from text."
-msgstr ""
+msgstr "Extrahieren Sie Linkelemente automatisch aus Text."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:322
 msgid "Extract Link Items from Contacts"
-msgstr ""
+msgstr "Extrahieren Sie Linkelemente aus Kontakten"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:323
-#, fuzzy
 msgid "Automatically extract link items from contacts."
-msgstr "Den letzten sichtbaren Hauptreiter automatisch verstecken."
+msgstr "Linkelemente automatisch aus Kontakten extrahieren."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:329
 msgid "Limit Link Items to Extract"
-msgstr ""
+msgstr "Beschränken Sie die zu extrahierenden Linkelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:330
 msgid "Limit the number of extracted link items."
-msgstr ""
+msgstr "Begrenzen Sie die Anzahl der extrahierten Linkelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:340
 msgid "Maximum Link Items to Extract"
-msgstr ""
+msgstr "Maximal zu extrahierende Linkelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:341
 #, javascript-format
 msgid "Maximum link items to extract between %d and %d. Default: %d."
-msgstr ""
+msgstr "Maximal zu extrahierende Linkelemente zwischen %d und %d. Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:357
-#, fuzzy
 msgid "Default Action"
-msgstr "Standardreiter"
+msgstr "Standardaktion"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:358
 msgid "Default action for link items."
-msgstr ""
+msgstr "Standardaktion für Linkelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:386
 msgid "Action Button"
-msgstr ""
+msgstr "Aktionsschaltfläche"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:387
 msgid "Show action button for link items."
-msgstr ""
+msgstr "Aktionsschaltfläche für Linkelemente anzeigen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:404
-#, fuzzy
 msgid "Contact Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Kontaktieren Sie die Inhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:405
 msgid "Options for contact items."
-msgstr ""
+msgstr "Optionen für Kontaktelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:410
 msgid "Extract Contact Items from Text"
-msgstr ""
+msgstr "Kontaktelemente aus Text extrahieren"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:411
 msgid "Automatically extract contact items from text."
-msgstr ""
+msgstr "Extrahieren Sie Kontaktelemente automatisch aus Text."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:417
 msgid "Limit Contact Items to Extract"
-msgstr ""
+msgstr "Begrenzen Sie die zu extrahierenden Kontaktelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:418
 msgid "Limit the number of extracted contact items."
-msgstr ""
+msgstr "Begrenzen Sie die Anzahl der extrahierten Kontaktelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:428
 msgid "Maximum Contact Items to Extract"
-msgstr ""
+msgstr "Maximal zu extrahierende Kontaktelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:429
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum contact items to extract between %d and %d. Default: %d."
-msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
+msgstr "Maximal zu extrahierende Kontaktelemente zwischen %d und %d. Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:450
-#, fuzzy
 msgid "Color Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Farbinhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:451
 msgid "Options for color items."
-msgstr ""
+msgstr "Optionen für Farbelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:456
 msgid "Extract Color Items from Text"
-msgstr ""
+msgstr "Extrahieren Sie Farbelemente aus Text"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:457
 msgid "Automatically extract color items from text."
-msgstr ""
+msgstr "Extrahieren Sie Farbelemente automatisch aus Text."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:463
 msgid "Limit Color Items to Extract"
-msgstr ""
+msgstr "Beschränken Sie die zu extrahierenden Farbelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:464
 msgid "Limit the number of extracted color items."
-msgstr ""
+msgstr "Begrenzen Sie die Anzahl der extrahierten Farbelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:474
-#, fuzzy
 msgid "Maximum Color Items to Extract"
-msgstr "Maximaler Zwischenablageverlauf"
+msgstr "Maximal zu extrahierende Farbelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:475
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum color items to extract between %d and %d. Default: %d."
-msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
+msgstr "Maximal zu extrahierende Farbelemente zwischen %d und %d. Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:496
-#, fuzzy
 msgid "Code Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Codeinhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:497
 msgid "Options for code items."
-msgstr ""
+msgstr "Optionen für Codeelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:502
 msgid "Extract Code Items from Text"
-msgstr ""
+msgstr "Extrahieren Sie Codeelemente aus Text"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:503
 msgid "Automatically extract code items from text."
-msgstr ""
+msgstr "Extrahieren Sie Codeelemente automatisch aus Text."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:509
 msgid "Limit Code Items to Extract"
-msgstr ""
+msgstr "Beschränken Sie die zu extrahierenden Codeelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:510
 msgid "Limit the number of extracted code items."
-msgstr ""
+msgstr "Begrenzen Sie die Anzahl der extrahierten Codeelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:520
 msgid "Maximum Code Items to Extract"
-msgstr ""
+msgstr "Maximal zu extrahierende Codeelemente"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:521
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum code items to extract between %d and %d. Default: %d."
-msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
+msgstr "Maximal zu extrahierende Codeelemente zwischen %d und %d. Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:542
-#, fuzzy
 msgid "HTML Content Settings"
-msgstr "Zuletzt genutzt"
+msgstr "HTML-Inhaltseinstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:543
 msgid "Options for HTML items."
-msgstr ""
+msgstr "Optionen für HTML-Elemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:548
 msgid "Rich HTML"
-msgstr ""
+msgstr "Rich HTML"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:549
 msgid "Plain Text"
-msgstr ""
+msgstr "Reiner Text"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:554
 msgid "Default format for HTML items."
-msgstr ""
+msgstr "Standardformat für HTML-Elemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:596
-#, fuzzy
 msgid "HTML Button Settings"
-msgstr "Zuletzt genutzt"
+msgstr "HTML-Button-Einstellungen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:607
 msgid "Manage visibility and order of action buttons for HTML items."
-msgstr ""
+msgstr "Verwalten Sie die Sichtbarkeit und Reihenfolge der Aktionsschaltflächen für HTML-Elemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:620
 msgid "Format Button"
-msgstr ""
+msgstr "Formatschaltfläche"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:621
 msgid "Show format button for HTML items."
-msgstr ""
+msgstr "Schaltfläche „Format“ für HTML-Elemente anzeigen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:625
 msgid "Image Button"
-msgstr ""
+msgstr "Bild-Schaltfläche"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:626
 msgid "Show image button for HTML items."
-msgstr ""
+msgstr "Schaltfläche „Bild anzeigen“ für HTML-Elemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:23
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:36
 msgid "List View Sizing"
-msgstr ""
+msgstr "Größenanpassung der Listenansicht"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:24
 msgid "Customize preview line counts and baseline row heights."
-msgstr ""
+msgstr "Passen Sie die Anzahl der Vorschauzeilen und die Zeilenhöhen der Grundlinie an."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:46
-#, fuzzy
 msgid "Content Sizing"
-msgstr "Zuletzt genutzt"
+msgstr "Inhaltsgröße"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:47
 msgid "Configure preview lines, thumbnail sizes, and baseline height enforcement."
-msgstr ""
+msgstr "Konfigurieren Sie Vorschaulinien, Miniaturbildgrößen und die Durchsetzung der Grundlinienhöhe."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:53
-#, fuzzy
 msgid "Image"
-msgstr "Bild einfügen"
+msgstr "Bild"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:54
 msgid "Preview size and baseline height for images."
-msgstr ""
+msgstr "Vorschaugröße und Grundlinienhöhe für Bilder."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:63
 msgid "Image Preview Size"
 msgstr "Bildvorschau-Größe"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:64
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Pixels to display for image previews (%d-%d). Default: %d."
-msgstr "Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
+msgstr "Für Bildvorschauen anzuzeigende Pixel (%d-%d). Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:75
 msgid "Image Default Height"
-msgstr ""
+msgstr "Bildstandardhöhe"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:76
 msgid "Preserve standard height for image items."
-msgstr ""
+msgstr "Behalten Sie die Standardhöhe für Bildelemente bei."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:83
 msgid "Code"
-msgstr ""
+msgstr "Code"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:84
 msgid "Preview lines and baseline height for code."
-msgstr ""
+msgstr "Vorschau von Zeilen und Grundlinienhöhe für Code."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:93
-#, fuzzy
 msgid "Code Preview Lines"
-msgstr "Bildvorschau-Größe"
+msgstr "Code-Vorschauzeilen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:94
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for code previews (%d-%d). Default: %d."
-msgstr "Pixelgröße für Vorschaubilder der Zwischenablage (%d–%d). Standard: %d."
+msgstr "Für Codevorschauen anzuzeigende Zeilen (%d-%d). Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:105
 msgid "Code Default Height"
-msgstr ""
+msgstr "Code-Standardhöhe"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:106
 msgid "Preserve standard height for code items."
-msgstr ""
+msgstr "Behalten Sie die Standardhöhe für Codeelemente bei."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:113
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:114
 msgid "Preview lines and baseline height for HTML."
-msgstr ""
+msgstr "Vorschaulinien und Grundlinienhöhe für HTML."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:123
-#, fuzzy
 msgid "HTML Preview Lines"
-msgstr "Bildvorschau-Größe"
+msgstr "HTML-Vorschauzeilen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:124
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for HTML previews (%d-%d). Default: %d."
-msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
+msgstr "Für HTML-Vorschauen anzuzeigende Zeilen (%d-%d). Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:135
 msgid "HTML Default Height"
-msgstr ""
+msgstr "HTML-Standardhöhe"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:136
 msgid "Preserve standard height for HTML items."
-msgstr ""
+msgstr "Behalten Sie die Standardhöhe für HTML-Elemente bei."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:143
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:144
 msgid "Preview lines and baseline height for text."
-msgstr ""
+msgstr "Vorschau der Linien und Grundlinienhöhe für Text."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:153
-#, fuzzy
 msgid "Text Preview Lines"
-msgstr "Bildvorschau-Größe"
+msgstr "Textvorschauzeilen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:154
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for text previews (%d-%d). Default: %d."
-msgstr "Anzahl Elemente, die im Verlauf behalten werden (%d–%d). Standard: %d."
+msgstr "Für Textvorschauen anzuzeigende Zeilen (%d-%d). Standard: %d."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:165
 msgid "Text Default Height"
-msgstr ""
+msgstr "Standardhöhe des Textes"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:166
 msgid "Preserve standard height for text items."
-msgstr ""
+msgstr "Behalten Sie die Standardhöhe für Textelemente bei."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:173
 msgid "Metadata"
-msgstr ""
+msgstr "Metadaten"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:174
 msgid "Baseline height for metadata items."
-msgstr ""
+msgstr "Grundlinienhöhe für Metadatenelemente."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:179
 msgid "Metadata Default Height"
-msgstr ""
+msgstr "Standardhöhe der Metadaten"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:180
 msgid "Preserve standard height for metadata items."
-msgstr ""
+msgstr "Behalten Sie die Standardhöhe für Metadatenelemente bei."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:21
 msgid "Clipboard Settings"
@@ -684,7 +646,7 @@ msgstr "Beim Kopieren eines Elements vom Verlauf, es zum Neuesten machen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:54
 msgid "Unpin Item on Paste"
-msgstr "Element beim Kopieren abheften"
+msgstr "Element beim Einfügen lösen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:55
 msgid "Automatically unpin an item when it is pasted."
@@ -699,69 +661,64 @@ msgid "Show the toolbar above the clipboard list."
 msgstr "Toolbar über der Zwischenablageliste einblenden."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:70
-#, fuzzy
 msgid "Merge Selected Items"
-msgstr "Element auswählen"
+msgstr "Ausgewählte Elemente zusammenführen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:71
 msgid "Allow selecting and merging multiple items using checkboxes."
-msgstr ""
+msgstr "Ermöglichen Sie die Auswahl und Zusammenführung mehrerer Elemente mithilfe von Kontrollkästchen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:96
 msgid "Newline"
-msgstr ""
+msgstr "Zeilenumbruch"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:97
 msgid "Double Newline"
-msgstr ""
+msgstr "Doppelter Zeilenumbruch"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:98
 msgid "Space"
-msgstr ""
+msgstr "Leerzeichen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:99
 msgid "Comma"
-msgstr ""
+msgstr "Komma"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:100
-#, fuzzy
 msgid "Tab"
-msgstr "GIF-Reiter"
+msgstr "Tab"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:101
 msgid "Custom"
-msgstr ""
+msgstr "Benutzerdefiniert"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:105
-#, fuzzy
 msgid "Delimiter"
-msgstr "Unlimitiert"
+msgstr "Trennzeichen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:106
 msgid "Delimiter used to separate text items when merging."
-msgstr ""
+msgstr "Trennzeichen zum Trennen von Textelementen beim Zusammenführen."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:127
 msgid "Custom Delimiter"
-msgstr ""
+msgstr "Benutzerdefiniertes Trennzeichen"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:150
-#, fuzzy
 msgid "Selection Order"
-msgstr "Reihenfolge zurücksetzen"
+msgstr "Auswahlreihenfolge"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:151
 msgid "Chronological Order"
-msgstr ""
+msgstr "Chronologische Reihenfolge"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:155
-#, fuzzy
 msgid "Insertion Order"
-msgstr "Reihenfolge zurücksetzen"
+msgstr "Einfügereihenfolge"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:156
 msgid "Order of items when merging selection."
-msgstr ""
+msgstr "Reihenfolge der Elemente beim Zusammenführen der Auswahl."
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:188
 msgid "List"
@@ -819,11 +776,11 @@ msgstr "Ausgewählte abheften"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:239
 msgid "Merge and Paste"
-msgstr ""
+msgstr "Zusammenführen und Einfügen"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:239
 msgid "Merge and Copy"
-msgstr ""
+msgstr "Zusammenführen und kopieren"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:289
 msgid "Deselect All"
@@ -847,7 +804,7 @@ msgstr "Angeheftete Elemente"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:350
 msgid "History"
-msgstr "Geschichte"
+msgstr "Verlauf"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:46
 msgid "Emoji Settings"
@@ -867,19 +824,19 @@ msgstr "Wenn aus, sind Hautton-fähige Emojis neutral. Wenn an, nutzeuntenstehen
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:61
 msgid "Light"
-msgstr "Heller"
+msgstr "Hell"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:62
 msgid "Medium-Light"
-msgstr "Mittlerer-Licht"
+msgstr "Mittelhell"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:63
 msgid "Medium"
-msgstr "Mittlerer"
+msgstr "Mittel"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:64
 msgid "Medium-Dark"
-msgstr "Mittlerer-Dunkel"
+msgstr "Mitteldunkel"
 
 #: gnome-extensions/extension/features/Emoji/preferences/emojiPreferenceGroup.js:65
 msgid "Dark"
@@ -1123,27 +1080,25 @@ msgid "Scroll Window"
 msgstr "Scrollbares Fenster"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:83
-#, fuzzy
 msgid "Grid layout"
-msgstr "Rasteranzeigemodus"
+msgstr "Rasterlayout"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:83
-#, fuzzy
 msgid "List layout"
-msgstr "Listenanzeigemodus"
+msgstr "Listenlayout"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
 #, javascript-format
 msgid "%s - %s"
-msgstr ""
+msgstr "%s - %s"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
 msgid "Custom overrides enabled"
-msgstr ""
+msgstr "Benutzerdefinierte Überschreibungen aktiviert"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:85
 msgid "Using global defaults"
-msgstr ""
+msgstr "Verwendung globaler Standardwerte"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:351
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:99
@@ -1155,36 +1110,35 @@ msgstr "%s-Bereich: %d–%d. Standard: %d."
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:407
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:425
 msgid "Advanced Section Overrides"
-msgstr ""
+msgstr "Erweiterte Abschnittsüberschreibungen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:395
 msgid "Open section-level overrides."
-msgstr ""
+msgstr "Öffnen Sie Überschreibungen auf Abschnittsebene."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:413
 msgid "Definitions"
-msgstr ""
+msgstr "Definitionen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:414
 msgid "Choose a section to edit its override definition."
-msgstr ""
+msgstr "Wählen Sie einen Abschnitt aus, um seine Überschreibungsdefinition zu bearbeiten."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:426
 msgid "Unavailable until the extension schema is updated."
-msgstr ""
+msgstr "Nicht verfügbar, bis das Erweiterungsschema aktualisiert wird."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:454
 msgid "Customize this definition without changing global defaults."
-msgstr ""
+msgstr "Passen Sie diese Definition an, ohne die globalen Standardeinstellungen zu ändern."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:460
-#, fuzzy
 msgid "Enable Custom Overrides"
-msgstr "Benutzerdefinierte Hauttöne aktivieren"
+msgstr "Aktivieren Sie benutzerdefinierte Überschreibungen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:461
 msgid "When disabled, this definition uses global policy."
-msgstr ""
+msgstr "Wenn diese Definition deaktiviert ist, verwendet sie eine globale Richtlinie."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:503
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:165
@@ -1272,14 +1226,12 @@ msgid "Global Visible Items"
 msgstr "Global sichtbare Elemente"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:597
-#, fuzzy
 msgid "Global item cap for grid when custom visible-items by view is disabled."
-msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
+msgstr "Globale Elementobergrenze für das Raster, wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:597
-#, fuzzy
 msgid "Global item cap for list when custom visible-items by view is disabled."
-msgstr "Globales Elementlimit für Liste und Raster wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
+msgstr "Globale Elementobergrenze für die Liste, wenn benutzerdefinierte sichtbare Elemente nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:604
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:264
@@ -1317,14 +1269,12 @@ msgid "Global Window Rows"
 msgstr "Globale Fensterzeilen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
-#, fuzzy
 msgid "Global row limit for grid when custom window limits by view is disabled."
-msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
+msgstr "Globales Zeilenlimit für das Raster, wenn benutzerdefinierte Fensterbeschränkungen nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:643
-#, fuzzy
 msgid "Global row limit for list when custom window limits by view is disabled."
-msgstr "Globales Zeilenlimit für Liste und Raster wenn benutzerdefinierte Fensterlimiten nach Ansicht deaktiviert sind."
+msgstr "Globales Zeilenlimit für die Liste, wenn benutzerdefinierte Fensterlimits nach Ansicht deaktiviert sind."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedAdvancedOverridesPrefs.js:650
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:299
@@ -1377,9 +1327,8 @@ msgid "Hard cap for unlimited mode to protect shell responsiveness."
 msgstr "Hartes Limit für den unlimitierten Modus, um die Shell-Responsivität zu schützen."
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:24
-#, fuzzy
 msgid "Recently Used Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Zuletzt verwendete Einstellungen"
 
 #: gnome-extensions/extension/features/RecentlyUsed/preferences/recentlyUsedPreferenceGroup.js:25
 msgid "Behavior settings for the Recently Used tab."
@@ -1565,14 +1514,12 @@ msgid "Permanently clears all downloaded GIF preview images."
 msgstr "Löscht alle heruntergeladenen GIF-Vorschaubilder."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:15
-#, fuzzy
 msgid "Exclusions Management"
-msgstr "Datenverwaltung"
+msgstr "Ausschlussverwaltung"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:16
-#, fuzzy
 msgid "Manage content that should be ignored by the clipboard manager."
-msgstr "Verwaltung von Anwendungen, die von der Zwischenablageverwaltung ignoriert werden sollen."
+msgstr "Verwalten Sie Inhalte, die vom Zwischenablage-Manager ignoriert werden sollen."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:22
 msgid "Enhanced Exclusion Detection"
@@ -1583,14 +1530,12 @@ msgid "Detects excluded applications inside browser windows and enables the syst
 msgstr "Erkennt ausgenommene Anwendungen in Browserfenstern und aktiviert den Barrierefreiheits-Service des Systems, wenn nötig."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:35
-#, fuzzy
 msgid "Applications"
-msgstr "Ignorierte Anwendungen"
+msgstr "Anwendungen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:36
-#, fuzzy
 msgid "Prevent specific applications from being captured."
-msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
+msgstr "Verhindern Sie, dass bestimmte Anwendungen erfasst werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:39
 msgid "Application Name or ID"
@@ -1598,28 +1543,27 @@ msgstr "Anwendungsnamen oder ID"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:43
 msgid "Addresses"
-msgstr ""
+msgstr "Adressen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:44
 msgid "Prevent specific links or emails from being crawled."
-msgstr ""
+msgstr "Verhindern Sie, dass bestimmte Links oder E-Mails gecrawlt werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:47
 msgid "Link or Email Address"
-msgstr ""
+msgstr "Link oder E-Mail-Adresse"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:51
 msgid "Paths"
-msgstr ""
+msgstr "Pfade"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:52
-#, fuzzy
 msgid "Prevent specific files, directories, or URI patterns from being captured."
-msgstr "Verhindern, dass bestimmte Anwendungen Inhalte in den Zwischenablageverlauf speichern."
+msgstr "Verhindern Sie, dass bestimmte Dateien, Verzeichnisse oder URI-Muster erfasst werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:55
 msgid "/path/to/folder or file://..."
-msgstr ""
+msgstr "/Pfad/zum/Ordner oder Datei://..."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:105
 msgid "Add New Exclusion"
@@ -1739,9 +1683,8 @@ msgid "Toggle Main Menu"
 msgstr "Hauptmenü umschalten"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:142
-#, fuzzy
 msgid "Open Recently Used Tab"
-msgstr "Zuletzt genutzter Reiter"
+msgstr "Öffnen Sie die Registerkarte „Zuletzt verwendet“."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:143
 msgid "Open Emoji Tab"
@@ -1793,7 +1736,7 @@ msgstr "Nächste Kategorie"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:181
 msgid "Previous Category"
-msgstr "Letzte Kategorie"
+msgstr "Vorherige Kategorie"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupKeyboardShortcuts.js:191
 msgid "Clipboard Item Actions"
@@ -1840,88 +1783,83 @@ msgid "Maximum Recent Symbols"
 msgstr "Maximale letzte Symbole"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:21
-#, fuzzy
 msgid "Settings Management"
-msgstr "Datenverwaltung"
+msgstr "Einstellungsverwaltung"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:22
 msgid "Manage your extension preferences."
-msgstr ""
+msgstr "Verwalten Sie Ihre Erweiterungseinstellungen."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:28
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:75
-#, fuzzy
 msgid "Export Settings"
-msgstr "Emoji-Einstellungen"
+msgstr "Exporteinstellungen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:29
 msgid "Export your preferences to a JSON file."
-msgstr ""
+msgstr "Exportieren Sie Ihre Einstellungen in eine JSON-Datei."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:32
 msgid "Export"
-msgstr ""
+msgstr "Exportieren"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:41
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:142
-#, fuzzy
 msgid "Import Settings"
-msgstr "Emoji-Einstellungen"
+msgstr "Einstellungen importieren"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:42
 msgid "Import your preferences from a JSON file."
-msgstr ""
+msgstr "Importieren Sie Ihre Einstellungen aus einer JSON-Datei."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:45
 msgid "Import"
-msgstr ""
+msgstr "Importieren"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:54
-#, fuzzy
 msgid "Reset Settings"
-msgstr "Zuletzt genutzt"
+msgstr "Einstellungen zurücksetzen"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:55
 msgid "Restore all extension settings back to their default values."
-msgstr ""
+msgstr "Setzen Sie alle Erweiterungseinstellungen auf ihre Standardwerte zurück."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:82
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:148
 msgid "JSON Files"
-msgstr ""
+msgstr "JSON-Dateien"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:120
 msgid "Settings successfully exported."
-msgstr ""
+msgstr "Einstellungen erfolgreich exportiert."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:123
 msgid "Failed to export settings."
-msgstr ""
+msgstr "Die Einstellungen konnten nicht exportiert werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:172
 msgid "Settings successfully imported."
-msgstr ""
+msgstr "Einstellungen erfolgreich importiert."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:175
 msgid "Failed to import settings. Invalid file."
-msgstr ""
+msgstr "Einstellungen konnten nicht importiert werden. Ungültige Datei."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:194
-#, fuzzy
 msgid "Reset All Settings?"
-msgstr "Zuletzt genutzt"
+msgstr "Alle Einstellungen zurücksetzen?"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:195
 msgid "Are you sure you want to restore all extension settings to their defaults? This action cannot be undone."
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie alle Erweiterungseinstellungen auf ihre Standardeinstellungen zurücksetzen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:211
 msgid "Settings successfully reset to defaults."
-msgstr ""
+msgstr "Die Einstellungen wurden erfolgreich auf die Standardeinstellungen zurückgesetzt."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupSettingsManagement.js:214
 msgid "Failed to reset settings."
-msgstr ""
+msgstr "Einstellungen konnten nicht zurückgesetzt werden."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:15
 msgid "Tab Management"
@@ -2026,33 +1964,3 @@ msgstr "Keine Elemente verfügbar."
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:994
 msgid "No items match your search."
 msgstr "Keine Elemente stimmen mit Ihrer Suche überein."
-
-#, fuzzy
-#~ msgid "Paste Format"
-#~ msgstr "Bild einfügen"
-
-#, javascript-format
-#~ msgid "No results found for '%s'."
-#~ msgstr "Keine Resultate für »%s« gefunden."
-
-#, fuzzy
-#~ msgid "Exclusions"
-#~ msgstr "Neue Ausnahme hinzufügen"
-
-#~ msgid "Excluded Applications"
-#~ msgstr "Ausgenommene Anwendungen"
-
-#~ msgid "All-in-One Clipboard Settings"
-#~ msgstr "All-in-One Zwischenablage Einstellungen"
-
-#~ msgid "Show action buttons (select all, layout, private mode, pin, delete)."
-#~ msgstr "Aktionsschaltflächen anzeigen (Alles auswählen, Layout, Privatmodus, Anheften, Löschen)."
-
-#~ msgid "Tenor"
-#~ msgstr "Tenor"
-
-#~ msgid "Imgur"
-#~ msgstr "Imgur"
-
-#~ msgid "Imgur Client ID"
-#~ msgstr "Imgur Client ID"

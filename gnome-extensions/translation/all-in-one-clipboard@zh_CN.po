@@ -31,7 +31,7 @@ msgstr "表情符号"
 #: gnome-extensions/extension/features/GIF/integrations/gifMenuDefinition.js:10
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGridLayout.js:24
 msgid "GIF"
-msgstr "动图"
+msgstr "GIF"
 
 #: gnome-extensions/extension/extension.js:123
 #: gnome-extensions/extension/features/Kaomoji/integrations/kaomojiMenuDefinition.js:10
@@ -54,33 +54,32 @@ msgstr "剪贴板"
 #: gnome-extensions/extension/prefs.js:73
 #: gnome-extensions/extension/shared/preferences/preferenceGroupGeneral.js:18
 msgid "General"
-msgstr "通用设置"
+msgstr "常规"
 
 #: gnome-extensions/extension/prefs.js:85
 msgid "Features"
-msgstr "功能配置"
+msgstr "功能"
 
 #: gnome-extensions/extension/prefs.js:99
 msgid "Advanced"
-msgstr "高级选项"
+msgstr "高级"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
-msgstr ""
+msgstr "粘贴为纯文本"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
 msgid "Paste as Rich HTML"
-msgstr ""
+msgstr "粘贴为富 HTML"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
-#, fuzzy
 msgid "Paste Images"
-msgstr "粘贴图片"
+msgstr "粘贴图像"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
-msgstr ""
+msgstr "启动链接"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
@@ -89,205 +88,183 @@ msgid "Paste Link"
 msgstr "粘贴链接"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
-#, fuzzy
 msgid "Paste as Files"
-msgstr "粘贴图片"
+msgstr "粘贴为文件"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
-#, fuzzy
 msgid "Paste as File"
-msgstr "粘贴图片"
+msgstr "粘贴为文件"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
-#, fuzzy
 msgid "Paste as Folders"
-msgstr "粘贴图片"
+msgstr "粘贴为文件夹"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
-#, fuzzy
 msgid "Paste as Folder"
-msgstr "粘贴图片"
+msgstr "粘贴为文件夹"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
-#, fuzzy
 msgid "Paste as Items"
-msgstr "粘贴图片"
+msgstr "粘贴为项目"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
-#, fuzzy
 msgid "Paste as Item"
-msgstr "粘贴图片"
+msgstr "粘贴为项目"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
-#, fuzzy
 msgid "Paste as Paths"
-msgstr "粘贴图片"
+msgstr "粘贴为路径"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
-#, fuzzy
 msgid "Paste as Path"
-msgstr "粘贴图片"
+msgstr "粘贴为路径"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
-#, fuzzy
 msgid "Paste as URIs"
-msgstr "粘贴图片"
+msgstr "粘贴为 URI"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
-#, fuzzy
 msgid "Paste as URI"
-msgstr "粘贴图片"
+msgstr "粘贴为 URI"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:25
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:38
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:48
-#, fuzzy
 msgid "Content Settings"
-msgstr "重置设置"
+msgstr "内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:26
 msgid "Configure capture, extraction, and formatting for different content types."
-msgstr ""
+msgstr "为不同的内容类型配置捕获、提取和格式设置。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:49
 msgid "Manage extraction limits, paste formats, and action options for clipboard content types."
-msgstr ""
+msgstr "管理剪贴板内容类型的提取限制、粘贴格式和操作选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:55
-#, fuzzy
 msgid "Image Content Settings"
-msgstr "重置设置"
+msgstr "图像内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:56
 msgid "Options for image items."
-msgstr ""
+msgstr "图像项目的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:61
 msgid "Extract Image Items from Files"
-msgstr ""
+msgstr "从文件中提取图像项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:62
-#, fuzzy
 msgid "Automatically extract image items from files."
-msgstr "自动隐藏最后一个可见的主标签页。"
+msgstr "自动从文件中提取图像项目。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:68
 msgid "Limit Image Items to Extract"
-msgstr ""
+msgstr "限制提取的图像项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:69
 msgid "Limit the number of extracted image items."
-msgstr ""
+msgstr "限制提取的图像项目的数量。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:79
 msgid "Maximum Image Items to Extract"
-msgstr ""
+msgstr "要提取的最大图像项目数"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:80
 #, javascript-format
 msgid "Maximum image items to extract between %d and %d. Default: %d."
-msgstr ""
+msgstr "要提取的最大图像项数在 %d 到 %d 之间。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:101
-#, fuzzy
 msgid "Resource Content Settings"
-msgstr "重置设置"
+msgstr "资源内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:102
 msgid "Options for resource items."
-msgstr ""
+msgstr "资源项的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:107
 msgid "Capture Resource Items from Files"
-msgstr ""
+msgstr "从文件中捕获资源项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:108
 msgid "Automatically capture resource items from files."
-msgstr ""
+msgstr "自动从文件中捕获资源项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:114
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:187
-#, fuzzy
 msgid "Files and Folders"
-msgstr "粘贴图片"
+msgstr "文件和文件夹"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:115
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:192
 msgid "File Paths"
-msgstr ""
+msgstr "文件路径"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:116
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:197
 msgid "URI Links"
-msgstr ""
+msgstr "URI 链接"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:120
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:553
-#, fuzzy
 msgid "Default Format"
-msgstr "默认标签页"
+msgstr "默认格式"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:121
 msgid "Default format for resource items."
-msgstr ""
+msgstr "资源项的默认格式。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:150
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:173
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:583
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:606
-#, fuzzy
 msgid "Button Settings"
-msgstr "自动粘贴设置"
+msgstr "按钮设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:151
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:584
-#, fuzzy
 msgid "Configure button visibility and display order on cards."
-msgstr "分别配置列表和网格显示模式。"
+msgstr "配置按钮可见性和卡片上的显示顺序。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:163
-#, fuzzy
 msgid "Resource Button Settings"
-msgstr "重置设置"
+msgstr "资源按钮设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:174
 msgid "Manage visibility and order of action buttons for resource items."
-msgstr ""
+msgstr "管理资源项的可见性和操作按钮顺序。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:180
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:613
-#, fuzzy
 msgid "Visible Buttons"
-msgstr "可见标签页"
+msgstr "可见按钮"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:181
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:614
 msgid "Show or hide action buttons on cards."
-msgstr ""
+msgstr "显示或隐藏卡片上的操作按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:188
 msgid "Show files and folders button."
-msgstr ""
+msgstr "显示文件和文件夹按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:193
 msgid "Show file paths button."
-msgstr ""
+msgstr "显示文件路径按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:198
 msgid "Show URI links button."
-msgstr ""
+msgstr "显示 URI 链接按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:214
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:642
-#, fuzzy
 msgid "Button Order"
-msgstr "选择顺序"
+msgstr "按钮顺序"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:215
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:643
-#, fuzzy
 msgid "Use buttons to reorder action buttons on cards."
-msgstr "使用按钮重新排列主栏中的标签页顺序。"
+msgstr "使用按钮对卡片上的操作按钮重新排序。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:274
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:702
@@ -297,9 +274,8 @@ msgstr "重置顺序"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:275
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:703
-#, fuzzy
 msgid "Restore original action button order."
-msgstr "恢复原始标签页顺序。"
+msgstr "恢复原始操作按钮顺序。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:281
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:709
@@ -310,351 +286,337 @@ msgid "Reset"
 msgstr "重置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:309
-#, fuzzy
 msgid "Link Content Settings"
-msgstr "重置设置"
+msgstr "链接内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:310
 msgid "Options for link items."
-msgstr ""
+msgstr "链接项目的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:315
 msgid "Extract Link Items from Text"
-msgstr ""
+msgstr "从文本中提取链接项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:316
 msgid "Automatically extract link items from text."
-msgstr ""
+msgstr "自动从文本中提取链接项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:322
 msgid "Extract Link Items from Contacts"
-msgstr ""
+msgstr "从联系人中提取链接项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:323
-#, fuzzy
 msgid "Automatically extract link items from contacts."
-msgstr "自动隐藏最后一个可见的主标签页。"
+msgstr "自动从联系人中提取链接项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:329
 msgid "Limit Link Items to Extract"
-msgstr ""
+msgstr "限制要提取的链接项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:330
 msgid "Limit the number of extracted link items."
-msgstr ""
+msgstr "限制提取的链接项的数量。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:340
 msgid "Maximum Link Items to Extract"
-msgstr ""
+msgstr "要提取的最大链接项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:341
 #, javascript-format
 msgid "Maximum link items to extract between %d and %d. Default: %d."
-msgstr ""
+msgstr "要提取的最大链接项数介于 %d 和 %d 之间。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:357
-#, fuzzy
 msgid "Default Action"
-msgstr "默认标签页"
+msgstr "默认操作"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:358
 msgid "Default action for link items."
-msgstr ""
+msgstr "链接项目的默认操作。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:386
 msgid "Action Button"
-msgstr ""
+msgstr "操作按钮"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:387
 msgid "Show action button for link items."
-msgstr ""
+msgstr "显示链接项目的操作按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:404
-#, fuzzy
 msgid "Contact Content Settings"
-msgstr "重置设置"
+msgstr "联系内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:405
 msgid "Options for contact items."
-msgstr ""
+msgstr "联系人项目的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:410
 msgid "Extract Contact Items from Text"
-msgstr ""
+msgstr "从文本中提取联系人项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:411
 msgid "Automatically extract contact items from text."
-msgstr ""
+msgstr "自动从文本中提取联系人项目。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:417
 msgid "Limit Contact Items to Extract"
-msgstr ""
+msgstr "限制提取的联系人项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:418
 msgid "Limit the number of extracted contact items."
-msgstr ""
+msgstr "限制提取的联系人项目的数量。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:428
 msgid "Maximum Contact Items to Extract"
-msgstr ""
+msgstr "要提取的最大联系人项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:429
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum contact items to extract between %d and %d. Default: %d."
-msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+msgstr "要提取的最大联系人项目数介于 %d 和 %d 之间。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:450
-#, fuzzy
 msgid "Color Content Settings"
-msgstr "重置设置"
+msgstr "颜色内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:451
 msgid "Options for color items."
-msgstr ""
+msgstr "颜色项目的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:456
 msgid "Extract Color Items from Text"
-msgstr ""
+msgstr "从文本中提取颜色项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:457
 msgid "Automatically extract color items from text."
-msgstr ""
+msgstr "自动从文本中提取颜色项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:463
 msgid "Limit Color Items to Extract"
-msgstr ""
+msgstr "限制提取的颜色项目"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:464
 msgid "Limit the number of extracted color items."
-msgstr ""
+msgstr "限制提取的颜色项的数量。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:474
-#, fuzzy
 msgid "Maximum Color Items to Extract"
-msgstr "最大剪贴板历史"
+msgstr "要提取的最大颜色项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:475
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum color items to extract between %d and %d. Default: %d."
-msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+msgstr "要提取的最大颜色项数介于 %d 和 %d 之间。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:496
-#, fuzzy
 msgid "Code Content Settings"
-msgstr "重置设置"
+msgstr "代码内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:497
 msgid "Options for code items."
-msgstr ""
+msgstr "代码项的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:502
 msgid "Extract Code Items from Text"
-msgstr ""
+msgstr "从文本中提取代码项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:503
 msgid "Automatically extract code items from text."
-msgstr ""
+msgstr "自动从文本中提取代码项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:509
 msgid "Limit Code Items to Extract"
-msgstr ""
+msgstr "限制提取的代码项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:510
 msgid "Limit the number of extracted code items."
-msgstr ""
+msgstr "限制提取的代码项的数量。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:520
 msgid "Maximum Code Items to Extract"
-msgstr ""
+msgstr "要提取的最大代码项"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:521
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Maximum code items to extract between %d and %d. Default: %d."
-msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+msgstr "要提取的最大代码项介于 %d 和 %d 之间。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:542
-#, fuzzy
 msgid "HTML Content Settings"
-msgstr "重置设置"
+msgstr "HTML 内容设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:543
 msgid "Options for HTML items."
-msgstr ""
+msgstr "HTML 项目的选项。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:548
 msgid "Rich HTML"
-msgstr ""
+msgstr "富 HTML"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:549
 msgid "Plain Text"
-msgstr ""
+msgstr "纯文本"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:554
 msgid "Default format for HTML items."
-msgstr ""
+msgstr "HTML 项目的默认格式。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:596
-#, fuzzy
 msgid "HTML Button Settings"
-msgstr "重置设置"
+msgstr "HTML 按钮设置"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:607
 msgid "Manage visibility and order of action buttons for HTML items."
-msgstr ""
+msgstr "管理 HTML 项目的可见性和操作按钮顺序。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:620
 msgid "Format Button"
-msgstr ""
+msgstr "格式按钮"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:621
 msgid "Show format button for HTML items."
-msgstr ""
+msgstr "显示 HTML 项目的格式按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:625
 msgid "Image Button"
-msgstr ""
+msgstr "图片按钮"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:626
 msgid "Show image button for HTML items."
-msgstr ""
+msgstr "显示 HTML 项目的图像按钮。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:23
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:36
 msgid "List View Sizing"
-msgstr ""
+msgstr "列表视图大小调整"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:24
 msgid "Customize preview line counts and baseline row heights."
-msgstr ""
+msgstr "自定义预览行数和基线行高。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:46
-#, fuzzy
 msgid "Content Sizing"
-msgstr "重置设置"
+msgstr "内容调整"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:47
 msgid "Configure preview lines, thumbnail sizes, and baseline height enforcement."
-msgstr ""
+msgstr "配置预览线、缩略图大小和基线高度强制。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:53
-#, fuzzy
 msgid "Image"
-msgstr "粘贴图片"
+msgstr "图像"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:54
 msgid "Preview size and baseline height for images."
-msgstr ""
+msgstr "预览图像的尺寸和基线高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:63
 msgid "Image Preview Size"
 msgstr "图片预览尺寸"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:64
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Pixels to display for image previews (%d-%d). Default: %d."
-msgstr "剪贴板图片缩略图像素尺寸（%d-%d）。默认值：%d。"
+msgstr "图像预览显示的像素 (%d-%d)。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:75
 msgid "Image Default Height"
-msgstr ""
+msgstr "图像默认高度"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:76
 msgid "Preserve standard height for image items."
-msgstr ""
+msgstr "保留图像项目的标准高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:83
 msgid "Code"
-msgstr ""
+msgstr "代码"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:84
 msgid "Preview lines and baseline height for code."
-msgstr ""
+msgstr "预览代码的行和基线高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:93
-#, fuzzy
 msgid "Code Preview Lines"
-msgstr "图片预览尺寸"
+msgstr "代码预览行"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:94
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for code previews (%d-%d). Default: %d."
-msgstr "剪贴板图片缩略图像素尺寸（%d-%d）。默认值：%d。"
+msgstr "用于代码预览的显示行 (%d-%d)。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:105
 msgid "Code Default Height"
-msgstr ""
+msgstr "代码默认高度"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:106
 msgid "Preserve standard height for code items."
-msgstr ""
+msgstr "保留代码项目的标准高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:113
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:114
 msgid "Preview lines and baseline height for HTML."
-msgstr ""
+msgstr "HTML 的预览行和基线高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:123
-#, fuzzy
 msgid "HTML Preview Lines"
-msgstr "图片预览尺寸"
+msgstr "HTML 预览行"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:124
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for HTML previews (%d-%d). Default: %d."
-msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+msgstr "HTML 预览时显示的行 (%d-%d)。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:135
 msgid "HTML Default Height"
-msgstr ""
+msgstr "HTML 默认高度"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:136
 msgid "Preserve standard height for HTML items."
-msgstr ""
+msgstr "保留 HTML 项目的标准高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:143
 msgid "Text"
-msgstr ""
+msgstr "文本"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:144
 msgid "Preview lines and baseline height for text."
-msgstr ""
+msgstr "预览文本的线条和基线高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:153
-#, fuzzy
 msgid "Text Preview Lines"
-msgstr "图片预览尺寸"
+msgstr "文本预览行"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:154
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "Lines to display for text previews (%d-%d). Default: %d."
-msgstr "历史记录保留数量（%d-%d）。默认值：%d。"
+msgstr "文本预览时显示的行 (%d-%d)。默认值：%d。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:165
 msgid "Text Default Height"
-msgstr ""
+msgstr "文本默认高度"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:166
 msgid "Preserve standard height for text items."
-msgstr ""
+msgstr "保留文本项目的标准高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:173
 msgid "Metadata"
-msgstr ""
+msgstr "元数据"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:174
 msgid "Baseline height for metadata items."
-msgstr ""
+msgstr "元数据项的基线高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:179
 msgid "Metadata Default Height"
-msgstr ""
+msgstr "元数据默认高度"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardListViewSizingPrefs.js:180
 msgid "Preserve standard height for metadata items."
-msgstr ""
+msgstr "保留元数据项的标准高度。"
 
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardPreferenceGroup.js:21
 msgid "Clipboard Settings"
@@ -897,7 +859,7 @@ msgstr "用于成对表情中的第二个人。"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:23
 msgid "GIF Settings"
-msgstr "动图设置"
+msgstr "GIF 设置"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:24
 msgid "To search for GIFs, you must select a provider and provide your own API key."
@@ -912,7 +874,7 @@ msgstr "已禁用"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:43
 msgid "GIF Provider"
-msgstr "动图提供商"
+msgstr "GIF 提供商"
 
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:44
 msgid "Select the service to use for fetching GIFs."
@@ -1019,7 +981,7 @@ msgstr "热门"
 
 #: gnome-extensions/extension/features/GIF/view/gifHeaderView.js:214
 msgid "Trending GIFs"
-msgstr "热门动图"
+msgstr "热门 GIF"
 
 #: gnome-extensions/extension/features/RecentlyUsed/constants/recentlyUsedConstants.js:40
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:995
@@ -1053,11 +1015,11 @@ msgstr "表情结果"
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:40
 #: gnome-extensions/extension/shared/preferences/preferenceGroupDataManagement.js:88
 msgid "Recent GIFs"
-msgstr "最近动图"
+msgstr "最近 GIF"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:41
 msgid "GIF Results"
-msgstr "动图结果"
+msgstr "GIF 结果"
 
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:50
 #: gnome-extensions/extension/features/RecentlyUsed/definitions/recentlyUsedOrder.js:52
@@ -1410,7 +1372,7 @@ msgstr "自动粘贴表情"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:31
 msgid "Auto-Paste GIFs"
-msgstr "自动粘贴动图"
+msgstr "自动粘贴 GIF"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupAutoPaste.js:32
 msgid "Auto-Paste Kaomojis"
@@ -1592,16 +1554,15 @@ msgstr "链接或邮箱地址"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:51
 msgid "Paths"
-msgstr ""
+msgstr "路径"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:52
-#, fuzzy
 msgid "Prevent specific files, directories, or URI patterns from being captured."
-msgstr "阻止捕获特定应用程序。"
+msgstr "防止捕获特定文件、目录或 URI 模式。"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:55
 msgid "/path/to/folder or file://..."
-msgstr ""
+msgstr "/路径/到/文件夹或文件://..."
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupExclusions.js:105
 msgid "Add New Exclusion"
@@ -1810,7 +1771,7 @@ msgstr "最大表情记录数"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:24
 msgid "Maximum Recent GIFs"
-msgstr "最大动图记录数"
+msgstr "最大最近 GIF 数量"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupRecentItems.js:25
 msgid "Maximum Recent Kaomojis"
@@ -1921,7 +1882,7 @@ msgstr "表情标签页"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:35
 msgid "GIF Tab"
-msgstr "动图标签页"
+msgstr "GIF 标签页"
 
 #: gnome-extensions/extension/shared/preferences/preferenceGroupTabManagement.js:36
 msgid "Kaomoji Tab"
@@ -2002,7 +1963,3 @@ msgstr "无可用项目。"
 #: gnome-extensions/extension/shared/utilities/utilityCategorizedItemViewer.js:994
 msgid "No items match your search."
 msgstr "没有项目匹配您的搜索。"
-
-#, fuzzy
-#~ msgid "Paste Format"
-#~ msgstr "粘贴图片"

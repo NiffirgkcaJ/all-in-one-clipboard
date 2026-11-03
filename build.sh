@@ -52,13 +52,13 @@ update_translation_templates() {
     # This part runs every time, so your templates are always up-to-date.
     echo "Updating translation templates..."
 
-    # Update the UI strings template (from .js files)
+    # Update the UI strings template from .js files
     xgettext --no-wrap --from-code=UTF-8 -o gnome-extensions/translation/all-in-one-clipboard.pot -k_ -L JavaScript gnome-extensions/extension/*.js gnome-extensions/extension/features/**/*.js gnome-extensions/extension/shared/**/*.js
 
-    # Update the DATA strings template (from .json files) using our Python script
-    python3 ./gnome-extensions/build-aux/extract-data-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data
+    # Update the DATA strings template from .json files using our Python script
+    python3 ./gnome-extensions/build-aux/tools/language/extract-strings.py gnome-extensions/translation/all-in-one-clipboard-content.pot gnome-extensions/extension/assets/data
 
-    # Safely merge any new strings into the language files (e.g., all-in-one-clipboard@fr.po)
+    # Safely merge any new strings into the language files
     echo "Merging new strings into language files..."
     for po_file in gnome-extensions/translation/*.po; do
         if [ -f "$po_file" ]; then
@@ -68,10 +68,29 @@ update_translation_templates() {
             else
                 msgmerge --no-wrap --backup=none --update "$po_file" gnome-extensions/translation/all-in-one-clipboard.pot
             fi
-            # Force reformat to single line
-            msgcat --no-wrap "$po_file" -o "$po_file"
+            # Clean obsolete entries and reformat to single line
+            python3 ./gnome-extensions/build-aux/tools/language/clean-strings.py "$po_file"
         fi
     done
+
+    # Translate missing/fuzzy strings for UI language files
+    echo "Translating missing/fuzzy strings..."
+    for po_file in gnome-extensions/translation/all-in-one-clipboard@*.po; do
+        if [ -f "$po_file" ]; then
+            lang_code=$(basename "$po_file" .po | sed 's/all-in-one-clipboard@//; s/_/-/')
+            python3 ./gnome-extensions/build-aux/tools/language/translate-strings.py "$po_file" "$lang_code"
+        fi
+    done
+
+    # If the only changes in .pot files are POT-Creation-Date timestamps, discard them to keep git clean
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        for pot_file in gnome-extensions/translation/*.pot; do
+            if [ -f "$pot_file" ] && git diff --quiet -I '^"POT-Creation-Date:' "$pot_file"; then
+                git checkout -- "$pot_file" 2>/dev/null || true
+            fi
+        done
+    fi
+
     echo "Translation templates are up-to-date."
 }
 

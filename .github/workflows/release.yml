@@ -29,7 +29,7 @@ jobs:
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "Chore: Update translation templates"
+          commit_message: "Chore: Update translation templates."
           file_pattern: "gnome-extensions/translation/"
           commit_user_name: "GitHub Action Bot"
           commit_user_email: "actions@github.com"

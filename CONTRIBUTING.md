@@ -24,9 +24,9 @@ You may also find a graphical `.po` file editor like [Poedit](https://poedit.net
 
 ### Adding a New Language
 
-Let's say you want to add a translation for your language (e.g., German, `de_DE`).
+Let's say you want to add a translation for your language.
 
-1.  **Find your Locale Code:** First, find the exact locale code for your language by running `locale | grep LANG` in your terminal. For example, `de_DE.UTF-8`. The code you need is `de_DE`.
+1.  **Find your Locale Code:** First, find the exact locale code for your language by running `locale | grep LANG` in your terminal.
 
 2.  **Fork & Clone the Repository:** On GitHub, "Fork" the repository to your own account. Then, clone your fork to your computer:
     ```bash
@@ -42,23 +42,23 @@ Let's say you want to add a translation for your language (e.g., German, `de_DE`
 4.  **Create the Language Files:** Run the following two commands from the root of the project directory. These will create the two `.po` files you need to edit.
     ```bash
     # Create the UI translation file
-    msginit --input=gnome-extensions/translation/all-in-one-clipboard.pot --locale=<your_locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard@<your_locale_code>.po
+    msginit --input=gnome-extensions/translation/all-in-one-clipboard.pot --locale=<locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard@<locale_code>.po
 
     # Create the Data Content translation file
-    msginit --input=gnome-extensions/translation/all-in-one-clipboard-content.pot --locale=<your_locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard-content@<your_locale_code>.po
+    msginit --input=gnome-extensions/translation/all-in-one-clipboard-content.pot --locale=<locale_code> --output-file=gnome-extensions/translation/all-in-one-clipboard-content@<locale_code>.po
     ```
-    *(Remember to replace `<your_locale_code>` with your actual locale code!)*
+    *(Remember to replace `<locale_code>` with your actual locale code).*
 
-5.  **Translate the Files:** Open both `...@<your_locale_code>.po` files in a text editor or Poedit. You will see entries like this:
+5.  **Translate the Files:** Open both `...@<locale_code>.po` files in a text editor or Poedit. You will see entries like this:
     ```po
     #: extension/prefs.js:101
-    msgid "Hide Panel Icon"
+    msgid "<untranslated_string>"
     msgstr ""
     ```
     Your job is to fill in the empty `msgstr ""`.
     ```po
-    msgid "Hide Panel Icon"
-    msgstr "Das Panel-Symbol ausblenden"
+    msgid "<untranslated_string>"
+    msgstr "<translated_string>"
     ```
     Do this for all the entries in both files.
 
@@ -74,7 +74,7 @@ Let's say you want to add a translation for your language (e.g., German, `de_DE`
 If you are improving an existing translation, the process is even simpler:
 1.  Make sure you have the latest code from the repository.
 2.  Run `./build.sh update-templates` to ensure your local translation files are updated with any new strings.
-3.  Open the existing `.po` files (e.g., `gnome-extensions/translation/all-in-one-clipboard@de_DE.po`).
+3.  Open the existing `.po` files (e.g., `gnome-extensions/translation/all-in-one-clipboard@<locale_code>.po`).
 4.  Find any untranslated entries (where `msgstr` is empty) or fix any existing translations.
 5.  Save the files, test them, and submit a Pull Request.
 
