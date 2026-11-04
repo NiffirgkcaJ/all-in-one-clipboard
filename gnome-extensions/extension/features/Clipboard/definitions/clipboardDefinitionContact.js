@@ -1,4 +1,5 @@
 import GLib from 'gi://GLib';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOImage } from '../../../shared/utilities/utilityIO.js';
@@ -69,8 +70,8 @@ export function ClipboardDefinitionContact() {
             ],
         }),
         configureView: (config, item, options) => {
-            config.title = (item.preview || item.text || 'Unknown Contact').replace(/[\r\n]+/g, ' ').trim();
-            config.subtitle = item.subtype === 'email' ? 'Email' : 'Phone';
+            config.title = (item.preview || item.text || _('Unknown Contact')).replace(/[\r\n]+/g, ' ').trim();
+            config.subtitle = item.subtype === 'email' ? _('Email') : _('Phone');
 
             if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
                 config.icon = options.style.subtypes[item.subtype].icon;

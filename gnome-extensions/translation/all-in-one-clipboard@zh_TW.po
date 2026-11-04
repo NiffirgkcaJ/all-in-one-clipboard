@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-03 13:12+0000\n"
+"POT-Creation-Date: 2026-11-04 01:50+0000\n"
 "PO-Revision-Date: 2026-11-02 11:42+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -15,6 +15,19 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:73
+msgid "Unknown Contact"
+msgstr "未知聯繫人"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+msgid "Email"
+msgstr "電子郵件"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+msgid "Phone"
+msgstr "電話"
 
 #: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
 msgid "Paste as Plain Text"
@@ -39,43 +52,83 @@ msgstr "開啟連結"
 msgid "Paste Link"
 msgstr "貼上連結"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:81
+msgid "Resource"
+msgstr "資源"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:128
+#, javascript-format
+msgid "%s and %d other file"
+msgid_plural "%s and %d other files"
+msgstr[0] "%s 和 %d 個其他文件"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:129
+#, javascript-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d 個文件"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:132
+#, javascript-format
+msgid "%s and %d other folder"
+msgid_plural "%s and %d other folders"
+msgstr[0] "%s 和 %d 個其他資料夾"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:133
+#, javascript-format
+msgid "%d folder"
+msgid_plural "%d folders"
+msgstr[0] "%d 個資料夾"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:136
+#, javascript-format
+msgid "%s and %d other item"
+msgid_plural "%s and %d other items"
+msgstr[0] "%s 和 %d 個其他項目"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:137
+#, javascript-format
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] "%d 項"
+
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
 msgid "Paste as Files"
 msgstr "貼上為文件"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:142
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
 msgid "Paste as File"
 msgstr "貼上為文件"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
 msgid "Paste as Folders"
 msgstr "貼上為資料夾"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:146
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
 msgid "Paste as Folder"
 msgstr "貼上為資料夾"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
 msgid "Paste as Items"
 msgstr "貼為項目"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:150
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
 msgid "Paste as Item"
 msgstr "貼為項目"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
 msgid "Paste as Paths"
 msgstr "貼上為路徑"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:157
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
 msgid "Paste as Path"
 msgstr "貼上為路徑"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
 msgid "Paste as URIs"
 msgstr "貼為 URI"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:163
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
 msgid "Paste as URI"
 msgstr "貼為 URI"
 
@@ -745,6 +798,14 @@ msgstr "取消全選"
 #: gnome-extensions/extension/features/Clipboard/view/clipboardActionBar.js:348
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "停止隱私模式（恢復記錄）"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:46
+msgid "Cannot be recovered"
+msgstr "無法恢復"
+
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:87
+msgid "Item (Data Lost)"
+msgstr "項目（資料遺失）"
 
 #: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
 msgid "No results found."

@@ -1,3 +1,5 @@
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 
 /**
@@ -41,7 +43,7 @@ export class ClipboardBaseItemConfig {
         if (isCorrupted) {
             config.icon = ClipboardIcons.ERROR_WARNING.icon;
             config.iconOptions = ClipboardIcons.ERROR_WARNING.iconOptions;
-            config.subtitle = 'Cannot be recovered';
+            config.subtitle = _('Cannot be recovered');
             config.title = ClipboardBaseItemConfig._resolveFallbackTitle(config, item);
         }
 
@@ -82,7 +84,7 @@ export class ClipboardBaseItemConfig {
         const rawCandidate = candidates.find(Boolean) || '';
         const safeText = String(rawCandidate).trim();
         const textPreview = safeText.length > 50 ? `${safeText.slice(0, 50)}...` : safeText;
-        return textPreview || 'Item (Data Lost)';
+        return textPreview || _('Item (Data Lost)');
     }
 
     /**

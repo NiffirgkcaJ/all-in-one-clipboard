@@ -35,17 +35,20 @@ def parse_po_str(raw: str) -> str:
     matches = re.findall(r'"(?:[^"\\]|\\.)*"', raw)
     return "".join(ast.literal_eval(m) for m in matches)
 
-def format_po_str(val: str) -> str:
+def format_po_str(val: str, index: int | None = None) -> str:
     """
     Encodes a string into gettext msgstr format.
 
     Args:
         val: Decoded string value.
+        index: Plural index or None for standard singular msgstr.
 
     Returns:
         Formatted msgstr line ending with a newline.
     """
     escaped = val.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    if index is not None:
+        return f'msgstr[{index}] "{escaped}"\n'
     return f'msgstr "{escaped}"\n'
 
 def remove_fuzzy_flag(comments: str) -> str:
@@ -122,27 +125,35 @@ def process_po_file(po_path: Path, target_lang: str) -> None:
     pattern = re.compile(
         r'((?:^[ \t]*#.*$\n)*)'
         r'(^[ \t]*msgid\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)'
-        r'(^[ \t]*msgstr\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)',
+        r'((?:^[ \t]*msgid_plural\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)?)'
+        r'((?:^[ \t]*msgstr(?:\[\d+\])?\s+(?:\"(?:[^"\\]|\\.)*\"\s*\n)+)+)',
         re.MULTILINE
     )
 
     matches = list(pattern.finditer(content))
 
     # Pre-scan entries to translate.
-    to_translate: list[tuple[int, str, bool]] = []
+    to_translate: list[tuple[int, str, str, list[int], bool]] = []
     for idx, m in enumerate(matches):
-        comments, msgid_raw, msgstr_raw = m.groups()
+        comments, msgid_raw, msgid_plural_raw, msgstr_raw = m.groups()
         msgid = parse_po_str(msgid_raw)
-        msgstr = parse_po_str(msgstr_raw)
+        msgid_plural = parse_po_str(msgid_plural_raw) if msgid_plural_raw else ""
 
         if not msgid:
             continue
 
         is_fuzzy = bool(re.search(r'^[ \t]*#,\s*fuzzy', comments, re.MULTILINE))
-        is_empty = not msgstr.strip()
 
-        if is_empty or is_fuzzy:
-            to_translate.append((idx, msgid, is_fuzzy))
+        if msgid_plural:
+            plural_indices = [int(i) for i in re.findall(r'^[ \t]*msgstr\[(\d+)\]', msgstr_raw, re.MULTILINE)]
+            plural_lines = re.findall(r'^[ \t]*msgstr\[\d+\]\s+((?:\"(?:[^"\\]|\\.)*\"\s*\n)+)', msgstr_raw, re.MULTILINE)
+            has_empty = any(not parse_po_str(line).strip() for line in plural_lines)
+            if is_fuzzy or has_empty:
+                to_translate.append((idx, msgid, msgid_plural, plural_indices, is_fuzzy))
+        else:
+            msgstr = parse_po_str(msgstr_raw)
+            if is_fuzzy or not msgstr.strip():
+                to_translate.append((idx, msgid, "", [], is_fuzzy))
 
     total = len(to_translate)
     print(f"Found {total} strings to translate or update in '{po_path.name}'.", flush=True)
@@ -156,22 +167,38 @@ def process_po_file(po_path: Path, target_lang: str) -> None:
     last_end = 0
     current_num = 0
 
-    to_translate_map = {idx: (msgid, is_fuzzy) for idx, msgid, is_fuzzy in to_translate}
+    to_translate_map = {idx: (msgid, msgid_plural, plural_indices, is_fuzzy) for idx, msgid, msgid_plural, plural_indices, is_fuzzy in to_translate}
 
     for idx, m in enumerate(matches):
         start, end = m.span()
         output_pieces.append(content[last_end:start])
         last_end = end
 
-        comments, msgid_raw, msgstr_raw = m.groups()
+        comments, msgid_raw, msgid_plural_raw, msgstr_raw = m.groups()
 
         if idx in to_translate_map:
             current_num += 1
-            msgid, is_fuzzy = to_translate_map[idx]
+            msgid, msgid_plural, plural_indices, is_fuzzy = to_translate_map[idx]
             status_tag = "[FUZZY]" if is_fuzzy else "[NEW]"
 
-            new_translation = translate_gtx(msgid, target_lang)
+            if msgid_plural:
+                display_orig = f"{msgid.replace('\n', ' ')} / {msgid_plural.replace('\n', ' ')}"[:40]
+                print(f"[{current_num}/{total}] {status_tag} '{display_orig}' - plural", flush=True)
 
+                if is_fuzzy:
+                    comments = remove_fuzzy_flag(comments)
+
+                pieces: list[str] = []
+                for p_idx in plural_indices:
+                    source_text = msgid if p_idx == 0 else msgid_plural
+                    trans = translate_gtx(source_text, target_lang)
+                    pieces.append(format_po_str(trans or source_text, p_idx))
+                    time.sleep(0.05)
+
+                output_pieces.append(f"{comments}{msgid_raw}{msgid_plural_raw}{''.join(pieces)}")
+                continue
+
+            new_translation = translate_gtx(msgid, target_lang)
             if new_translation:
                 display_orig = msgid.replace("\n", " ")[:40]
                 display_trans = new_translation.replace("\n", " ")[:40]

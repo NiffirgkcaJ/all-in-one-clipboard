@@ -274,6 +274,7 @@ def extract_ui_strings(output_path: Path, input_dir: Path) -> None:
         "--from-code=UTF-8",
         "--omit-header",
         "-k_",
+        "-kngettext:1,2",
         "-L",
         "JavaScript",
     ] + [str(p) for p in js_files] + ["-o", "-"]

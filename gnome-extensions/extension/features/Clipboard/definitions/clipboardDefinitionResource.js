@@ -1,5 +1,5 @@
 import GLib from 'gi://GLib';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { gettext as _, ngettext } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
@@ -71,6 +71,27 @@ function _extractResourcePaths(fileUri) {
 }
 
 /**
+ * Extract display parameters for single and multiple resource views.
+ *
+ * @param {object} item Clipboard item payload.
+ * @param {boolean} isMultiple Whether the item represents multiple resources.
+ * @returns {object} Resource view parameters containing firstName, singleTitle, and singleSubtitle.
+ */
+function _extractResourceViewParams(item, isMultiple) {
+    const rawTitle = item.preview || item.text || _('Resource');
+    const singleTitle = rawTitle.replace(/[\r\n]+/g, ' ').trim();
+    const singleSubtitle = (item.file_uri || '').replace(/[\r\n]+/g, ' ').trim();
+
+    if (!isMultiple) {
+        return { firstName: '', singleTitle, singleSubtitle };
+    }
+
+    const firstPath = _extractResourcePaths(item.file_uri).split('\n')[0];
+    const firstName = GLib.path_get_basename(firstPath);
+    return { firstName, singleTitle, singleSubtitle };
+}
+
+/**
  * Create the resource clipboard definition.
  *
  * @returns {object} Clipboard definition.
@@ -96,20 +117,39 @@ export function ClipboardDefinitionResource() {
             return { healed: false, isCorrupted: !exists };
         },
         configureView: (config, item, options) => {
-            config.title = (item.preview || item.text || 'Resource').replace(/[\r\n]+/g, ' ').trim();
+            const count = item.count || 1;
+            const isMultiple = count > 1;
+            const remaining = count - 1;
+            const { firstName, singleTitle, singleSubtitle } = _extractResourceViewParams(item, isMultiple);
 
-            if (item.count && item.count > 1) {
-                config.subtitle = `${item.count} ${item.subtype}`;
-            } else {
-                config.subtitle = (item.file_uri || '').replace(/[\r\n]+/g, ' ').trim();
-            }
+            // Subtype Views
+            const RESOURCE_SUBTYPE_VIEWS = {
+                [isMultiple ? 'files' : 'file']: {
+                    title: isMultiple ? ngettext('%s and %d other file', '%s and %d other files', remaining).format(firstName, remaining) : singleTitle,
+                    subtitle: isMultiple ? ngettext('%d file', '%d files', count).format(count) : singleSubtitle,
+                },
+                [isMultiple ? 'folders' : 'folder']: {
+                    title: isMultiple ? ngettext('%s and %d other folder', '%s and %d other folders', remaining).format(firstName, remaining) : singleTitle,
+                    subtitle: isMultiple ? ngettext('%d folder', '%d folders', count).format(count) : singleSubtitle,
+                },
+                [isMultiple ? 'items' : 'item']: {
+                    title: isMultiple ? ngettext('%s and %d other item', '%s and %d other items', remaining).format(firstName, remaining) : singleTitle,
+                    subtitle: isMultiple ? ngettext('%d item', '%d items', count).format(count) : singleSubtitle,
+                },
+            };
+
+            const defaultKey = isMultiple ? 'items' : 'item';
+            const viewMeta = RESOURCE_SUBTYPE_VIEWS[item.subtype] || RESOURCE_SUBTYPE_VIEWS[defaultKey];
+            config.title = viewMeta.title;
+            config.subtitle = viewMeta.subtitle;
 
             if (!_verifyResourceUrisExist(item.file_uri)) {
                 item.is_corrupted = true;
             }
 
-            if (options.style?.subtypes && options.style.subtypes[item.subtype]) {
-                config.icon = options.style.subtypes[item.subtype].icon;
+            const subtypeIcon = options.style?.subtypes?.[item.subtype]?.icon;
+            if (subtypeIcon) {
+                config.icon = subtypeIcon;
             }
         },
         getViewFingerprint: (config, _item, options) => {

@@ -164,25 +164,10 @@ export class ResourceProcessor {
     static _createMultipleResult(validItems, cleanText) {
         const allDirectories = validItems.every((item) => item.isDirectory);
         const allRegular = validItems.every((item) => item.isRegular);
-        let subtype = 'items';
-        let itemLabel = 'item';
-        let itemsLabel = 'items';
-
-        if (allDirectories) {
-            subtype = 'folders';
-            itemLabel = 'folder';
-            itemsLabel = 'folders';
-        } else if (allRegular) {
-            subtype = 'files';
-            itemLabel = 'file';
-            itemsLabel = 'files';
-        }
+        const subtype = allDirectories ? 'folders' : allRegular ? 'files' : 'items';
 
         const count = validItems.length;
         const firstItem = validItems[0];
-        const remaining = count - 1;
-        const noun = remaining === 1 ? itemLabel : itemsLabel;
-        const preview = `${firstItem.name} and ${remaining} other ${noun}`;
         const allUris = validItems.map((item) => item.uri).join('\n');
         const uriHash = ProcessorUtils.computeHashForString(allUris);
 
@@ -192,7 +177,7 @@ export class ResourceProcessor {
             count,
             file_uri: allUris,
             text: cleanText,
-            preview,
+            preview: firstItem.name,
             hash: uriHash,
         };
     }
