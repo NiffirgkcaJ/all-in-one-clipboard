@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-04 02:08+0000\n"
+"POT-Creation-Date: 2026-11-05 01:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -804,27 +804,27 @@ msgstr ""
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:46
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:48
 msgid "Cannot be recovered"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:87
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:88
 msgid "Item (Data Lost)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:333
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:338
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:350
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:356
 msgid "History"
 msgstr ""
 

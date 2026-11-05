@@ -483,6 +483,11 @@
     margin-right: 8px;
     border: 5px solid rgba(128, 128, 128, 0.4);
     border-radius: 8px;
+    overflow: hidden;
+}
+
+.aio-clipboard-container .clipboard-list-tile-surface {
+    border-radius: 3px;
 }
 
 .aio-clipboard-container .clipboard-list-gutter-visual {

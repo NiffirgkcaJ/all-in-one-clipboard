@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-04 01:50+0000\n"
+"POT-Creation-Date: 2026-11-05 01:56+0000\n"
 "PO-Revision-Date: 2026-06-26 15:50+0800\n"
 "Last-Translator: adinlead <adinlead@sina.cn>\n"
 "Language-Team: <i18n-zh@googlegroups.com>\n"
@@ -799,27 +799,27 @@ msgstr "取消全选"
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "停止隐私模式（恢复记录）"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:46
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:48
 msgid "Cannot be recovered"
 msgstr "无法恢复"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:87
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:88
 msgid "Item (Data Lost)"
 msgstr "项目（数据丢失）"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
 msgid "No results found."
 msgstr "未找到结果。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:163
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
 msgid "Clipboard history is empty."
 msgstr "剪贴板历史为空。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:333
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:338
 msgid "Pinned"
 msgstr "已固定"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:350
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:356
 msgid "History"
 msgstr "历史"
 

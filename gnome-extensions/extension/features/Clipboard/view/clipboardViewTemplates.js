@@ -446,6 +446,7 @@ export function createListTile(params) {
     });
 
     const tileSurface = new St.Bin({
+        style_class: ClipboardStyles.LIST_TILE_SURFACE,
         style: params.tileStyle,
         x_expand: true,
         y_expand: true,

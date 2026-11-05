@@ -39,6 +39,7 @@ export const ClipboardStyles = Object.freeze({
 
     LIST_TILE_CONTAINER: 'clipboard-list-tile-container',
     LIST_TILE_VISUAL: 'clipboard-list-tile-visual',
+    LIST_TILE_SURFACE: 'clipboard-list-tile-surface',
     LIST_TILE_CONTENT: 'clipboard-list-tile-content',
 
     LIST_GUTTER_CONTAINER: 'clipboard-list-gutter-container',
