@@ -68,6 +68,7 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
         previewSize,
         registry: clipboardManager._clipboardRegistry,
         storage: clipboardManager.storage,
+        settings: runtimeContext.settings,
     };
     const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
     const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);

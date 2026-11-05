@@ -58,7 +58,7 @@ export function ClipboardDefinitionCode() {
         hasFullContent: true,
         configureView: (config, item, options) => {
             const raw = item.preview || item.text || '';
-            const previewLines = options.codePreviewLines;
+            const previewLines = options.codePreviewLines ?? options.settings.get_default_value('clipboard-code-preview-lines').get_int32();
             config.text = ProcessorUtils.clampLines(raw, previewLines);
             const rawLines = item.raw_lines || 0;
             const previewLinesCount = config.text ? ProcessorUtils.getLineCount(config.text) : 0;
@@ -67,8 +67,8 @@ export function ClipboardDefinitionCode() {
             config.badgeText = rawLines > 0 ? `${rawLines} lines` : null;
         },
         getViewFingerprint: (config, _item, options) => {
-            const lines = options.codePreviewLines || '';
-            const floor = options.codeEnforceDefaultHeight ? '1' : '0';
+            const lines = options.codePreviewLines ?? options.settings.get_default_value('clipboard-code-preview-lines').get_int32();
+            const floor = (options.codeEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-code-enforce-default-height').get_boolean()) ? '1' : '0';
             return [config.text || '', config.gutterText || '', config.badgeText || '', lines, floor].join('|');
         },
         getGridBadge: (config) => {
@@ -92,10 +92,11 @@ export function ClipboardDefinitionCode() {
             }
 
             const rawLines = item?.raw_lines || (raw ? ProcessorUtils.getLineCount(raw) : 1);
-            const previewLines = options.codePreviewLines;
+            const previewLines = options.codePreviewLines ?? options.settings.get_default_value('clipboard-code-preview-lines').get_int32();
             const lines = previewLines !== undefined ? Math.min(rawLines, previewLines) : rawLines;
             const contentHeight = lines * ListMetrics.LINE_HEIGHT_GUTTER + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const listHeight = options.codeEnforceDefaultHeight ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+            const enforceDefault = options.codeEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-code-enforce-default-height').get_boolean();
+            const listHeight = enforceDefault ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {
                 gridHeight,

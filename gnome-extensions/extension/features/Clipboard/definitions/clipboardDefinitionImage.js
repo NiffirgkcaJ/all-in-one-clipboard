@@ -74,14 +74,15 @@ export function ClipboardDefinitionImage() {
             }
         },
         getViewFingerprint: (_config, item, options) => {
-            const size = options.previewSize || options.imagePreviewSize || '';
-            const floor = options.imageEnforceDefaultHeight ? '1' : '0';
+            const size = options.imagePreviewSize ?? options.previewSize ?? options.settings.get_default_value('clipboard-image-preview-size').get_int32();
+            const floor = (options.imageEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-image-enforce-default-height').get_boolean()) ? '1' : '0';
             return [item.image_filename || '', item.preview_filename || '', size, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
-            const size = options.imagePreviewSize || options.previewSize;
+            const size = options.imagePreviewSize ?? options.previewSize ?? options.settings.get_default_value('clipboard-image-preview-size').get_int32();
             const contentHeight = size + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const listHeight = options.imageEnforceDefaultHeight ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+            const enforceDefault = options.imageEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-image-enforce-default-height').get_boolean();
+            const listHeight = enforceDefault ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {
                 listHeight,

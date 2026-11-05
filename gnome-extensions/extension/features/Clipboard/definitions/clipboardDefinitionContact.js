@@ -90,12 +90,13 @@ export function ClipboardDefinitionContact() {
             }
         },
         getViewFingerprint: (config, _item, options) => {
-            const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
+            const floor = (options.metadataEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-metadata-enforce-default-height').get_boolean()) ? '1' : '0';
             return [config.title || '', config.subtitle || '', config.icon || '', config.flagPath || '', config.giconPath || '', floor].join('|');
         },
         getViewMetadata: (_config, _item, options) => {
             const contentHeight = ListMetrics.LINE_COUNT_HEADER * ListMetrics.LINE_HEIGHT_HEADER + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const listHeight = options.metadataEnforceDefaultHeight ? ListMetrics.ITEM_HEIGHT : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
+            const enforceDefault = options.metadataEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-metadata-enforce-default-height').get_boolean();
+            const listHeight = enforceDefault ? ListMetrics.ITEM_HEIGHT : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {
                 gridHeight: GridMetrics.HEIGHT_DEFAULT,

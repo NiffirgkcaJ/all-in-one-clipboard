@@ -225,7 +225,10 @@ export class ClipboardRegistry {
     configureView(config, item, options) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.configureView) {
-            definition.configureView(config, item, options);
+            definition.configureView(config, item, {
+                ...options,
+                settings: options.settings || this._settings,
+            });
         } else {
             config.text = item.preview || item.text || '';
         }
