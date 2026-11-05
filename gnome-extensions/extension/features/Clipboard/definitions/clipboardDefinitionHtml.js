@@ -69,7 +69,7 @@ export function ClipboardDefinitionHtml() {
         }),
         hasFullContent: true,
         configureView: (config, item, options) => {
-            const raw = (item.text || item.preview || '').replace(/\r?\n+$/, '');
+            const raw = item.text || item.preview || '';
             const previewLines = options.htmlPreviewLines;
             config.text = ProcessorUtils.clampLines(raw, previewLines);
         },
@@ -90,7 +90,7 @@ export function ClipboardDefinitionHtml() {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
             }
 
-            const rawLines = ProcessorUtils.getLineCount(raw);
+            const rawLines = item?.raw_lines || (raw ? ProcessorUtils.getLineCount(raw) : 1);
             const previewLines = options.htmlPreviewLines;
             const lines = previewLines !== undefined ? Math.min(rawLines, previewLines) : rawLines;
             const contentHeight = lines * ListMetrics.LINE_HEIGHT_LABEL + ListMetrics.ROW_PADDING_MARGIN_PX;

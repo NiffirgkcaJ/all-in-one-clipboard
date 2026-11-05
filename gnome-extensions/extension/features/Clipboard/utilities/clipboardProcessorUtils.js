@@ -74,7 +74,7 @@ export class ProcessorUtils {
             return '';
         }
 
-        const clean = text.replace(/\r?\n+$/, '');
+        const clean = text.replace(/^\r?\n+/, '').replace(/\r?\n+$/, '');
         const lines = clean.split('\n');
         if (lines.length <= maxLines) {
             return clean;
@@ -91,6 +91,9 @@ export class ProcessorUtils {
      */
     static getLineCount(text) {
         if (!text) return 1;
-        return text.replace(/\r?\n+$/, '').split(/\r?\n/).length;
+        return text
+            .replace(/^\r?\n+/, '')
+            .replace(/\r?\n+$/, '')
+            .split(/\r?\n/).length;
     }
 }

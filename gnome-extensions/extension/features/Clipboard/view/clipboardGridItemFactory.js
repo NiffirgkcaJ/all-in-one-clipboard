@@ -1,9 +1,9 @@
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+import { getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
@@ -328,6 +328,7 @@ export class ClipboardGridItemFactory {
             registry: options.registry,
             storage: options.storage,
             previewSize: options.previewSize,
+            settings: options.settings,
         };
     }
 
@@ -364,6 +365,7 @@ export class ClipboardGridItemFactory {
 
             const badgeLabel = new St.Label({
                 text: badge.text,
+                style: getInterfaceFontStyle(),
                 style_class: badge.style_class || null,
             });
             typeBadge.add_child(badgeLabel);
@@ -383,6 +385,7 @@ export class ClipboardGridItemFactory {
         const safeText = config.title || config.text || config.subtitle || '';
         const contentWidget = new St.Label({
             text: safeText,
+            style: getInterfaceFontStyle(),
             style_class: ClipboardStyles.GRID_LABEL_CONTENT,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,

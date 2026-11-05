@@ -6,6 +6,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { destroyAllRecentItemsManagers } from './shared/utilities/utilityRecents.js';
+import { destroyFontListener } from './shared/utilities/utilityFont.js';
 import { initializeMenuRegistry } from './shared/menu/menuRegistry.js';
 import { IOFile } from './shared/utilities/utilityIO.js';
 import { Logger } from './shared/utilities/utilityLogger.js';
@@ -284,6 +285,7 @@ export default class AllInOneClipboardExtension extends Extension {
         resetSymbolsSearchProvider();
         resetSearchHub();
         destroyAllRecentItemsManagers();
+        destroyFontListener();
 
         if (this._resource) {
             Gio.resources_unregister(this._resource);

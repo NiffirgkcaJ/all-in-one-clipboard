@@ -83,7 +83,7 @@ export function ClipboardDefinitionColor() {
         },
         getViewFingerprint: (config, item, options) => {
             const floor = options.metadataEnforceDefaultHeight ? '1' : '0';
-            return [item.gradient_filename || '', config.cssColor || '', floor].join('|');
+            return [item.gradient_filename || '', config.cssColor || '', config.icon || '', floor].join('|');
         },
         getViewMetadata: (_config, _item, options) => {
             const contentHeight = ListMetrics.LINE_COUNT_HEADER * ListMetrics.LINE_HEIGHT_HEADER + ListMetrics.ROW_PADDING_MARGIN_PX;

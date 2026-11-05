@@ -521,6 +521,13 @@ export class VirtualizationEngine {
     }
 
     /**
+     * Force visible items recalculation and notification.
+     */
+    invalidateVisible() {
+        this._recalculateVisible(true);
+    }
+
+    /**
      * Ingest items and compute layout coordinates.
      *
      * @param {Array<Object>} items Raw item objects.

@@ -1,5 +1,7 @@
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { getInterfaceFontFamily, getMonospaceFontFamily } from '../../../shared/utilities/utilityFont.js';
+
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 
 /**
@@ -60,11 +62,10 @@ export class ClipboardBaseItemConfig {
      * @returns {string} Render fingerprint.
      */
     static getItemRenderFingerprint(config, item, options = {}) {
-        if (options.registry) {
-            return options.registry.getViewFingerprint(config, item, options);
-        }
-
-        return config._fingerprint || ClipboardBaseItemConfig._buildConfigFingerprint(config);
+        const baseFingerprint = options.registry ? options.registry.getViewFingerprint(config, item, options) : config._fingerprint || ClipboardBaseItemConfig._buildConfigFingerprint(config);
+        const viewType = options.registry?.getDefinition(item?.type)?.viewType;
+        const fontToken = viewType === 'gutter' ? getMonospaceFontFamily() : getInterfaceFontFamily();
+        return `${baseFingerprint}|${fontToken}`;
     }
 
     // ========================================================================
@@ -97,7 +98,8 @@ export class ClipboardBaseItemConfig {
     static _buildConfigFingerprint(config) {
         const iconOptions = config.iconOptions;
         const iconOptionsFingerprint = iconOptions ? `${iconOptions.color || ''}:${iconOptions.styleClass || ''}` : '';
+        const fontToken = getInterfaceFontFamily();
 
-        return [config.icon || '', config.title || '', config.subtitle || '', config.text || '', iconOptionsFingerprint].join('|');
+        return [config.icon || '', config.title || '', config.subtitle || '', config.text || '', iconOptionsFingerprint, fontToken].join('|');
     }
 }

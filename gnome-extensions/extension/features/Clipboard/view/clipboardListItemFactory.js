@@ -1,8 +1,8 @@
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import { getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
@@ -203,9 +203,10 @@ export class ClipboardListItemFactory {
      * @param {Object} options.storage Clipboard storage instance.
      * @param {Object} options.registry Clipboard registry instance.
      * @param {number} options.previewSize Preview size.
+     * @returns {boolean} True if the content structure was updated.
      */
     static updateItem(itemWidget, newItemData, options) {
-        if (!itemWidget || !newItemData) return;
+        if (!itemWidget || !newItemData) return false;
 
         itemWidget._itemId = newItemData.id;
 
@@ -215,7 +216,7 @@ export class ClipboardListItemFactory {
         const previousFingerprint = itemWidget._renderFingerprint || itemWidget._viewConfig?._fingerprint || '';
         const nextFingerprint = renderFingerprint || config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {
-            return;
+            return false;
         }
 
         itemWidget._viewConfig = config;
@@ -237,6 +238,7 @@ export class ClipboardListItemFactory {
         }
 
         itemWidget.set_style(metadata.listMinHeight ? `min-height: ${metadata.listMinHeight}px;` : '');
+        return true;
     }
 
     /**
@@ -303,6 +305,7 @@ export class ClipboardListItemFactory {
         const safeText = config.title || config.text || config.subtitle || '';
         const label = new St.Label({
             text: safeText,
+            style: getInterfaceFontStyle(),
             style_class: ClipboardStyles.LIST_LABEL_CONTENT,
             x_expand: true,
             y_align: Clutter.ActorAlign.CENTER,

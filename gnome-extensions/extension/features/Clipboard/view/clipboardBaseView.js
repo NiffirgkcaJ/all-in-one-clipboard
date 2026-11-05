@@ -7,6 +7,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { FocusUtils } from '../../../shared/utilities/utilityFocus.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+import { addFontChangeListener, getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
 
 import { ClipboardConfig } from '../constants/clipboardConstants.js';
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
@@ -73,6 +74,7 @@ export const ClipboardBaseView = GObject.registerClass(
             this._scrollIdleId = 0;
             this._scrollSignalIds = [];
             this._checkboxIconsMap = new Map();
+            this._fontListenerRemover = addFontChangeListener(() => this._onFontChanged());
 
             this._buildCommonUI();
             this._setupScrollListener();
@@ -129,13 +131,14 @@ export const ClipboardBaseView = GObject.registerClass(
          * @param {St.Widget} widget The existing widget.
          * @param {Object} itemData The new item data.
          * @param {Object} [session] Render session.
+         * @returns {boolean} True if the item widget was structurally updated.
          * @protected
          */
         _updateItemWidget(widget, itemData, session) {
             const isPinned = session === true;
             const Factory = this._getItemFactory();
             const options = this._getItemOptions(isPinned);
-            Factory.updateItem(widget, itemData, options);
+            return Factory.updateItem(widget, itemData, options);
         }
 
         // ========================================================================
@@ -329,8 +332,11 @@ export const ClipboardBaseView = GObject.registerClass(
          * @private
          */
         _buildCommonUI() {
+            const fontStyle = getInterfaceFontStyle();
+
             this._pinnedHeader = new St.Label({
                 text: _('Pinned'),
+                style: fontStyle,
                 style_class: ClipboardStyles.SECTION_HEADER,
             });
             this.add_child(this._pinnedHeader);
@@ -348,6 +354,7 @@ export const ClipboardBaseView = GObject.registerClass(
 
             this._historyHeader = new St.Label({
                 text: _('History'),
+                style: fontStyle,
                 style_class: ClipboardStyles.SECTION_HEADER,
             });
             this.add_child(this._historyHeader);
@@ -358,6 +365,7 @@ export const ClipboardBaseView = GObject.registerClass(
             }
 
             this._emptyLabel = new St.Label({
+                style: fontStyle,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
                 x_expand: true,
@@ -818,6 +826,32 @@ export const ClipboardBaseView = GObject.registerClass(
         // ========================================================================
 
         /**
+         * Handle desktop font setting changes.
+         *
+         * @private
+         */
+        _onFontChanged() {
+            const fontStyle = getInterfaceFontStyle();
+
+            if (this._pinnedHeader) {
+                this._pinnedHeader.set_style(fontStyle);
+            }
+            if (this._historyHeader) {
+                this._historyHeader.set_style(fontStyle);
+            }
+            if (this._emptyLabel) {
+                this._emptyLabel.set_style(fontStyle);
+            }
+
+            if (this._pinnedContainer?.invalidate) {
+                this._pinnedContainer.invalidate();
+            }
+            if (this._historyContainer?.invalidate) {
+                this._historyContainer.invalidate();
+            }
+        }
+
+        /**
          * Handle scroll events.
          *
          * @param {St.Adjustment} vadjustment Scroll adjustment.
@@ -917,6 +951,11 @@ export const ClipboardBaseView = GObject.registerClass(
             if (this._scrollIdleId) {
                 GLib.source_remove(this._scrollIdleId);
                 this._scrollIdleId = 0;
+            }
+
+            if (this._fontListenerRemover) {
+                this._fontListenerRemover();
+                this._fontListenerRemover = null;
             }
 
             if (this._scrollView && this._scrollSignalIds.length > 0) {

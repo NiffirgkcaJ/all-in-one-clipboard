@@ -245,6 +245,15 @@ export const BaseVirtualLayout = GObject.registerClass(
         }
 
         /**
+         * Invalidate visible items to force layout recalculation and widget updates.
+         */
+        invalidate() {
+            if (this._virtualEngine) {
+                this._virtualEngine.invalidateVisible();
+            }
+        }
+
+        /**
          * Set the current scroll viewport.
          *
          * @param {number} scrollTop Vertical scroll offset.

@@ -7,6 +7,7 @@ import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { IOImage } from '../../../shared/utilities/utilityIO.js';
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+import { getInterfaceFontStyle, getMonospaceFontStyle } from '../../../shared/utilities/utilityFont.js';
 
 import { IconSizes } from '../constants/clipboardConstants.js';
 import { ClipboardGradientStyles, ClipboardStyles } from '../constants/clipboardStyleConstants.js';
@@ -89,8 +90,11 @@ function createListTitleSubtitleColumn({ title, subtitle, styleClass = null }) {
         style_class: styleClass,
     });
 
+    const fontStyle = getInterfaceFontStyle();
+
     const titleLabel = new St.Label({
         text: title || '',
+        style: fontStyle,
         style_class: ClipboardStyles.LIST_TITLE,
         x_expand: true,
     });
@@ -101,6 +105,7 @@ function createListTitleSubtitleColumn({ title, subtitle, styleClass = null }) {
 
     const subLabel = new St.Label({
         text: subtitle || '',
+        style: fontStyle,
         style_class: ClipboardStyles.LIST_SUBTITLE,
         x_expand: true,
     });
@@ -129,8 +134,11 @@ function createGridTitleSubtitleColumn({ title, subtitle }) {
         style_class: ClipboardStyles.GRID_HEADER_CONTENT,
     });
 
+    const fontStyle = getInterfaceFontStyle();
+
     const titleLabel = new St.Label({
         text: title || '',
+        style: fontStyle,
         style_class: ClipboardStyles.GRID_TITLE,
         x_expand: true,
     });
@@ -141,6 +149,7 @@ function createGridTitleSubtitleColumn({ title, subtitle }) {
 
     const subLabel = new St.Label({
         text: subtitle || '',
+        style: fontStyle,
         style_class: ClipboardStyles.GRID_SUBTITLE,
         x_expand: true,
     });
@@ -175,6 +184,7 @@ export function createListLabel({ text }) {
 
     const label = new St.Label({
         text: text || '',
+        style: getInterfaceFontStyle(),
         style_class: ClipboardStyles.LIST_LABEL_CONTENT,
         x_expand: true,
         y_align: Clutter.ActorAlign.CENTER,
@@ -204,6 +214,7 @@ export function createGridLabel({ text }) {
 
     const label = new St.Label({
         text: text || '',
+        style: getInterfaceFontStyle(),
         style_class: ClipboardStyles.GRID_LABEL_CONTENT,
         x_expand: true,
         y_expand: true,
@@ -417,6 +428,17 @@ export function createListTile(params) {
         style_class: ClipboardStyles.LIST_TILE_CONTAINER,
     });
 
+    const hasIcon = Boolean(params.icon || params.gicon || params.flagPath);
+    if (hasIcon) {
+        contentWidget.add_child(
+            createContentIcon({
+                ...params,
+                iconSize: IconSizes.LIST_VISUAL,
+                styleClass: ClipboardStyles.LIST_HEADER_VISUAL,
+            }),
+        );
+    }
+
     const tileVisual = new St.Bin({
         style_class: ClipboardStyles.LIST_TILE_VISUAL,
         x_align: Clutter.ActorAlign.CENTER,
@@ -476,6 +498,7 @@ export function createGridTile({ tileStyle, title }) {
 
     const tileLabel = new St.Label({
         text: title || '',
+        style: getInterfaceFontStyle(),
         style_class: ClipboardStyles.GRID_TILE_CONTENT,
         x_expand: true,
         y_expand: true,
@@ -511,8 +534,11 @@ export function createListGutter({ gutterText, text }) {
         style_class: ClipboardStyles.LIST_GUTTER_CONTAINER,
     });
 
+    const fontStyle = getMonospaceFontStyle();
+
     const prefixLabel = new St.Label({
         text: gutterText || '',
+        style: fontStyle,
         style_class: ClipboardStyles.LIST_GUTTER_VISUAL,
         x_align: Clutter.ActorAlign.CENTER,
         y_align: Clutter.ActorAlign.CENTER,
@@ -521,6 +547,7 @@ export function createListGutter({ gutterText, text }) {
 
     const gutterContentLabel = new St.Label({
         text: text || '',
+        style: fontStyle,
         style_class: ClipboardStyles.LIST_GUTTER_CONTENT,
         x_expand: true,
         x_align: Clutter.ActorAlign.START,
@@ -552,6 +579,7 @@ export function createGridGutter({ text }) {
 
     const gutterContent = new St.Label({
         text: text || '',
+        style: getMonospaceFontStyle(),
         style_class: ClipboardStyles.GRID_GUTTER_CONTENT,
         x_expand: true,
     });
