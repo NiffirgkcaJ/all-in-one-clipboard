@@ -38,7 +38,7 @@ export function ClipboardDefinitionColor() {
         createItem: ClipboardIntegrationInlineItem({
             fields: ['subtype', 'color_value', 'format_type', 'hash', 'colors'],
             defaults: {
-                subtype: 'single',
+                subtype: 'pipette',
             },
             previewField: 'color_value',
             finalizeItem: (item, _result, context) => {

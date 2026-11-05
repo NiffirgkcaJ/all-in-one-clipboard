@@ -105,7 +105,7 @@ export class ColorProcessor {
 
             results.push({
                 type: ClipboardType.COLOR,
-                subtype: 'single',
+                subtype: 'pipette',
                 color_value: colorText,
                 format_type: format,
                 hash,
@@ -118,7 +118,7 @@ export class ColorProcessor {
     }
 
     /**
-     * Parse a complete clipboard string as a gradient, palette, or single color.
+     * Parse a complete clipboard string as a gradient, palette, or pipette color.
      *
      * @param {string} text Trimmed clipboard text.
      * @returns {object|null} Full-content color result or null.
@@ -147,7 +147,7 @@ export class ColorProcessor {
 
         return {
             type: ClipboardType.COLOR,
-            subtype: 'single',
+            subtype: 'pipette',
             color_value: text,
             format_type: format,
             hash: ProcessorUtils.computeHashForString(text),

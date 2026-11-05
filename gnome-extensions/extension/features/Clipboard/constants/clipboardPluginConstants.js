@@ -62,7 +62,7 @@ export const ClipboardStyling = {
         iconSize: 16,
         layout: 'color',
         subtypes: {
-            single: {
+            pipette: {
                 icon: 'clipboard-type-color-pipette-symbolic.svg',
             },
             gradient: {
