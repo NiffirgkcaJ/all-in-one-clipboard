@@ -20,6 +20,7 @@ export function ClipboardDefinitionText() {
         styling: ClipboardStyling[ClipboardType.TEXT],
         viewType: 'label',
         fullSpanIntentField: 'text',
+        resolveContent: (item) => item.text || null,
         extract: () => TextProcessor.extract(),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: TextProcessor,

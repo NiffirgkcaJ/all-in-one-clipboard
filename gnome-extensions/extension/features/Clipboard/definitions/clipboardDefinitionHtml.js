@@ -44,6 +44,8 @@ export function ClipboardDefinitionHtml() {
         priority: ClipboardPriority[ClipboardType.HTML],
         styling: ClipboardStyling[ClipboardType.HTML],
         viewType: 'label',
+        intentField: 'text',
+        resolveContent: (item) => item.text || null,
         extract: () => HtmlProcessor.extract(),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: HtmlProcessor,

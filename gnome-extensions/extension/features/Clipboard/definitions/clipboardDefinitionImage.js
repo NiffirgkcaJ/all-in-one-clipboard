@@ -33,6 +33,7 @@ export function ClipboardDefinitionImage() {
                 limitSetting: 'clipboard-image-extract-limit',
             },
         },
+        resolveContent: (item) => item.file_uri || null,
         extractIntents: (result, context) => ImageProcessor.extractIntents(result.file_uri, context),
         createItem: ClipboardIntegrationFileBackedItem({
             processor: ImageProcessor,

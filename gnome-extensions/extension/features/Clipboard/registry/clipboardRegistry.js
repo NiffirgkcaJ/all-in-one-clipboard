@@ -222,11 +222,12 @@ export class ClipboardRegistry {
      * @param {Object} item Clipboard item.
      * @param {Object} options View context.
      */
-    configureView(config, item, options) {
+    configureView(config, item, options = {}) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.configureView) {
             definition.configureView(config, item, {
                 ...options,
+                definition,
                 settings: options.settings || this._settings,
             });
         } else {
@@ -257,10 +258,17 @@ export class ClipboardRegistry {
      * @param {Object} options Render options.
      * @returns {string} View fingerprint.
      */
-    getViewFingerprint(config, item, options) {
+    getViewFingerprint(config, item, options = {}) {
         const configFingerprint = config._fingerprint || '';
         const definition = this.getDefinition(item.type);
-        const viewFingerprint = definition && definition.getViewFingerprint ? definition.getViewFingerprint(config, item, { ...options, definition }) : config.text || '';
+        const viewFingerprint =
+            definition && definition.getViewFingerprint
+                ? definition.getViewFingerprint(config, item, {
+                      ...options,
+                      definition,
+                      settings: options.settings || this._settings,
+                  })
+                : config.text || '';
         return [configFingerprint, viewFingerprint].join('|');
     }
 
@@ -272,10 +280,14 @@ export class ClipboardRegistry {
      * @param {Object} options Render options.
      * @returns {Object|null} Badge metadata or null.
      */
-    getGridBadge(config, item, options) {
+    getGridBadge(config, item, options = {}) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.getGridBadge) {
-            return definition.getGridBadge(config, item, { ...options, definition });
+            return definition.getGridBadge(config, item, {
+                ...options,
+                definition,
+                settings: options.settings || this._settings,
+            });
         }
         return null;
     }
@@ -288,10 +300,16 @@ export class ClipboardRegistry {
      * @param {Object} options Render options.
      * @returns {Object} View metadata.
      */
-    getViewMetadata(config, item, options) {
+    getViewMetadata(config, item, options = {}) {
         const definition = this.getDefinition(item.type);
         if (definition && definition.getViewMetadata) {
-            return definition.getViewMetadata(config, item, { ...options, definition }) || {};
+            return (
+                definition.getViewMetadata(config, item, {
+                    ...options,
+                    definition,
+                    settings: options.settings || this._settings,
+                }) || {}
+            );
         }
         return {};
     }
@@ -369,8 +387,8 @@ export class ClipboardRegistry {
 
         // Applicability
         const definitions = this._getPeerHookDefinitions('extractIntents').filter((definition) => {
-            if (definition.id === result.type) return false;
-            if (definition.intentSources && !definition.intentSources.includes(result.type)) return false;
+            if (!context.allowSelf && definition.id === result.type) return false;
+            if (result.type && definition.intentSources && !definition.intentSources.includes(result.type)) return false;
             if (definition.intentField && !result[definition.intentField]) return false;
             if (!this._shouldResolveIntentProvider(definition, result, settings)) return false;
             return true;
@@ -679,6 +697,101 @@ export class ClipboardRegistry {
     }
 
     /**
+     * Apply fresh item fields onto an existing item while preserving identity.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} freshItem Newly created item instance.
+     * @private
+     */
+    _applyFreshItemFields(item, freshItem) {
+        const preservedId = item.id;
+        const preservedTimestamp = item.timestamp;
+        const preservedPinned = item.is_pinned;
+
+        Object.keys(item).forEach((key) => {
+            if (key !== 'id' && key !== 'timestamp' && key !== 'is_pinned') {
+                delete item[key];
+            }
+        });
+
+        Object.assign(item, freshItem, {
+            id: preservedId,
+            timestamp: preservedTimestamp,
+            ...(preservedPinned !== undefined ? { is_pinned: preservedPinned } : {}),
+        });
+    }
+
+    /**
+     * Resolve the primary content string of an item dynamically.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {ClipboardDefinition|null} definition Source definition if known.
+     * @returns {string|null} Resolved content string.
+     * @private
+     */
+    _resolveItemContent(item, definition = null) {
+        if (definition) {
+            const content = definition.resolveContent(item);
+            if (content) return content;
+        }
+
+        const priorityDefinitions = this._getPriorityHookDefinitions('resolveContent');
+        for (const candidateDefinition of priorityDefinitions) {
+            const content = candidateDefinition.resolveContent(item);
+            if (content) return content;
+        }
+
+        return item.preview || null;
+    }
+
+    /**
+     * Reassign a broken item using the intent engines while preserving identity.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {object} context Healing context.
+     * @param {ClipboardDefinition|null} [sourceDefinition] Optional source definition.
+     * @returns {Promise<boolean>} True when the item was reassigned.
+     * @private
+     */
+    async _reassignBrokenItem(item, context, sourceDefinition = null) {
+        const definition = sourceDefinition || this.getDefinition(item.type);
+        const content = this._resolveItemContent(item, definition);
+        if (!content) return false;
+
+        // Carrier Construction
+        const carrier = {};
+        for (const registeredDefinition of this._definitions.values()) {
+            if (registeredDefinition.intentField) {
+                carrier[registeredDefinition.intentField] = content;
+            }
+        }
+
+        const candidates = await this._resolveIntentCandidates(carrier, { ...context, allowSelf: true });
+        if (!Array.isArray(candidates) || candidates.length === 0) return false;
+
+        // Candidate Resolution
+        const hashMatches = candidates.filter((candidate) => candidate.hash && candidate.hash === item.hash);
+        const matched = hashMatches.length === 1 ? hashMatches[0] : candidates.length === 1 ? candidates[0] : null;
+        if (!matched) return false;
+
+        const targetDefinition = this.getDefinition(matched.type || (definition ? definition.id : null));
+        if (!targetDefinition || typeof targetDefinition.createItem !== 'function') return false;
+
+        const freshItem = await targetDefinition.createItem(
+            { ...matched, id: item.id },
+            {
+                definition: targetDefinition,
+                storage: context.storage,
+                id: item.id,
+            },
+        );
+        if (!freshItem) return false;
+
+        this._applyFreshItemFields(item, freshItem);
+        return true;
+    }
+
+    /**
      * Verify and heal an item through its definition.
      *
      * @param {Object} item Clipboard item.
@@ -689,18 +802,34 @@ export class ClipboardRegistry {
         await this.initialize();
 
         const definition = this.getDefinition(item.type);
-        if (!definition) {
-            return { healed: false, isCorrupted: true };
+        let healed = false;
+
+        // Engine Reassignment
+        if (!definition || definition.isBrokenItem(item)) {
+            const reassigned = await this._reassignBrokenItem(item, context, definition);
+            if (reassigned) {
+                healed = true;
+            } else {
+                return { healed, isCorrupted: true };
+            }
         }
 
-        if (!definition.healItem) {
-            return { healed: false, isCorrupted: false };
+        // Asset Integrity Healing
+        const activeDefinition = this.getDefinition(item.type);
+        if (activeDefinition && activeDefinition.healItem) {
+            const result = await activeDefinition.healItem(item, {
+                ...context,
+                definition: activeDefinition,
+            });
+            if (result.healed) {
+                healed = true;
+            }
+            if (result.isCorrupted) {
+                return { healed, isCorrupted: true };
+            }
         }
 
-        return await definition.healItem(item, {
-            ...context,
-            definition,
-        });
+        return { healed, isCorrupted: false };
     }
 
     /**

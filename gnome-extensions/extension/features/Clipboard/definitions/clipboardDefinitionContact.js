@@ -30,6 +30,7 @@ export function ClipboardDefinitionContact() {
         initialize: () => ContactProcessor.init(),
         intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
         intentField: 'text',
+        resolveContent: (item) => item.text || null,
         intentSettings: {
             [ClipboardType.TEXT]: {
                 enabledSetting: 'clipboard-contact-extract-from-text',

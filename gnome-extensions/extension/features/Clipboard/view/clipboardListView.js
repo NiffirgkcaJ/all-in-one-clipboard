@@ -76,7 +76,7 @@ export const ClipboardListView = GObject.registerClass(
         /**
          * Get the item factory class.
          *
-         * @returns {Class} BillboardListItemFactory.
+         * @returns {Class} ClipboardListItemFactory.
          * @override
          */
         _getItemFactory() {
@@ -138,6 +138,7 @@ export const ClipboardListView = GObject.registerClass(
             }
 
             return {
+                settings: this._settings,
                 previewSize: this._imagePreviewSize,
                 imagePreviewSize: this._imagePreviewSize,
                 imageEnforceDefaultHeight: this._settings.get_boolean('clipboard-image-enforce-default-height'),
@@ -182,8 +183,9 @@ export const ClipboardListView = GObject.registerClass(
          * @private
          */
         _calculateItemHeight(item) {
+            if (!item) return ListMetrics.ITEM_HEIGHT;
             const sizingOptions = this._getListSizingOptions();
-            const metadata = this._registry?.getViewMetadata(null, item, sizingOptions);
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item, sizingOptions) : null;
             return metadata?.listHeight || ListMetrics.ITEM_HEIGHT;
         }
 

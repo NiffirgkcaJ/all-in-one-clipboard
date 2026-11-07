@@ -161,7 +161,7 @@ export class CodeProcessor {
      */
     static async save(item, textsDir, forceFileSave = true) {
         const { text, hash, type } = item;
-        const id = ProcessorUtils.generateUUID();
+        const id = item.id || ProcessorUtils.generateUUID();
 
         let has_full_content = false;
 

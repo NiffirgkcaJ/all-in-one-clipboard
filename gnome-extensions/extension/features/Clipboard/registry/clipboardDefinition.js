@@ -79,9 +79,33 @@ export class ClipboardDefinition {
     }
 
     /**
-     * Clean up definition runtime resources.
+     * Resolve the primary content string for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @returns {string|null} Resolved content string.
      */
-    destroy() {}
+    resolveContent(item) {
+        if (this.intentField && item[this.intentField]) {
+            return item[this.intentField];
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a clipboard item has an invalid or missing subtype.
+     *
+     * @param {Object} item Clipboard item.
+     * @returns {boolean} True if the item lacks a valid subtype.
+     */
+    isBrokenItem(item) {
+        const styling = this.styling;
+        if (styling && styling.subtypes) {
+            return !item.subtype || !styling.subtypes[item.subtype];
+        }
+
+        return false;
+    }
 
     // ========================================================================
     // Internal Helpers
@@ -98,6 +122,15 @@ export class ClipboardDefinition {
         if (!hooks) return [];
         return Array.isArray(hooks) ? hooks.filter(Boolean) : [hooks];
     }
+
+    // ========================================================================
+    // Lifecycle
+    // ========================================================================
+
+    /**
+     * Clean up definition runtime resources.
+     */
+    destroy() {}
 }
 
 // ============================================================================

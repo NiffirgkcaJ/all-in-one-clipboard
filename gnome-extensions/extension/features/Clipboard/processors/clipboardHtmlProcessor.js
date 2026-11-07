@@ -86,7 +86,7 @@ export class HtmlProcessor {
      */
     static async save(item, textsDir, forceFileSave = false) {
         const { text, hash } = item;
-        const id = ProcessorUtils.generateUUID();
+        const id = item.id || ProcessorUtils.generateUUID();
 
         let has_full_content = false;
 

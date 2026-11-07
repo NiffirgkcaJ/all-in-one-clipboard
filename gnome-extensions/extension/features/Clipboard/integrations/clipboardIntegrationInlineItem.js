@@ -16,9 +16,9 @@ import GLib from 'gi://GLib';
  */
 export function ClipboardIntegrationInlineItem({ fields = [], defaults = {}, previewField = null, finalizeItem = null } = {}) {
     return (result, context = {}) => {
-        const { definition } = context;
+        const { definition, id } = context;
         const item = {
-            id: GLib.uuid_string_random(),
+            id: id || result.id || GLib.uuid_string_random(),
             type: definition.id,
             timestamp: Math.floor(Date.now() / 1000),
             ...defaults,

@@ -22,6 +22,7 @@ export function ClipboardDefinitionCode() {
         viewType: 'gutter',
         intentSources: [ClipboardType.TEXT, ClipboardType.HTML],
         intentField: 'text',
+        resolveContent: (item) => item.text || null,
         intentSettings: {
             [ClipboardType.TEXT]: {
                 enabledSetting: 'clipboard-code-extract-from-text',

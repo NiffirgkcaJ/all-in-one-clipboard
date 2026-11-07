@@ -34,6 +34,7 @@ export function ClipboardDefinitionColor() {
                 limitSetting: 'clipboard-color-extract-limit',
             },
         },
+        resolveContent: (item) => item.color_value || null,
         extractIntents: (result, context) => ColorProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['subtype', 'color_value', 'format_type', 'hash', 'colors'],

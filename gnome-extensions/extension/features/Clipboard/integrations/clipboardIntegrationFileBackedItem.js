@@ -13,16 +13,18 @@
  * @returns {Function} Async item creation integration.
  */
 export function ClipboardIntegrationFileBackedItem({ processor, storageDirKey, previewDirKey = null, forceFileSave = false }) {
-    return async (result, { storage } = {}) => {
+    return async (result, { storage, id } = {}) => {
         if (!storageDirKey || !storage) return null;
 
         const storageDir = storage[storageDirKey];
         if (!storageDir) return null;
 
+        const targetItem = id && !result.id ? { ...result, id } : result;
+
         if (previewDirKey) {
-            return await processor.save(result, storageDir, storage[previewDirKey]);
+            return await processor.save(targetItem, storageDir, storage[previewDirKey]);
         }
 
-        return await processor.save(result, storageDir, forceFileSave);
+        return await processor.save(targetItem, storageDir, forceFileSave);
     };
 }

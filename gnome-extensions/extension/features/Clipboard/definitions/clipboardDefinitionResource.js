@@ -104,6 +104,7 @@ export function ClipboardDefinitionResource() {
         viewType: 'header',
         intentSources: [ClipboardType.TEXT],
         intentField: 'text',
+        resolveContent: (item) => item.file_uri || null,
         extractIntents: (result, context) => ResourceProcessor.extractIntents(result.text, context),
         createItem: ClipboardIntegrationInlineItem({
             fields: ['preview', 'file_uri', 'text', 'hash', 'subtype', 'count'],

@@ -231,7 +231,7 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _getDimensionKey(item) {
             if (!item) return null;
-            const metadata = this._registry ? this._registry.getViewMetadata(null, item) : null;
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item, { settings: this._settings }) : null;
             return metadata?.dimensionKey || null;
         }
 
@@ -329,7 +329,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _estimateCardHeight(item) {
-            const metadata = this._registry ? this._registry.getViewMetadata(null, item) : null;
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item, { settings: this._settings }) : null;
             return metadata?.gridHeight || GridMetrics.HEIGHT_DEFAULT;
         }
 

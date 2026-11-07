@@ -49,6 +49,7 @@ export function ClipboardDefinitionLink() {
                 limitSetting: 'clipboard-link-extract-limit',
             },
         },
+        resolveContent: (item) => item.url || null,
         extractIntents: (result, context) => {
             if (result.type === ClipboardType.CONTACT && result.subtype !== 'email') return [];
 
