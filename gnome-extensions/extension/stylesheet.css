@@ -438,6 +438,7 @@
     background-color: rgba(128, 128, 128, 0.3);
 }
 
+.aio-clipboard-container .clipboard-list-content-zone,
 .aio-clipboard-container .clipboard-list-label-container,
 .aio-clipboard-container .clipboard-list-media-container,
 .aio-clipboard-container .clipboard-list-header-container,

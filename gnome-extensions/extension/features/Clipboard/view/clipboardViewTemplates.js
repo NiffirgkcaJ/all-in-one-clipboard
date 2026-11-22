@@ -168,8 +168,7 @@ function createGridTitleSubtitleColumn({ title, subtitle }) {
 /**
  * Create list label content.
  *
- * @param {object} params Template parameters.
- * @param {string} [params.text] Text content.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Label container widget.
  */
 export function createListLabel({ text }) {
@@ -199,8 +198,7 @@ export function createListLabel({ text }) {
 /**
  * Create grid label content.
  *
- * @param {object} params Template parameters.
- * @param {string} [params.text] Text content.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Label container widget.
  */
 export function createGridLabel({ text }) {
@@ -235,10 +233,10 @@ export function createGridLabel({ text }) {
 /**
  * Create list header content.
  *
- * @param {object} params Template parameters.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Header content widget.
  */
-export function createListHeader(params) {
+export function createListHeader(config) {
     const contentWidget = new St.BoxLayout({
         ...mapLayout({
             horizontal: true,
@@ -250,14 +248,14 @@ export function createListHeader(params) {
 
     contentWidget.add_child(
         createContentIcon({
-            ...params,
+            ...config,
             iconSize: IconSizes.LIST_VISUAL,
             styleClass: ClipboardStyles.LIST_HEADER_VISUAL,
         }),
     );
     contentWidget.add_child(
         createListTitleSubtitleColumn({
-            ...params,
+            ...config,
             styleClass: ClipboardStyles.LIST_HEADER_CONTENT,
         }),
     );
@@ -268,10 +266,10 @@ export function createListHeader(params) {
 /**
  * Create grid header content.
  *
- * @param {object} params Template parameters.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Header content widget.
  */
-export function createGridHeader(params) {
+export function createGridHeader(config) {
     const contentWidget = new St.BoxLayout({
         ...mapLayout({
             vertical: true,
@@ -280,7 +278,7 @@ export function createGridHeader(params) {
         style_class: ClipboardStyles.GRID_HEADER_CONTAINER,
     });
 
-    const hasIcon = Boolean(params.icon || params.gicon || params.flagPath);
+    const hasIcon = Boolean(config.icon || config.gicon || config.flagPath);
 
     if (hasIcon) {
         const visualWrapper = new St.Bin({
@@ -293,7 +291,7 @@ export function createGridHeader(params) {
 
         visualWrapper.set_child(
             createContentIcon({
-                ...params,
+                ...config,
                 iconSize: IconSizes.GRID_VISUAL,
             }),
         );
@@ -305,7 +303,7 @@ export function createGridHeader(params) {
         contentWidget.add_child(spacer);
     }
 
-    contentWidget.add_child(createGridTitleSubtitleColumn(params));
+    contentWidget.add_child(createGridTitleSubtitleColumn(config));
 
     return contentWidget;
 }
@@ -317,14 +315,11 @@ export function createGridHeader(params) {
 /**
  * Create media list content.
  *
- * @param {object} params Template parameters.
- * @param {string} params.sourcePath Source file path.
- * @param {string} params.previewPath Preview file path.
- * @param {number} params.previewSize Preview size.
- * @param {string} params.logLabel Label used in load error messages.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Media content widget.
  */
-export function createListMedia({ sourcePath, previewPath, previewSize, logLabel }) {
+export function createListMedia(config) {
+    const { sourcePath, previewPath, previewSize, logLabel = '' } = config;
     if (!sourcePath) {
         return null;
     }
@@ -364,14 +359,11 @@ export function createListMedia({ sourcePath, previewPath, previewSize, logLabel
 /**
  * Create media grid content.
  *
- * @param {object} params Template parameters.
- * @param {string} params.sourcePath Source file path.
- * @param {string} params.previewPath Preview file path.
- * @param {number} params.previewSize Preview size.
- * @param {string} params.logLabel Label used in load error messages.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Media content widget.
  */
-export function createGridMedia({ sourcePath, previewPath, previewSize, logLabel }) {
+export function createGridMedia(config) {
+    const { sourcePath, previewPath, previewSize, logLabel = '' } = config;
     if (!sourcePath) {
         return null;
     }
@@ -414,11 +406,10 @@ export function createGridMedia({ sourcePath, previewPath, previewSize, logLabel
 /**
  * Create list tile content.
  *
- * @param {object} params Template parameters.
- * @param {string} params.tileStyle Tile style.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Tile content widget.
  */
-export function createListTile(params) {
+export function createListTile(config) {
     const contentWidget = new St.BoxLayout({
         ...mapLayout({
             horizontal: true,
@@ -428,11 +419,11 @@ export function createListTile(params) {
         style_class: ClipboardStyles.LIST_TILE_CONTAINER,
     });
 
-    const hasIcon = Boolean(params.icon || params.gicon || params.flagPath);
+    const hasIcon = Boolean(config.icon || config.gicon || config.flagPath);
     if (hasIcon) {
         contentWidget.add_child(
             createContentIcon({
-                ...params,
+                ...config,
                 iconSize: IconSizes.LIST_VISUAL,
                 styleClass: ClipboardStyles.LIST_HEADER_VISUAL,
             }),
@@ -447,7 +438,7 @@ export function createListTile(params) {
 
     const tileSurface = new St.Bin({
         style_class: ClipboardStyles.LIST_TILE_SURFACE,
-        style: params.tileStyle,
+        style: config.tileStyle,
         x_expand: true,
         y_expand: true,
     });
@@ -456,7 +447,7 @@ export function createListTile(params) {
 
     contentWidget.add_child(
         createListTitleSubtitleColumn({
-            ...params,
+            ...config,
             styleClass: ClipboardStyles.LIST_TILE_CONTENT,
         }),
     );
@@ -467,12 +458,13 @@ export function createListTile(params) {
 /**
  * Create grid tile content.
  *
- * @param {object} params Template parameters.
- * @param {string} params.tileStyle Tile style.
- * @param {string} params.title Title text.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Tile content widget.
  */
-export function createGridTile({ tileStyle, title }) {
+export function createGridTile(config) {
+    const { title, gridTileStyle, tileStyle } = config;
+    const effectiveTileStyle = gridTileStyle || tileStyle;
+
     const contentWidget = new St.BoxLayout({
         ...mapLayout({
             vertical: true,
@@ -481,8 +473,8 @@ export function createGridTile({ tileStyle, title }) {
         style_class: ClipboardStyles.GRID_TILE_CONTAINER,
     });
 
-    if (tileStyle) {
-        contentWidget.set_style(tileStyle);
+    if (effectiveTileStyle) {
+        contentWidget.set_style(effectiveTileStyle);
     }
 
     const spacer = new St.Widget({ y_expand: true });
@@ -520,9 +512,7 @@ export function createGridTile({ tileStyle, title }) {
 /**
  * Create list gutter content.
  *
- * @param {object} params Template parameters.
- * @param {string} [params.gutterText] Gutter prefix text.
- * @param {string} [params.text] Gutter content text.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Gutter content widget.
  */
 export function createListGutter({ gutterText, text }) {
@@ -565,8 +555,7 @@ export function createListGutter({ gutterText, text }) {
 /**
  * Create grid gutter content.
  *
- * @param {object} params Template parameters.
- * @param {string} params.text Gutter content text.
+ * @param {object} config View configuration.
  * @returns {St.Widget} Gutter grid widget.
  */
 export function createGridGutter({ text }) {
@@ -603,23 +592,16 @@ export function createGridGutter({ text }) {
  *
  * @param {string} viewType Archetype view type.
  * @param {object} config View configuration.
- * @param {object} [options] Render options.
- * @param {string} [logLabel] Log label for diagnostics.
  * @returns {St.Widget} Rendered list widget.
  */
-export function renderListArchetype(viewType, config, options = {}, logLabel = '') {
+export function renderListArchetype(viewType, config) {
     switch (viewType) {
         case 'label':
             return createListLabel(config);
         case 'header':
             return createListHeader(config);
         case 'media':
-            return createListMedia({
-                sourcePath: config.sourcePath,
-                previewPath: config.previewPath,
-                previewSize: options.previewSize,
-                logLabel,
-            });
+            return createListMedia(config);
         case 'tile':
             return createListTile(config);
         case 'gutter':
@@ -637,28 +619,18 @@ export function renderListArchetype(viewType, config, options = {}, logLabel = '
  *
  * @param {string} viewType Archetype view type.
  * @param {object} config View configuration.
- * @param {object} [options] Render options.
- * @param {string} [logLabel] Log label for diagnostics.
  * @returns {St.Widget} Rendered grid widget.
  */
-export function renderGridArchetype(viewType, config, options = {}, logLabel = '') {
+export function renderGridArchetype(viewType, config) {
     switch (viewType) {
         case 'label':
             return createGridLabel(config);
         case 'header':
             return createGridHeader(config);
         case 'media':
-            return createGridMedia({
-                sourcePath: config.sourcePath,
-                previewPath: config.previewPath,
-                previewSize: options.previewSize,
-                logLabel,
-            });
+            return createGridMedia(config);
         case 'tile':
-            return createGridTile({
-                tileStyle: config.gridTileStyle || config.tileStyle,
-                title: config.title,
-            });
+            return createGridTile(config);
         case 'gutter':
             return createGridGutter(config);
         default:

@@ -83,12 +83,12 @@ export function ClipboardDefinitionColor() {
             }
         },
         getViewFingerprint: (config, item, options) => {
-            const floor = (options.metadataEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-metadata-enforce-default-height').get_boolean()) ? '1' : '0';
+            const floor = (options.metadataEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-metadata-enforce-default-height')) ? '1' : '0';
             return [item.gradient_filename || '', config.cssColor || '', config.icon || '', floor].join('|');
         },
         getViewMetadata: (_config, _item, options) => {
             const contentHeight = ListMetrics.LINE_COUNT_HEADER * ListMetrics.LINE_HEIGHT_HEADER + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const enforceDefault = options.metadataEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-metadata-enforce-default-height').get_boolean();
+            const enforceDefault = options.metadataEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-metadata-enforce-default-height');
             const listHeight = enforceDefault ? ListMetrics.ITEM_HEIGHT : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {

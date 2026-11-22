@@ -306,7 +306,7 @@ export class ClipboardGridItemFactory {
             if (customContent) return customContent;
         }
 
-        const archetypeContent = renderGridArchetype(definition?.viewType, config, options, definition?.id || itemData.type);
+        const archetypeContent = renderGridArchetype(definition?.viewType, config);
         if (archetypeContent) return archetypeContent;
 
         return ClipboardGridItemFactory._createFallbackContent(config);

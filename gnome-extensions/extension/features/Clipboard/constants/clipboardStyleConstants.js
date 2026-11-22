@@ -21,6 +21,7 @@ export const ClipboardStyles = Object.freeze({
     LIST_CHECKBOX: 'button clipboard-list-checkbox',
     LIST_CONTROLS: 'clipboard-list-controls',
     LIST_CONTROL_BUTTON: 'button clipboard-list-control-button',
+    LIST_CONTENT_ZONE: 'clipboard-list-content-zone',
     LIST_TITLE: 'clipboard-list-title',
     LIST_SUBTITLE: 'clipboard-list-subtitle',
 

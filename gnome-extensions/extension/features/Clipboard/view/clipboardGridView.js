@@ -122,7 +122,6 @@ export const ClipboardGridView = GObject.registerClass(
                 isPinned,
                 registry: this._registry,
                 storage: this._manager?.storage,
-                previewSize: this._imagePreviewSize * 2,
                 onItemCopy: this._onItemCopy,
                 manager: this._manager,
                 selectedIds: this._selectedIds,
@@ -294,7 +293,7 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _prepareGridItem(item, isPinned) {
-            let width = 1;
+            let width = GridMetrics.WIDTH_DEFAULT;
             let height = this._estimateCardHeight(item);
 
             const dimensionKey = this._getDimensionKey(item);

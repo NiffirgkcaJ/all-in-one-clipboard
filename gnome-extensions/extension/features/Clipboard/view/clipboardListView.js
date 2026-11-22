@@ -1,9 +1,11 @@
 import GObject from 'gi://GObject';
+import St from 'gi://St';
 
 import { StackLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ListMetrics, ListVirtualization } from '../constants/clipboardLayoutConstants.js';
+
 import { ClipboardBaseView } from './clipboardBaseView.js';
 import { ClipboardListItemFactory } from './clipboardListItemFactory.js';
 
@@ -31,6 +33,14 @@ export const ClipboardListView = GObject.registerClass(
          */
         constructor(options) {
             super(options, { style_class: ClipboardStyles.LIST_VIEW });
+
+            this._themeContextSignalId = 0;
+            if (typeof global !== 'undefined' && global.stage) {
+                const themeContext = St.ThemeContext.get_for_stage(global.stage);
+                this._themeContextSignalId = themeContext.connect('changed', () => {
+                    ClipboardListItemFactory.clearThemeMetricsCache();
+                });
+            }
 
             this.connect('key-press-event', this._onKeyPress.bind(this));
         }
@@ -91,9 +101,12 @@ export const ClipboardListView = GObject.registerClass(
          * @override
          */
         _getItemOptions(isPinned) {
-            const sizingOptions = this._getListSizingOptions();
+            const rowGeometry = ClipboardListItemFactory.calculateRowGeometry({
+                extensionWidth: this._settings?.get_int('extension-width'),
+                showActionBar: this._settings?.get_boolean('clipboard-show-action-bar'),
+            });
+
             return {
-                ...sizingOptions,
                 isPinned,
                 registry: this._registry,
                 storage: this._manager?.storage,
@@ -103,6 +116,8 @@ export const ClipboardListView = GObject.registerClass(
                 onSelectionChanged: this._onSelectionChanged,
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
+                rowGeometry,
+                availableContentWidth: rowGeometry.contentWidth,
             };
         }
 
@@ -125,32 +140,6 @@ export const ClipboardListView = GObject.registerClass(
         // ========================================================================
         // Private Helpers
         // ========================================================================
-
-        /**
-         * Get the list sizing options from settings.
-         *
-         * @returns {Object} Sizing options.
-         * @private
-         */
-        _getListSizingOptions() {
-            if (!this._settings) {
-                return { previewSize: this._imagePreviewSize };
-            }
-
-            return {
-                settings: this._settings,
-                previewSize: this._imagePreviewSize,
-                imagePreviewSize: this._imagePreviewSize,
-                imageEnforceDefaultHeight: this._settings.get_boolean('clipboard-image-enforce-default-height'),
-                codePreviewLines: this._settings.get_int('clipboard-code-preview-lines'),
-                codeEnforceDefaultHeight: this._settings.get_boolean('clipboard-code-enforce-default-height'),
-                textPreviewLines: this._settings.get_int('clipboard-text-preview-lines'),
-                textEnforceDefaultHeight: this._settings.get_boolean('clipboard-text-enforce-default-height'),
-                htmlPreviewLines: this._settings.get_int('clipboard-html-preview-lines'),
-                htmlEnforceDefaultHeight: this._settings.get_boolean('clipboard-html-enforce-default-height'),
-                metadataEnforceDefaultHeight: this._settings.get_boolean('clipboard-metadata-enforce-default-height'),
-            };
-        }
 
         /**
          * Get the clipboard registry.
@@ -184,8 +173,8 @@ export const ClipboardListView = GObject.registerClass(
          */
         _calculateItemHeight(item) {
             if (!item) return ListMetrics.ITEM_HEIGHT;
-            const sizingOptions = this._getListSizingOptions();
-            const metadata = this._registry ? this._registry.getViewMetadata(null, item, sizingOptions) : null;
+            const options = this._getItemOptions(false);
+            const metadata = this._registry ? this._registry.getViewMetadata(null, item, options) : null;
             return metadata?.listHeight || ListMetrics.ITEM_HEIGHT;
         }
 
@@ -251,6 +240,12 @@ export const ClipboardListView = GObject.registerClass(
          * @override
          */
         destroy() {
+            if (this._themeContextSignalId > 0 && typeof global !== 'undefined' && global.stage) {
+                const themeContext = St.ThemeContext.get_for_stage(global.stage);
+                themeContext.disconnect(this._themeContextSignalId);
+                this._themeContextSignalId = 0;
+            }
+
             super.destroy();
         }
     },

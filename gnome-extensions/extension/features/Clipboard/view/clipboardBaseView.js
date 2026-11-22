@@ -39,7 +39,6 @@ export const ClipboardBaseView = GObject.registerClass(
          *
          * @param {Object} options Configuration options.
          * @param {ClipboardManager} options.manager The clipboard manager.
-         * @param {number} options.imagePreviewSize Size for image previews.
          * @param {Function} options.onItemCopy Callback when item is clicked/copied.
          * @param {Function} options.onSelectionChanged Callback when selection changes.
          * @param {Set} options.selectedIds Set of selected item IDs.
@@ -58,7 +57,6 @@ export const ClipboardBaseView = GObject.registerClass(
             });
 
             this._manager = options.manager;
-            this._imagePreviewSize = options.imagePreviewSize;
             this._onItemCopy = options.onItemCopy;
             this._onSelectionChanged = options.onSelectionChanged;
             this._selectedIds = options.selectedIds;
@@ -311,15 +309,6 @@ export const ClipboardBaseView = GObject.registerClass(
          */
         getCheckboxIconsMap() {
             return this._checkboxIconsMap;
-        }
-
-        /**
-         * Update the image preview size.
-         *
-         * @param {number} size New size.
-         */
-        setImagePreviewSize(size) {
-            this._imagePreviewSize = size;
         }
 
         // ========================================================================

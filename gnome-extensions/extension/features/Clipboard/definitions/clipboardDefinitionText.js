@@ -44,12 +44,12 @@ export function ClipboardDefinitionText() {
         hasFullContent: true,
         configureView: (config, item, options) => {
             const raw = item.text || item.preview || '';
-            const previewLines = options.textPreviewLines ?? options.settings.get_default_value('clipboard-text-preview-lines').get_int32();
+            const previewLines = options.textPreviewLines ?? options.settings?.get_int('clipboard-text-preview-lines');
             config.text = ProcessorUtils.clampLines(raw, previewLines);
         },
         getViewFingerprint: (config, _item, options) => {
-            const lines = options.textPreviewLines ?? options.settings.get_default_value('clipboard-text-preview-lines').get_int32();
-            const floor = (options.textEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-text-enforce-default-height').get_boolean()) ? '1' : '0';
+            const lines = options.textPreviewLines ?? options.settings?.get_int('clipboard-text-preview-lines');
+            const floor = (options.textEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-text-enforce-default-height')) ? '1' : '0';
             return [config.text || '', lines, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
@@ -64,11 +64,11 @@ export function ClipboardDefinitionText() {
                 gridHeight = GridMetrics.LABEL_WEIGHTS.SHORT.height;
             }
 
-            const rawLines = item?.raw_lines || (raw ? ProcessorUtils.getLineCount(raw) : 1);
-            const previewLines = options.textPreviewLines ?? options.settings.get_default_value('clipboard-text-preview-lines').get_int32();
+            const rawLines = item?.raw_lines || ProcessorUtils.getLineCount(raw);
+            const previewLines = options.textPreviewLines ?? options.settings?.get_int('clipboard-text-preview-lines');
             const lines = previewLines !== undefined ? Math.min(rawLines, previewLines) : rawLines;
             const contentHeight = lines * ListMetrics.LINE_HEIGHT_LABEL + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const enforceDefault = options.textEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-text-enforce-default-height').get_boolean();
+            const enforceDefault = options.textEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-text-enforce-default-height');
             const listHeight = enforceDefault ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {

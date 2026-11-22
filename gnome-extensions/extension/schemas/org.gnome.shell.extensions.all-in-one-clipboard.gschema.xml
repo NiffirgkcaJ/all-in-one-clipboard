@@ -657,7 +657,7 @@
         </key>
         <key name="clipboard-image-preview-size" type="i">
             <default>48</default>
-            <range min="20" max="300"/>
+            <range min="20" max="1000"/>
             <summary>Image Preview Size</summary>
             <description>Number of pixels displayed for image previews in clipboard list rows.</description>
         </key>

@@ -31,6 +31,7 @@ export class ClipboardBaseItemConfig {
         const config = {
             icon: style ? style.icon : null,
             text: '',
+            logLabel: registry?.getDefinition(item.type)?.id || item.type || '',
         };
 
         // Type Configuration

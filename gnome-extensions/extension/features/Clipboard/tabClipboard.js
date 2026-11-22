@@ -52,7 +52,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._manager = manager;
             ensureClipboardSearchProviderRegistered();
 
-            this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
             this._layoutMode = this._settings.get_string('clipboard-layout-mode') || 'list';
             this._hasRenderedOnce = false;
             this._deferredRedrawPending = false;
@@ -110,8 +109,6 @@ export const ClipboardTabContent = GObject.registerClass(
             this._settings.connectObject(
                 'changed::clipboard-image-preview-size',
                 () => {
-                    this._imagePreviewSize = this._settings.get_int('clipboard-image-preview-size');
-                    this._currentView.setImagePreviewSize(this._imagePreviewSize);
                     this._currentView.resetScrollAndPagination();
                     this._scheduleRedraw();
                 },
@@ -300,7 +297,6 @@ export const ClipboardTabContent = GObject.registerClass(
 
             const options = {
                 manager: this._manager,
-                imagePreviewSize: this._imagePreviewSize,
                 onItemCopy: (data, copyOptions) => this._onItemCopyToClipboard(data, copyOptions),
                 onSelectionChanged: () => this._updateSelectionState(),
                 selectedIds: this._selectionService.selectedIds,

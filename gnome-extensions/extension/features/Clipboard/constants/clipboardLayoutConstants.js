@@ -4,6 +4,7 @@ export const GridMetrics = {
     MIN_ASPECT_RATIO: 9 / 16,
     HEIGHT_MEDIA: 1.5,
     HEIGHT_DEFAULT: 1.0,
+    WIDTH_DEFAULT: 1.0,
     LABEL_WEIGHTS: {
         LONG: { threshold: 200, height: 1.5 },
         MEDIUM: { threshold: 100, height: 1.2 },

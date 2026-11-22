@@ -13,6 +13,20 @@ import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
+ * Resolve the preview size clamped to available content width.
+ *
+ * @param {object} options View options.
+ * @returns {number} Clamped preview size in pixels.
+ */
+function resolvePreviewSize(options) {
+    const configuredSize = options.previewSize ?? options.settings?.get_int('clipboard-image-preview-size');
+    const availableContentWidth = options.availableContentWidth;
+
+    if (!Number.isFinite(configuredSize)) return 0;
+    return Number.isFinite(availableContentWidth) ? Math.min(configuredSize, availableContentWidth) : configuredSize;
+}
+
+/**
  * Create the image clipboard definition.
  *
  * @returns {object} Clipboard definition.
@@ -64,6 +78,7 @@ export function ClipboardDefinitionImage() {
         }),
         configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';
+            config.previewSize = resolvePreviewSize(options);
             const filename = item.image_filename;
             const sourceDir = options.storage?.imagesDir;
             const previewDir = options.storage?.imagePreviewsDir;
@@ -75,14 +90,14 @@ export function ClipboardDefinitionImage() {
             }
         },
         getViewFingerprint: (_config, item, options) => {
-            const size = options.imagePreviewSize ?? options.previewSize ?? options.settings.get_default_value('clipboard-image-preview-size').get_int32();
-            const floor = (options.imageEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-image-enforce-default-height').get_boolean()) ? '1' : '0';
+            const size = resolvePreviewSize(options);
+            const floor = (options.imageEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-image-enforce-default-height')) ? '1' : '0';
             return [item.image_filename || '', item.preview_filename || '', size, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
-            const size = options.imagePreviewSize ?? options.previewSize ?? options.settings.get_default_value('clipboard-image-preview-size').get_int32();
+            const size = resolvePreviewSize(options);
             const contentHeight = size + ListMetrics.ROW_PADDING_MARGIN_PX;
-            const enforceDefault = options.imageEnforceDefaultHeight ?? options.settings.get_default_value('clipboard-image-enforce-default-height').get_boolean();
+            const enforceDefault = options.imageEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-image-enforce-default-height');
             const listHeight = enforceDefault ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {
