@@ -117,7 +117,8 @@ export const ClipboardListView = GObject.registerClass(
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
                 rowGeometry,
-                availableContentWidth: rowGeometry.contentWidth,
+                availableWidth: rowGeometry.availableWidth,
+                availableHeight: rowGeometry.availableHeight,
             };
         }
 

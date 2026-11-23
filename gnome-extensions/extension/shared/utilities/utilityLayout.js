@@ -1,6 +1,7 @@
-import Clutter from 'gi://Clutter';
-import St from 'gi://St';
 import { adjustAnimationTime } from 'resource:///org/gnome/shell/misc/animationUtils.js';
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
 
 // ========================================================================
 // Constants
@@ -194,4 +195,198 @@ export function getFocusedItemId(container) {
 
     if (!focused || !container.contains(focused)) return null;
     return focused._itemId || null;
+}
+
+// ========================================================================
+// Theme Metrics
+// ========================================================================
+
+/**
+ * Calculate 2D padding, margin, and intrinsic baseline metrics from CSS theme nodes.
+ *
+ * @param {St.ThemeContext} themeContext Active stage theme context.
+ * @param {string[]} classHierarchy List of style class names ordered from parent to child.
+ * @returns {object} Cumulative 2D theme metrics specification.
+ */
+export function measureThemeGeometry(themeContext, classHierarchy) {
+    if (!themeContext || !Array.isArray(classHierarchy) || classHierarchy.length === 0) {
+        return {
+            horizontalOverhead: 0,
+            verticalOverhead: 0,
+            minWidth: 0,
+            minHeight: 0,
+        };
+    }
+
+    const theme = themeContext.get_theme();
+    let currentNode = themeContext.get_root_node();
+    let horizontalOverhead = 0;
+    let verticalOverhead = 0;
+    let minWidth = 0;
+    let minHeight = 0;
+
+    for (let i = 0; i < classHierarchy.length; i++) {
+        const styleClass = classHierarchy[i];
+        if (!styleClass) continue;
+
+        currentNode = St.ThemeNode.new(themeContext, currentNode, theme, GObject.TYPE_NONE, null, styleClass, null, '');
+
+        const isLeaf = i === classHierarchy.length - 1;
+        const hPadding = isLeaf ? 0 : currentNode.get_horizontal_padding();
+        const vPadding = isLeaf ? 0 : currentNode.get_vertical_padding();
+        const hMargins = currentNode.get_margin(St.Side.LEFT) + currentNode.get_margin(St.Side.RIGHT);
+        const vMargins = currentNode.get_margin(St.Side.TOP) + currentNode.get_margin(St.Side.BOTTOM);
+
+        horizontalOverhead += hPadding + hMargins;
+        verticalOverhead += vPadding + vMargins;
+
+        const nodeMinWidth = currentNode.get_min_width();
+        const nodeMinHeight = currentNode.get_min_height();
+        if (nodeMinWidth > minWidth) {
+            minWidth = nodeMinWidth;
+        }
+        if (nodeMinHeight > minHeight) {
+            minHeight = nodeMinHeight;
+        }
+    }
+
+    return {
+        horizontalOverhead,
+        verticalOverhead,
+        minWidth,
+        minHeight,
+    };
+}
+
+// ========================================================================
+// Declarative Geometry Engine
+// ========================================================================
+
+/**
+ * Calculate proportional scale factor to fit within bounding limits.
+ *
+ * @param {number} width Current target width.
+ * @param {number} height Current target height.
+ * @param {object} [bounds] Maximum width and height constraints.
+ * @returns {number} Scale factor.
+ */
+function _calculateScale(width, height, bounds) {
+    if (!bounds) return 1;
+    let scale = 1;
+    const maxWidth = bounds.maxWidth;
+    const maxHeight = bounds.maxHeight;
+    if (maxWidth > 0 && width > maxWidth) {
+        scale = maxWidth / width;
+    }
+    if (maxHeight > 0 && height * scale > maxHeight) {
+        scale = maxHeight / (height || 1);
+    }
+    return scale;
+}
+
+/**
+ * Resolve aspect ratio constrained within optional bounds.
+ *
+ * @param {number} width Initial item width.
+ * @param {number} height Initial item height.
+ * @param {object} [ratioConstraints] Aspect ratio boundary rules.
+ * @returns {number} Resolved aspect ratio.
+ */
+function _resolveRatio(width, height, ratioConstraints) {
+    let ratio = width > 0 && height > 0 ? height / width : 1;
+    if (ratioConstraints) {
+        const minRatio = ratioConstraints.min;
+        const maxRatio = ratioConstraints.max;
+        if (minRatio > 0 && ratio < minRatio) ratio = minRatio;
+        if (maxRatio > 0 && ratio > maxRatio) ratio = maxRatio;
+    }
+    return ratio;
+}
+
+/**
+ * Project geometry when target width is fixed.
+ *
+ * @param {number} targetWidth Fixed projection width.
+ * @param {number} ratio Aspect ratio.
+ * @param {object} [bounds] Bounding limits.
+ * @returns {object} Resolved dimensions and ratio.
+ */
+function _projectTargetWidth(targetWidth, ratio, bounds) {
+    const width = Math.round(targetWidth);
+    let height = Math.round(width * ratio);
+    const maxHeight = bounds?.maxHeight;
+    if (maxHeight > 0 && height > maxHeight) {
+        height = maxHeight;
+    }
+    const aspectRatio = width > 0 && height > 0 ? height / width : ratio;
+    return { width, height, aspectRatio };
+}
+
+/**
+ * Project geometry when target height is fixed.
+ *
+ * @param {number} targetHeight Fixed projection height.
+ * @param {number} ratio Aspect ratio.
+ * @param {number} fallbackWidth Fallback item width.
+ * @param {object} [bounds] Bounding limits.
+ * @returns {object} Resolved dimensions and ratio.
+ */
+function _projectTargetHeight(targetHeight, ratio, fallbackWidth, bounds) {
+    const height = Math.round(targetHeight);
+    let width = ratio > 0 ? Math.round(height / ratio) : fallbackWidth;
+    const maxWidth = bounds?.maxWidth;
+    if (maxWidth > 0 && width > maxWidth) {
+        width = maxWidth;
+    }
+    const aspectRatio = width > 0 && height > 0 ? height / width : ratio;
+    return { width, height, aspectRatio };
+}
+
+/**
+ * Resolves 2D dimensions against boundary, target, and aspect ratio constraints.
+ * Operates as a pure structural combinator without domain assumptions.
+ *
+ * @param {object} [dimensions] Base dimensions specification.
+ * @param {number} [dimensions.naturalWidth] Intrinsic or raw asset width.
+ * @param {number} [dimensions.naturalHeight] Intrinsic or raw asset height.
+ * @param {number} [dimensions.width] Explicit target width.
+ * @param {number} [dimensions.height] Explicit target height.
+ * @param {object} [constraints] Declarative constraint descriptor.
+ * @param {number} [constraints.targetWidth] Explicit fixed projection width.
+ * @param {number} [constraints.targetHeight] Explicit fixed projection height.
+ * @param {object} [constraints.bounds] Bounding box limits.
+ * @param {number} [constraints.bounds.maxWidth] Maximum permissible width.
+ * @param {number} [constraints.bounds.maxHeight] Maximum permissible height.
+ * @param {object} [constraints.aspectRatio] Proportional limits defined as height divided by width.
+ * @param {number} [constraints.aspectRatio.min] Minimum permissible ratio.
+ * @param {number} [constraints.aspectRatio.max] Maximum permissible ratio.
+ * @returns {object} Resolved 2D geometry specification.
+ */
+export function resolveGeometry(dimensions = {}, constraints = {}) {
+    const rawWidth = dimensions.naturalWidth ?? dimensions.width ?? 0;
+    const rawHeight = dimensions.naturalHeight ?? dimensions.height ?? 0;
+    const initialWidth = rawWidth > 0 ? rawWidth : 0;
+    const initialHeight = rawHeight > 0 ? rawHeight : 0;
+    const ratio = _resolveRatio(initialWidth, initialHeight, constraints.aspectRatio);
+
+    if (constraints.targetWidth > 0) {
+        return _projectTargetWidth(constraints.targetWidth, ratio, constraints.bounds);
+    }
+
+    if (constraints.targetHeight > 0) {
+        return _projectTargetHeight(constraints.targetHeight, ratio, initialWidth, constraints.bounds);
+    }
+
+    const unscaledWidth = initialWidth;
+    const unscaledHeight = initialWidth > 0 ? Math.round(initialWidth * ratio) : initialHeight;
+    const scale = _calculateScale(unscaledWidth, unscaledHeight, constraints.bounds);
+    const resolvedWidth = Math.round(unscaledWidth * scale);
+    const resolvedHeight = Math.round(unscaledHeight * scale);
+    const effectiveRatio = resolvedWidth > 0 && resolvedHeight > 0 ? resolvedHeight / resolvedWidth : ratio;
+
+    return {
+        width: resolvedWidth,
+        height: resolvedHeight,
+        aspectRatio: effectiveRatio,
+    };
 }

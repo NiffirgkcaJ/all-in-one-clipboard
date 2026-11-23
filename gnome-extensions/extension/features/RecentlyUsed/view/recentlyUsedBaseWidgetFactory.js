@@ -3,6 +3,9 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
+import { measureThemeGeometry } from '../../../shared/utilities/utilityLayout.js';
+
+import { ClipboardStyles } from '../../Clipboard/constants/clipboardStyleConstants.js';
 
 import { RecentlyUsedListViewTuning } from '../constants/recentlyUsedViewConstants.js';
 import { RecentlyUsedIcons, RecentlyUsedMessages, RecentlyUsedStyles } from '../constants/recentlyUsedConstants.js';
@@ -12,6 +15,59 @@ import { RecentlyUsedIcons, RecentlyUsedMessages, RecentlyUsedStyles } from '../
  * Pure widget creation — no event wiring or state management.
  */
 export class RecentlyUsedBaseWidgetFactory {
+    // ========================================================================
+    // Layout Resolution
+    // ========================================================================
+
+    /**
+     * Read list row layout metrics directly from the stylesheet.
+     *
+     * @returns {Object} Layout metrics resolved from active theme nodes.
+     */
+    static getThemeMetrics() {
+        if (RecentlyUsedBaseWidgetFactory._cachedMetrics) {
+            return RecentlyUsedBaseWidgetFactory._cachedMetrics;
+        }
+
+        const themeContext = St.ThemeContext.get_for_stage(global.stage);
+        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, RecentlyUsedStyles.CONTAINER, RecentlyUsedStyles.LIST_ITEM, ClipboardStyles.LIST_CONTENT_ZONE]);
+        const metrics = {
+            horizontalOverhead: themeGeometry.horizontalOverhead,
+            verticalOverhead: themeGeometry.verticalOverhead,
+        };
+        RecentlyUsedBaseWidgetFactory._cachedMetrics = metrics;
+        return metrics;
+    }
+
+    /**
+     * Invalidate cached theme metrics when stylesheet or scale updates.
+     */
+    static clearThemeMetricsCache() {
+        RecentlyUsedBaseWidgetFactory._cachedMetrics = null;
+    }
+
+    /**
+     * Calculate horizontal layout dimensions for a recently used list row.
+     *
+     * @param {Object} [options] Sizing options.
+     * @param {number} [options.extensionWidth] Overall menu width.
+     * @param {Object} [options.metrics] Custom layout metrics.
+     * @returns {Object} Layout geometry specification.
+     */
+    static calculateRowGeometry(options = {}) {
+        const extensionWidth = options.extensionWidth || 0;
+        const metrics = options.metrics || RecentlyUsedBaseWidgetFactory.getThemeMetrics();
+        const availableWidth = Math.max(0, extensionWidth - metrics.horizontalOverhead);
+
+        return {
+            totalWidth: extensionWidth,
+            totalHeight: null,
+            availableWidth,
+            availableHeight: null,
+            metrics,
+        };
+    }
+
     // ========================================================================
     // List Item Builders
     // ========================================================================
@@ -37,6 +93,7 @@ export class RecentlyUsedBaseWidgetFactory {
         const button = new St.Button({
             style_class: styleClass,
             can_focus: true,
+            clip_to_allocation: true,
             x_expand: true,
         });
 

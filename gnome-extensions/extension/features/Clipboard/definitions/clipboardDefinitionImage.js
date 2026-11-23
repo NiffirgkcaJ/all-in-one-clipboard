@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { resolveGeometry } from '../../../shared/utilities/utilityLayout.js';
 import { IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
 import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
@@ -13,17 +14,39 @@ import { GridMetrics, ListMetrics } from '../constants/clipboardLayoutConstants.
 import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants/clipboardPluginConstants.js';
 
 /**
+ * Resolve the 2D preview geometry bounded by available dimensions.
+ *
+ * @param {object} options View options.
+ * @returns {object} Resolved 2D geometry specification.
+ */
+function resolvePreviewGeometry(options) {
+    const configuredSize = options.previewSize ?? options.settings?.get_int('clipboard-image-preview-size');
+    const availableWidth = options.availableWidth;
+    const availableHeight = options.availableHeight;
+
+    if (!Number.isFinite(configuredSize) || configuredSize <= 0) {
+        return { width: 0, height: 0, aspectRatio: 1 };
+    }
+
+    return resolveGeometry(
+        { width: configuredSize, height: configuredSize },
+        {
+            bounds: {
+                maxWidth: availableWidth,
+                maxHeight: availableHeight ?? undefined,
+            },
+        },
+    );
+}
+
+/**
  * Resolve the preview size clamped to available content width.
  *
  * @param {object} options View options.
  * @returns {number} Clamped preview size in pixels.
  */
 function resolvePreviewSize(options) {
-    const configuredSize = options.previewSize ?? options.settings?.get_int('clipboard-image-preview-size');
-    const availableContentWidth = options.availableContentWidth;
-
-    if (!Number.isFinite(configuredSize)) return 0;
-    return Number.isFinite(availableContentWidth) ? Math.min(configuredSize, availableContentWidth) : configuredSize;
+    return resolvePreviewGeometry(options).width;
 }
 
 /**
@@ -78,7 +101,10 @@ export function ClipboardDefinitionImage() {
         }),
         configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';
-            config.previewSize = resolvePreviewSize(options);
+            const geometry = resolvePreviewGeometry(options);
+            config.previewSize = geometry.width;
+            config.contentWidth = geometry.width;
+            config.contentHeight = geometry.height;
             const filename = item.image_filename;
             const sourceDir = options.storage?.imagesDir;
             const previewDir = options.storage?.imagePreviewsDir;

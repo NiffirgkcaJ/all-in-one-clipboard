@@ -884,7 +884,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {Object} params Configuration parameters.
          */
         constructor(params) {
-            const { columns, maxColumns = null, targetItemWidth, ...baseParams } = params;
+            const { columns, maxColumns = null, targetItemWidth, geometryConstraints = null, ...baseParams } = params;
             const hasColumns = (typeof targetItemWidth === 'number' && targetItemWidth > 0) || (typeof columns === 'number' && columns > 0);
             Logger.assert(hasColumns, 'Either targetItemWidth or columns count is required.', 'MasonryLayout');
 
@@ -905,6 +905,7 @@ export const MasonryLayout = GObject.registerClass(
                         targetItemWidth: this._targetItemWidth,
                         maxColumns: this._maxColumns,
                         effectiveWidth: 0,
+                        geometryConstraints,
                     },
                     overscanPx: overscan,
                     onVisibleItemsChanged: this._syncDOM.bind(this),

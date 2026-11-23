@@ -6,6 +6,7 @@ import { AutoPaster, getAutoPaster } from '../../../shared/utilities/utilityAuto
 import { ClipboardListItemFactory } from '../../Clipboard/view/clipboardListItemFactory.js';
 import { ClipboardType } from '../../Clipboard/constants/clipboardPluginConstants.js';
 
+import { RecentlyUsedBaseWidgetFactory } from '../view/recentlyUsedBaseWidgetFactory.js';
 import { RecentlyUsedStyles, RecentlyUsedUI } from '../constants/recentlyUsedConstants.js';
 
 // ========================================================================
@@ -64,18 +65,23 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
     }
 
     const previewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
+    const extensionWidth = runtimeContext.settings?.get_int('extension-width') || 0;
+    const rowGeometry = RecentlyUsedBaseWidgetFactory.calculateRowGeometry({ extensionWidth });
     const renderContext = {
         previewSize,
         registry: clipboardManager._clipboardRegistry,
         storage: clipboardManager.storage,
         settings: runtimeContext.settings,
+        rowGeometry,
+        availableWidth: rowGeometry.availableWidth,
+        availableHeight: rowGeometry.availableHeight,
     };
-    const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
-    const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
+    const { contentWidget, config } = ClipboardListItemFactory.createContentZone(itemData, renderContext);
 
     if (itemData?.type === ClipboardType.IMAGE) {
         button.style_class = styleClass + ' ' + RecentlyUsedStyles.NORMAL_ITEM;
-        button.set_style(`min-height: ${Math.max(Number(previewSize) || RecentlyUsedUI.NESTED_ITEM_HEIGHT)}px;`);
+        const resolvedHeight = config.contentHeight || config.previewSize || previewSize;
+        button.set_style(`min-height: ${Math.max(resolvedHeight, RecentlyUsedUI.NESTED_ITEM_HEIGHT)}px;`);
         box.y_expand = true;
         box.y_align = Clutter.ActorAlign.FILL;
     }

@@ -278,6 +278,10 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             this.reactive = true;
             this.connect('key-press-event', this._onKeyPress.bind(this));
 
+            this._themeContextSignalId = St.ThemeContext.get_for_stage(global.stage).connect('changed', () => {
+                RecentlyUsedBaseWidgetFactory.clearThemeMetricsCache();
+            });
+
             this._connectSettingsSignals();
         }
 
@@ -1123,6 +1127,10 @@ export const RecentlyUsedBaseView = GObject.registerClass(
             if (this._mappedSignalId) {
                 this.disconnect(this._mappedSignalId);
                 this._mappedSignalId = 0;
+            }
+            if (this._themeContextSignalId) {
+                St.ThemeContext.get_for_stage(global.stage).disconnect(this._themeContextSignalId);
+                this._themeContextSignalId = 0;
             }
 
             if (this._scrollLockController) {

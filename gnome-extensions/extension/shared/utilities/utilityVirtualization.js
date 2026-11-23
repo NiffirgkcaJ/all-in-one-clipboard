@@ -1,4 +1,5 @@
 import { Logger } from './utilityLogger.js';
+import { resolveGeometry } from './utilityLayout.js';
 
 // ========================================================================
 // Geometries
@@ -98,6 +99,7 @@ export class ColumnarGeometry {
         this.effectiveWidth = config.effectiveWidth;
         this.maxColumns = typeof config.maxColumns === 'number' && config.maxColumns > 0 ? config.maxColumns : null;
         this.calculateItemHeight = config.calculateItemHeight || null;
+        this.geometryConstraints = config.geometryConstraints || null;
         this._columnWidth = 0;
     }
 
@@ -133,8 +135,12 @@ export class ColumnarGeometry {
         }
 
         if (item && item.height && item.width) {
-            const aspectRatio = item.height / item.width;
-            return Math.max(1, Math.round(this._columnWidth * aspectRatio));
+            const constraints = {
+                targetWidth: this._columnWidth,
+                ...(this.geometryConstraints || {}),
+            };
+            const geometry = resolveGeometry({ width: item.width, height: item.height }, constraints);
+            return Math.max(1, geometry.height);
         }
 
         if (item && typeof item.height === 'number' && item.height > 0) {

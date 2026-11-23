@@ -4,7 +4,7 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
-import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+import { mapLayout, measureThemeGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
@@ -40,14 +40,13 @@ export class ClipboardListItemFactory {
         const containerNode = St.ThemeNode.new(themeContext, rootNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.CONTAINER, null, '');
         const buttonNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_CONTROL_BUTTON, null, '');
         const checkboxNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_CHECKBOX, null, '');
-        const rowNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_ITEM, null, '');
-        const contentNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_CONTENT_ZONE, null, '');
 
+        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, ClipboardStyles.LIST_ITEM, ClipboardStyles.LIST_CONTENT_ZONE]);
         const metrics = {
             checkboxWidth: checkboxNode.get_min_width(),
             controlButtonWidth: buttonNode.get_min_width(),
-            rowOverhead:
-                rowNode.get_horizontal_padding() + rowNode.get_margin(St.Side.LEFT) + rowNode.get_margin(St.Side.RIGHT) + contentNode.get_margin(St.Side.LEFT) + contentNode.get_margin(St.Side.RIGHT),
+            horizontalOverhead: themeGeometry.horizontalOverhead,
+            verticalOverhead: themeGeometry.verticalOverhead,
         };
         ClipboardListItemFactory._cachedMetrics = metrics;
         return metrics;
@@ -79,15 +78,17 @@ export class ClipboardListItemFactory {
         const leadingWidth = showActionBar ? metrics.checkboxWidth : 0;
         const actionCount = typeof options.actionCount === 'number' ? options.actionCount : typeof options.controlsWidth === 'number' ? options.controlsWidth / metrics.controlButtonWidth : 0;
         const trailingWidth = typeof options.controlsWidth === 'number' ? options.controlsWidth : actionCount * metrics.controlButtonWidth;
-        const availableRowWidth = Math.max(0, extensionWidth - metrics.rowOverhead);
-        const contentWidth = Math.max(0, availableRowWidth - leadingWidth - trailingWidth);
+        const availableRowWidth = Math.max(0, extensionWidth - metrics.horizontalOverhead);
+        const availableWidth = Math.max(0, availableRowWidth - leadingWidth - trailingWidth);
 
         return {
             totalWidth: extensionWidth,
+            totalHeight: null,
             availableRowWidth,
+            availableWidth,
+            availableHeight: null,
             leadingWidth,
             trailingWidth,
-            contentWidth,
             metrics,
         };
     }
@@ -114,6 +115,28 @@ export class ClipboardListItemFactory {
      */
     static getItemViewMetadata(config, item, options) {
         return options.registry ? options.registry.getViewMetadata(config, item, options) : {};
+    }
+
+    /**
+     * Create a complete list content zone widget with geometry and styles applied.
+     *
+     * @param {Object} itemData Raw item data.
+     * @param {Object} renderContext Render context with availableWidth and registry.
+     * @returns {Object} Content zone package containing widget, config, and metadata.
+     */
+    static createContentZone(itemData, renderContext) {
+        const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
+        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
+        const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
+
+        contentWidget.add_style_class_name(ClipboardStyles.LIST_CONTENT_ZONE);
+        const resolvedWidth = renderContext?.availableWidth;
+        if (typeof resolvedWidth === 'number' && resolvedWidth > 0) {
+            contentWidget.width = resolvedWidth;
+        }
+        contentWidget.x_expand = true;
+
+        return { contentWidget, config, metadata };
     }
 
     /**
@@ -151,8 +174,7 @@ export class ClipboardListItemFactory {
             actionCount: actionButtons.length,
         });
         const renderContext = ClipboardListItemFactory._createRenderContext(options, rowGeometry);
-        const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
-        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
+        const { contentWidget, config, metadata } = ClipboardListItemFactory.createContentZone(itemData, renderContext);
 
         const itemWidget = new St.Button({
             style_class: ClipboardStyles.LIST_ITEM,
@@ -190,10 +212,6 @@ export class ClipboardListItemFactory {
         const checkboxIcon = itemCheckbox.child;
 
         // Content
-        const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
-        contentWidget.add_style_class_name(ClipboardStyles.LIST_CONTENT_ZONE);
-        contentWidget.width = rowGeometry.contentWidth;
-        contentWidget.x_expand = true;
         mainBox.add_child(contentWidget);
 
         if (metadata.listMinHeight) {
@@ -303,8 +321,7 @@ export class ClipboardListItemFactory {
 
         itemWidget._viewConfig = config;
         itemWidget._renderFingerprint = renderFingerprint;
-        const metadata = ClipboardListItemFactory.getItemViewMetadata(config, newItemData, renderContext);
-        const newContentWidget = ClipboardListItemFactory.createListContent(config, newItemData, renderContext);
+        const { contentWidget: newContentWidget, metadata } = ClipboardListItemFactory.createContentZone(newItemData, renderContext);
 
         const mainBox = itemWidget._mainBox || itemWidget.get_child();
         const oldContentWidget = itemWidget._contentWidget;
@@ -314,9 +331,6 @@ export class ClipboardListItemFactory {
         }
 
         if (mainBox && oldContentWidget) {
-            newContentWidget.add_style_class_name(ClipboardStyles.LIST_CONTENT_ZONE);
-            newContentWidget.width = rowGeometry.contentWidth;
-            newContentWidget.x_expand = true;
             mainBox.replace_child(oldContentWidget, newContentWidget);
             itemWidget._contentWidget = newContentWidget;
             oldContentWidget.destroy();
@@ -362,12 +376,15 @@ export class ClipboardListItemFactory {
      * @private
      */
     static _createRenderContext(options, rowGeometry) {
+        const availableWidth = rowGeometry ? rowGeometry.availableWidth : 0;
+        const availableHeight = rowGeometry ? rowGeometry.availableHeight : null;
         return {
             registry: options.registry,
             storage: options.storage,
             settings: options.settings,
             rowGeometry,
-            availableContentWidth: rowGeometry ? rowGeometry.contentWidth : 0,
+            availableWidth,
+            availableHeight,
         };
     }
 

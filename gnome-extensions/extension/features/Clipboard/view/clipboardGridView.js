@@ -4,6 +4,7 @@ import GObject from 'gi://GObject';
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
+import { resolveGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
@@ -71,6 +72,9 @@ export const ClipboardGridView = GObject.registerClass(
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: GRID_SPACING_PX,
                 maxColumns: this._getMaxColumnsSetting(),
+                geometryConstraints: {
+                    aspectRatio: { min: GridMetrics.MIN_ASPECT_RATIO },
+                },
                 virtualization: true,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
@@ -91,6 +95,9 @@ export const ClipboardGridView = GObject.registerClass(
                 targetItemWidth: ClipboardConfig.TARGET_ITEM_WIDTH,
                 spacing: GRID_SPACING_PX,
                 maxColumns: this._getMaxColumnsSetting(),
+                geometryConstraints: {
+                    aspectRatio: { min: GridMetrics.MIN_ASPECT_RATIO },
+                },
                 virtualization: true,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
@@ -298,17 +305,11 @@ export const ClipboardGridView = GObject.registerClass(
 
             const dimensionKey = this._getDimensionKey(item);
             if (dimensionKey) {
-                if (item.width && item.height) {
-                    width = item.width;
-                    const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
-                    height = Math.max(item.height, minHeight);
-                } else {
-                    const dims = this._dimensionCache.get(dimensionKey);
-                    if (dims) {
-                        width = dims.width;
-                        const minHeight = width * GridMetrics.MIN_ASPECT_RATIO;
-                        height = Math.max(dims.height, minHeight);
-                    }
+                const rawDims = item.width && item.height ? item : this._dimensionCache.get(dimensionKey);
+                if (rawDims) {
+                    const geometry = resolveGeometry({ width: rawDims.width, height: rawDims.height }, { aspectRatio: { min: GridMetrics.MIN_ASPECT_RATIO } });
+                    width = geometry.width;
+                    height = geometry.height;
                 }
             }
 
