@@ -66,6 +66,6 @@ export const IOImage = {
     getMimeType: (filename) => ServiceIOImage.getMimeType(filename),
     getExtension: (mimetype) => ServiceIOImage.getExtension(mimetype),
     loadIcon: (path) => ServiceIOImage.loadIcon(path),
-    ensurePreview: (sourcePath, previewPath, size) => ServiceIOImage.ensurePreview(sourcePath, previewPath, size),
-    ensurePreviewAsync: (sourcePath, previewPath, size, cancellable) => ServiceIOImage.ensurePreviewAsync(sourcePath, previewPath, size, cancellable),
+    ensurePreview: (sourcePath, previewPath, width, height) => ServiceIOImage.ensurePreview(sourcePath, previewPath, width, height),
+    ensurePreviewAsync: (sourcePath, previewPath, width, height, cancellable) => ServiceIOImage.ensurePreviewAsync(sourcePath, previewPath, width, height, cancellable),
 };

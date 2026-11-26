@@ -156,6 +156,8 @@ export const ClipboardTabContent = GObject.registerClass(
                 () => {
                     this._applyLayoutMode(this._settings.get_string('clipboard-layout-mode') || 'list');
                 },
+                'changed::clipboard-show-action-bar',
+                () => this._scheduleRedraw(),
                 'changed::extension-width',
                 () => {
                     this._currentView.resetScrollAndPagination();

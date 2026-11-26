@@ -3,7 +3,7 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
-import { measureThemeGeometry } from '../../../shared/utilities/utilityLayout.js';
+import { calculateCardGeometry, measureThemeGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../../Clipboard/constants/clipboardStyleConstants.js';
 
@@ -30,7 +30,7 @@ export class RecentlyUsedBaseWidgetFactory {
         }
 
         const themeContext = St.ThemeContext.get_for_stage(global.stage);
-        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, RecentlyUsedStyles.CONTAINER, RecentlyUsedStyles.LIST_ITEM, ClipboardStyles.LIST_CONTENT_ZONE]);
+        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, RecentlyUsedStyles.CONTAINER, RecentlyUsedStyles.LIST_ITEM, ClipboardStyles.LIST_CARD_CONTENT]);
         const metrics = {
             horizontalOverhead: themeGeometry.horizontalOverhead,
             verticalOverhead: themeGeometry.verticalOverhead,
@@ -47,25 +47,21 @@ export class RecentlyUsedBaseWidgetFactory {
     }
 
     /**
-     * Calculate horizontal layout dimensions for a recently used list row.
+     * Calculate layout dimensions for a recently used card.
      *
      * @param {Object} [options] Sizing options.
-     * @param {number} [options.extensionWidth] Overall menu width.
+     * @param {number} [options.width] Total allocated card width.
+     * @param {number} [options.height] Total allocated card height.
+     * @param {number} [options.controlsWidth] Space consumed by horizontal controls.
+     * @param {number} [options.controlsHeight] Space consumed by vertical controls.
      * @param {Object} [options.metrics] Custom layout metrics.
      * @returns {Object} Layout geometry specification.
      */
-    static calculateRowGeometry(options = {}) {
-        const extensionWidth = options.extensionWidth || 0;
-        const metrics = options.metrics || RecentlyUsedBaseWidgetFactory.getThemeMetrics();
-        const availableWidth = Math.max(0, extensionWidth - metrics.horizontalOverhead);
-
-        return {
-            totalWidth: extensionWidth,
-            totalHeight: null,
-            availableWidth,
-            availableHeight: null,
-            metrics,
-        };
+    static calculateCardGeometry(options = {}) {
+        return calculateCardGeometry({
+            ...options,
+            metrics: options.metrics || RecentlyUsedBaseWidgetFactory.getThemeMetrics(),
+        });
     }
 
     // ========================================================================

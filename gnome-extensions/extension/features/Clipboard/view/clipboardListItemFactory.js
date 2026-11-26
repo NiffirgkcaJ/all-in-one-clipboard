@@ -4,7 +4,8 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import { getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
-import { mapLayout, measureThemeGeometry } from '../../../shared/utilities/utilityLayout.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { assertValidLayoutAxes, calculateCardGeometry, mapLayout, measureThemeGeometry, syncActorGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
@@ -41,7 +42,7 @@ export class ClipboardListItemFactory {
         const buttonNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_CONTROL_BUTTON, null, '');
         const checkboxNode = St.ThemeNode.new(themeContext, containerNode, theme, GObject.TYPE_NONE, null, ClipboardStyles.LIST_CHECKBOX, null, '');
 
-        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, ClipboardStyles.LIST_ITEM, ClipboardStyles.LIST_CONTENT_ZONE]);
+        const themeGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, ClipboardStyles.LIST_CARD, ClipboardStyles.LIST_CARD_CONTENT]);
         const metrics = {
             checkboxWidth: checkboxNode.get_min_width(),
             controlButtonWidth: buttonNode.get_min_width(),
@@ -60,37 +61,21 @@ export class ClipboardListItemFactory {
     }
 
     /**
-     * Calculate horizontal layout dimensions for a list row.
+     * Calculate layout dimensions for a list card.
      *
-     * @param {Object} options Sizing options.
-     * @param {number} options.extensionWidth Overall menu width.
-     * @param {boolean} [options.showActionBar] Whether the leading checkbox is active.
-     * @param {number} [options.actionCount] Number of trailing action buttons.
-     * @param {number} [options.controlsWidth] Trailing controls width override.
+     * @param {Object} [options] Sizing options.
+     * @param {number|null} [options.width] Total allocated card width.
+     * @param {number|null} [options.height] Total allocated card height.
+     * @param {number} [options.controlsWidth] Space consumed by horizontal controls.
+     * @param {number} [options.controlsHeight] Space consumed by vertical controls.
      * @param {Object} [options.metrics] Custom layout metrics.
      * @returns {Object} Layout geometry specification.
      */
-    static calculateRowGeometry(options = {}) {
-        const extensionWidth = options.extensionWidth || 0;
-        const showActionBar = Boolean(options.showActionBar);
-        const metrics = options.metrics || ClipboardListItemFactory.getThemeMetrics();
-
-        const leadingWidth = showActionBar ? metrics.checkboxWidth : 0;
-        const actionCount = typeof options.actionCount === 'number' ? options.actionCount : typeof options.controlsWidth === 'number' ? options.controlsWidth / metrics.controlButtonWidth : 0;
-        const trailingWidth = typeof options.controlsWidth === 'number' ? options.controlsWidth : actionCount * metrics.controlButtonWidth;
-        const availableRowWidth = Math.max(0, extensionWidth - metrics.horizontalOverhead);
-        const availableWidth = Math.max(0, availableRowWidth - leadingWidth - trailingWidth);
-
-        return {
-            totalWidth: extensionWidth,
-            totalHeight: null,
-            availableRowWidth,
-            availableWidth,
-            availableHeight: null,
-            leadingWidth,
-            trailingWidth,
-            metrics,
-        };
+    static calculateCardGeometry(options = {}) {
+        return calculateCardGeometry({
+            ...options,
+            metrics: options.metrics || ClipboardListItemFactory.getThemeMetrics(),
+        });
     }
 
     /**
@@ -111,29 +96,32 @@ export class ClipboardListItemFactory {
      * @param {Object} item The raw item data.
      * @param {Object} options Render options.
      * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @returns {Object} View metadata.
      */
     static getItemViewMetadata(config, item, options) {
-        return options.registry ? options.registry.getViewMetadata(config, item, options) : {};
+        Logger.assert(Boolean(options?.registry), 'ClipboardListItemFactory requires registry to resolve view metadata.', 'ClipboardListItemFactory');
+        return options.registry.getViewMetadata(config, item, options);
     }
 
     /**
-     * Create a complete list content zone widget with geometry and styles applied.
+     * Create a complete list card content widget with geometry and styles applied.
      *
      * @param {Object} itemData Raw item data.
-     * @param {Object} renderContext Render context with availableWidth and registry.
-     * @returns {Object} Content zone package containing widget, config, and metadata.
+     * @param {Object} renderContext Render context with availableWidth, availableHeight, and registry.
+     * @returns {Object} Content package containing widget, config, and metadata.
      */
-    static createContentZone(itemData, renderContext) {
+    static createCardContent(itemData, renderContext) {
         const config = ClipboardListItemFactory.getItemViewConfig(itemData, renderContext);
         const metadata = ClipboardListItemFactory.getItemViewMetadata(config, itemData, renderContext);
         const contentWidget = ClipboardListItemFactory.createListContent(config, itemData, renderContext);
 
-        contentWidget.add_style_class_name(ClipboardStyles.LIST_CONTENT_ZONE);
-        const resolvedWidth = renderContext?.availableWidth;
-        if (typeof resolvedWidth === 'number' && resolvedWidth > 0) {
-            contentWidget.width = resolvedWidth;
-        }
+        contentWidget.add_style_class_name(ClipboardStyles.LIST_CARD_CONTENT);
+        syncActorGeometry(contentWidget, {
+            width: renderContext?.availableWidth,
+            height: renderContext?.availableHeight,
+        });
         contentWidget.x_expand = true;
 
         return { contentWidget, config, metadata };
@@ -146,6 +134,8 @@ export class ClipboardListItemFactory {
      * @param {Object} options Options for rendering.
      * @param {Object} options.storage Clipboard storage instance.
      * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @param {Function} options.onItemCopy Callback when row is clicked.
      * @param {Object} options.manager ClipboardManager for pin or delete actions.
      * @param {Set} options.selectedIds Set of selected item IDs.
@@ -168,16 +158,12 @@ export class ClipboardListItemFactory {
                   },
               })
             : [];
-        const rowGeometry = ClipboardListItemFactory.calculateRowGeometry({
-            extensionWidth: options.settings?.get_int('extension-width'),
-            showActionBar: options.settings?.get_boolean('clipboard-show-action-bar'),
-            actionCount: actionButtons.length,
-        });
-        const renderContext = ClipboardListItemFactory._createRenderContext(options, rowGeometry);
-        const { contentWidget, config, metadata } = ClipboardListItemFactory.createContentZone(itemData, renderContext);
+        const cardGeometry = ClipboardListItemFactory.resolveItemCardGeometry(options, actionButtons.length);
+        const renderContext = ClipboardListItemFactory._createRenderContext(options, cardGeometry);
+        const { contentWidget, config, metadata } = ClipboardListItemFactory.createCardContent(itemData, renderContext);
 
         const itemWidget = new St.Button({
-            style_class: ClipboardStyles.LIST_ITEM,
+            style_class: ClipboardStyles.LIST_CARD,
             can_focus: true,
             clip_to_allocation: true,
         });
@@ -297,6 +283,8 @@ export class ClipboardListItemFactory {
      * @param {Object} options Options for rendering.
      * @param {Object} options.storage Clipboard storage instance.
      * @param {Object} options.registry Clipboard registry instance.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @returns {boolean} True if the content structure was updated.
      */
     static updateItem(itemWidget, newItemData, options) {
@@ -305,23 +293,23 @@ export class ClipboardListItemFactory {
         itemWidget._itemId = newItemData.id;
 
         const actionCount = itemWidget._actionButtons ? itemWidget._actionButtons.length : 0;
-        const rowGeometry = ClipboardListItemFactory.calculateRowGeometry({
-            extensionWidth: options.settings?.get_int('extension-width'),
-            showActionBar: options.settings?.get_boolean('clipboard-show-action-bar'),
-            actionCount,
-        });
-        const renderContext = ClipboardListItemFactory._createRenderContext(options, rowGeometry);
+        const cardGeometry = ClipboardListItemFactory.resolveItemCardGeometry(options, actionCount);
+        const renderContext = ClipboardListItemFactory._createRenderContext(options, cardGeometry);
         const config = ClipboardListItemFactory.getItemViewConfig(newItemData, renderContext);
         const renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, newItemData, renderContext);
         const previousFingerprint = itemWidget._renderFingerprint || itemWidget._viewConfig?._fingerprint || '';
         const nextFingerprint = renderFingerprint || config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {
+            syncActorGeometry(itemWidget._contentWidget, {
+                width: renderContext.availableWidth,
+                height: renderContext.availableHeight,
+            });
             return false;
         }
 
         itemWidget._viewConfig = config;
         itemWidget._renderFingerprint = renderFingerprint;
-        const { contentWidget: newContentWidget, metadata } = ClipboardListItemFactory.createContentZone(newItemData, renderContext);
+        const { contentWidget: newContentWidget, metadata } = ClipboardListItemFactory.createCardContent(newItemData, renderContext);
 
         const mainBox = itemWidget._mainBox || itemWidget.get_child();
         const oldContentWidget = itemWidget._contentWidget;
@@ -347,6 +335,8 @@ export class ClipboardListItemFactory {
      * @param {Object} itemData The raw item data.
      * @param {Object} options Display options.
      * @param {Object} options.storage Clipboard storage instance.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @param {Object} options.registry Clipboard registry instance.
      * @returns {St.Widget} The content widget.
      */
@@ -368,21 +358,53 @@ export class ClipboardListItemFactory {
     // ========================================================================
 
     /**
+     * Resolve card geometry for a list item accounting for inline controls.
+     *
+     * @param {Object} options Factory options.
+     * @param {number} [actionCount] Number of trailing action buttons.
+     * @returns {Object} Calculated card geometry specification.
+     */
+    static resolveItemCardGeometry(options, actionCount = 0) {
+        const width = options.cardGeometry ? options.cardGeometry.totalWidth : options.width;
+        const height = options.cardGeometry ? options.cardGeometry.totalHeight : options.height;
+        assertValidLayoutAxes(width, height, { context: 'ClipboardListItemFactory' });
+        const metrics = ClipboardListItemFactory.getThemeMetrics();
+        const showActionBar = options.settings?.get_boolean('clipboard-show-action-bar');
+        const controlsWidth = (showActionBar ? metrics.checkboxWidth : 0) + actionCount * metrics.controlButtonWidth;
+
+        return ClipboardListItemFactory.calculateCardGeometry({
+            width,
+            height,
+            controlsWidth,
+            controlsHeight: 0,
+        });
+    }
+
+    /**
      * Create the render context passed to clipboard definitions.
      *
      * @param {Object} options Factory options.
-     * @param {Object} [rowGeometry] Optional calculated row geometry.
+     * @param {Object} [cardGeometry] Optional calculated card geometry.
      * @returns {Object} Render context.
      * @private
      */
-    static _createRenderContext(options, rowGeometry) {
-        const availableWidth = rowGeometry ? rowGeometry.availableWidth : 0;
-        const availableHeight = rowGeometry ? rowGeometry.availableHeight : null;
+    static _createRenderContext(options, cardGeometry) {
+        const hasGeometry = Boolean(cardGeometry);
+        const availableWidth = hasGeometry ? cardGeometry.availableWidth : options.availableWidth;
+        const availableHeight = hasGeometry ? cardGeometry.availableHeight : options.availableHeight;
+        assertValidLayoutAxes(availableWidth, availableHeight, {
+            allowZero: true,
+            widthName: 'availableWidth',
+            heightName: 'availableHeight',
+            context: 'ClipboardListItemFactory',
+        });
         return {
             registry: options.registry,
             storage: options.storage,
+            previewWidth: options.previewWidth,
+            previewHeight: options.previewHeight,
             settings: options.settings,
-            rowGeometry,
+            cardGeometry,
             availableWidth,
             availableHeight,
         };

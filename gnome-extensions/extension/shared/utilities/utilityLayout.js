@@ -3,6 +3,8 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import { Logger } from './utilityLogger.js';
+
 // ========================================================================
 // Constants
 // ========================================================================
@@ -202,28 +204,27 @@ export function getFocusedItemId(container) {
 // ========================================================================
 
 /**
- * Calculate 2D padding, margin, and intrinsic baseline metrics from CSS theme nodes.
+ * Calculate 2D padding and margin overhead metrics from CSS theme nodes.
  *
  * @param {St.ThemeContext} themeContext Active stage theme context.
  * @param {string[]} classHierarchy List of style class names ordered from parent to child.
- * @returns {object} Cumulative 2D theme metrics specification.
+ * @param {object} [options] Optional measurement flags.
+ * @param {boolean} [options.includeLeafPadding] Whether to include padding on the final node in the hierarchy.
+ * @returns {object} Cumulative 2D theme overhead specification.
  */
-export function measureThemeGeometry(themeContext, classHierarchy) {
+export function measureThemeGeometry(themeContext, classHierarchy, options = {}) {
     if (!themeContext || !Array.isArray(classHierarchy) || classHierarchy.length === 0) {
         return {
             horizontalOverhead: 0,
             verticalOverhead: 0,
-            minWidth: 0,
-            minHeight: 0,
         };
     }
 
+    const includeLeafPadding = Boolean(options.includeLeafPadding);
     const theme = themeContext.get_theme();
     let currentNode = themeContext.get_root_node();
     let horizontalOverhead = 0;
     let verticalOverhead = 0;
-    let minWidth = 0;
-    let minHeight = 0;
 
     for (let i = 0; i < classHierarchy.length; i++) {
         const styleClass = classHierarchy[i];
@@ -232,35 +233,151 @@ export function measureThemeGeometry(themeContext, classHierarchy) {
         currentNode = St.ThemeNode.new(themeContext, currentNode, theme, GObject.TYPE_NONE, null, styleClass, null, '');
 
         const isLeaf = i === classHierarchy.length - 1;
-        const hPadding = isLeaf ? 0 : currentNode.get_horizontal_padding();
-        const vPadding = isLeaf ? 0 : currentNode.get_vertical_padding();
+        const skipPadding = isLeaf && !includeLeafPadding;
+        const hPadding = skipPadding ? 0 : currentNode.get_horizontal_padding();
+        const vPadding = skipPadding ? 0 : currentNode.get_vertical_padding();
         const hMargins = currentNode.get_margin(St.Side.LEFT) + currentNode.get_margin(St.Side.RIGHT);
         const vMargins = currentNode.get_margin(St.Side.TOP) + currentNode.get_margin(St.Side.BOTTOM);
 
         horizontalOverhead += hPadding + hMargins;
         verticalOverhead += vPadding + vMargins;
-
-        const nodeMinWidth = currentNode.get_min_width();
-        const nodeMinHeight = currentNode.get_min_height();
-        if (nodeMinWidth > minWidth) {
-            minWidth = nodeMinWidth;
-        }
-        if (nodeMinHeight > minHeight) {
-            minHeight = nodeMinHeight;
-        }
     }
 
     return {
         horizontalOverhead,
         verticalOverhead,
-        minWidth,
-        minHeight,
     };
+}
+
+/**
+ * Calculate 2D card layout geometry from allocated dimensions, controls, and theme metrics.
+ *
+ * @param {object} [options] Sizing options.
+ * @param {number|null} [options.width] Total allocated card width.
+ * @param {number|null} [options.height] Total allocated card height.
+ * @param {number} [options.controlsWidth] Space consumed by horizontal controls.
+ * @param {number} [options.controlsHeight] Space consumed by vertical controls.
+ * @param {object} [options.metrics] Resolved 2D theme metrics specification.
+ * @returns {object} Layout geometry specification.
+ */
+export function calculateCardGeometry(options = {}) {
+    const width = options.width;
+    const height = options.height;
+    const metrics = options.metrics;
+    assertValidLayoutAxes(width, height, { context: 'UtilityLayout' });
+    Logger.assert(
+        Boolean(metrics && typeof metrics.horizontalOverhead === 'number' && typeof metrics.verticalOverhead === 'number'),
+        'calculateCardGeometry requires valid 2D theme metrics.',
+        'UtilityLayout',
+    );
+
+    const controlsWidth = options.controlsWidth || 0;
+    const controlsHeight = options.controlsHeight || 0;
+    const availableWidth = width !== null ? Math.max(0, width - metrics.horizontalOverhead - controlsWidth) : null;
+    const availableHeight = height !== null ? Math.max(0, height - metrics.verticalOverhead - controlsHeight) : null;
+
+    return {
+        totalWidth: width,
+        totalHeight: height,
+        availableWidth,
+        availableHeight,
+        metrics,
+    };
+}
+
+/**
+ * Check whether an axis dimension is explicitly unconstrained or a bounded number.
+ *
+ * @param {*} value Candidate axis value.
+ * @param {boolean} [allowZero] Whether zero pixels is valid on a constrained axis.
+ * @returns {boolean} True when value is null or a finite number within bounds.
+ */
+export function isValidLayoutDimension(value, allowZero = false) {
+    if (value === null) {
+        return true;
+    }
+
+    return typeof value === 'number' && Number.isFinite(value) && (allowZero ? value >= 0 : value > 0);
+}
+
+/**
+ * Assert symmetric 2D axis validity with explicit null or bounded numbers and at least one constrained axis.
+ *
+ * @param {number|null} width Candidate horizontal axis dimension.
+ * @param {number|null} height Candidate vertical axis dimension.
+ * @param {object} [options] Validation options.
+ * @param {boolean} [options.allowZero] Whether zero is permitted on constrained axes.
+ * @param {string} [options.widthName] Label for horizontal axis in failure messages.
+ * @param {string} [options.heightName] Label for vertical axis in failure messages.
+ * @param {string} [options.context] Logger context label.
+ */
+export function assertValidLayoutAxes(width, height, options = {}) {
+    const allowZero = Boolean(options.allowZero);
+    const widthName = options.widthName || 'width';
+    const heightName = options.heightName || 'height';
+    const context = options.context || 'UtilityLayout';
+    const boundDescription = allowZero ? 'a non-negative number' : 'a positive number';
+
+    Logger.assert(isValidLayoutDimension(width, allowZero), `${context} requires ${widthName} to be null or ${boundDescription}.`, context);
+    Logger.assert(isValidLayoutDimension(height, allowZero), `${context} requires ${heightName} to be null or ${boundDescription}.`, context);
+    Logger.assert(width !== null || height !== null, `${context} requires at least one constrained axis.`, context);
+}
+
+/**
+ * Synchronize an explicit numeric axis dimension on an actor when supplied.
+ *
+ * @param {Clutter.Actor} actor Target actor instance.
+ * @param {string} axis Property name to synchronize.
+ * @param {number|null|undefined} value Target axis dimension.
+ * @private
+ */
+function _syncActorAxis(actor, axis, value) {
+    if (value === undefined || value === null) return;
+
+    Logger.assert(typeof value === 'number' && Number.isFinite(value) && value >= 0, `syncActorGeometry requires non-negative numeric ${axis}.`, 'UtilityLayout');
+    if (actor[axis] !== value) {
+        actor[axis] = value;
+    }
+}
+
+/**
+ * Synchronize explicit 2D width and height dimensions on an actor when supplied.
+ *
+ * @param {Clutter.Actor} actor Target actor instance.
+ * @param {object} [geometry] Target 2D dimensions.
+ * @param {number|null} [geometry.width] Explicit target width.
+ * @param {number|null} [geometry.height] Explicit target height.
+ */
+export function syncActorGeometry(actor, geometry = {}) {
+    if (!actor || !geometry) return;
+
+    _syncActorAxis(actor, 'width', geometry.width);
+    _syncActorAxis(actor, 'height', geometry.height);
 }
 
 // ========================================================================
 // Declarative Geometry Engine
 // ========================================================================
+
+/**
+ * Apply a single optional maximum axis bound to a proportional scale factor.
+ *
+ * @param {number} size Projected dimension size on the constrained axis.
+ * @param {number|null|undefined} maxBound Optional maximum axis bound.
+ * @param {number} currentScale Current scale factor.
+ * @param {string} boundName Bound field name for diagnostics.
+ * @returns {number} Updated scale factor.
+ * @private
+ */
+function _resolveBoundScale(size, maxBound, currentScale, boundName) {
+    if (maxBound === undefined || maxBound === null) return currentScale;
+
+    Logger.assert(typeof maxBound === 'number' && Number.isFinite(maxBound) && maxBound >= 0, `_calculateScale requires non-negative numeric ${boundName}.`, 'UtilityLayout');
+    if (size * currentScale > maxBound) {
+        return size > 0 ? Math.min(currentScale, maxBound / size) : 0;
+    }
+    return currentScale;
+}
 
 /**
  * Calculate proportional scale factor to fit within bounding limits.
@@ -272,15 +389,8 @@ export function measureThemeGeometry(themeContext, classHierarchy) {
  */
 function _calculateScale(width, height, bounds) {
     if (!bounds) return 1;
-    let scale = 1;
-    const maxWidth = bounds.maxWidth;
-    const maxHeight = bounds.maxHeight;
-    if (maxWidth > 0 && width > maxWidth) {
-        scale = maxWidth / width;
-    }
-    if (maxHeight > 0 && height * scale > maxHeight) {
-        scale = maxHeight / (height || 1);
-    }
+    let scale = _resolveBoundScale(width, bounds.maxWidth, 1, 'maxWidth');
+    scale = _resolveBoundScale(height, bounds.maxHeight, scale, 'maxHeight');
     return scale;
 }
 
@@ -293,8 +403,8 @@ function _calculateScale(width, height, bounds) {
  * @returns {number} Resolved aspect ratio.
  */
 function _resolveRatio(width, height, ratioConstraints) {
-    let ratio = width > 0 && height > 0 ? height / width : 1;
-    if (ratioConstraints) {
+    let ratio = width > 0 && height > 0 ? height / width : ratioConstraints?.default > 0 ? ratioConstraints.default : 0;
+    if (ratio > 0 && ratioConstraints) {
         const minRatio = ratioConstraints.min;
         const maxRatio = ratioConstraints.max;
         if (minRatio > 0 && ratio < minRatio) ratio = minRatio;
@@ -312,12 +422,11 @@ function _resolveRatio(width, height, ratioConstraints) {
  * @returns {object} Resolved dimensions and ratio.
  */
 function _projectTargetWidth(targetWidth, ratio, bounds) {
-    const width = Math.round(targetWidth);
-    let height = Math.round(width * ratio);
-    const maxHeight = bounds?.maxHeight;
-    if (maxHeight > 0 && height > maxHeight) {
-        height = maxHeight;
-    }
+    const requestedWidth = Math.round(targetWidth);
+    const requestedHeight = Math.round(requestedWidth * ratio);
+    const scale = _calculateScale(requestedWidth, requestedHeight, bounds);
+    const width = Math.round(requestedWidth * scale);
+    const height = Math.round(requestedHeight * scale);
     const aspectRatio = width > 0 && height > 0 ? height / width : ratio;
     return { width, height, aspectRatio };
 }
@@ -327,19 +436,32 @@ function _projectTargetWidth(targetWidth, ratio, bounds) {
  *
  * @param {number} targetHeight Fixed projection height.
  * @param {number} ratio Aspect ratio.
- * @param {number} fallbackWidth Fallback item width.
  * @param {object} [bounds] Bounding limits.
  * @returns {object} Resolved dimensions and ratio.
  */
-function _projectTargetHeight(targetHeight, ratio, fallbackWidth, bounds) {
-    const height = Math.round(targetHeight);
-    let width = ratio > 0 ? Math.round(height / ratio) : fallbackWidth;
-    const maxWidth = bounds?.maxWidth;
-    if (maxWidth > 0 && width > maxWidth) {
-        width = maxWidth;
-    }
+function _projectTargetHeight(targetHeight, ratio, bounds) {
+    const requestedHeight = Math.round(targetHeight);
+    const requestedWidth = Math.round(requestedHeight / ratio);
+    const scale = _calculateScale(requestedWidth, requestedHeight, bounds);
+    const width = Math.round(requestedWidth * scale);
+    const height = Math.round(requestedHeight * scale);
     const aspectRatio = width > 0 && height > 0 ? height / width : ratio;
     return { width, height, aspectRatio };
+}
+
+/**
+ * Validate an optional fixed projection target dimension.
+ *
+ * @param {number|null|undefined} value Target dimension override.
+ * @param {string} targetName Target field name for diagnostics.
+ * @returns {boolean} True when a positive numeric target dimension was supplied.
+ * @private
+ */
+function _assertTargetDimension(value, targetName) {
+    if (value === undefined || value === null) return false;
+
+    Logger.assert(typeof value === 'number' && Number.isFinite(value) && value > 0, `resolveGeometry requires positive numeric ${targetName}.`, 'UtilityLayout');
+    return true;
 }
 
 /**
@@ -351,6 +473,7 @@ function _projectTargetHeight(targetHeight, ratio, fallbackWidth, bounds) {
  * @param {number} [dimensions.naturalHeight] Intrinsic or raw asset height.
  * @param {number} [dimensions.width] Explicit target width.
  * @param {number} [dimensions.height] Explicit target height.
+ * @param {number} [dimensions.aspectRatio] Explicit fallback ratio, expressed as height divided by width.
  * @param {object} [constraints] Declarative constraint descriptor.
  * @param {number} [constraints.targetWidth] Explicit fixed projection width.
  * @param {number} [constraints.targetHeight] Explicit fixed projection height.
@@ -358,6 +481,7 @@ function _projectTargetHeight(targetHeight, ratio, fallbackWidth, bounds) {
  * @param {number} [constraints.bounds.maxWidth] Maximum permissible width.
  * @param {number} [constraints.bounds.maxHeight] Maximum permissible height.
  * @param {object} [constraints.aspectRatio] Proportional limits defined as height divided by width.
+ * @param {number} [constraints.aspectRatio.default] Explicit ratio used to derive a missing dimension.
  * @param {number} [constraints.aspectRatio.min] Minimum permissible ratio.
  * @param {number} [constraints.aspectRatio.max] Maximum permissible ratio.
  * @returns {object} Resolved 2D geometry specification.
@@ -367,26 +491,37 @@ export function resolveGeometry(dimensions = {}, constraints = {}) {
     const rawHeight = dimensions.naturalHeight ?? dimensions.height ?? 0;
     const initialWidth = rawWidth > 0 ? rawWidth : 0;
     const initialHeight = rawHeight > 0 ? rawHeight : 0;
-    const ratio = _resolveRatio(initialWidth, initialHeight, constraints.aspectRatio);
-
-    if (constraints.targetWidth > 0) {
-        return _projectTargetWidth(constraints.targetWidth, ratio, constraints.bounds);
-    }
-
-    if (constraints.targetHeight > 0) {
-        return _projectTargetHeight(constraints.targetHeight, ratio, initialWidth, constraints.bounds);
-    }
-
-    const unscaledWidth = initialWidth;
-    const unscaledHeight = initialWidth > 0 ? Math.round(initialWidth * ratio) : initialHeight;
-    const scale = _calculateScale(unscaledWidth, unscaledHeight, constraints.bounds);
-    const resolvedWidth = Math.round(unscaledWidth * scale);
-    const resolvedHeight = Math.round(unscaledHeight * scale);
-    const effectiveRatio = resolvedWidth > 0 && resolvedHeight > 0 ? resolvedHeight / resolvedWidth : ratio;
-
-    return {
-        width: resolvedWidth,
-        height: resolvedHeight,
-        aspectRatio: effectiveRatio,
+    const ratioConstraints = {
+        ...(dimensions.aspectRatio > 0 ? { default: dimensions.aspectRatio } : {}),
+        ...(constraints.aspectRatio || {}),
     };
+    const ratio = _resolveRatio(initialWidth, initialHeight, ratioConstraints);
+    Logger.assert(ratio > 0, 'resolveGeometry requires positive dimensions or an explicit default aspectRatio.', 'UtilityLayout');
+
+    const hasTargetWidth = _assertTargetDimension(constraints.targetWidth, 'targetWidth');
+    const hasTargetHeight = _assertTargetDimension(constraints.targetHeight, 'targetHeight');
+    Logger.assert(!(hasTargetWidth && hasTargetHeight), 'resolveGeometry cannot accept both targetWidth and targetHeight.', 'UtilityLayout');
+
+    let result;
+    if (hasTargetWidth) {
+        result = _projectTargetWidth(constraints.targetWidth, ratio, constraints.bounds);
+    } else if (hasTargetHeight) {
+        result = _projectTargetHeight(constraints.targetHeight, ratio, constraints.bounds);
+    } else {
+        const unscaledWidth = initialWidth > 0 ? initialWidth : Math.round(initialHeight / ratio);
+        const unscaledHeight = initialWidth > 0 ? Math.round(initialWidth * ratio) : initialHeight;
+        const scale = _calculateScale(unscaledWidth, unscaledHeight, constraints.bounds);
+        const resolvedWidth = Math.round(unscaledWidth * scale);
+        const resolvedHeight = Math.round(unscaledHeight * scale);
+        const effectiveRatio = resolvedWidth > 0 && resolvedHeight > 0 ? resolvedHeight / resolvedWidth : ratio;
+
+        result = {
+            width: resolvedWidth,
+            height: resolvedHeight,
+            aspectRatio: effectiveRatio,
+        };
+    }
+
+    Logger.assert(result.width > 0 && result.height > 0, 'resolveGeometry failed to resolve positive 2D dimensions.', 'UtilityLayout');
+    return result;
 }

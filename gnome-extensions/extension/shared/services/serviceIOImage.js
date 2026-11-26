@@ -171,15 +171,45 @@ export const ServiceIOImage = {
     },
 
     /**
+     * Assert that preview dimensions are positive finite numbers.
+     *
+     * @param {number} width Target maximum width.
+     * @param {number} height Target maximum height.
+     * @param {string} methodName Caller method name.
+     * @private
+     */
+    _assertPreviewDimensions(width, height, methodName) {
+        Logger.assert(typeof width === 'number' && width > 0 && typeof height === 'number' && height > 0, `${methodName} requires positive width and height.`, 'ServiceIOImage');
+    },
+
+    /**
+     * Prepare a preview file handle and ensure its parent directory exists.
+     *
+     * @param {string} previewPath Target preview file path.
+     * @returns {Gio.File} Target preview file object.
+     * @private
+     */
+    _preparePreviewFile(previewPath) {
+        const previewFile = Gio.File.new_for_path(previewPath);
+        const parent = previewFile.get_parent();
+        if (parent && !parent.query_exists(null)) {
+            parent.make_directory_with_parents(null);
+        }
+        return previewFile;
+    },
+
+    /**
      * Synchronously ensure an image preview file exists on disk.
      *
      * @param {string} sourcePath Path to the original image file.
      * @param {string|null} previewPath Expected path for the preview file.
-     * @param {number} size Target size for scaling.
+     * @param {number} width Target maximum width for scaling.
+     * @param {number} height Target maximum height for scaling.
      * @returns {boolean} True if the preview is ready, false otherwise.
      */
-    ensurePreview(sourcePath, previewPath, size) {
+    ensurePreview(sourcePath, previewPath, width, height) {
         if (!sourcePath) return false;
+        this._assertPreviewDimensions(width, height, 'ServiceIOImage.ensurePreview');
         try {
             if (previewPath && ServiceStorageFile.existsSync(previewPath)) {
                 return true;
@@ -189,16 +219,11 @@ export const ServiceIOImage = {
                 return false;
             }
 
-            const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(sourcePath, size, size, true);
+            const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(sourcePath, width, height, true);
             if (!pixbuf) return false;
 
             if (previewPath) {
-                const previewFile = Gio.File.new_for_path(previewPath);
-                const parent = previewFile.get_parent();
-                if (parent && !parent.query_exists(null)) {
-                    parent.make_directory_with_parents(null);
-                }
-
+                this._preparePreviewFile(previewPath);
                 pixbuf.savev(previewPath, 'png', [], []);
             }
             return true;
@@ -213,12 +238,14 @@ export const ServiceIOImage = {
      *
      * @param {string} sourcePath Path to the original image file.
      * @param {string|null} previewPath Expected path for the preview file.
-     * @param {number} size Target size for scaling.
+     * @param {number} width Target maximum width for scaling.
+     * @param {number} height Target maximum height for scaling.
      * @param {Gio.Cancellable} [cancellable] Cancellable.
      * @returns {Promise<boolean>} True if the preview is ready, false otherwise.
      */
-    async ensurePreviewAsync(sourcePath, previewPath, size, cancellable = null) {
+    async ensurePreviewAsync(sourcePath, previewPath, width, height, cancellable = null) {
         if (!sourcePath) return false;
+        this._assertPreviewDimensions(width, height, 'ServiceIOImage.ensurePreviewAsync');
 
         try {
             if (cancellable && cancellable.is_cancelled()) return false;
@@ -236,7 +263,7 @@ export const ServiceIOImage = {
                 file.read_async(GLib.PRIORITY_DEFAULT, cancellable, (fileSource, fileResult) => {
                     try {
                         const stream = fileSource.read_finish(fileResult);
-                        GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(stream, size, size, true, cancellable, (pixbufSource, pixbufResult) => {
+                        GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(stream, width, height, true, cancellable, (pixbufSource, pixbufResult) => {
                             try {
                                 const pb = GdkPixbuf.Pixbuf.new_from_stream_finish(pixbufResult);
                                 resolve(pb);
@@ -255,11 +282,7 @@ export const ServiceIOImage = {
             if (!pixbuf) return false;
 
             if (previewPath && (!cancellable || !cancellable.is_cancelled())) {
-                const previewFile = Gio.File.new_for_path(previewPath);
-                const parent = previewFile.get_parent();
-                if (parent && !parent.query_exists(null)) {
-                    parent.make_directory_with_parents(null);
-                }
+                const previewFile = this._preparePreviewFile(previewPath);
 
                 const outputStream = await new Promise((resolve, reject) => {
                     previewFile.replace_async(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, GLib.PRIORITY_DEFAULT, cancellable, (source, res) => {

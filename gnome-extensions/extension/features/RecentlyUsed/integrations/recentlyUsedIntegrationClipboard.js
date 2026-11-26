@@ -64,23 +64,24 @@ export function renderRecentlyUsedClipboardListContent({ button, box, itemData, 
         return false;
     }
 
-    const previewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
+    const configuredPreviewSize = imagePreviewSizeSettingKey ? runtimeContext.settings.get_int(imagePreviewSizeSettingKey) : RecentlyUsedUI.NESTED_ITEM_HEIGHT;
     const extensionWidth = runtimeContext.settings?.get_int('extension-width') || 0;
-    const rowGeometry = RecentlyUsedBaseWidgetFactory.calculateRowGeometry({ extensionWidth });
+    const cardGeometry = RecentlyUsedBaseWidgetFactory.calculateCardGeometry({ width: extensionWidth, height: null });
     const renderContext = {
-        previewSize,
+        previewWidth: configuredPreviewSize,
+        previewHeight: configuredPreviewSize,
         registry: clipboardManager._clipboardRegistry,
         storage: clipboardManager.storage,
         settings: runtimeContext.settings,
-        rowGeometry,
-        availableWidth: rowGeometry.availableWidth,
-        availableHeight: rowGeometry.availableHeight,
+        cardGeometry,
+        availableWidth: cardGeometry.availableWidth,
+        availableHeight: cardGeometry.availableHeight,
     };
-    const { contentWidget, config } = ClipboardListItemFactory.createContentZone(itemData, renderContext);
+    const { contentWidget, config } = ClipboardListItemFactory.createCardContent(itemData, renderContext);
 
     if (itemData?.type === ClipboardType.IMAGE) {
         button.style_class = styleClass + ' ' + RecentlyUsedStyles.NORMAL_ITEM;
-        const resolvedHeight = config.contentHeight || config.previewSize || previewSize;
+        const resolvedHeight = config.contentHeight || configuredPreviewSize;
         button.set_style(`min-height: ${Math.max(resolvedHeight, RecentlyUsedUI.NESTED_ITEM_HEIGHT)}px;`);
         box.y_expand = true;
         box.y_align = Clutter.ActorAlign.FILL;

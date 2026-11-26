@@ -497,7 +497,7 @@ export class ImageProcessor {
     static _ensurePreview(sourcePath, previewsDir, previewFilename) {
         if (!previewsDir || !previewFilename) return;
         const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
-        IOImage.ensurePreview(sourcePath, previewPath, PREVIEW_MAX_SIZE);
+        IOImage.ensurePreview(sourcePath, previewPath, PREVIEW_MAX_SIZE, PREVIEW_MAX_SIZE);
     }
 
     /**
@@ -511,7 +511,7 @@ export class ImageProcessor {
     static async _ensurePreviewAsync(sourcePath, previewsDir, previewFilename) {
         if (!previewsDir || !previewFilename) return;
         const previewPath = GLib.build_filenamev([previewsDir, previewFilename]);
-        await IOImage.ensurePreviewAsync(sourcePath, previewPath, PREVIEW_MAX_SIZE);
+        await IOImage.ensurePreviewAsync(sourcePath, previewPath, PREVIEW_MAX_SIZE, PREVIEW_MAX_SIZE);
     }
 
     // ========================================================================

@@ -4,7 +4,8 @@ import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
 import { getInterfaceFontStyle } from '../../../shared/utilities/utilityFont.js';
-import { mapLayout } from '../../../shared/utilities/utilityLayout.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
+import { assertValidLayoutAxes, calculateCardGeometry, mapLayout, measureThemeGeometry, syncActorGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { handleClipboardItemKeyPress } from '../utilities/clipboardKeyboardShortcuts.js';
 import { IconSizes } from '../constants/clipboardConstants.js';
@@ -20,6 +21,68 @@ import { renderGridArchetype } from './clipboardViewTemplates.js';
  * Creates vertical card widgets optimized for the masonry grid layout.
  */
 export class ClipboardGridItemFactory {
+    // ========================================================================
+    // Theme Metrics
+    // ========================================================================
+
+    /**
+     * Read grid card layout metrics directly from the stylesheet.
+     *
+     * @param {boolean} [isFullBleed] Whether the card omits framed content padding.
+     * @returns {Object} Layout metrics resolved from active theme nodes.
+     */
+    static getThemeMetrics(isFullBleed = false) {
+        if (ClipboardGridItemFactory._cachedMetrics) {
+            return isFullBleed ? ClipboardGridItemFactory._cachedMetrics.fullBleed : ClipboardGridItemFactory._cachedMetrics.framed;
+        }
+
+        const themeContext = St.ThemeContext.get_for_stage(global.stage);
+        const framedGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, ClipboardStyles.GRID_CARD, ClipboardStyles.GRID_CARD_CONTENT], {
+            includeLeafPadding: true,
+        });
+        const fullBleedGeometry = measureThemeGeometry(themeContext, [ClipboardStyles.CONTAINER, ClipboardStyles.GRID_CARD], {
+            includeLeafPadding: true,
+        });
+
+        ClipboardGridItemFactory._cachedMetrics = {
+            framed: {
+                horizontalOverhead: framedGeometry.horizontalOverhead,
+                verticalOverhead: framedGeometry.verticalOverhead,
+            },
+            fullBleed: {
+                horizontalOverhead: fullBleedGeometry.horizontalOverhead,
+                verticalOverhead: fullBleedGeometry.verticalOverhead,
+            },
+        };
+        return isFullBleed ? ClipboardGridItemFactory._cachedMetrics.fullBleed : ClipboardGridItemFactory._cachedMetrics.framed;
+    }
+
+    /**
+     * Invalidate cached theme metrics when stylesheet or scale updates.
+     */
+    static clearThemeMetricsCache() {
+        ClipboardGridItemFactory._cachedMetrics = null;
+    }
+
+    /**
+     * Calculate layout dimensions for a grid card.
+     *
+     * @param {Object} [options] Sizing options.
+     * @param {number|null} [options.width] Total allocated card width.
+     * @param {number|null} [options.height] Total allocated card height.
+     * @param {number} [options.controlsWidth] Space consumed by horizontal controls.
+     * @param {number} [options.controlsHeight] Space consumed by vertical controls.
+     * @param {boolean} [options.isFullBleed] Whether the card uses full-bleed framing.
+     * @param {Object} [options.metrics] Custom layout metrics.
+     * @returns {Object} Layout geometry specification.
+     */
+    static calculateCardGeometry(options = {}) {
+        return calculateCardGeometry({
+            ...options,
+            metrics: options.metrics || ClipboardGridItemFactory.getThemeMetrics(Boolean(options.isFullBleed)),
+        });
+    }
+
     // ========================================================================
     // Public API
     // ========================================================================
@@ -42,11 +105,45 @@ export class ClipboardGridItemFactory {
      * @param {Object} item The raw item data.
      * @param {Object} options Render options.
      * @param {Object} options.registry Clipboard registry instance.
-     * @param {number} options.previewSize Preview size.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @returns {Object} View metadata.
      */
     static getItemViewMetadata(config, item, options) {
-        return options.registry ? options.registry.getViewMetadata(config, item, options) : {};
+        Logger.assert(Boolean(options?.registry), 'ClipboardGridItemFactory requires registry to resolve view metadata.', 'ClipboardGridItemFactory');
+        return options.registry.getViewMetadata(config, item, options);
+    }
+
+    /**
+     * Create a complete grid card content widget with geometry and styles applied.
+     *
+     * @param {Object} itemData Raw item data.
+     * @param {Object} renderContext Render context with availableWidth, availableHeight, and registry.
+     * @returns {Object} Content package containing widget, config, and metadata.
+     */
+    static createCardContent(itemData, renderContext) {
+        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, renderContext);
+        const metadata = ClipboardGridItemFactory.getItemViewMetadata(config, itemData, renderContext);
+        const archetypeWidget = ClipboardGridItemFactory.createGridContent(config, itemData, renderContext);
+
+        const contentWidget = new St.Bin({
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.FILL,
+        });
+
+        if (!metadata.isFullBleedGrid) {
+            contentWidget.add_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
+        }
+
+        syncActorGeometry(archetypeWidget, {
+            width: renderContext?.availableWidth,
+            height: renderContext?.availableHeight,
+        });
+
+        contentWidget.set_child(archetypeWidget);
+        return { contentWidget, config, metadata };
     }
 
     /**
@@ -56,7 +153,8 @@ export class ClipboardGridItemFactory {
      * @param {Object} options Options for rendering.
      * @param {Object} options.storage Clipboard storage instance.
      * @param {Object} options.registry Clipboard registry instance.
-     * @param {number} options.previewSize Preview size.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @param {Function} options.onItemCopy Callback when card is clicked.
      * @param {Object} options.manager ClipboardManager for pin or delete actions.
      * @param {Set} options.selectedIds Set of selected item IDs.
@@ -82,24 +180,10 @@ export class ClipboardGridItemFactory {
         });
         itemWidget.set_child(cardStack);
 
-        const contentWrapper = new St.Bin({
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.FILL,
-            y_align: Clutter.ActorAlign.FILL,
-        });
-
-        const renderContext = ClipboardGridItemFactory._createRenderContext(options);
-        const config = ClipboardGridItemFactory.getItemViewConfig(itemData, renderContext);
-        const metadata = ClipboardGridItemFactory.getItemViewMetadata(config, itemData, renderContext);
-
-        if (!metadata.isFullBleedGrid) {
-            contentWrapper.add_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
-        }
-
-        const contentWidget = ClipboardGridItemFactory.createGridContent(config, itemData, renderContext);
-        contentWrapper.set_child(contentWidget);
-        cardStack.add_child(contentWrapper);
+        const cardGeometry = ClipboardGridItemFactory.resolveItemCardGeometry(options, itemData);
+        const renderContext = ClipboardGridItemFactory._createRenderContext(options, cardGeometry);
+        const { contentWidget, config } = ClipboardGridItemFactory.createCardContent(itemData, renderContext);
+        cardStack.add_child(contentWidget);
 
         // Type Badge
         const typeBadge = ClipboardGridItemFactory._createTypeBadge(config, itemData, renderContext);
@@ -218,7 +302,7 @@ export class ClipboardGridItemFactory {
         itemWidget._deleteButton = deleteButton;
         itemWidget._actionButtons = actionButtons;
         itemWidget._itemId = itemData.id;
-        itemWidget._contentWrapper = contentWrapper;
+        itemWidget._contentWidget = contentWidget;
         itemWidget._cardStack = cardStack;
         itemWidget._viewConfig = config;
         itemWidget._renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, itemData, renderContext);
@@ -234,39 +318,40 @@ export class ClipboardGridItemFactory {
      * @param {Object} options Options for rendering.
      * @param {Object} options.storage Clipboard storage instance.
      * @param {Object} options.registry Clipboard registry instance.
-     * @param {number} options.previewSize Preview size.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @returns {boolean} True if the structure changed.
      */
     static updateItem(itemWidget, newItemData, options) {
         if (!itemWidget || !newItemData) return false;
         itemWidget._itemId = newItemData.id;
 
-        const renderContext = ClipboardGridItemFactory._createRenderContext(options);
+        const cardGeometry = ClipboardGridItemFactory.resolveItemCardGeometry(options, newItemData);
+        const renderContext = ClipboardGridItemFactory._createRenderContext(options, cardGeometry);
         const config = ClipboardGridItemFactory.getItemViewConfig(newItemData, renderContext);
         const renderFingerprint = ClipboardBaseItemConfig.getItemRenderFingerprint(config, newItemData, renderContext);
         const previousFingerprint = itemWidget._renderFingerprint || itemWidget._viewConfig?._fingerprint || '';
         const nextFingerprint = renderFingerprint || config._fingerprint || '';
         if (previousFingerprint && previousFingerprint === nextFingerprint) {
+            syncActorGeometry(itemWidget._contentWidget?.get_child(), {
+                width: renderContext.availableWidth,
+                height: renderContext.availableHeight,
+            });
             return false;
         }
 
         let structureChanged = true;
         itemWidget._viewConfig = config;
         itemWidget._renderFingerprint = renderFingerprint;
-        const metadata = ClipboardGridItemFactory.getItemViewMetadata(config, newItemData, renderContext);
-        const contentWrapper = itemWidget._contentWrapper;
-        if (contentWrapper) {
-            const newContentWidget = ClipboardGridItemFactory.createGridContent(config, newItemData, renderContext);
-            contentWrapper.set_child(newContentWidget);
-
-            if (!metadata.isFullBleedGrid) {
-                contentWrapper.add_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
-            } else {
-                contentWrapper.remove_style_class_name(ClipboardStyles.GRID_CARD_CONTENT);
-            }
+        const { contentWidget: newContentWidget } = ClipboardGridItemFactory.createCardContent(newItemData, renderContext);
+        const cardStack = itemWidget._cardStack;
+        const oldContentWidget = itemWidget._contentWidget;
+        if (cardStack && oldContentWidget) {
+            cardStack.replace_child(oldContentWidget, newContentWidget);
+            itemWidget._contentWidget = newContentWidget;
+            oldContentWidget.destroy();
         }
 
-        const cardStack = itemWidget._cardStack;
         if (cardStack) {
             if (itemWidget._typeBadge) {
                 itemWidget._typeBadge.destroy();
@@ -295,7 +380,8 @@ export class ClipboardGridItemFactory {
      * @param {Object} itemData The raw item data.
      * @param {Object} options Display options.
      * @param {Object} options.storage Clipboard storage instance.
-     * @param {number} options.previewSize Preview size.
+     * @param {number} [options.previewWidth] Preview width override.
+     * @param {number} [options.previewHeight] Preview height override.
      * @param {Object} options.registry Clipboard registry instance.
      * @returns {St.Widget} The content widget.
      */
@@ -317,18 +403,57 @@ export class ClipboardGridItemFactory {
     // ========================================================================
 
     /**
+     * Resolve card geometry for a grid item using framed or full-bleed metrics.
+     *
+     * @param {Object} options Factory options.
+     * @param {Object} itemData Raw clipboard item data.
+     * @returns {Object} Calculated card geometry specification.
+     */
+    static resolveItemCardGeometry(options, itemData) {
+        Logger.assert(Boolean(itemData), 'ClipboardGridItemFactory requires item data to resolve card geometry.', 'ClipboardGridItemFactory');
+        const width = options.cardGeometry ? options.cardGeometry.totalWidth : options.width;
+        const height = options.cardGeometry ? options.cardGeometry.totalHeight : options.height;
+        assertValidLayoutAxes(width, height, { context: 'ClipboardGridItemFactory' });
+        const metadata = ClipboardGridItemFactory.getItemViewMetadata({}, itemData, {
+            registry: options.registry,
+            settings: options.settings,
+            previewWidth: options.previewWidth,
+            previewHeight: options.previewHeight,
+        });
+        return ClipboardGridItemFactory.calculateCardGeometry({
+            width,
+            height,
+            isFullBleed: Boolean(metadata?.isFullBleedGrid),
+        });
+    }
+
+    /**
      * Create the render context passed to clipboard definitions.
      *
      * @param {Object} options Factory options.
+     * @param {Object} [cardGeometry] Optional calculated card geometry.
      * @returns {Object} Render context.
      * @private
      */
-    static _createRenderContext(options) {
+    static _createRenderContext(options, cardGeometry) {
+        const hasGeometry = Boolean(cardGeometry);
+        const availableWidth = hasGeometry ? cardGeometry.availableWidth : options.availableWidth;
+        const availableHeight = hasGeometry ? cardGeometry.availableHeight : options.availableHeight;
+        assertValidLayoutAxes(availableWidth, availableHeight, {
+            allowZero: true,
+            widthName: 'availableWidth',
+            heightName: 'availableHeight',
+            context: 'ClipboardGridItemFactory',
+        });
         return {
             registry: options.registry,
             storage: options.storage,
-            previewSize: options.previewSize,
+            previewWidth: options.previewWidth,
+            previewHeight: options.previewHeight,
             settings: options.settings,
+            cardGeometry,
+            availableWidth,
+            availableHeight,
         };
     }
 

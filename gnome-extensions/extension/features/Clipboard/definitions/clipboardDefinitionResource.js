@@ -4,7 +4,6 @@ import { gettext as _, ngettext } from 'resource:///org/gnome/shell/extensions/e
 import { clipboardSetContent, clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOFile, IOText } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
 import { ClipboardIntegrationItemActions } from '../integrations/clipboardIntegrationItemActions.js';
@@ -173,8 +172,8 @@ export function ClipboardDefinitionResource() {
             customActions: (item, context) => {
                 if (item.is_corrupted) return [];
 
-                const buttons = [];
-                const { settings, onItemCopy, styleOptions } = context;
+                const { settings } = context;
+                if (!settings) return [];
 
                 // Button Actions
                 const isMultiple = Boolean(item.count && item.count > 1);
@@ -223,27 +222,13 @@ export function ClipboardDefinitionResource() {
                 };
 
                 const buttonOrder = settings.get_strv('clipboard-resource-button-order');
-                const activeButtons = buttonOrder.filter((buttonId) => {
-                    const isAllowed = RESOURCE_BUTTON_PERMISSIONS[buttonId];
-                    return isAllowed ? isAllowed() : false;
-                });
-
-                for (const buttonId of activeButtons) {
-                    const actionMeta = RESOURCE_BUTTON_ACTIONS[buttonId];
-                    if (!actionMeta) continue;
-
-                    buttons.push(
-                        ClipboardBaseWidgetFactory.createActionButton({
-                            icon: actionMeta.icon,
-                            tooltip: actionMeta.tooltip,
-                            action: actionMeta.action,
-                            styleOptions,
-                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
-                        }),
-                    );
-                }
-
-                return buttons;
+                return buttonOrder
+                    .filter((buttonId) => {
+                        const isAllowed = RESOURCE_BUTTON_PERMISSIONS[buttonId];
+                        return isAllowed ? isAllowed() : false;
+                    })
+                    .map((buttonId) => RESOURCE_BUTTON_ACTIONS[buttonId])
+                    .filter(Boolean);
             },
         }),
         getSearchTerms: (item) => [item.preview, item.file_uri],

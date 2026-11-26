@@ -392,7 +392,7 @@
     padding: 0;
 }
 
-.aio-clipboard-container .clipboard-list-item {
+.aio-clipboard-container .clipboard-list-card {
     min-height: 48px;
     padding: 4px 8px;
     margin: 2px;
@@ -400,8 +400,8 @@
     font-weight: normal;
 }
 
-.aio-clipboard-container .clipboard-list-item:hover,
-.aio-clipboard-container .clipboard-list-item:focus {
+.aio-clipboard-container .clipboard-list-card:hover,
+.aio-clipboard-container .clipboard-list-card:focus {
     background-color: rgba(128, 128, 128, 0.3);
 }
 
@@ -438,7 +438,7 @@
     background-color: rgba(128, 128, 128, 0.3);
 }
 
-.aio-clipboard-container .clipboard-list-content-zone,
+.aio-clipboard-container .clipboard-list-card-content,
 .aio-clipboard-container .clipboard-list-label-container,
 .aio-clipboard-container .clipboard-list-media-container,
 .aio-clipboard-container .clipboard-list-header-container,
@@ -460,8 +460,8 @@
     color: rgba(180, 180, 180, 0.8);
 }
 
-.aio-clipboard-container .clipboard-list-item:hover .clipboard-list-subtitle,
-.aio-clipboard-container .clipboard-list-item:focus .clipboard-list-subtitle {
+.aio-clipboard-container .clipboard-list-card:hover .clipboard-list-subtitle,
+.aio-clipboard-container .clipboard-list-card:focus .clipboard-list-subtitle {
     color: inherit;
 }
 

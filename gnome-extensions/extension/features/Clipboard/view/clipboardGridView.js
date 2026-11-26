@@ -1,10 +1,11 @@
 import GdkPixbuf from 'gi://GdkPixbuf';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import St from 'gi://St';
 
 import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { MasonryLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
-import { resolveGeometry } from '../../../shared/utilities/utilityLayout.js';
+import { assertValidLayoutAxes, resolveGeometry } from '../../../shared/utilities/utilityLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
 import { ClipboardConfig, ClipboardSettings } from '../constants/clipboardConstants.js';
@@ -53,6 +54,14 @@ export const ClipboardGridView = GObject.registerClass(
             this._gridHistoryItems = [];
             this._gridColumnSignalIds = [];
 
+            this._themeContextSignalId = 0;
+            if (typeof global !== 'undefined' && global.stage) {
+                const themeContext = St.ThemeContext.get_for_stage(global.stage);
+                this._themeContextSignalId = themeContext.connect('changed', () => {
+                    ClipboardGridItemFactory.clearThemeMetricsCache();
+                });
+            }
+
             this.connect('key-press-event', this._onKeyPress.bind(this));
             this._bindGridColumnSettings();
         }
@@ -78,8 +87,8 @@ export const ClipboardGridView = GObject.registerClass(
                 virtualization: true,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
-                renderItemFn: (item) => this._createItemWidget(item, true),
-                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
+                renderItemFn: (item, session, geometry) => this._createItemWidget(item, true, geometry),
+                updateItemFn: (widget, item, session, geometry) => this._updateItemWidget(widget, item, true, geometry),
                 prepareItemFn: (item) => this._prepareGridItem(item, true),
             });
         }
@@ -101,8 +110,8 @@ export const ClipboardGridView = GObject.registerClass(
                 virtualization: true,
                 virtualOverscanPx: GridVirtualization.OVERSCAN_PX,
                 scrollView: this._scrollView,
-                renderItemFn: (item) => this._createItemWidget(item, false),
-                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
+                renderItemFn: (item, session, geometry) => this._createItemWidget(item, false, geometry),
+                updateItemFn: (widget, item, session, geometry) => this._updateItemWidget(widget, item, false, geometry),
                 prepareItemFn: (item) => this._prepareGridItem(item, false),
             });
         }
@@ -121,10 +130,16 @@ export const ClipboardGridView = GObject.registerClass(
          * Get item options.
          *
          * @param {boolean} isPinned Whether the item is pinned.
+         * @param {Object} geometry Layout geometry with symmetric width and height.
          * @returns {Object} Options object.
          * @override
          */
-        _getItemOptions(isPinned) {
+        _getItemOptions(isPinned, geometry) {
+            Logger.assert(Boolean(geometry), 'ClipboardGridView requires layout geometry to compute item options.', 'ClipboardGridView');
+            const width = geometry.width;
+            const height = geometry.height;
+            assertValidLayoutAxes(width, height, { context: 'ClipboardGridView' });
+
             return {
                 isPinned,
                 registry: this._registry,
@@ -135,6 +150,8 @@ export const ClipboardGridView = GObject.registerClass(
                 onSelectionChanged: this._onSelectionChanged,
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
+                width,
+                height,
             };
         }
 
@@ -246,11 +263,12 @@ export const ClipboardGridView = GObject.registerClass(
          *
          * @param {Object} itemData The item data.
          * @param {boolean} isPinned Whether this item is pinned.
+         * @param {Object} geometry Layout geometry.
          * @returns {St.Widget} The card widget.
          * @private
          */
-        _createItemWidget(itemData, isPinned) {
-            const options = this._getItemOptions(isPinned);
+        _createItemWidget(itemData, isPinned, geometry) {
+            const options = this._getItemOptions(isPinned, geometry);
             return ClipboardGridItemFactory.createItem(itemData, options);
         }
 
@@ -300,13 +318,15 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _prepareGridItem(item, isPinned) {
+            Logger.assert(Boolean(item), 'ClipboardGridView requires item data to prepare grid item.', 'ClipboardGridView');
+
             let width = GridMetrics.WIDTH_DEFAULT;
             let height = this._estimateCardHeight(item);
 
             const dimensionKey = this._getDimensionKey(item);
             if (dimensionKey) {
                 const rawDims = item.width && item.height ? item : this._dimensionCache.get(dimensionKey);
-                if (rawDims) {
+                if (rawDims && rawDims.width > 0 && rawDims.height > 0) {
                     const geometry = resolveGeometry({ width: rawDims.width, height: rawDims.height }, { aspectRatio: { min: GridMetrics.MIN_ASPECT_RATIO } });
                     width = geometry.width;
                     height = geometry.height;
@@ -329,8 +349,16 @@ export const ClipboardGridView = GObject.registerClass(
          * @private
          */
         _estimateCardHeight(item) {
-            const metadata = this._registry ? this._registry.getViewMetadata(null, item, { settings: this._settings }) : null;
-            return metadata?.gridHeight || GridMetrics.HEIGHT_DEFAULT;
+            Logger.assert(Boolean(item), 'ClipboardGridView requires item data to estimate card height.', 'ClipboardGridView');
+            Logger.assert(Boolean(this._registry), 'ClipboardGridView requires registry to estimate card height.', 'ClipboardGridView');
+            const metadata = this._registry.getViewMetadata(null, item, { settings: this._settings });
+            const hasDefinition = Boolean(this._registry.getDefinition(item.type));
+            Logger.assert(
+                !hasDefinition || (typeof metadata?.gridHeight === 'number' && metadata.gridHeight > 0),
+                'ClipboardGridView requires registered definitions to return positive gridHeight.',
+                'ClipboardGridView',
+            );
+            return hasDefinition ? metadata.gridHeight : GridMetrics.HEIGHT_DEFAULT;
         }
 
         /**
@@ -408,11 +436,11 @@ export const ClipboardGridView = GObject.registerClass(
          */
         _createTransferToken(currentFocus) {
             let itemWidget = currentFocus;
-            while (itemWidget && !itemWidget._masonryData && !itemWidget._itemId) {
+            while (itemWidget && !itemWidget._virtualLayoutData && !itemWidget._itemId) {
                 itemWidget = itemWidget.get_parent();
             }
 
-            const layoutData = itemWidget?._masonryData;
+            const layoutData = itemWidget?._virtualLayoutData;
             if (!layoutData) return undefined;
 
             return layoutData.x + layoutData.width / 2;
@@ -460,6 +488,11 @@ export const ClipboardGridView = GObject.registerClass(
             if (this._gridColumnSignalIds.length > 0 && this._settings) {
                 this._gridColumnSignalIds.forEach((id) => this._settings.disconnect(id));
                 this._gridColumnSignalIds = [];
+            }
+            if (this._themeContextSignalId > 0 && typeof global !== 'undefined' && global.stage) {
+                const themeContext = St.ThemeContext.get_for_stage(global.stage);
+                themeContext.disconnect(this._themeContextSignalId);
+                this._themeContextSignalId = 0;
             }
             this._gridRenderGeneration = (this._gridRenderGeneration || 0) + 1;
             this._gridPinnedItems = null;

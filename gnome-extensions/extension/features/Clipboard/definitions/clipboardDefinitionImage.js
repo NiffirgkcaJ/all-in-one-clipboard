@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { resolveGeometry } from '../../../shared/utilities/utilityLayout.js';
 import { IOImage, IOText } from '../../../shared/utilities/utilityIO.js';
 
@@ -20,33 +21,27 @@ import { ClipboardPriority, ClipboardStyling, ClipboardType } from '../constants
  * @returns {object} Resolved 2D geometry specification.
  */
 function resolvePreviewGeometry(options) {
-    const configuredSize = options.previewSize ?? options.settings?.get_int('clipboard-image-preview-size');
+    const configuredSize = options.settings?.get_int('clipboard-image-preview-size');
+    const requestedWidth = options.previewWidth ?? configuredSize;
+    const requestedHeight = options.previewHeight ?? configuredSize;
+    Logger.assert(
+        Number.isFinite(requestedWidth) && requestedWidth > 0 && Number.isFinite(requestedHeight) && requestedHeight > 0,
+        'Image preview geometry requires positive preview dimensions or setting.',
+        'ClipboardDefinitionImage',
+    );
+
     const availableWidth = options.availableWidth;
     const availableHeight = options.availableHeight;
 
-    if (!Number.isFinite(configuredSize) || configuredSize <= 0) {
-        return { width: 0, height: 0, aspectRatio: 1 };
-    }
-
     return resolveGeometry(
-        { width: configuredSize, height: configuredSize },
+        { width: requestedWidth, height: requestedHeight },
         {
             bounds: {
                 maxWidth: availableWidth,
-                maxHeight: availableHeight ?? undefined,
+                maxHeight: availableHeight,
             },
         },
     );
-}
-
-/**
- * Resolve the preview size clamped to available content width.
- *
- * @param {object} options View options.
- * @returns {number} Clamped preview size in pixels.
- */
-function resolvePreviewSize(options) {
-    return resolvePreviewGeometry(options).width;
 }
 
 /**
@@ -102,7 +97,6 @@ export function ClipboardDefinitionImage() {
         configureView: (config, item, options) => {
             config.text = item.preview || item.text || '';
             const geometry = resolvePreviewGeometry(options);
-            config.previewSize = geometry.width;
             config.contentWidth = geometry.width;
             config.contentHeight = geometry.height;
             const filename = item.image_filename;
@@ -116,19 +110,19 @@ export function ClipboardDefinitionImage() {
             }
         },
         getViewFingerprint: (_config, item, options) => {
-            const size = resolvePreviewSize(options);
+            const geometry = resolvePreviewGeometry(options);
             const floor = (options.imageEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-image-enforce-default-height')) ? '1' : '0';
-            return [item.image_filename || '', item.preview_filename || '', size, floor].join('|');
+            return [item.image_filename || '', item.preview_filename || '', geometry.width, geometry.height, floor].join('|');
         },
         getViewMetadata: (_config, item, options) => {
-            const size = resolvePreviewSize(options);
-            const contentHeight = size + ListMetrics.ROW_PADDING_MARGIN_PX;
+            const geometry = resolvePreviewGeometry(options);
+            const contentHeight = geometry.height + ListMetrics.ROW_PADDING_MARGIN_PX;
             const enforceDefault = options.imageEnforceDefaultHeight ?? options.settings?.get_boolean('clipboard-image-enforce-default-height');
             const listHeight = enforceDefault ? Math.max(ListMetrics.ITEM_HEIGHT, contentHeight) : Math.max(ListMetrics.MIN_ITEM_HEIGHT, contentHeight);
 
             return {
                 listHeight,
-                listMinHeight: size || null,
+                listMinHeight: geometry.height || null,
                 isFullBleedGrid: true,
                 gridHeight: GridMetrics.HEIGHT_MEDIA,
                 dimensionKey: item.image_filename,

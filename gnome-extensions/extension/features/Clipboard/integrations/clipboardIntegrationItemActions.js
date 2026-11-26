@@ -9,11 +9,24 @@ import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.j
  * Combines plugin-specific actions with standard pin and delete buttons.
  *
  * @param {object} [config] Integration configuration.
- * @param {Function} [config.customActions] Optional callback to produce plugin-specific action buttons.
- * @returns {object} Object with createActions method.
+ * @param {Function} [config.customActions] Optional callback returning plugin-specific action descriptors.
+ * @returns {object} Object with getActionCount and createActions methods.
  */
 export function ClipboardIntegrationItemActions({ customActions } = {}) {
     return {
+        /**
+         * Resolve the number of action buttons for an item without constructing widgets.
+         *
+         * @param {Object} item Clipboard item.
+         * @param {Object} [context] Action context.
+         * @returns {number} Count of action buttons.
+         */
+        getActionCount(item, context = {}) {
+            const customCount = customActions ? (customActions(item, context) || []).length : 0;
+            const standardCount = context.manager ? 2 : 0;
+            return customCount + standardCount;
+        },
+
         /**
          * Create all action buttons for an item.
          *
@@ -31,8 +44,18 @@ export function ClipboardIntegrationItemActions({ customActions } = {}) {
 
             // Plugin Actions
             if (customActions) {
-                const pluginButtons = customActions(item, context) || [];
-                buttons.push(...pluginButtons);
+                const descriptors = customActions(item, context) || [];
+                descriptors.forEach((descriptor) => {
+                    buttons.push(
+                        ClipboardBaseWidgetFactory.createActionButton({
+                            icon: descriptor.icon,
+                            tooltip: descriptor.tooltip,
+                            action: descriptor.action,
+                            styleOptions: context.styleOptions,
+                            onClick: () => context.onItemCopy(item, { target: descriptor.target }),
+                        }),
+                    );
+                });
             }
 
             // Standard Actions

@@ -5,7 +5,6 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { clipboardSetText } from '../../../shared/utilities/utilityClipboard.js';
 import { IOImage } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 import { ClipboardIntegrationIconFileHealing } from '../integrations/clipboardIntegrationFileHealing.js';
 import { ClipboardIntegrationInlineItem } from '../integrations/clipboardIntegrationInlineItem.js';
@@ -109,52 +108,31 @@ export function ClipboardDefinitionLink() {
             customActions: (item, context) => {
                 if (item.is_corrupted) return [];
 
-                const buttons = [];
-                const { settings, onItemCopy, styleOptions } = context;
-
-                // Button Actions
-                if (settings.get_boolean('clipboard-link-show-action-button')) {
-                    const defaultAction = settings.get_string('clipboard-link-default-action');
-                    const target = defaultAction === 'launch' ? 'paste' : 'launch';
-
-                    const LINK_TARGET_ACTIONS = {
-                        launch: {
-                            icon: ClipboardIcons.ACTION_LAUNCH,
-                            tooltip: _('Launch Link'),
-                            action: 'launch-link',
-                            target: 'launch',
-                        },
-                        paste: {
-                            icon: ClipboardIcons.ACTION_PASTE_LINK,
-                            tooltip: _('Paste Link'),
-                            action: 'paste-link',
-                            target: 'paste',
-                        },
-                    };
-
-                    const LINK_BUTTON_ACTIONS = {
-                        action: {
-                            icon: LINK_TARGET_ACTIONS[target].icon,
-                            tooltip: LINK_TARGET_ACTIONS[target].tooltip,
-                            action: LINK_TARGET_ACTIONS[target].action,
-                            target,
-                        },
-                    };
-
-                    const actionMeta = LINK_BUTTON_ACTIONS.action;
-
-                    buttons.push(
-                        ClipboardBaseWidgetFactory.createActionButton({
-                            icon: actionMeta.icon,
-                            tooltip: actionMeta.tooltip,
-                            action: actionMeta.action,
-                            styleOptions,
-                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
-                        }),
-                    );
+                const { settings } = context;
+                if (!settings || !settings.get_boolean('clipboard-link-show-action-button')) {
+                    return [];
                 }
 
-                return buttons;
+                // Button Actions
+                const defaultAction = settings.get_string('clipboard-link-default-action');
+                const target = defaultAction === 'launch' ? 'paste' : 'launch';
+
+                const LINK_TARGET_ACTIONS = {
+                    launch: {
+                        icon: ClipboardIcons.ACTION_LAUNCH,
+                        tooltip: _('Launch Link'),
+                        action: 'launch-link',
+                        target: 'launch',
+                    },
+                    paste: {
+                        icon: ClipboardIcons.ACTION_PASTE_LINK,
+                        tooltip: _('Paste Link'),
+                        action: 'paste-link',
+                        target: 'paste',
+                    },
+                };
+
+                return [LINK_TARGET_ACTIONS[target]];
             },
         }),
         copyOptions: {

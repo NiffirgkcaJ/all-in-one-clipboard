@@ -6,7 +6,7 @@ import { resolveGeometry } from './utilityLayout.js';
 // ========================================================================
 
 /**
- * 1D linear layout geometry.
+ * 2D linear layout geometry.
  */
 export class LinearGeometry {
     /**
@@ -15,33 +15,42 @@ export class LinearGeometry {
      * @param {Object} [config] Geometry configuration.
      */
     constructor(config = {}) {
-        this.calculateItemHeight = config.calculateItemHeight || null;
+        this.calculateItemGeometry = config.calculateItemGeometry || null;
         this.spacing = typeof config.spacing === 'number' ? config.spacing : 0;
         this.paddingTop = typeof config.paddingTop === 'number' ? config.paddingTop : 0;
+        this.effectiveWidth = typeof config.effectiveWidth === 'number' ? config.effectiveWidth : 0;
+        this.geometryConstraints = config.geometryConstraints || null;
     }
 
     /**
-     * Compute item height from dimensions or callback.
+     * Compute item geometry from dimensions or callback.
      *
      * @param {Object} item Raw item data.
-     * @returns {number} Resolved height in pixels.
+     * @returns {Object} Resolved 2D geometry specification.
      * @private
      */
-    _resolveItemHeight(item) {
-        if (this.calculateItemHeight) {
-            return this.calculateItemHeight(item);
+    _resolveItemGeometry(item) {
+        if (this.calculateItemGeometry) {
+            Logger.assert(this.effectiveWidth > 0, 'LinearGeometry requires positive effectiveWidth before resolving geometry.', 'Virtualization');
+            const bounds = { width: this.effectiveWidth, height: null };
+            const geometry = this.calculateItemGeometry(item, bounds);
+            const width = typeof geometry?.width === 'number' && geometry.width > 0 ? Math.min(this.effectiveWidth, Math.round(geometry.width)) : 0;
+            const height = typeof geometry?.height === 'number' && geometry.height > 0 ? Math.max(1, Math.round(geometry.height)) : 0;
+            Logger.assert(width > 0 && height > 0, 'LinearGeometry requires calculateItemGeometry to return positive width and height.', 'Virtualization');
+            return { width, height };
         }
 
-        if (item && typeof item.height === 'number' && item.height > 0) {
-            return Math.max(1, Math.round(item.height));
-        }
-
-        Logger.assert(false, 'LinearGeometry requires items to provide height metadata or calculateItemHeight callback.', 'Virtualization');
-        return 0;
+        Logger.assert(this.effectiveWidth > 0, 'LinearGeometry requires positive effectiveWidth before resolving geometry.', 'Virtualization');
+        const constraints = { ...(this.geometryConstraints || {}) };
+        const geometry = resolveGeometry(item || {}, constraints);
+        return {
+            width: Math.min(this.effectiveWidth, geometry.width),
+            height: Math.max(1, geometry.height),
+        };
     }
 
     /**
-     * Compute vertical positions for items.
+     * Compute 2D positions for items in linear sequence.
      *
      * @param {Array<Object>} items List of items.
      * @returns {Object} Layout data and total height.
@@ -51,16 +60,16 @@ export class LinearGeometry {
         const layoutData = [];
 
         for (const item of items) {
-            const height = this._resolveItemHeight(item);
+            const geometry = this._resolveItemGeometry(item);
             layoutData.push({
                 id: item.id,
                 x: 0,
                 y: currentY,
-                width: 0,
-                height,
+                width: geometry.width,
+                height: geometry.height,
                 itemData: item,
             });
-            currentY += height + this.spacing;
+            currentY += geometry.height + this.spacing;
         }
 
         if (items.length > 0) {
@@ -98,7 +107,7 @@ export class ColumnarGeometry {
         this.paddingLeft = typeof config.paddingLeft === 'number' ? config.paddingLeft : 0;
         this.effectiveWidth = config.effectiveWidth;
         this.maxColumns = typeof config.maxColumns === 'number' && config.maxColumns > 0 ? config.maxColumns : null;
-        this.calculateItemHeight = config.calculateItemHeight || null;
+        this.calculateItemGeometry = config.calculateItemGeometry || null;
         this.geometryConstraints = config.geometryConstraints || null;
         this._columnWidth = 0;
     }
@@ -123,32 +132,25 @@ export class ColumnarGeometry {
     }
 
     /**
-     * Compute item height from dimensions or aspect ratio.
+     * Compute item geometry from dimensions or aspect ratio.
      *
      * @param {Object} item Raw item data.
-     * @returns {number} Calculated height in pixels.
+     * @returns {Object} Resolved 2D geometry specification.
      * @private
      */
-    _resolveItemHeight(item) {
-        if (this.calculateItemHeight) {
-            return this.calculateItemHeight(item, this._columnWidth);
+    _resolveItemGeometry(item) {
+        if (this.calculateItemGeometry) {
+            const bounds = { width: this._columnWidth, height: null };
+            const geometry = this.calculateItemGeometry(item, bounds);
+            const width = typeof geometry?.width === 'number' && geometry.width > 0 ? Math.min(this._columnWidth, Math.round(geometry.width)) : 0;
+            const height = typeof geometry?.height === 'number' && geometry.height > 0 ? Math.max(1, Math.round(geometry.height)) : 0;
+            Logger.assert(width > 0 && height > 0, 'ColumnarGeometry requires calculateItemGeometry to return positive width and height.', 'Virtualization');
+            return { width, height };
         }
 
-        if (item && item.height && item.width) {
-            const constraints = {
-                targetWidth: this._columnWidth,
-                ...(this.geometryConstraints || {}),
-            };
-            const geometry = resolveGeometry({ width: item.width, height: item.height }, constraints);
-            return Math.max(1, geometry.height);
-        }
-
-        if (item && typeof item.height === 'number' && item.height > 0) {
-            return Math.max(1, Math.round(item.height));
-        }
-
-        Logger.assert(false, 'ColumnarGeometry requires items to provide height metadata or calculateItemHeight callback.', 'Virtualization');
-        return 0;
+        const constraints = { ...(this.geometryConstraints || {}) };
+        constraints.targetWidth = this._columnWidth;
+        return resolveGeometry(item || {}, constraints);
     }
 
     /**
@@ -166,7 +168,7 @@ export class ColumnarGeometry {
         const layoutData = [];
 
         for (const item of items) {
-            const height = this._resolveItemHeight(item);
+            const geometry = this._resolveItemGeometry(item);
 
             let shortestIndex = 0;
             let shortestHeight = columnHeights[0];
@@ -185,12 +187,12 @@ export class ColumnarGeometry {
                 id: item.id,
                 x,
                 y,
-                width: this._columnWidth,
-                height,
+                width: geometry.width,
+                height: geometry.height,
                 itemData: item,
             });
 
-            columnHeights[shortestIndex] += height + this.spacing;
+            columnHeights[shortestIndex] += geometry.height + this.spacing;
         }
 
         const totalHeight = Math.max(0, ...columnHeights);

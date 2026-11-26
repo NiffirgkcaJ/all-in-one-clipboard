@@ -4,7 +4,6 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import { clipboardSetContent } from '../../../shared/utilities/utilityClipboard.js';
 import { IOText } from '../../../shared/utilities/utilityIO.js';
 
-import { ClipboardBaseWidgetFactory } from '../view/clipboardBaseWidgetFactory.js';
 import { ClipboardIcons } from '../constants/clipboardConstants.js';
 import { ClipboardIntegrationFileBackedItem } from '../integrations/clipboardIntegrationFileBackedItem.js';
 import { ClipboardIntegrationFileIntegrity } from '../integrations/clipboardIntegrationFileHealing.js';
@@ -108,8 +107,8 @@ export function ClipboardDefinitionHtml() {
             customActions: (item, context) => {
                 if (item.is_corrupted) return [];
 
-                const buttons = [];
-                const { settings, onItemCopy, styleOptions } = context;
+                const { settings } = context;
+                if (!settings) return [];
 
                 // Button Actions
                 const defaultFormat = settings.get_string('clipboard-html-default-format');
@@ -147,27 +146,13 @@ export function ClipboardDefinitionHtml() {
                 };
 
                 const buttonOrder = settings.get_strv('clipboard-html-button-order');
-                const activeButtons = buttonOrder.filter((buttonId) => {
-                    const isAllowed = HTML_BUTTON_PERMISSIONS[buttonId];
-                    return isAllowed ? isAllowed() : false;
-                });
-
-                for (const buttonId of activeButtons) {
-                    const actionMeta = HTML_BUTTON_ACTIONS[buttonId];
-                    if (!actionMeta) continue;
-
-                    buttons.push(
-                        ClipboardBaseWidgetFactory.createActionButton({
-                            icon: actionMeta.icon,
-                            tooltip: actionMeta.tooltip,
-                            action: actionMeta.action,
-                            styleOptions,
-                            onClick: () => onItemCopy(item, { target: actionMeta.target }),
-                        }),
-                    );
-                }
-
-                return buttons;
+                return buttonOrder
+                    .filter((buttonId) => {
+                        const isAllowed = HTML_BUTTON_PERMISSIONS[buttonId];
+                        return isAllowed ? isAllowed() : false;
+                    })
+                    .map((buttonId) => HTML_BUTTON_ACTIONS[buttonId])
+                    .filter(Boolean);
             },
         }),
         getSearchTerms: (item) => [item.text, item.preview],

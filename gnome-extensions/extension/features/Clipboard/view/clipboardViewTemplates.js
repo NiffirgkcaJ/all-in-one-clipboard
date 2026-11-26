@@ -319,10 +319,16 @@ export function createGridHeader(config) {
  * @returns {St.Widget} Media content widget.
  */
 export function createListMedia(config) {
-    const { sourcePath, previewPath, previewSize, logLabel = '' } = config;
+    const { sourcePath, previewPath, contentWidth, contentHeight, logLabel = '' } = config;
     if (!sourcePath) {
         return null;
     }
+
+    Logger.assert(
+        typeof contentWidth === 'number' && contentWidth > 0 && typeof contentHeight === 'number' && contentHeight > 0,
+        'createListMedia requires positive contentWidth and contentHeight.',
+        'ClipboardViewTemplates',
+    );
 
     const mediaContainer = new St.Bin({
         style_class: ClipboardStyles.LIST_MEDIA_CONTAINER,
@@ -334,19 +340,19 @@ export function createListMedia(config) {
 
     const mediaVisual = new St.Bin({
         style_class: ClipboardStyles.LIST_MEDIA_VISUAL,
-        width: previewSize,
-        height: previewSize,
+        width: contentWidth,
+        height: contentHeight,
         x_expand: false,
         y_expand: false,
     });
-    mediaContainer.set_style(`min-height: ${previewSize}px;`);
+    mediaContainer.set_style(`min-height: ${contentHeight}px;`);
     mediaContainer.set_child(mediaVisual);
 
     const cancellable = createActorCancellable(mediaContainer);
-    IOImage.ensurePreviewAsync(sourcePath, previewPath, previewSize, cancellable)
+    IOImage.ensurePreviewAsync(sourcePath, previewPath, contentWidth, contentHeight, cancellable)
         .then((ready) => {
             if (ready && !cancellable.is_cancelled()) {
-                mediaVisual.set_style(`background-image: url('file://${previewPath}'); background-size: ${previewSize}px ${previewSize}px;`);
+                mediaVisual.set_style(`background-image: url('file://${previewPath}'); background-size: ${contentWidth}px ${contentHeight}px;`);
             }
         })
         .catch((e) => {
@@ -363,10 +369,16 @@ export function createListMedia(config) {
  * @returns {St.Widget} Media content widget.
  */
 export function createGridMedia(config) {
-    const { sourcePath, previewPath, previewSize, logLabel = '' } = config;
+    const { sourcePath, previewPath, contentWidth, contentHeight, logLabel = '' } = config;
     if (!sourcePath) {
         return null;
     }
+
+    Logger.assert(
+        typeof contentWidth === 'number' && contentWidth > 0 && typeof contentHeight === 'number' && contentHeight > 0,
+        'createGridMedia requires positive contentWidth and contentHeight.',
+        'ClipboardViewTemplates',
+    );
 
     const mediaContainer = new St.Bin({
         style_class: ClipboardStyles.GRID_MEDIA_CONTAINER,
@@ -386,7 +398,7 @@ export function createGridMedia(config) {
     mediaContainer.set_child(mediaVisual);
 
     const cancellable = createActorCancellable(mediaContainer);
-    IOImage.ensurePreviewAsync(sourcePath, previewPath, previewSize, cancellable)
+    IOImage.ensurePreviewAsync(sourcePath, previewPath, contentWidth, contentHeight, cancellable)
         .then((ready) => {
             if (ready && !cancellable.is_cancelled()) {
                 mediaVisual.set_style(`background-image: url('file://${previewPath}'); background-size: cover;`);

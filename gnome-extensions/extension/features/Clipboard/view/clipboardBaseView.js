@@ -116,10 +116,11 @@ export const ClipboardBaseView = GObject.registerClass(
          * Get options for creating or updating items.
          *
          * @param {boolean} _isPinned Whether the item is pinned.
+         * @param {Object} _geometry Paired layout geometry.
          * @returns {Object} Options object.
          * @abstract
          */
-        _getItemOptions(_isPinned) {
+        _getItemOptions(_isPinned, _geometry) {
             Logger.assert(false, 'Method _getItemOptions must be implemented by subclass', 'ClipboardBaseView');
         }
 
@@ -129,13 +130,14 @@ export const ClipboardBaseView = GObject.registerClass(
          * @param {St.Widget} widget The existing widget.
          * @param {Object} itemData The new item data.
          * @param {Object} [session] Render session.
+         * @param {Object} geometry Paired layout geometry.
          * @returns {boolean} True if the item widget was structurally updated.
          * @protected
          */
-        _updateItemWidget(widget, itemData, session) {
+        _updateItemWidget(widget, itemData, session, geometry) {
             const isPinned = session === true;
             const Factory = this._getItemFactory();
-            const options = this._getItemOptions(isPinned);
+            const options = this._getItemOptions(isPinned, geometry);
             return Factory.updateItem(widget, itemData, options);
         }
 

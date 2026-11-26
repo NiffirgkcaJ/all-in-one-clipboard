@@ -251,6 +251,21 @@ export class ClipboardRegistry {
     }
 
     /**
+     * Resolve the number of action buttons for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} options Action options.
+     * @returns {number} The count of action buttons.
+     */
+    resolveItemActionCount(item, options) {
+        const definition = this.getDefinition(item?.type);
+        if (definition && definition.getActionCount) {
+            return definition.getActionCount(item, options);
+        }
+        return defaultItemActions.getActionCount(item, options);
+    }
+
+    /**
      * Build a view fingerprint through an item's definition.
      *
      * @param {Object} config View config.

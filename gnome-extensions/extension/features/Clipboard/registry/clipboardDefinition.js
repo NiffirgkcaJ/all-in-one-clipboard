@@ -57,6 +57,17 @@ export class ClipboardDefinition {
     }
 
     /**
+     * Resolve the action button count for an item.
+     *
+     * @param {Object} item Clipboard item.
+     * @param {Object} context Action context.
+     * @returns {number} Count of action buttons.
+     */
+    getActionCount(item, context) {
+        return defaultItemActions.getActionCount(item, context);
+    }
+
+    /**
      * Create action buttons for an item.
      *
      * @param {Object} item Clipboard item.

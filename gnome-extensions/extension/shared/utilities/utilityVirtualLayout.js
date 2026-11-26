@@ -563,7 +563,12 @@ export const BaseVirtualLayout = GObject.registerClass(
 
             let visibleIndex = 0;
             visibleItems.forEach((itemData) => {
+                Logger.assert(itemData.width > 0 && itemData.height > 0, 'Virtual layout item must resolve positive 2D geometry before rendering.', 'BaseVirtualLayout');
                 const item = itemData.itemData;
+                const itemGeometry = {
+                    width: itemData.width,
+                    height: itemData.height,
+                };
                 let widget = existingWidgets.get(item.id);
 
                 if (widget) {
@@ -576,7 +581,7 @@ export const BaseVirtualLayout = GObject.registerClass(
 
                     let structureChanged = false;
                     if (this._updateItemFn) {
-                        structureChanged = this._updateItemFn(widget, item, this._lastRenderSession);
+                        structureChanged = this._updateItemFn(widget, item, this._lastRenderSession, itemGeometry);
                     }
                     if (positionChanged || structureChanged) widget._shouldAnimate = true;
 
@@ -584,13 +589,12 @@ export const BaseVirtualLayout = GObject.registerClass(
                         this.set_child_at_index(widget, visibleIndex);
                     }
                 } else {
-                    widget = this._renderItemFn(item, this._lastRenderSession);
-                    if (widget) {
-                        if (!widget._itemId) widget._itemId = item.id;
-                        widget._virtualLayoutData = itemData;
-                        widget._shouldAnimate = true;
-                        this.insert_child_at_index(widget, visibleIndex);
-                    }
+                    widget = this._renderItemFn(item, this._lastRenderSession, itemGeometry);
+                    Logger.assert(Boolean(widget), 'Virtual layout renderItemFn must return a widget actor.', 'BaseVirtualLayout');
+                    if (!widget._itemId) widget._itemId = item.id;
+                    widget._virtualLayoutData = itemData;
+                    widget._shouldAnimate = true;
+                    this.insert_child_at_index(widget, visibleIndex);
                 }
                 visibleIndex++;
             });
@@ -884,7 +888,7 @@ export const MasonryLayout = GObject.registerClass(
          * @param {Object} params Configuration parameters.
          */
         constructor(params) {
-            const { columns, maxColumns = null, targetItemWidth, geometryConstraints = null, ...baseParams } = params;
+            const { columns, maxColumns = null, targetItemWidth, geometryConstraints = null, calculateItemGeometry = null, ...baseParams } = params;
             const hasColumns = (typeof targetItemWidth === 'number' && targetItemWidth > 0) || (typeof columns === 'number' && columns > 0);
             Logger.assert(hasColumns, 'Either targetItemWidth or columns count is required.', 'MasonryLayout');
 
@@ -905,6 +909,7 @@ export const MasonryLayout = GObject.registerClass(
                         targetItemWidth: this._targetItemWidth,
                         maxColumns: this._maxColumns,
                         effectiveWidth: 0,
+                        calculateItemGeometry,
                         geometryConstraints,
                     },
                     overscanPx: overscan,
@@ -1051,19 +1056,21 @@ export const StackLayout = GObject.registerClass(
          * @param {Object} params Configuration parameters.
          */
         constructor(params) {
-            const { calculateItemHeight = null, ...baseParams } = params;
+            const { calculateItemGeometry = null, geometryConstraints = null, ...baseParams } = params;
 
             super(baseParams);
 
-            this._calculateItemHeight = calculateItemHeight;
+            this._calculateItemGeometry = calculateItemGeometry;
 
             const overscan = this._virtualizationEnabled ? baseParams.virtualOverscanPx : Number.MAX_SAFE_INTEGER;
             this._initVirtualEngine(
                 new VirtualizationEngine({
                     mode: 'linear',
                     geometryConfig: {
-                        calculateItemHeight: this._calculateItemHeight,
+                        calculateItemGeometry: this._calculateItemGeometry,
+                        geometryConstraints,
                         spacing: this._spacing,
+                        effectiveWidth: 0,
                     },
                     overscanPx: overscan,
                     onVisibleItemsChanged: this._syncDOM.bind(this),

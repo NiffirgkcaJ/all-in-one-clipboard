@@ -1,6 +1,8 @@
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import { assertValidLayoutAxes } from '../../../shared/utilities/utilityLayout.js';
+import { Logger } from '../../../shared/utilities/utilityLogger.js';
 import { StackLayout } from '../../../shared/utilities/utilityVirtualLayout.js';
 
 import { ClipboardStyles } from '../constants/clipboardStyleConstants.js';
@@ -60,9 +62,9 @@ export const ClipboardListView = GObject.registerClass(
                 scrollView: this._scrollView,
                 virtualization: true,
                 virtualOverscanPx: ListVirtualization.OVERSCAN_PX,
-                calculateItemHeight: (item) => this._calculateItemHeight(item),
-                renderItemFn: (item) => this._createItemWidget(item, true),
-                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, true),
+                calculateItemGeometry: (item, bounds) => this._calculateItemGeometry(item, true, bounds),
+                renderItemFn: (item, session, geometry) => this._createItemWidget(item, true, geometry),
+                updateItemFn: (widget, item, session, geometry) => this._updateItemWidget(widget, item, true, geometry),
             });
         }
 
@@ -77,9 +79,9 @@ export const ClipboardListView = GObject.registerClass(
                 scrollView: this._scrollView,
                 virtualization: true,
                 virtualOverscanPx: ListVirtualization.OVERSCAN_PX,
-                calculateItemHeight: (item) => this._calculateItemHeight(item),
-                renderItemFn: (item) => this._createItemWidget(item, false),
-                updateItemFn: (widget, item) => this._updateItemWidget(widget, item, false),
+                calculateItemGeometry: (item, bounds) => this._calculateItemGeometry(item, false, bounds),
+                renderItemFn: (item, session, geometry) => this._createItemWidget(item, false, geometry),
+                updateItemFn: (widget, item, session, geometry) => this._updateItemWidget(widget, item, false, geometry),
             });
         }
 
@@ -97,14 +99,15 @@ export const ClipboardListView = GObject.registerClass(
          * Get item options.
          *
          * @param {boolean} isPinned Whether the item is pinned.
+         * @param {Object} geometry Layout geometry with symmetric width and height.
          * @returns {Object} Options object.
          * @override
          */
-        _getItemOptions(isPinned) {
-            const rowGeometry = ClipboardListItemFactory.calculateRowGeometry({
-                extensionWidth: this._settings?.get_int('extension-width'),
-                showActionBar: this._settings?.get_boolean('clipboard-show-action-bar'),
-            });
+        _getItemOptions(isPinned, geometry) {
+            Logger.assert(Boolean(geometry), 'ClipboardListView requires layout geometry to compute item options.', 'ClipboardListView');
+            const width = geometry.width;
+            const height = geometry.height;
+            assertValidLayoutAxes(width, height, { context: 'ClipboardListView' });
 
             return {
                 isPinned,
@@ -116,9 +119,8 @@ export const ClipboardListView = GObject.registerClass(
                 onSelectionChanged: this._onSelectionChanged,
                 checkboxIconsMap: this._checkboxIconsMap,
                 settings: this._settings,
-                rowGeometry,
-                availableWidth: rowGeometry.availableWidth,
-                availableHeight: rowGeometry.availableHeight,
+                width,
+                height,
             };
         }
 
@@ -157,26 +159,55 @@ export const ClipboardListView = GObject.registerClass(
          *
          * @param {Object} itemData The item data.
          * @param {boolean} isPinned Whether this item is pinned.
+         * @param {Object} geometry Layout geometry.
          * @returns {St.Widget} The created widget.
          * @private
          */
-        _createItemWidget(itemData, isPinned) {
-            const options = this._getItemOptions(isPinned);
+        _createItemWidget(itemData, isPinned, geometry) {
+            const options = this._getItemOptions(isPinned, geometry);
             return ClipboardListItemFactory.createItem(itemData, options);
         }
 
         /**
-         * Calculate the height of a list item.
+         * Calculate the 2D dimensions of a list item.
          *
          * @param {Object} item The item data.
-         * @returns {number} The resolved height in pixels.
+         * @param {boolean} isPinned Whether the item belongs to the pinned list.
+         * @param {Object} bounds Allocated layout bounds.
+         * @returns {Object} Resolved 2D dimensions.
          * @private
          */
-        _calculateItemHeight(item) {
-            if (!item) return ListMetrics.ITEM_HEIGHT;
-            const options = this._getItemOptions(false);
-            const metadata = this._registry ? this._registry.getViewMetadata(null, item, options) : null;
-            return metadata?.listHeight || ListMetrics.ITEM_HEIGHT;
+        _calculateItemGeometry(item, isPinned, bounds) {
+            Logger.assert(Boolean(item), 'ClipboardListView requires item data to calculate geometry.', 'ClipboardListView');
+            Logger.assert(Boolean(this._registry), 'ClipboardListView requires registry to calculate geometry.', 'ClipboardListView');
+            Logger.assert(Boolean(bounds), 'ClipboardListView requires allocated layout bounds to calculate item geometry.', 'ClipboardListView');
+
+            assertValidLayoutAxes(bounds.width, bounds.height, { context: 'ClipboardListView' });
+            Logger.assert(typeof bounds.width === 'number' && bounds.width > 0, 'ClipboardListView requires positive width to calculate item geometry.', 'ClipboardListView');
+
+            const actionCount = this._registry.resolveItemActionCount(item, {
+                settings: this._settings,
+                manager: this._manager,
+                isPinned,
+            });
+            const baseOptions = this._getItemOptions(isPinned, bounds);
+            const cardGeometry = ClipboardListItemFactory.resolveItemCardGeometry(baseOptions, actionCount);
+            const options = {
+                ...baseOptions,
+                cardGeometry,
+                availableWidth: cardGeometry.availableWidth,
+                availableHeight: cardGeometry.availableHeight,
+            };
+            const metadata = this._registry.getViewMetadata(null, item, options);
+            const hasDefinition = Boolean(this._registry.getDefinition(item.type));
+            Logger.assert(
+                !hasDefinition || (typeof metadata?.listHeight === 'number' && metadata.listHeight > 0),
+                'ClipboardListView requires registered definitions to return positive listHeight.',
+                'ClipboardListView',
+            );
+            const width = bounds.width;
+            const height = hasDefinition ? metadata.listHeight : ListMetrics.ITEM_HEIGHT;
+            return { width, height };
         }
 
         // ========================================================================
