@@ -193,7 +193,7 @@ export class GifGenericProvider {
                 mapped.height = parseInt(this._getValueByPath(item, map.item.height), 10);
                 return mapped;
             })
-            .filter((item) => item.preview_url && item.full_url && item.width > 0);
+            .filter((item) => item.preview_url && item.full_url && item.width > 0 && item.height > 0);
 
         return { results, next_offset: nextOffset };
     }

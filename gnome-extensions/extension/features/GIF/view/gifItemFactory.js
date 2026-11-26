@@ -50,13 +50,10 @@ export class GifItemFactory {
      *
      * @param {object} itemData The GIF data.
      * @param {Function} onSelected Callback when item is selected.
-     * @returns {St.Bin|null} The created widget
+     * @returns {St.Bin} The created widget.
      */
     createItem(itemData, onSelected) {
-        if (!this._isValidItemData(itemData)) {
-            Logger.warn('Skipping item with invalid data', itemData);
-            return null;
-        }
+        Logger.assert(this._isValidItemData(itemData), 'GifItemFactory requires item data with preview_url and positive width and height.', 'GifItemFactory');
 
         const bin = new St.Bin({
             style_class: 'gif-grid-button button',
@@ -92,11 +89,11 @@ export class GifItemFactory {
      * Validate that item data has all required properties.
      *
      * @param {object} itemData The item data to validate.
-     * @returns {boolean} True if valid
+     * @returns {boolean} True if valid.
      * @private
      */
     _isValidItemData(itemData) {
-        return itemData && itemData.preview_url && itemData.width && itemData.height;
+        return Boolean(itemData && itemData.preview_url && typeof itemData.width === 'number' && itemData.width > 0 && typeof itemData.height === 'number' && itemData.height > 0);
     }
 
     /**
