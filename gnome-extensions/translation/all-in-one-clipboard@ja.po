@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-05 01:56+0000\n"
+"POT-Creation-Date: 2026-11-26 11:28+0000\n"
 "PO-Revision-Date: 2026-11-02 11:42+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,124 +17,124 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:73
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
 msgid "Unknown Contact"
 msgstr "不明な連絡先"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:75
 msgid "Email"
 msgstr "電子メール"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:75
 msgid "Phone"
 msgstr "電話"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:120
 msgid "Paste as Plain Text"
 msgstr "プレーンテキストとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:124
 msgid "Paste as Rich HTML"
 msgstr "リッチHTMLとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:137
 msgid "Paste Images"
 msgstr "画像として貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:123
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
 msgstr "リンクを開く"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:129
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
 msgid "Paste Link"
 msgstr "リンクを貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:81
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:82
 msgid "Resource"
 msgstr "リソース"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:128
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:130
 #, javascript-format
 msgid "%s and %d other file"
 msgid_plural "%s and %d other files"
 msgstr[0] "%s および %d 他のファイル"
 msgstr[1] "%s および %d 個の他のファイル"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:129
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:131
 #, javascript-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] "%d ファイル"
 msgstr[1] "%d ファイル"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:132
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:134
 #, javascript-format
 msgid "%s and %d other folder"
 msgid_plural "%s and %d other folders"
 msgstr[0] "%s と %d の他のフォルダー"
 msgstr[1] "%s と %d 個の他のフォルダー"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:133
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:135
 #, javascript-format
 msgid "%d folder"
 msgid_plural "%d folders"
 msgstr[0] "%d フォルダ"
 msgstr[1] "%d 個のフォルダー"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:136
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:138
 #, javascript-format
 msgid "%s and %d other item"
 msgid_plural "%s and %d other items"
 msgstr[0] "%s と %d の他の項目"
 msgstr[1] "%s と %d 個の他のアイテム"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:137
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:139
 #, javascript-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] "%d 個のアイテム"
 msgstr[1] "%d 個のアイテム"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:185
 msgid "Paste as Files"
 msgstr "ファイルとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:185
 msgid "Paste as File"
 msgstr "ファイルとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:189
 msgid "Paste as Folders"
 msgstr "フォルダーとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:189
 msgid "Paste as Folder"
 msgstr "フォルダーとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:193
 msgid "Paste as Items"
 msgstr "項目として貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:193
 msgid "Paste as Item"
 msgstr "項目として貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:200
 msgid "Paste as Paths"
 msgstr "パスとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:200
 msgid "Paste as Path"
 msgstr "パスとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:206
 msgid "Paste as URIs"
 msgstr "URIとして貼り付け"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:206
 msgid "Paste as URI"
 msgstr "URIとして貼り付け"
 
@@ -805,11 +805,11 @@ msgstr "すべての選択を解除"
 msgid "Stop Private Mode (Resume Recording)"
 msgstr "プライベートモードを終了 (記録を再開)"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:48
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:49
 msgid "Cannot be recovered"
 msgstr "回復できません"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:88
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:89
 msgid "Item (Data Lost)"
 msgstr "アイテム (データ損失)"
 
@@ -821,11 +821,11 @@ msgstr "結果が見つかりませんでした。"
 msgid "Clipboard history is empty."
 msgstr "クリップボードの履歴は空です。"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:338
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:329
 msgid "Pinned"
 msgstr "ピン留め"
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:356
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:347
 msgid "History"
 msgstr "履歴"
 

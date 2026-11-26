@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-05 01:57+0000\n"
+"POT-Creation-Date: 2026-11-26 11:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -16,124 +16,124 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:73
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
 msgid "Unknown Contact"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:75
 msgid "Email"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:74
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionContact.js:75
 msgid "Phone"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:118
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:120
 msgid "Paste as Plain Text"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:122
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:124
 msgid "Paste as Rich HTML"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:135
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionHtml.js:137
 msgid "Paste Images"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:121
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:123
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:353
 msgid "Launch Link"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:127
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionLink.js:129
 #: gnome-extensions/extension/features/Clipboard/preferences/clipboardContentPrefs.js:352
 #: gnome-extensions/extension/features/GIF/preferences/gifPreferenceGroup.js:120
 msgid "Paste Link"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:81
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:82
 msgid "Resource"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:128
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:130
 #, javascript-format
 msgid "%s and %d other file"
 msgid_plural "%s and %d other files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:129
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:131
 #, javascript-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:132
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:134
 #, javascript-format
 msgid "%s and %d other folder"
 msgid_plural "%s and %d other folders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:133
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:135
 #, javascript-format
 msgid "%d folder"
 msgid_plural "%d folders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:136
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:138
 #, javascript-format
 msgid "%s and %d other item"
 msgid_plural "%s and %d other items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:137
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:139
 #, javascript-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:185
 msgid "Paste as Files"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:182
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:185
 msgid "Paste as File"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:189
 msgid "Paste as Folders"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:186
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:189
 msgid "Paste as Folder"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:193
 msgid "Paste as Items"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:190
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:193
 msgid "Paste as Item"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:200
 msgid "Paste as Paths"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:197
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:200
 msgid "Paste as Path"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:206
 msgid "Paste as URIs"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:203
+#: gnome-extensions/extension/features/Clipboard/definitions/clipboardDefinitionResource.js:206
 msgid "Paste as URI"
 msgstr ""
 
@@ -804,11 +804,11 @@ msgstr ""
 msgid "Stop Private Mode (Resume Recording)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:48
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:49
 msgid "Cannot be recovered"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:88
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseItemConfig.js:89
 msgid "Item (Data Lost)"
 msgstr ""
 
@@ -820,11 +820,11 @@ msgstr ""
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:338
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:329
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:356
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:347
 msgid "History"
 msgstr ""
 
