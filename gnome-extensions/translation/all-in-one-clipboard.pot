@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: all-in-one-clipboard\n"
 "Report-Msgid-Bugs-To: https://github.com/NiffirgkcaJ/all-in-one-clipboard/issues\n"
-"POT-Creation-Date: 2026-11-26 11:28+0000\n"
+"POT-Creation-Date: 2026-11-27 03:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -812,19 +812,19 @@ msgstr ""
 msgid "Item (Data Lost)"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:167
 msgid "No results found."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:166
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:167
 msgid "Clipboard history is empty."
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:329
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:330
 msgid "Pinned"
 msgstr ""
 
-#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:347
+#: gnome-extensions/extension/features/Clipboard/view/clipboardBaseView.js:348
 msgid "History"
 msgstr ""
 
