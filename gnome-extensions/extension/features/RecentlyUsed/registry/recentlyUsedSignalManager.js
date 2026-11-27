@@ -137,15 +137,7 @@ export class RecentlyUsedSignalManager {
             }
 
             const { obj, id } = normalized;
-
-            try {
-                if (obj.signal_handler_is_connected && !obj.signal_handler_is_connected(id)) {
-                    return;
-                }
-                obj.disconnect(id);
-            } catch {
-                // Ignore disconnect errors during teardown.
-            }
+            obj.disconnect(id);
         });
 
         this._signalIds = [];

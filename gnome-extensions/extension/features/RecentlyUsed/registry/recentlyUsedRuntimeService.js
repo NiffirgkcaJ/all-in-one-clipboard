@@ -85,12 +85,7 @@ export class RecentlyUsedRuntimeService {
     stop() {
         const sectionDefinitions = this.getOrderedSections();
         for (const section of sectionDefinitions) {
-            try {
-                section.destroy();
-            } catch (e) {
-                const message = e?.message ?? String(e);
-                Logger.warn(`Recently Used section '${section.id}' failed to destroy: ${message}`);
-            }
+            section.destroy();
         }
 
         this._signalManager.disconnect();

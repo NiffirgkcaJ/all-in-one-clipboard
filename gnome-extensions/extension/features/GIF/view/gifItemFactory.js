@@ -1,5 +1,4 @@
 import Clutter from 'gi://Clutter';
-import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { createStaticIcon } from '../../../shared/utilities/utilityIcon.js';
@@ -124,14 +123,7 @@ export class GifItemFactory {
                 y_expand: true,
             });
 
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                if (session !== this._renderSession) {
-                    return GLib.SOURCE_REMOVE;
-                }
-
-                bin.set_child(imageActor);
-                return GLib.SOURCE_REMOVE;
-            });
+            bin.set_child(imageActor);
         } catch (e) {
             if (session !== this._renderSession) {
                 return;
@@ -148,12 +140,9 @@ export class GifItemFactory {
      * @private
      */
     _handleError(bin, error) {
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-            if (bin.get_stage()) {
-                bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER));
-            }
-            return GLib.SOURCE_REMOVE;
-        });
+        if (bin.get_stage()) {
+            bin.set_child(createStaticIcon(GifIcons.ERROR_PLACEHOLDER));
+        }
 
         if (!error.message.startsWith('GIF Tab') && !error.message.startsWith('Render session')) {
             Logger.warn(`Failed to load GIF preview: ${error.message}`);

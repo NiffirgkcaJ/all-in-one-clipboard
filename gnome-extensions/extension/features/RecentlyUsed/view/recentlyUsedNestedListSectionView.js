@@ -84,16 +84,10 @@ function connectNestedScrollLifecycle({ nestedScrollView, bottomThresholdPx, app
     }
 
     nestedScrollView.connect('destroy', () => {
-        if (!adjustment || !adjustmentSignalId) {
-            return;
-        }
-
-        try {
+        if (adjustment && adjustmentSignalId) {
             adjustment.disconnect(adjustmentSignalId);
-        } catch {
-            // Ignore stale disconnect during actor teardown.
+            adjustmentSignalId = 0;
         }
-        adjustmentSignalId = 0;
     });
 
     maybeAppendMore();

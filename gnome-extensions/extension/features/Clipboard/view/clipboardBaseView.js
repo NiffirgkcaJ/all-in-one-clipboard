@@ -70,6 +70,7 @@ export const ClipboardBaseView = GObject.registerClass(
             this._restoreFocusTimeoutId = 0;
             this._focusIdleId = 0;
             this._scrollIdleId = 0;
+            this._yieldIdleId = 0;
             this._scrollSignalIds = [];
             this._checkboxIconsMap = new Map();
             this._fontListenerRemover = addFontChangeListener(() => this._onFontChanged());
@@ -615,7 +616,12 @@ export const ClipboardBaseView = GObject.registerClass(
 
                     // Yield frame to prevent UI freeze during heavy renders.
                     await new Promise((resolve) => {
-                        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                        if (this._yieldIdleId) {
+                            GLib.source_remove(this._yieldIdleId);
+                            this._yieldIdleId = 0;
+                        }
+                        this._yieldIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                            this._yieldIdleId = 0;
                             resolve();
                             return GLib.SOURCE_REMOVE;
                         });
@@ -931,6 +937,10 @@ export const ClipboardBaseView = GObject.registerClass(
         destroy() {
             this._renderSession = {};
 
+            if (this._yieldIdleId) {
+                GLib.source_remove(this._yieldIdleId);
+                this._yieldIdleId = 0;
+            }
             if (this._restoreFocusTimeoutId) {
                 GLib.source_remove(this._restoreFocusTimeoutId);
                 this._restoreFocusTimeoutId = 0;

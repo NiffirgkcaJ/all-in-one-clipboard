@@ -358,17 +358,10 @@ export const MenuContentArea = GObject.registerClass(
          * @private
          */
         _disconnectTabSignals(tabActor) {
-            if (!tabActor?.constructor.$gtype) return;
-
-            try {
-                if (this._currentTabVisibilitySignalId > 0 && GObject.signal_lookup('set-main-tab-bar-visibility', tabActor.constructor.$gtype)) {
-                    tabActor.disconnect(this._currentTabVisibilitySignalId);
-                }
-            } catch {
-                // Ignore disconnect errors.
-            } finally {
-                this._currentTabVisibilitySignalId = 0;
+            if (tabActor && this._currentTabVisibilitySignalId > 0) {
+                tabActor.disconnect(this._currentTabVisibilitySignalId);
             }
+            this._currentTabVisibilitySignalId = 0;
         }
 
         /**

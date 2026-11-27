@@ -41,6 +41,7 @@ export class ClipboardStorage {
         this._previewWarmupId = 0;
         this._previewWarmupQueue = null;
         this._previewWarmupActive = false;
+        this._pruneIdleIds = new Set();
 
         this._ensureDirectories();
     }
@@ -200,16 +201,21 @@ export class ClipboardStorage {
             itemsToRemove.push(history.pop());
         }
 
+        let idleId = 0;
         const processBatch = () => {
-            if (itemsToRemove.length === 0) return GLib.SOURCE_REMOVE;
-
             const batch = itemsToRemove.splice(0, PRUNE_BATCH_SIZE);
             batch.forEach((item) => this.deleteItemFiles(item));
 
-            return itemsToRemove.length > 0 ? GLib.SOURCE_CONTINUE : GLib.SOURCE_REMOVE;
+            if (itemsToRemove.length > 0) {
+                return GLib.SOURCE_CONTINUE;
+            }
+
+            this._pruneIdleIds.delete(idleId);
+            return GLib.SOURCE_REMOVE;
         };
 
-        GLib.idle_add(GLib.PRIORITY_LOW, processBatch);
+        idleId = GLib.idle_add(GLib.PRIORITY_LOW, processBatch);
+        this._pruneIdleIds.add(idleId);
     }
 
     /**
@@ -405,6 +411,11 @@ export class ClipboardStorage {
      * Clean up resources and stop background operations before destruction.
      */
     destroy() {
+        for (const idleId of this._pruneIdleIds) {
+            GLib.source_remove(idleId);
+        }
+        this._pruneIdleIds.clear();
+
         if (this._previewWarmupId) {
             GLib.source_remove(this._previewWarmupId);
             this._previewWarmupId = 0;
